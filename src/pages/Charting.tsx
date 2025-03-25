@@ -1,669 +1,479 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { 
+  Avatar, 
+  AvatarFallback, 
+  AvatarImage 
+} from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { 
-  Calendar,
-  CheckCircle, 
-  ChevronDown, 
-  ChevronLeft, 
-  ClipboardList, 
-  Clock, 
-  FileText, 
-  HeartPulse, 
+  PlusCircle, 
   MoreHorizontal, 
-  Pill, 
-  Plus, 
-  Stethoscope, 
-  Thermometer 
+  Search, 
+  User, 
+  FileText, 
+  Calendar, 
+  PenTool,
+  FilePlus,
+  Loader2,
+  Activity
 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 
 const Charting = () => {
-  const [patient, setPatient] = useState({
-    id: "P003",
-    name: "Robert Johnson",
-    age: 67,
-    gender: "Male",
-    dob: "1956-09-15",
-    bloodType: "O+",
-    allergies: ["Penicillin", "Sulfa drugs"],
-    primaryCondition: "Diabetes Type 2",
-    assignedDoctor: "Dr. Jane Smith"
-  });
-  
-  const [vitalSigns, setVitalSigns] = useState({
-    temperature: "",
-    heartRate: "",
-    bloodPressure: "",
-    respiratoryRate: "",
-    oxygenSaturation: "",
-    weight: "",
-    height: "",
-    bmi: "",
-    pain: ""
-  });
-  
-  const [notesText, setNotesText] = useState("");
-  const [diagnosisText, setDiagnosisText] = useState("");
-  const [selectedMedications, setSelectedMedications] = useState<string[]>([]);
-  
   const { toast } = useToast();
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const handleVitalChange = (field: string, value: string) => {
-    setVitalSigns({
-      ...vitalSigns,
-      [field]: value
-    });
-    
-    // If we're updating height or weight, recalculate BMI
-    if (field === "height" || field === "weight") {
-      const height = field === "height" ? parseFloat(value) : parseFloat(vitalSigns.height);
-      const weight = field === "weight" ? parseFloat(value) : parseFloat(vitalSigns.weight);
-      
-      if (height && weight) {
-        // BMI = weight (kg) / (height (m))^2
-        const heightInMeters = height / 100;
-        const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
-        setVitalSigns(prev => ({
-          ...prev,
-          bmi
-        }));
-      }
-    }
-  };
-  
-  const handleSaveChart = () => {
-    // Here would be API call to save the chart data
-    // For demo, just simulate a successful save
-    
-    toast({
-      title: "Chart Saved",
-      description: "Patient chart has been updated successfully.",
-      duration: 3000,
-    });
-    
-    // Also simulate earning CareCoins
-    toast({
-      title: "CareCoins Earned",
-      description: "You've earned 25 CareCoins for completing this chart.",
-      duration: 3000,
-    });
-  };
-  
-  const availableMedications = [
-    "Metformin 500mg",
-    "Lisinopril 10mg",
-    "Atorvastatin 20mg",
-    "Glipizide 5mg",
-    "Aspirin 81mg",
-    "Insulin Glargine",
-    "Hydrochlorothiazide 25mg"
+  // Mock data
+  const patients = [
+    {
+      id: "P001",
+      name: "John Smith",
+      age: 45,
+      status: "Active",
+      lastVisit: "2023-06-15",
+      imgUrl: null,
+    },
+    {
+      id: "P002",
+      name: "Maria Rodriguez",
+      age: 32,
+      status: "Active",
+      lastVisit: "2023-06-20",
+      imgUrl: null,
+    },
+    {
+      id: "P003",
+      name: "Robert Johnson",
+      age: 67,
+      status: "Critical",
+      lastVisit: "2023-06-22",
+      imgUrl: null,
+    },
+    {
+      id: "P004",
+      name: "Emily Davis",
+      age: 28,
+      status: "Stable",
+      lastVisit: "2023-06-18",
+      imgUrl: null,
+    },
   ];
   
-  const recentChartEntries = [
+  const selectedPatientData = patients.find(p => p.id === selectedPatient);
+  
+  const notes = [
     {
-      id: 1,
-      date: "2023-06-18",
-      provider: "Dr. Michael Chen",
-      type: "Follow-up",
-      notes: "Patient reports improved blood glucose levels. Continuing current medication regimen."
-    },
-    {
-      id: 2,
-      date: "2023-05-30",
-      provider: "Dr. Sarah Lee",
-      type: "Lab Review",
-      notes: "A1C improved to 7.2 from 8.1. LDL slightly elevated at 110 mg/dL."
-    },
-    {
-      id: 3,
-      date: "2023-05-12",
+      id: "N001",
+      patientId: "P001",
+      date: "2023-06-15T10:30:00",
       provider: "Dr. Jane Wilson",
-      type: "Regular Check-up",
-      notes: "Patient reports occasional dizziness in the mornings. Adjusting insulin dosage."
-    }
+      type: "Progress Note",
+      content: "Patient presents with persistent headaches for the past week. Reports pain level of 7/10. Prescribed acetaminophen 500mg every 6 hours and recommended rest.",
+    },
+    {
+      id: "N002",
+      patientId: "P001",
+      date: "2023-06-10T14:15:00",
+      provider: "Dr. Jane Wilson",
+      type: "Lab Results",
+      content: "CBC results show normal white blood cell count. Blood pressure slightly elevated at 140/90. Recommended lifestyle modifications including reduced sodium intake and increased physical activity.",
+    },
+    {
+      id: "N003",
+      patientId: "P002",
+      date: "2023-06-20T09:45:00",
+      provider: "Dr. Jane Wilson",
+      type: "Progress Note",
+      content: "Regular prenatal checkup. Fetal heartbeat normal at 140 bpm. Mother's weight gain is on track. No concerns at this time.",
+    },
+    {
+      id: "N004",
+      patientId: "P003",
+      date: "2023-06-22T16:00:00",
+      provider: "Dr. Michael Chen",
+      type: "Progress Note",
+      content: "Patient experiencing increased difficulty breathing. Oxygen saturation at 92%. Adjusted medication and scheduled follow-up in 3 days.",
+    },
   ];
+  
+  const patientNotes = selectedPatient 
+    ? notes.filter(note => note.patientId === selectedPatient)
+    : [];
+  
+  const filteredPatients = searchQuery 
+    ? patients.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        p.id.toLowerCase().includes(searchQuery.toLowerCase()))
+    : patients;
+    
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "stable":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "critical":
+        return "bg-red-50 text-red-700 border-red-200";
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200";
+    }
+  };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  };
+  
+  const formatDateTime = (dateTimeString: string) => {
+    const date = new Date(dateTimeString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+  
+  const handleSaveNote = () => {
+    if (!noteText.trim()) {
+      toast({
+        title: "Note cannot be empty",
+        description: "Please enter content for your note",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsCreatingNote(false);
+    setNoteText("");
+    
+    toast({
+      title: "Note saved",
+      description: "Your note has been saved successfully",
+    });
+  };
+  
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="rounded-full"
-              >
-                <ChevronLeft className="h-5 w-5" />
+      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
+        {/* Patient List Section */}
+        <div className="w-full md:w-80 flex flex-col">
+          <Card className="shadow-sm flex-1 flex flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Patients</CardTitle>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search patients..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="px-1.5 py-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full pr-3">
+                <div className="space-y-1">
+                  {filteredPatients.map((patient) => (
+                    <button
+                      key={patient.id}
+                      className={`w-full flex items-center p-3 rounded-md text-left hover:bg-muted transition-colors ${
+                        selectedPatient === patient.id ? "bg-muted" : ""
+                      }`}
+                      onClick={() => setSelectedPatient(patient.id)}
+                    >
+                      <Avatar className="h-9 w-9 mr-3">
+                        <AvatarImage src={patient.imgUrl || ""} alt={patient.name} />
+                        <AvatarFallback className="text-xs">
+                          {patient.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{patient.name}</div>
+                        <div className="text-xs text-muted-foreground flex gap-2 items-center mt-0.5">
+                          <span>{patient.id}</span>
+                          <span>•</span>
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs py-0 h-5 ${getStatusColor(patient.status)}`}
+                          >
+                            {patient.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                  
+                  {filteredPatients.length === 0 && (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No patients found
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+            <CardFooter className="border-t p-3">
+              <Button className="w-full gap-2 bg-health-600 hover:bg-health-700">
+                <PlusCircle className="h-4 w-4" />
+                <span>Add Patient</span>
               </Button>
-              <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                Patient Chart
-                <span className="text-muted-foreground">|</span>
-                <span>{patient.name}</span>
-              </h1>
-            </div>
-            <p className="text-muted-foreground ml-10">
-              {patient.age} year old {patient.gender} • ID: {patient.id} • DOB: {patient.dob}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
-              <FileText className="h-4 w-4" />
-              <span>View History</span>
-            </Button>
-            <Button 
-              className="gap-2 bg-health-600 hover:bg-health-700"
-              onClick={handleSaveChart}
-            >
-              <CheckCircle className="h-4 w-4" />
-              <span>Save Chart</span>
-            </Button>
-          </div>
+            </CardFooter>
+          </Card>
         </div>
         
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Stethoscope className="h-5 w-5 text-muted-foreground" />
-                  Vital Signs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="temperature" className="text-sm">Temperature (°C)</Label>
-                    <div className="flex items-center gap-2">
-                      <Thermometer className="h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="temperature" 
-                        placeholder="36.5" 
-                        value={vitalSigns.temperature}
-                        onChange={(e) => handleVitalChange("temperature", e.target.value)}
-                      />
-                    </div>
+        {/* Charting Area */}
+        <div className="flex-1 flex flex-col h-full">
+          {selectedPatient ? (
+            <Card className="shadow-sm flex-1 flex flex-col">
+              <CardHeader className="pb-0">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{selectedPatientData?.name}</CardTitle>
+                    <CardDescription>
+                      {selectedPatientData?.id} • {selectedPatientData?.age} years old
+                    </CardDescription>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="heartRate" className="text-sm">Heart Rate (bpm)</Label>
-                    <div className="flex items-center gap-2">
-                      <HeartPulse className="h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="heartRate" 
-                        placeholder="75" 
-                        value={vitalSigns.heartRate}
-                        onChange={(e) => handleVitalChange("heartRate", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bloodPressure" className="text-sm">Blood Pressure (mmHg)</Label>
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="bloodPressure" 
-                        placeholder="120/80" 
-                        value={vitalSigns.bloodPressure}
-                        onChange={(e) => handleVitalChange("bloodPressure", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="respiratoryRate" className="text-sm">Respiratory Rate</Label>
-                    <Input 
-                      id="respiratoryRate" 
-                      placeholder="16" 
-                      value={vitalSigns.respiratoryRate}
-                      onChange={(e) => handleVitalChange("respiratoryRate", e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="oxygenSaturation" className="text-sm">Oxygen Saturation (%)</Label>
-                    <Input 
-                      id="oxygenSaturation" 
-                      placeholder="98" 
-                      value={vitalSigns.oxygenSaturation}
-                      onChange={(e) => handleVitalChange("oxygenSaturation", e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="pain" className="text-sm">Pain (0-10)</Label>
-                    <Select 
-                      onValueChange={(value) => handleVitalChange("pain", value)}
-                      value={vitalSigns.pain}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select pain level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                          <SelectItem key={level} value={level.toString()}>
-                            {level} - {level === 0 ? "No Pain" : level < 4 ? "Mild" : level < 7 ? "Moderate" : "Severe"}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="weight" className="text-sm">Weight (kg)</Label>
-                    <Input 
-                      id="weight" 
-                      placeholder="75.5" 
-                      value={vitalSigns.weight}
-                      onChange={(e) => handleVitalChange("weight", e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="height" className="text-sm">Height (cm)</Label>
-                    <Input 
-                      id="height" 
-                      placeholder="175" 
-                      value={vitalSigns.height}
-                      onChange={(e) => handleVitalChange("height", e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bmi" className="text-sm">BMI</Label>
-                    <Input 
-                      id="bmi" 
-                      placeholder="Calculated" 
-                      value={vitalSigns.bmi}
-                      readOnly
-                      className="bg-muted"
-                    />
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="gap-2" size="sm">
+                      <Calendar className="h-4 w-4" />
+                      <span>Schedule</span>
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <User className="h-4 w-4 mr-2" />
+                          <span>View Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <FileText className="h-4 w-4 mr-2" />
+                          <span>Full History</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <Activity className="h-4 w-4 mr-2" />
+                          <span>Vital Signs</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-muted-foreground" />
-                  Notes & Observations
-                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="soap">
-                  <TabsList>
-                    <TabsTrigger value="soap">SOAP</TabsTrigger>
-                    <TabsTrigger value="narrative">Narrative</TabsTrigger>
-                    <TabsTrigger value="templates">Templates</TabsTrigger>
+              
+              <Tabs defaultValue="notes" className="flex-1 flex flex-col">
+                <div className="px-6">
+                  <TabsList className="my-2">
+                    <TabsTrigger value="notes">Notes</TabsTrigger>
+                    <TabsTrigger value="vitals">Vital Signs</TabsTrigger>
+                    <TabsTrigger value="meds">Medications</TabsTrigger>
+                    <TabsTrigger value="labs">Lab Results</TabsTrigger>
+                    <TabsTrigger value="imaging">Imaging</TabsTrigger>
                   </TabsList>
-                  
-                  <TabsContent value="soap" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Subjective</Label>
-                      <Textarea 
-                        placeholder="Patient reports..."
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Objective</Label>
-                      <Textarea 
-                        placeholder="Upon examination..."
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Assessment</Label>
-                      <Textarea 
-                        placeholder="Based on findings..."
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Plan</Label>
-                      <Textarea 
-                        placeholder="Treatment plan includes..."
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="narrative" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Clinical Notes</Label>
-                      <Textarea 
-                        placeholder="Enter your observations and notes here..."
-                        className="min-h-[300px]"
-                        value={notesText}
-                        onChange={(e) => setNotesText(e.target.value)}
-                      />
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="templates" className="mt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Button variant="outline" className="justify-start text-left h-auto py-3">
-                        <div>
-                          <div className="font-medium">Diabetes Follow-up</div>
-                          <div className="text-sm text-muted-foreground">
-                            Template for routine diabetes management
-                          </div>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" className="justify-start text-left h-auto py-3">
-                        <div>
-                          <div className="font-medium">Cardiac Assessment</div>
-                          <div className="text-sm text-muted-foreground">
-                            Template for cardiovascular evaluation
-                          </div>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" className="justify-start text-left h-auto py-3">
-                        <div>
-                          <div className="font-medium">Physical Examination</div>
-                          <div className="text-sm text-muted-foreground">
-                            Comprehensive physical exam template
-                          </div>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" className="justify-start text-left h-auto py-3">
-                        <div>
-                          <div className="font-medium">Mental Health Assessment</div>
-                          <div className="text-sm text-muted-foreground">
-                            Template for psychological evaluation
-                          </div>
-                        </div>
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                  Diagnosis & Treatment
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Diagnosis</Label>
-                    <Textarea 
-                      placeholder="Enter diagnosis..."
-                      className="min-h-[80px]"
-                      value={diagnosisText}
-                      onChange={(e) => setDiagnosisText(e.target.value)}
-                    />
+                </div>
+                
+                <TabsContent value="notes" className="flex-1 flex flex-col pt-0 px-0 m-0">
+                  <div className="px-6 py-3 border-b flex items-center justify-between">
+                    <h3 className="font-medium">Patient Notes</h3>
+                    <Button 
+                      className="gap-2 bg-health-600 hover:bg-health-700"
+                      size="sm"
+                      onClick={() => setIsCreatingNote(true)}
+                    >
+                      <PenTool className="h-4 w-4" />
+                      <span>New Note</span>
+                    </Button>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Treatment Plan</Label>
-                    <Textarea 
-                      placeholder="Enter treatment plan..."
-                      className="min-h-[80px]"
-                    />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Medications</Label>
-                      <Button variant="outline" size="sm" className="gap-1">
-                        <Plus className="h-4 w-4" />
-                        <span>Add</span>
-                      </Button>
-                    </div>
-                    
-                    <div className="border rounded-md">
-                      {selectedMedications.length === 0 ? (
-                        <div className="p-4 text-center text-muted-foreground">
-                          No medications added
-                        </div>
-                      ) : (
-                        <div className="divide-y">
-                          {selectedMedications.map((med, index) => (
-                            <div key={index} className="p-3 flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Pill className="h-4 w-4 text-muted-foreground" />
-                                <span>{med}</span>
-                              </div>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
+                  <ScrollArea className="flex-1">
+                    <div className="px-6 py-2">
+                      {isCreatingNote && (
+                        <Card className="mb-4 border-health-200 shadow-md">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base">New Progress Note</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <Textarea 
+                              placeholder="Enter your note here..."
+                              className="min-h-[120px]"
+                              value={noteText}
+                              onChange={(e) => setNoteText(e.target.value)}
+                            />
+                            
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={handleFileUpload}
+                              >
+                                <FilePlus className="h-4 w-4 mr-2" />
+                                Attach File
                               </Button>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                ref={fileInputRef}
+                              />
                             </div>
-                          ))}
+                          </CardContent>
+                          <CardFooter className="flex justify-end gap-2 pt-0">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setIsCreatingNote(false);
+                                setNoteText("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm"
+                              className="bg-health-600 hover:bg-health-700"
+                              onClick={handleSaveNote}
+                            >
+                              Save Note
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      )}
+                      
+                      {patientNotes.map((note) => (
+                        <Card key={note.id} className="mb-4">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-base">{note.type}</CardTitle>
+                                <CardDescription>
+                                  {formatDateTime(note.date)} by {note.provider}
+                                </CardDescription>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem>Print</DropdownMenuItem>
+                                  <DropdownMenuItem>Share</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm">{note.content}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      
+                      {patientNotes.length === 0 && !isCreatingNote && (
+                        <div className="text-center py-10 text-muted-foreground">
+                          No notes found for this patient. Create a new note to get started.
                         </div>
                       )}
                     </div>
-                    
-                    <div className="mt-2 p-2 border rounded-md bg-muted/50">
-                      <div className="text-sm font-medium mb-2">Suggested Medications</div>
-                      <div className="flex flex-wrap gap-2">
-                        {availableMedications.map((med, index) => (
-                          <Button 
-                            key={index} 
-                            variant="secondary" 
-                            size="sm"
-                            onClick={() => {
-                              if (!selectedMedications.includes(med)) {
-                                setSelectedMedications([...selectedMedications, med]);
-                              }
-                            }}
-                          >
-                            {med}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
+                  </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent value="vitals" className="flex-1 flex flex-col m-0">
+                  <div className="px-6 py-3 border-b flex items-center justify-between">
+                    <h3 className="font-medium">Vital Signs</h3>
+                    <Button 
+                      className="gap-2 bg-health-600 hover:bg-health-700"
+                      size="sm"
+                    >
+                      <Activity className="h-4 w-4" />
+                      <span>Record Vitals</span>
+                    </Button>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Follow-up</Label>
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select follow-up type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="office">Office Visit</SelectItem>
-                            <SelectItem value="telehealth">Telehealth</SelectItem>
-                            <SelectItem value="lab">Lab Work</SelectItem>
-                            <SelectItem value="specialist">Specialist Referral</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="flex-1">
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select timeframe" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1week">1 Week</SelectItem>
-                            <SelectItem value="2weeks">2 Weeks</SelectItem>
-                            <SelectItem value="1month">1 Month</SelectItem>
-                            <SelectItem value="3months">3 Months</SelectItem>
-                            <SelectItem value="6months">6 Months</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p>Vital signs tracking is coming soon</p>
+                      <Button variant="link" className="mt-2">
+                        Add Vital Data
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="flex justify-end gap-3">
-                    <Button variant="outline">
-                      Save Draft
-                    </Button>
-                    <Button className="bg-health-600 hover:bg-health-700" onClick={handleSaveChart}>
-                      Complete Chart
-                    </Button>
+                </TabsContent>
+                
+                <TabsContent value="meds" className="m-0">
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p>Medications management is coming soon</p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
+                </TabsContent>
+                
+                <TabsContent value="labs" className="m-0">
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p>Lab results tracking is coming soon</p>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="imaging" className="m-0">
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <p>Imaging records are coming soon</p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </Card>
-          </div>
-          
-          <div className="space-y-6">
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Patient Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                    <span className="text-lg font-semibold">{patient.name.split(" ").map(n => n[0]).join("")}</span>
-                  </div>
-                  <div>
-                    <div className="font-medium">{patient.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {patient.bloodType} • {patient.primaryCondition}
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Date of Birth</span>
-                    <span className="text-sm font-medium">{patient.dob}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Allergies</span>
-                    <div className="flex flex-col items-end">
-                      {patient.allergies.map((allergy, index) => (
-                        <span key={index} className="text-sm font-medium">{allergy}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Primary Provider</span>
-                    <span className="text-sm font-medium">{patient.assignedDoctor}</span>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium">Quick Actions</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Medical Records
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Schedule
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Activity className="h-4 w-4 mr-2" />
-                      Lab Results
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start">
-                      <Pill className="h-4 w-4 mr-2" />
-                      Medications
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Recent Chart History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  {recentChartEntries.map((entry) => (
-                    <AccordionItem key={entry.id} value={entry.id.toString()}>
-                      <AccordionTrigger className="py-3 hover:no-underline">
-                        <div className="flex flex-col items-start">
-                          <div className="font-medium">{entry.type}</div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-2">
-                            <Clock className="h-3 w-3" />
-                            {entry.date}
-                            <span className="h-1 w-1 rounded-full bg-muted-foreground inline-block"></span>
-                            {entry.provider}
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="pt-2 pb-4 px-1">
-                          <p className="text-sm">{entry.notes}</p>
-                          <Button variant="link" size="sm" className="px-0 mt-2">
-                            View full entry
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-                
-                <Button variant="outline" size="sm" className="w-full mt-4">
-                  View all history
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">CareCoins</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="rounded-lg bg-health-50 p-4 flex items-center justify-between">
-                    <div className="text-sm text-health-800">
-                      Complete this chart to earn
-                    </div>
-                    <div className="text-lg font-medium text-health-800">
-                      +25 coins
-                    </div>
-                  </div>
-                  
-                  <div className="text-sm text-muted-foreground">
-                    CareCoins are awarded for quality documentation and comprehensive patient care.
-                  </div>
-                  
-                  <Button variant="outline" size="sm" className="w-full">
-                    View your wallet
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          ) : (
+            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed">
+              <div className="text-center">
+                <h3 className="text-lg font-medium mb-2">Select a Patient</h3>
+                <p className="text-muted-foreground">
+                  Choose a patient from the list to start charting
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

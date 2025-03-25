@@ -23,7 +23,9 @@ import {
   Mail, 
   ShieldCheck, 
   Users, 
-  Wallet 
+  Wallet,
+  TrendingUp,
+  Plus
 } from "lucide-react";
 
 const Settings = () => {

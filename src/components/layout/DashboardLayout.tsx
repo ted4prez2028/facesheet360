@@ -1,41 +1,36 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { TopNav } from "./TopNav";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const authData = localStorage.getItem("healthcareAuth");
-    
-    if (!authData) {
-      // If not authenticated, redirect to login
+    if (!authLoading && !isAuthenticated) {
       toast({
         title: "Authentication required",
         description: "Please log in to access this page.",
         variant: "destructive",
       });
       navigate("/login");
-    } else {
-      setIsAuthenticated(true);
     }
     
     setIsLoading(false);
-  }, [navigate, toast]);
+  }, [isAuthenticated, authLoading, navigate, toast]);
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse-subtle">
