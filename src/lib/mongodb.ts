@@ -1,9 +1,7 @@
-
 import { toast } from "sonner";
 
-// MongoDB connection URL - This would normally be in an environment variable
-// For development purposes, we're using a placeholder
-const MONGODB_API_URL = "https://data.mongodb-api.com/app/healthtrack-api/endpoint";
+// Use MONGODB_URI for connection - this would be set in environment configuration
+const MONGODB_URI = "mongodb+srv://username:password@cluster.mongodb.net/healthtrack?retryWrites=true&w=majority";
 
 // Error handling wrapper for fetch
 const handleResponse = async (response: Response) => {
@@ -20,7 +18,7 @@ export const fetchWithErrorHandling = async (
   options: RequestInit = {}
 ): Promise<any> => {
   try {
-    const response = await fetch(`${MONGODB_API_URL}${endpoint}`, {
+    const response = await fetch(`${MONGODB_URI}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',

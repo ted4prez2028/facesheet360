@@ -9,8 +9,7 @@ const EnvExample = () => {
   const [showDetails, setShowDetails] = useState(false);
 
   const envExample = `# MongoDB Connection
-MONGODB_API_URL=https://data.mongodb-api.com/app/healthtrack-api/endpoint
-MONGODB_API_KEY=your_mongodb_api_key
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/healthtrack?retryWrites=true&w=majority
 
 # Facial Recognition
 FACE_API_KEY=your_facial_recognition_api_key
@@ -68,8 +67,7 @@ ADMIN_INITIAL_PASSWORD=securepassword123`;
         )}
 
         <div className="mt-4 space-y-2 text-sm">
-          <p><strong>MONGODB_API_URL:</strong> The URL endpoint for your MongoDB API</p>
-          <p><strong>MONGODB_API_KEY:</strong> Authentication key for MongoDB API access</p>
+          <p><strong>MONGODB_URI:</strong> The full connection string for MongoDB</p>
           <p><strong>FACE_API_KEY:</strong> API key for facial recognition service</p>
           <p><strong>JWT_SECRET:</strong> Secret key used for signing JWT tokens</p>
           <p><strong>CARECOIN_*:</strong> Settings for the CareCoins reward system</p>
