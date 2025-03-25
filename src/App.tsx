@@ -13,6 +13,7 @@ import Appointments from "./pages/Appointments";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import EnvExample from "./components/EnvExample";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/configuration" element={<EnvExample />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
