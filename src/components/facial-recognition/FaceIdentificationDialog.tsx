@@ -1,45 +1,56 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import FaceCapture from './FaceCapture';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { recognizeFace } from '@/lib/mongodb';
+import { toast } from 'sonner';
 
-interface FaceIdentificationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+const FaceIdentificationDialog = ({ 
+  isOpen, 
+  onClose, 
+  onIdentificationSuccess 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onIdentificationSuccess: (patientId: string) => void 
+}) => {
+  const [faceData, setFaceData] = useState<string | null>(null);
 
-const FaceIdentificationDialog = ({ open, onOpenChange }: FaceIdentificationDialogProps) => {
-  const navigate = useNavigate();
-  const [identifiedPatient, setIdentifiedPatient] = useState<any>(null);
-  
-  const handlePatientIdentified = (patientData: any) => {
-    setIdentifiedPatient(patientData);
-    
-    // Navigate to the patient's chart after a short delay
-    setTimeout(() => {
-      onOpenChange(false);
-      navigate(`/charting?patientId=${patientData._id}`);
-    }, 1500);
+  const handleFaceRecognition = async () => {
+    if (!faceData) {
+      toast.error('No face data captured');
+      return;
+    }
+
+    try {
+      const result = await recognizeFace(faceData);
+      if (result.patientId) {
+        onIdentificationSuccess(result.patientId);
+        toast.success('Patient identified successfully');
+      } else {
+        toast.error('No matching patient found');
+      }
+    } catch (error) {
+      console.error('Face recognition error', error);
+      toast.error('Error during face recognition');
+    }
   };
-  
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Patient Identification</DialogTitle>
+          <DialogTitle>Face Identification</DialogTitle>
           <DialogDescription>
-            {identifiedPatient 
-              ? `Patient identified: ${identifiedPatient.name}`
-              : 'Position the patient's face in the frame to identify them using facial recognition.'
-            }
+            Identify a patient using facial recognition
           </DialogDescription>
         </DialogHeader>
-        
-        <FaceCapture 
-          mode="identify"
-          onSuccess={handlePatientIdentified}
-        />
+        {/* Future implementation for face capture */}
+        <div className="space-y-4">
+          <Button onClick={handleFaceRecognition}>
+            Identify Patient
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
