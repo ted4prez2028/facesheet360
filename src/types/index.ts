@@ -1,3 +1,4 @@
+
 export interface Patient {
   id: string;
   first_name: string;
@@ -65,6 +66,8 @@ export interface User {
   care_coins_balance?: number;
   created_at: string;
   updated_at: string;
+  online_status?: boolean;
+  last_seen?: string;
 }
 
 export interface Message {

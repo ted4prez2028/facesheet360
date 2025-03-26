@@ -1,4 +1,7 @@
 
+// This file is deprecated and kept temporarily for reference.
+// Please use the new files in src/context/communication/ instead.
+
 import React, { createContext, useState, useContext, useCallback } from "react";
 import { User, Message, Call, ChatWindow, ContactsState } from "@/types";
 import { useAuth } from "./AuthContext";

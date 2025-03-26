@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MicOff, Mic, VideoOff, Video, PhoneOff, Volume2, Volume } from 'lucide-react';
-import { useCommunication } from '@/context/CommunicationContext';
+import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const CallDialog = () => {

@@ -15,7 +15,7 @@ import {
   Circle
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useCommunication } from '@/context/CommunicationContext';
+import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Input } from '@/components/ui/input';
 import { User } from '@/types';
 

@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useCommunication } from '@/context/CommunicationContext';
+import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Minimize2, X, Send, Video, PhoneCall } from 'lucide-react';
