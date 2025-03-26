@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,11 +84,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    // First set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state changed:", event, !!currentSession);
         setSession(currentSession);
         
         if (currentSession?.user) {
+          // Use setTimeout to prevent deadlocks
           setTimeout(() => updateUserState(currentSession), 0);
         } else {
           setUser(null);
@@ -97,7 +101,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Got existing session:", !!currentSession);
       setSession(currentSession);
       
       if (currentSession?.user) {
@@ -124,6 +130,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) throw error;
       
+      console.log("Login successful, session:", !!data.session);
+      // The session will be updated via onAuthStateChange
       sonnerToast.success('Login successful');
       
     } catch (error: any) {
@@ -156,6 +164,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) throw error;
       
+      console.log("Registration successful, session:", !!data.session);
       sonnerToast.success('Registration successful');
       
     } catch (error: any) {

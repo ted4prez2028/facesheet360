@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ const Login = () => {
   const { login, signUp, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated - this handles initial load
+  // Enhanced useEffect to make sure redirection happens when authentication state changes
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       console.log("User is authenticated, redirecting to dashboard");
@@ -48,10 +47,11 @@ const Login = () => {
     
     try {
       await login(loginData.email, loginData.password);
-      // After successful login, we'll navigate in the useEffect when isAuthenticated changes
+      // Login is successful at this point, but we'll let the useEffect handle the navigation
       console.log("Login successful, waiting for auth state to update");
     } catch (error) {
       console.error("Login error:", error);
+      // Error handling is already in the login function
     } finally {
       setIsSubmitting(false);
     }
@@ -94,6 +94,7 @@ const Login = () => {
       // Navigation will happen via useEffect when isAuthenticated changes
     } catch (error) {
       console.error("Registration error:", error);
+      // Error handling is already in the signUp function
     } finally {
       setIsSubmitting(false);
     }
@@ -109,8 +110,12 @@ const Login = () => {
   }
 
   // If already authenticated, don't render the login form at all
+  // This ensures we prevent any race conditions with the redirects
   if (isAuthenticated) {
-    return null; // This will be replaced by the redirect in useEffect
+    // Force a redirect here as well for belt-and-suspenders approach
+    console.log("Already authenticated, redirecting to dashboard");
+    setTimeout(() => navigate('/dashboard', { replace: true }), 0);
+    return null;
   }
 
   return (
