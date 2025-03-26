@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,8 +48,11 @@ import LabResultsPanel from "@/components/charting/LabResultsPanel";
 import MedicationsPanel from "@/components/charting/MedicationsPanel";
 import ImagingPanel from "@/components/charting/ImagingPanel";
 import { useAuth } from "@/context/AuthContext";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import PatientFormFields from "@/components/patients/PatientFormFields";
+import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
+import { usePatientForm } from "@/hooks/usePatientForm";
 
-// Interface for patient data
 interface Patient {
   id: string;
   name: string;
@@ -60,7 +62,6 @@ interface Patient {
   imgUrl: string | null;
 }
 
-// Interface for note data
 interface Note {
   id: string;
   patientId: string;
@@ -79,8 +80,8 @@ const Charting = () => {
   const [noteText, setNoteText] = useState("");
   const [noteType, setNoteType] = useState("Progress Note");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   
-  // Fetch patients from the database
   const { data: patients, isLoading: isLoadingPatients } = useQuery({
     queryKey: ['charting-patients'],
     queryFn: async () => {
@@ -98,20 +99,18 @@ const Charting = () => {
         
       if (error) throw error;
       
-      // Transform the data to match our UI needs
       return data.map(patient => ({
         id: patient.id,
         name: `${patient.first_name} ${patient.last_name}`,
         age: calculateAge(patient.date_of_birth),
-        status: "Active", // Default status
-        lastVisit: new Date().toISOString().split('T')[0], // Placeholder
+        status: "Active",
+        lastVisit: new Date().toISOString().split('T')[0],
         imgUrl: null
       }));
     },
     enabled: !!user?.id
   });
   
-  // Fetch notes for the selected patient
   const { data: notes, isLoading: isLoadingNotes, refetch: refetchNotes } = useQuery({
     queryKey: ['patient-notes', selectedPatient],
     queryFn: async () => {
@@ -135,7 +134,6 @@ const Charting = () => {
         
       if (error) throw error;
       
-      // Transform the data to match our UI needs
       return data.map(note => ({
         id: note.id,
         patientId: note.patient_id,
@@ -148,7 +146,6 @@ const Charting = () => {
     enabled: !!selectedPatient
   });
   
-  // Calculate age from date of birth
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -160,7 +157,6 @@ const Charting = () => {
     return age;
   };
   
-  // Filter patients based on search query
   const filteredPatients = searchQuery && patients 
     ? patients.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -191,7 +187,6 @@ const Charting = () => {
     }).format(date);
   };
   
-  // Save a new note
   const handleSaveNote = async () => {
     if (!noteText.trim()) {
       toast({
@@ -251,10 +246,28 @@ const Charting = () => {
 
   const selectedPatientData = patients?.find(p => p.id === selectedPatient);
 
+  const {
+    formState,
+    updateField,
+    handleFacialDataCapture,
+    resetForm,
+    submitForm,
+  } = usePatientForm(() => {
+    setIsAddPatientOpen(false);
+    toast({
+      title: "Patient added",
+      description: "Patient has been added successfully",
+    });
+  });
+
+  const handleSubmitPatient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitForm();
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
-        {/* Patient List Section */}
         <div className="w-full md:w-80 flex flex-col">
           <Card className="shadow-sm flex-1 flex flex-col">
             <CardHeader className="pb-2">
@@ -325,7 +338,10 @@ const Charting = () => {
               </ScrollArea>
             </CardContent>
             <CardFooter className="border-t p-3">
-              <Button className="w-full gap-2 bg-health-600 hover:bg-health-700">
+              <Button 
+                className="w-full gap-2 bg-health-600 hover:bg-health-700"
+                onClick={() => setIsAddPatientOpen(true)}
+              >
                 <PlusCircle className="h-4 w-4" />
                 <span>Add Patient</span>
               </Button>
@@ -333,7 +349,6 @@ const Charting = () => {
           </Card>
         </div>
         
-        {/* Charting Area */}
         <div className="flex-1 flex flex-col h-full">
           {selectedPatient ? (
             <Card className="shadow-sm flex-1 flex flex-col">
@@ -577,6 +592,50 @@ const Charting = () => {
         </div>
       </div>
     </DashboardLayout>
+
+    <Sheet open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
+      <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto">
+        <SheetHeader className="mb-4">
+          <SheetTitle>Add New Patient</SheetTitle>
+          <SheetDescription>
+            Fill in the patient details below. Fields marked with * are required.
+          </SheetDescription>
+        </SheetHeader>
+        
+        <form onSubmit={handleSubmitPatient} className="space-y-6">
+          <PatientFormFields
+            formData={formState}
+            onChange={updateField}
+          />
+          
+          <PatientFacialCapture
+            facialData={formState.facialData}
+            onCapture={handleFacialDataCapture}
+          />
+          
+          <SheetFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto flex items-center bg-health-600 hover:bg-health-700" 
+              disabled={formState.isLoading}
+            >
+              {formState.isLoading ? "Adding Patient..." : "Submit Patient"}
+            </Button>
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={() => {
+                resetForm();
+                setIsAddPatientOpen(false);
+              }} 
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
   );
 };
 
