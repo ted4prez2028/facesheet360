@@ -554,6 +554,80 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_analytics_overview: {
+        Args: {
+          provider_id_param: string
+          timeframe_param: string
+        }
+        Returns: {
+          totalpatients: number
+          appointments: number
+          chartingrate: number
+          carecoinsgenerated: number
+          patientsgrowth: number
+          appointmentsgrowth: number
+          chartingrategrowth: number
+          carecoinsgrowth: number
+        }[]
+      }
+      get_appointment_analytics: {
+        Args: {
+          timeframe_param: string
+          provider_id_param: string
+        }
+        Returns: {
+          month: string
+          scheduled: number
+          completed: number
+          cancelled: number
+        }[]
+      }
+      get_care_coins_analytics: {
+        Args: {
+          user_id_param: string
+          timeframe_param: string
+        }
+        Returns: {
+          month: string
+          earned: number
+          spent: number
+        }[]
+      }
+      get_common_diagnoses: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          value: number
+        }[]
+      }
+      get_patient_demographics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          value: number
+        }[]
+      }
+      get_patient_trends: {
+        Args: {
+          timeframe_param: string
+        }
+        Returns: {
+          month: string
+          newpatients: number
+          activepatients: number
+          discharge: number
+        }[]
+      }
+      get_provider_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          "Dr. Smith": number
+          "Dr. Johnson": number
+          "Dr. Williams": number
+          "Dr. Brown": number
+        }[]
+      }
       is_own_profile: {
         Args: {
           user_id: string
