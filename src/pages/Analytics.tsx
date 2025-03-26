@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,10 +48,10 @@ const COLORS = [
 
 const Analytics = () => {
   const [timeframe, setTimeframe] = useState("year");
-  const { data: analyticsData, isLoading, isError } = useAnalyticsData(timeframe);
+  const analyticsData = useAnalyticsData();
   
   // Handle loading state
-  if (isLoading) {
+  if (analyticsData.isLoading) {
     return (
       <DashboardLayout>
         <div className="flex flex-col gap-6 animate-fade-in">
@@ -74,7 +73,7 @@ const Analytics = () => {
   }
 
   // Handle error state  
-  if (isError) {
+  if (analyticsData.error) {
     return (
       <DashboardLayout>
         <div className="flex flex-col gap-6 animate-fade-in">
@@ -98,9 +97,9 @@ const Analytics = () => {
 
   // Check if we have data
   const hasData = analyticsData && 
-    (analyticsData.patientTrends.length > 0 || 
-     analyticsData.appointmentData.length > 0 || 
-     analyticsData.patientDemographics.length > 0);
+    (analyticsData.monthlyTrends.length > 0 || 
+     analyticsData.patientsByAge.length > 0 || 
+     analyticsData.patientsByGender.length > 0);
 
   // If no data is available
   if (!hasData) {
@@ -166,14 +165,14 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyticsData.overviewStats.totalPatients.toLocaleString()}
+                {analyticsData.overview.totalPatients.toLocaleString()}
               </div>
               <div className="flex items-center mt-1">
-                {analyticsData.overviewStats.patientsGrowth > 0 ? (
+                {analyticsData.overview.patientsGrowth > 0 ? (
                   <>
                     <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                     <span className="text-xs text-green-600">
-                      +{analyticsData.overviewStats.patientsGrowth.toFixed(1)}% from last {timeframe}
+                      +{analyticsData.overview.patientsGrowth.toFixed(1)}% from last {timeframe}
                     </span>
                   </>
                 ) : (
@@ -192,14 +191,14 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyticsData.overviewStats.appointments.toLocaleString()}
+                {analyticsData.overview.appointments.toLocaleString()}
               </div>
               <div className="flex items-center mt-1">
-                {analyticsData.overviewStats.appointmentsGrowth > 0 ? (
+                {analyticsData.overview.appointmentsGrowth > 0 ? (
                   <>
                     <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                     <span className="text-xs text-green-600">
-                      +{analyticsData.overviewStats.appointmentsGrowth.toFixed(1)}% from last {timeframe}
+                      +{analyticsData.overview.appointmentsGrowth.toFixed(1)}% from last {timeframe}
                     </span>
                   </>
                 ) : (
@@ -218,14 +217,14 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyticsData.overviewStats.chartingRate.toFixed(1)}%
+                {analyticsData.overview.chartingRate.toFixed(1)}%
               </div>
               <div className="flex items-center mt-1">
-                {analyticsData.overviewStats.chartingRateGrowth > 0 ? (
+                {analyticsData.overview.chartingRateGrowth > 0 ? (
                   <>
                     <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                     <span className="text-xs text-green-600">
-                      +{analyticsData.overviewStats.chartingRateGrowth.toFixed(1)}% from last {timeframe}
+                      +{analyticsData.overview.chartingRateGrowth.toFixed(1)}% from last {timeframe}
                     </span>
                   </>
                 ) : (
@@ -244,14 +243,14 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyticsData.overviewStats.careCoinsGenerated.toLocaleString()}
+                {analyticsData.overview.careCoinsGenerated.toLocaleString()}
               </div>
               <div className="flex items-center mt-1">
-                {analyticsData.overviewStats.careCoinsGrowth > 0 ? (
+                {analyticsData.overview.careCoinsGrowth > 0 ? (
                   <>
                     <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                     <span className="text-xs text-green-600">
-                      +{analyticsData.overviewStats.careCoinsGrowth.toFixed(1)}% from last {timeframe}
+                      +{analyticsData.overview.careCoinsGrowth.toFixed(1)}% from last {timeframe}
                     </span>
                   </>
                 ) : (
@@ -285,7 +284,7 @@ const Analytics = () => {
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={analyticsData.patientTrends}
+                        data={analyticsData.monthlyTrends}
                         margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                       >
                         <defs>
@@ -349,12 +348,12 @@ const Analytics = () => {
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={analyticsData.appointmentData}
+                        data={analyticsData.patientsByAge}
                         margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                         <XAxis 
-                          dataKey="month" 
+                          dataKey="category" 
                           axisLine={false}
                           tickLine={false}
                         />
@@ -370,9 +369,7 @@ const Analytics = () => {
                           }} 
                         />
                         <Legend />
-                        <Bar dataKey="scheduled" name="Scheduled" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="completed" name="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="cancelled" name="Cancelled" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="value" name="Value" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -393,17 +390,17 @@ const Analytics = () => {
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart>
                         <Pie
-                          data={analyticsData.patientDemographics}
+                          data={analyticsData.patientsByAge}
                           cx="50%"
                           cy="50%"
                           innerRadius={60}
                           outerRadius={80}
                           paddingAngle={2}
                           dataKey="value"
-                          nameKey="name"
+                          nameKey="category"
                           label
                         >
-                          {analyticsData.patientDemographics.map((entry, index) => (
+                          {analyticsData.patientsByAge.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
@@ -433,17 +430,17 @@ const Analytics = () => {
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart>
                         <Pie
-                          data={analyticsData.diagnosisData}
+                          data={analyticsData.patientsByGender}
                           cx="50%"
                           cy="50%"
                           innerRadius={60}
                           outerRadius={80}
                           paddingAngle={2}
                           dataKey="value"
-                          nameKey="name"
+                          nameKey="category"
                           label
                         >
-                          {analyticsData.diagnosisData.map((entry, index) => (
+                          {analyticsData.patientsByGender.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
@@ -471,24 +468,11 @@ const Analytics = () => {
                 <CardContent>
                   <div className="h-[250px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart outerRadius={90} data={analyticsData.providerPerformance}>
+                      <RadarChart outerRadius={90} data={analyticsData.chartingRate}>
                         <PolarGrid />
-                        <PolarAngleAxis dataKey="name" />
+                        <PolarAngleAxis dataKey="date" />
                         <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                        {analyticsData.providerPerformance.length > 0 && 
-                          Object.keys(analyticsData.providerPerformance[0])
-                            .filter(key => key !== 'name')
-                            .map((provider, index) => (
-                              <Radar 
-                                key={provider}
-                                name={provider} 
-                                dataKey={provider} 
-                                stroke={COLORS[index % COLORS.length]} 
-                                fill={COLORS[index % COLORS.length]} 
-                                fillOpacity={0.6} 
-                              />
-                            ))
-                        }
+                        
                         <Tooltip 
                           contentStyle={{ 
                             borderRadius: '8px', 
@@ -553,7 +537,7 @@ const Analytics = () => {
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={analyticsData.careCoinsData}
+                      data={analyticsData.chartingRate}
                       margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                     >
                       <defs>
@@ -568,7 +552,7 @@ const Analytics = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                       <XAxis 
-                        dataKey="month" 
+                        dataKey="date" 
                         axisLine={false}
                         tickLine={false}
                       />
@@ -586,25 +570,17 @@ const Analytics = () => {
                       <Legend />
                       <Area 
                         type="monotone" 
-                        dataKey="earned" 
-                        name="Earned"
+                        dataKey="rate" 
+                        name="Rate"
                         stroke="#10b981" 
                         fillOpacity={1} 
                         fill="url(#colorEarned)" 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="spent" 
-                        name="Spent"
-                        stroke="#f43f5e" 
-                        fillOpacity={1} 
-                        fill="url(#colorSpent)" 
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
                 
-                {analyticsData.careCoinsData.length > 0 && (
+                {analyticsData.chartingRate.length > 0 && (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                       <Card className="bg-muted/40">
@@ -613,33 +589,11 @@ const Analytics = () => {
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold text-green-600">
-                            {analyticsData.careCoinsData.reduce((sum, item) => sum + item.earned, 0).toLocaleString()} coins
+                            {analyticsData.overview.careCoinsGenerated.toLocaleString()} coins
                           </div>
                         </CardContent>
                       </Card>
                       
-                      <Card className="bg-muted/40">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Total Spent</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold text-red-600">
-                            {analyticsData.careCoinsData.reduce((sum, item) => sum + item.spent, 0).toLocaleString()} coins
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="bg-muted/40">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Current Balance</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold text-health-600">
-                            {(analyticsData.careCoinsData.reduce((sum, item) => sum + item.earned, 0) - 
-                              analyticsData.careCoinsData.reduce((sum, item) => sum + item.spent, 0)).toLocaleString()} coins
-                          </div>
-                        </CardContent>
-                      </Card>
                     </div>
                     
                     <div className="mt-8">
@@ -652,50 +606,12 @@ const Analytics = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-medium">
-                              {Math.round(analyticsData.careCoinsData.reduce((sum, item) => sum + item.earned, 0) * 0.582).toLocaleString()} coins
+                              {Math.round(analyticsData.overview.careCoinsGenerated * 0.582).toLocaleString()} coins
                             </div>
                             <div className="text-xs text-muted-foreground">(58.2%)</div>
                           </div>
                         </div>
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <BarChart3 className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>Patient Outcomes</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm font-medium">
-                              {Math.round(analyticsData.careCoinsData.reduce((sum, item) => sum + item.earned, 0) * 0.197).toLocaleString()} coins
-                            </div>
-                            <div className="text-xs text-muted-foreground">(19.7%)</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <PieChart className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>Treatment Plans</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm font-medium">
-                              {Math.round(analyticsData.careCoinsData.reduce((sum, item) => sum + item.earned, 0) * 0.141).toLocaleString()} coins
-                            </div>
-                            <div className="text-xs text-muted-foreground">(14.1%)</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <Activity className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>Other Activities</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm font-medium">
-                              {Math.round(analyticsData.careCoinsData.reduce((sum, item) => sum + item.earned, 0) * 0.08).toLocaleString()} coins
-                            </div>
-                            <div className="text-xs text-muted-foreground">(8.0%)</div>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </>

@@ -25,7 +25,21 @@ export function useCommunicationService() {
         .order('name', { ascending: true });
         
       if (error) throw error;
-      setOnlineUsers(data || []);
+      
+      // Transform database users to match our User type
+      const typedUsers: User[] = data?.map(dbUser => ({
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        role: dbUser.role as User['role'], // Cast to our defined role types
+        specialty: dbUser.specialty,
+        licenseNumber: dbUser.license_number,
+        profileImage: dbUser.profile_image,
+        careCoinsBalance: dbUser.care_coins_balance,
+        online_status: dbUser.online_status
+      })) || [];
+      
+      setOnlineUsers(typedUsers);
     } catch (error) {
       console.error('Error fetching online users:', error);
       toast.error('Failed to load contacts');

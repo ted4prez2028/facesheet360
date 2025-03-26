@@ -5,11 +5,12 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin';
+  role: string; // Allow any string for role to match database
   specialty?: string;
   licenseNumber?: string;
   profileImage?: string;
   careCoinsBalance: number;
+  online_status?: boolean;
 };
 
 export type AuthContextType = {

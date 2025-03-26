@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useCommunication } from '@/context/CommunicationContext';
+import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Badge } from '@/components/ui/badge';
 
 interface TopNavProps {
