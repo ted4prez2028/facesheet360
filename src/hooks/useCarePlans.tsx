@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -56,28 +55,47 @@ export const useGenerateAICarePlan = () => {
       try {
         if (!user?.id) throw new Error("User not authenticated");
         
-        const { data: carePlan, error: apiError } = await supabase.functions.invoke("generate-care-plan", {
+        // Call the Edge Function to generate the care plan
+        const { data, error } = await supabase.functions.invoke("generate-care-plan", {
           body: { patientData: patient }
         });
         
-        if (apiError) throw new Error(apiError.message);
+        if (error) {
+          console.error("Edge function error:", error);
+          throw new Error(`Failed to generate care plan: ${error.message}`);
+        }
+        
+        if (!data || !data.carePlan) {
+          throw new Error("No care plan data returned from the AI service");
+        }
+        
+        // If there's a warning (meaning we used the fallback template), show it to the user
+        if (data.warning) {
+          toast.warning("Using basic care plan template", {
+            description: data.warning,
+            duration: 5000
+          });
+        }
         
         // Save the AI-generated care plan to the database
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
-        const { data, error } = await supabase
+        const { data: savedPlan, error: saveError } = await supabase
           .from("care_plans")
           .insert({
             patient_id: patient.id,
             provider_id: user.id,
-            content: carePlan.carePlan,
+            content: data.carePlan,
             is_ai_generated: true,
             status: "draft"
           } as any)
           .select()
           .single();
 
-        if (error) throw error;
-        return data as CarePlan;
+        if (saveError) {
+          console.error("Error saving care plan:", saveError);
+          throw new Error(`Error saving care plan: ${saveError.message}`);
+        }
+        
+        return savedPlan as CarePlan;
       } catch (error) {
         console.error("Error generating AI care plan:", error);
         throw error;
@@ -89,7 +107,8 @@ export const useGenerateAICarePlan = () => {
       toast.success("AI Care Plan generated successfully!");
     },
     onError: (error) => {
-      toast.error(`Failed to generate AI care plan: ${(error as Error).message}`);
+      // The error handling is now done in the component for more context-specific messaging
+      console.error("Error in useGenerateAICarePlan:", error);
     },
   });
 };

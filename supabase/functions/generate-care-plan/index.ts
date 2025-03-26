@@ -16,6 +16,20 @@ serve(async (req) => {
   }
 
   try {
+    // Check if OpenAI API key is configured
+    if (!openAIApiKey) {
+      console.error('OpenAI API key is not configured in environment variables');
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key is not configured. Please add OPENAI_API_KEY to your Supabase project secrets.' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     const { patientData } = await req.json();
     
     if (!patientData) {
@@ -53,35 +67,50 @@ serve(async (req) => {
 
     console.log("Sending request to OpenAI with patient data");
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.7,
-      }),
-    });
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.7,
+        }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+      const carePlan = data.choices[0].message.content;
+
+      return new Response(
+        JSON.stringify({ carePlan }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (openAIError) {
+      console.error('Error calling OpenAI API:', openAIError);
+      
+      // Return a more user-friendly fallback plan if OpenAI fails
+      const fallbackPlan = generateFallbackCarePlan(patientData);
+      
+      return new Response(
+        JSON.stringify({ 
+          carePlan: fallbackPlan,
+          warning: "Generated using fallback template due to AI service error."
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    const data = await response.json();
-    const carePlan = data.choices[0].message.content;
-
-    return new Response(
-      JSON.stringify({ carePlan }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   } catch (error) {
     console.error('Error generating care plan:', error);
     return new Response(
@@ -90,3 +119,47 @@ serve(async (req) => {
     );
   }
 });
+
+// Fallback function to generate a basic care plan template when OpenAI API fails
+function generateFallbackCarePlan(patientData) {
+  const patientName = `${patientData.first_name} ${patientData.last_name}`;
+  const today = new Date().toISOString().split('T')[0];
+  
+  return `# Care Plan for ${patientName}
+  
+## Assessment Summary
+Patient is a ${patientData.gender} born on ${patientData.date_of_birth}. 
+${patientData.condition ? `Current condition: ${patientData.condition}` : 'Current condition requires clinical assessment.'}
+
+## Treatment Goals
+1. Assess current health status
+2. Establish baseline measurements
+3. Develop personalized health maintenance plan
+
+## Recommended Interventions
+1. Complete physical examination
+2. Basic laboratory workup
+3. Review of current medications and supplements
+4. Lifestyle assessment
+
+## Follow-up Schedule
+- Initial follow-up: 2 weeks from initial visit
+- Regular check-ups: Every 3 months
+- Annual comprehensive evaluation
+
+## Health Metrics to Monitor
+- Blood pressure
+- Weight
+- Medication adherence
+- Symptom changes
+
+## Lifestyle Recommendations
+- Maintain balanced nutrition
+- Regular physical activity as tolerated
+- Adequate sleep hygiene
+- Stress management techniques
+
+*Note: This is a basic template care plan. Please consult with healthcare provider for personalized medical advice.*
+
+Generated on: ${today}`;
+}
