@@ -20,16 +20,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    // Create a second client that passes along the user's token for authentication
+    // Get the authorization header from the request
     const authHeader = req.headers.get('Authorization');
     
     if (!authHeader) {
+      console.log("Missing Authorization header");
       return new Response(
         JSON.stringify({ error: "Authorization header is required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
+    // Create client with user's auth token to verify authentication
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -40,30 +42,30 @@ serve(async (req) => {
       }
     );
     
-    // Get the session to verify the user is authenticated
-    const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+    // Verify user is authenticated
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
     
-    if (authError) {
-      console.error("Authentication error:", authError);
+    if (sessionError || !session) {
+      console.error("Session verification failed:", sessionError);
       return new Response(
-        JSON.stringify({ error: "Authentication error", details: authError.message }),
+        JSON.stringify({ error: "Authentication required", details: sessionError?.message }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    if (!session) {
-      return new Response(
-        JSON.stringify({ error: "Authentication required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Parse request body
+    // Get request parameters
     let staffId, patientId;
     try {
       const body = await req.json();
-      staffId = body.staffId;
+      staffId = body.staffId || session.user.id;
       patientId = body.patientId;
+      
+      if (!patientId) {
+        return new Response(
+          JSON.stringify({ error: "Patient ID is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     } catch (e) {
       return new Response(
         JSON.stringify({ error: "Invalid request body" }),
@@ -71,32 +73,25 @@ serve(async (req) => {
       );
     }
     
-    if (!staffId || !patientId) {
-      return new Response(
-        JSON.stringify({ error: "Staff ID and Patient ID are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
     console.log(`Checking if staff ${staffId} is assigned to patient ${patientId}`);
     
-    // Use direct SQL RPC call to bypass RLS
-    const { data, error } = await supabaseAdmin.rpc(
-      'is_staff_assigned_to_patient',
-      { 
-        staff_id_param: staffId,
-        patient_id_param: patientId
-      }
-    );
-      
+    // Query the care_team_assignments table directly
+    const { data, error } = await supabaseAdmin
+      .from('care_team_assignments')
+      .select('*')
+      .eq('staff_id', staffId)
+      .eq('patient_id', patientId)
+      .maybeSingle();
+    
     if (error) {
-      console.error("Database error:", error);
+      console.error("Error checking assignment:", error);
       return new Response(
         JSON.stringify({ error: "Failed to check patient assignment", details: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
+    // Return the assignment status
     return new Response(
       JSON.stringify({ isAssigned: !!data }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

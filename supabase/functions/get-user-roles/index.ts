@@ -14,22 +14,24 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with the service role key
+    // Create a Supabase client with the service role key for admin access
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    // Create a second client that passes along the user's token
+    // Get the authorization header from the request
     const authHeader = req.headers.get('Authorization');
     
     if (!authHeader) {
+      console.log("Missing Authorization header");
       return new Response(
         JSON.stringify({ error: "Authorization header is required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
+    // Create client with user's auth token to verify authentication
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -40,56 +42,48 @@ serve(async (req) => {
       }
     );
     
-    // Get the session to verify the user is authenticated
-    const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+    // Verify user is authenticated
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
     
-    if (authError) {
-      console.error("Authentication error:", authError);
+    if (sessionError || !session) {
+      console.error("Session verification failed:", sessionError);
       return new Response(
-        JSON.stringify({ error: "Authentication error", details: authError.message }),
+        JSON.stringify({ error: "Authentication required", details: sessionError?.message }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    if (!session) {
-      return new Response(
-        JSON.stringify({ error: "Authentication required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Parse request body for userId if it exists
-    let userId;
+    // Get userId from request body or use authenticated user's ID
+    let targetUserId;
     try {
       const body = await req.json();
-      userId = body.userId;
+      targetUserId = body.userId || session.user.id;
     } catch (e) {
-      // If request has no body or invalid JSON, use the authenticated user's ID
-      userId = session.user.id;
+      // If no body, use the authenticated user's ID
+      targetUserId = session.user.id;
     }
-    
-    // If no userId specified, use current user id
-    const targetUserId = userId || session.user.id;
     
     console.log(`Fetching roles for user ID: ${targetUserId}`);
     
-    // Use direct SQL query with the admin client to bypass RLS
-    const { data: userRoles, error: rolesError } = await supabaseAdmin.rpc(
-      'get_user_roles',
-      { user_id_param: targetUserId }
-    );
-      
-    if (rolesError) {
-      console.error("Database error:", rolesError);
+    // Query the roles table directly using the admin client to bypass RLS
+    const { data, error } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', targetUserId);
+    
+    if (error) {
+      console.error("Error fetching roles:", error);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch user roles", details: rolesError.message }),
+        JSON.stringify({ error: "Failed to fetch user roles", details: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Return the array of roles directly
+    // Extract the roles from the data
+    const roles = data.map(row => row.role);
+    
     return new Response(
-      JSON.stringify({ roles: userRoles || [] }),
+      JSON.stringify({ roles }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
     
