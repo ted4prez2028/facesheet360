@@ -16,9 +16,15 @@ const patientsQueryKey = "patients";
 const fetchPatients = async () => {
   try {
     return await getPatientsApi();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching patients:", error);
-    toast.error("Error loading patients: " + ((error as any)?.message || "Unknown error"));
+    
+    // Handle specific RLS policy error
+    if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
+    }
+    
+    toast.error("Error loading patients: " + (error?.message || "Unknown error"));
     // Return empty array instead of throwing to prevent UI crashes
     return [];
   }
@@ -37,9 +43,15 @@ export const usePatients = () => {
 const fetchPatient = async (id: string) => {
   try {
     return await getPatientApi(id);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error fetching patient with ID ${id}:`, error);
-    toast.error(`Error fetching patient: ${(error as any)?.message || 'Unknown error'}`);
+    
+    // Handle specific RLS policy error
+    if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
+    }
+    
+    toast.error(`Error fetching patient: ${error?.message || 'Unknown error'}`);
     throw error;
   }
 };
@@ -62,9 +74,15 @@ export const useCreatePatient = () => {
     mutationFn: createPatientApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
+      toast.success("Patient created successfully");
     },
-    onError: (error) => {
-      toast.error(`Error creating patient: ${(error as any)?.message || 'Unknown error'}`);
+    onError: (error: any) => {
+      // Handle specific RLS policy error
+      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+        toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      } else {
+        toast.error(`Error creating patient: ${error?.message || 'Unknown error'}`);
+      }
     }
   });
 };
@@ -78,9 +96,15 @@ export const useUpdatePatient = () => {
       updatePatientApi(params.id, params.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
+      toast.success("Patient updated successfully");
     },
-    onError: (error) => {
-      toast.error(`Error updating patient: ${(error as any)?.message || 'Unknown error'}`);
+    onError: (error: any) => {
+      // Handle specific RLS policy error
+      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+        toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      } else {
+        toast.error(`Error updating patient: ${error?.message || 'Unknown error'}`);
+      }
     }
   });
 };
@@ -93,18 +117,25 @@ export const useDeletePatient = () => {
     mutationFn: (id: string) => deletePatientApi(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
+      toast.success("Patient deleted successfully");
     },
-    onError: (error) => {
-      toast.error(`Error deleting patient: ${(error as any)?.message || 'Unknown error'}`);
+    onError: (error: any) => {
+      // Handle specific RLS policy error
+      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+        toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      } else {
+        toast.error(`Error deleting patient: ${error?.message || 'Unknown error'}`);
+      }
     }
   });
 };
 
-const updatePatient = async (id: string, data: Partial<Patient>) => {
-  try {
-    return await updatePatientApi(id, data);
-  } catch (error) {
-    console.error("Error updating patient:", error);
-    throw error;
-  }
-};
+// Remove this unused function since it's already implemented in the useMutation above
+// const updatePatient = async (id: string, data: Partial<Patient>) => {
+//   try {
+//     return await updatePatientApi(id, data);
+//   } catch (error) {
+//     console.error("Error updating patient:", error);
+//     throw error;
+//   }
+// };

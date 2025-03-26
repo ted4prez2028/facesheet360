@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,30 +14,21 @@ import {
 } from "@/components/ui/table";
 import { UserPlus, Scan, Search, MoreHorizontal } from "lucide-react";
 import { AddPatientDrawer } from "@/components/patients/AddPatientDrawer";
-import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { getPatients, deletePatient } from "@/lib/supabaseApi";
-import { Patient } from "@/types";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { usePatients, useDeletePatient } from "@/hooks/usePatients";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import FaceIdentificationDialog from "@/components/facial-recognition/FaceIdentificationDialog";
 
 const Patients = () => {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [error, setError] = useState<string | null>(null);
   const [isFaceIdDialogOpen, setIsFaceIdDialogOpen] = useState(false);
+  
+  const { data: patients = [], isLoading, error } = usePatients();
+  const deletePatientMutation = useDeletePatient();
 
   const handleIdentifyPatient = (patientId: string) => {
     if (patientId) {
@@ -46,54 +36,9 @@ const Patients = () => {
     }
   };
 
-  const fetchPatients = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getPatients();
-      // If data is returned successfully, use it
-      setPatients(data || []);
-    } catch (error: any) {
-      // Handle specific Supabase errors
-      if (error?.message?.includes('infinite recursion')) {
-        setError("Database permission error. Please try again later or contact support.");
-        console.error("RLS Policy error:", error);
-      } else {
-        setError(error?.message || "Failed to fetch patients");
-      }
-      
-      toast({
-        title: "Error",
-        description: "Failed to fetch patients. Please try again.",
-        variant: "destructive",
-      });
-      // Ensure patients is at least an empty array in case of error
-      setPatients([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPatients();
-  }, []);
-
   const handleDeletePatient = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this patient?")) {
-      try {
-        await deletePatient(id);
-        setPatients((prev) => prev.filter((patient) => patient.id !== id));
-        toast({
-          title: "Success",
-          description: "Patient deleted successfully.",
-        });
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to delete patient.",
-          variant: "destructive",
-        });
-      }
+      deletePatientMutation.mutate(id);
     }
   };
 
@@ -152,7 +97,7 @@ const Patients = () => {
         {error && (
           <Alert variant="destructive">
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{error instanceof Error ? error.message : String(error)}</AlertDescription>
           </Alert>
         )}
 
@@ -260,7 +205,9 @@ const Patients = () => {
       <AddPatientDrawer
         open={isAddPatientOpen}
         onOpenChange={setIsAddPatientOpen}
-        onPatientAdded={fetchPatients}
+        onPatientAdded={() => {
+          /* Refetch handled by React Query invalidation */
+        }}
       />
 
       <FaceIdentificationDialog
