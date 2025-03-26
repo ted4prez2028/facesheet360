@@ -2,37 +2,35 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableFooter, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from "@/components/ui/table";
-import { UserPlus, Scan, Search, MoreHorizontal } from "lucide-react";
+import { UserPlus, Scan, Search, MoreHorizontal, AlertTriangle } from "lucide-react";
 import { AddPatientDrawer } from "@/components/patients/AddPatientDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { usePatients, useDeletePatient } from "@/hooks/usePatients";
-import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import FaceIdentificationDialog from "@/components/facial-recognition/FaceIdentificationDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  AlertTriangle,
+import { 
+  Alert, 
+  AlertDescription, 
+  AlertTitle 
 } from "@/components/ui/alert";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 const Patients = () => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
