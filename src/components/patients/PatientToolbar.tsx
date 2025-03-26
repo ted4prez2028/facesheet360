@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserPlus, Scan, Search } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface PatientToolbarProps {
   searchQuery: string;
@@ -22,7 +23,12 @@ const PatientToolbar: React.FC<PatientToolbarProps> = ({
 }) => {
   const handleButtonClick = (action: () => void) => {
     if (!isAuthenticated) {
-      toast.error("Please log in to perform this action");
+      toast.error("Please log in to perform this action", {
+        action: {
+          label: "Login",
+          onClick: () => window.location.href = "/login"
+        }
+      });
       return;
     }
     action();

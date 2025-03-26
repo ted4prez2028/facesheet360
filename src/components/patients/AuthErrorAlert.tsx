@@ -41,16 +41,22 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Database Permission Error</AlertTitle>
-          <AlertDescription className="flex flex-wrap items-center gap-2">
-            {error instanceof Error ? error.message : "Database permission error. Please ensure you're logged in with the correct credentials."}
-            <Button 
-              variant="outline" 
-              onClick={() => refetch()}
-              size="sm"
-              className="mt-1 md:mt-0"
-            >
-              Try Again
-            </Button>
+          <AlertDescription className="flex flex-col space-y-2">
+            <div>
+              {error instanceof Error 
+                ? error.message 
+                : "Database permission error. Please ensure you're logged in with the correct credentials."}
+            </div>
+            <div>
+              <Button 
+                variant="outline" 
+                onClick={() => refetch()}
+                size="sm"
+                className="mt-1"
+              >
+                Try Again
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       )}

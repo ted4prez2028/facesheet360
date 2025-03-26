@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createPatient as createPatientApi,
@@ -24,6 +23,20 @@ const verifySession = async () => {
   
   if (!sessionData.session) {
     throw new Error("Authentication required. Please log in to view patients.");
+  }
+  
+  if (sessionData.session.expires_at) {
+    const expiresAt = new Date(sessionData.session.expires_at * 1000);
+    const now = new Date();
+    
+    // If token expires in less than 5 minutes, try to refresh it
+    if ((expiresAt.getTime() - now.getTime()) < 5 * 60 * 1000) {
+      console.log("Session expiring soon, refreshing token...");
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error("Failed to refresh token:", refreshError);
+      }
+    }
   }
   
   // Session exists and is valid
@@ -54,8 +67,8 @@ export const usePatients = () => {
   return useQuery({
     queryKey: [patientsQueryKey],
     queryFn: fetchPatients,
-    retry: 2,
-    retryDelay: 1000,
+    retry: 3,
+    retryDelay: 2000,
   });
 };
 

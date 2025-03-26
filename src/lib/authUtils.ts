@@ -8,8 +8,34 @@ import { User } from "@/types";
  */
 export const checkSession = async (): Promise<boolean> => {
   try {
-    const { data } = await supabase.auth.getSession();
-    return !!data.session;
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error("Error checking session:", error);
+      return false;
+    }
+    
+    if (!data.session) {
+      return false;
+    }
+    
+    // Check if token is expired or about to expire
+    if (data.session.expires_at) {
+      const expiresAt = new Date(data.session.expires_at * 1000);
+      const now = new Date();
+      
+      // If token expires in less than 5 minutes, try to refresh it
+      if ((expiresAt.getTime() - now.getTime()) < 5 * 60 * 1000) {
+        console.log("Session expiring soon, refreshing token...");
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          return false;
+        }
+      }
+    }
+    
+    return true;
   } catch (error) {
     console.error("Error checking session:", error);
     return false;
