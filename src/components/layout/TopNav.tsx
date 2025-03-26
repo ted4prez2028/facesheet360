@@ -53,6 +53,12 @@ const TopNav = () => {
   }, [initialNotifications]);
 
   useEffect(() => {
+    // Fix: Check if window.supabase exists before attempting to use it
+    if (typeof window === 'undefined' || !window.supabase) {
+      console.warn('Supabase client not available on window object');
+      return;
+    }
+
     const handleRealtimeNotification = (payload: any) => {
       if (payload.new && payload.new.type === 'broadcast') {
         const notification = payload.new as unknown as NotificationItem;
@@ -63,23 +69,27 @@ const TopNav = () => {
       }
     };
 
-    const channel = (window as any).supabase.channel('public:notifications')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, handleRealtimeNotification)
-      .subscribe()
+    // Using try-catch to safely handle potential errors
+    try {
+      const channel = supabase.channel('public:notifications')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, handleRealtimeNotification)
+        .subscribe();
 
-    return () => {
-      channel.unsubscribe();
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } catch (error) {
+      console.error('Error setting up Supabase realtime subscription:', error);
+      return () => {}; // Return empty cleanup function if setup fails
+    }
   }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
       // Check if communication context exists and has the properties we need
-      if (communication) {
-        // We need to use type assertion here since TypeScript doesn't recognize setCallActive
-        // even with optional chaining
-        (communication as any).setCallActive?.(false);
+      if (communication && typeof communication.setCallActive === 'function') {
+        communication.setCallActive(false);
       }
       navigate('/login');
     } catch (error) {
