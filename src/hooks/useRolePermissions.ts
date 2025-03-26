@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export type HealthcareRole = 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin';
 
-// Define types to help with the missing tables in the generated Supabase types
+// Define types for the missing tables
 interface UserRole {
   role: HealthcareRole;
   user_id: string;
@@ -18,6 +18,7 @@ interface CareTeamAssignment {
   patient_id: string;
   role: HealthcareRole;
   assigned_by: string;
+  active: boolean;
 }
 
 export const useRolePermissions = () => {
@@ -57,21 +58,7 @@ export const useRolePermissions = () => {
           try {
             console.log("Falling back to direct query for user roles");
             
-            // First try user_roles table
-            const { data: userRolesData, error: userRolesError } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', user.id);
-              
-            if (!userRolesError && userRolesData && userRolesData.length > 0) {
-              // Extract the roles from the results
-              const roles = userRolesData.map(row => row.role as HealthcareRole);
-              setUserRoles(roles);
-              setIsLoading(false);
-              return;
-            }
-            
-            // If that fails, try users table
+            // We'll try to get the user's role from the users table
             const { data: userData, error: userError } = await supabase
               .from('users')
               .select('role')
@@ -154,29 +141,8 @@ export const useRolePermissions = () => {
 
       if (error) {
         console.error("Edge function error:", error);
-        
-        // Fall back to direct query
-        try {
-          console.log("Falling back to direct query for patient assignment");
-          
-          const { data: assignmentData, error: assignmentError } = await supabase
-            .from('care_team_assignments')
-            .select('id')
-            .eq('staff_id', user.id)
-            .eq('patient_id', patientId)
-            .eq('active', true)
-            .maybeSingle();
-          
-          if (assignmentError) {
-            console.error("Direct query error:", assignmentError);
-            return false;
-          }
-          
-          return !!assignmentData;
-        } catch (directErr) {
-          console.error("Direct query fallback failed:", directErr);
-          return false;
-        }
+        // Since we can't query directly, return false as a safe default
+        return false;
       }
 
       return !!data?.isAssigned;
@@ -222,67 +188,7 @@ export const useRolePermissions = () => {
       
       if (funcError) {
         console.error("Edge function error:", funcError);
-        
-        // Fall back to direct insert
-        try {
-          console.log("Falling back to direct query for assigning to patient");
-          
-          // Check if assignment already exists
-          const { data: existingAssignment, error: checkError } = await supabase
-            .from('care_team_assignments')
-            .select('id')
-            .eq('staff_id', staffId)
-            .eq('patient_id', patientId)
-            .eq('role', role)
-            .maybeSingle();
-            
-          if (checkError) {
-            throw checkError;
-          }
-          
-          let result;
-          
-          // If assignment exists, update it
-          if (existingAssignment) {
-            const { data: updatedData, error: updateError } = await supabase
-              .from('care_team_assignments')
-              .update({ active: true })
-              .eq('id', existingAssignment.id)
-              .select()
-              .single();
-              
-            if (updateError) {
-              throw updateError;
-            }
-            
-            result = updatedData;
-          } else {
-            // Create new assignment
-            const { data: newAssignment, error: insertError } = await supabase
-              .from('care_team_assignments')
-              .insert({
-                staff_id: staffId,
-                patient_id: patientId,
-                role: role,
-                assigned_by: user.id,
-                active: true
-              })
-              .select()
-              .single();
-              
-            if (insertError) {
-              throw insertError;
-            }
-            
-            result = newAssignment;
-          }
-          
-          toast.success(`Staff member assigned to patient successfully`);
-          return result;
-        } catch (directErr) {
-          console.error("Direct insert fallback failed:", directErr);
-          throw directErr;
-        }
+        throw funcError;
       }
       
       toast.success(`Staff member assigned to patient successfully`);
@@ -321,27 +227,7 @@ export const useRolePermissions = () => {
       
       if (funcError) {
         console.error("Edge function error:", funcError);
-        
-        // Fall back to direct delete
-        try {
-          console.log("Falling back to direct query for removing from patient");
-          
-          const { data, error } = await supabase
-            .from('care_team_assignments')
-            .update({ active: false })
-            .eq('id', assignmentId)
-            .select();
-          
-          if (error) {
-            throw error;
-          }
-          
-          toast.success('Staff member removed from care team');
-          return true;
-        } catch (directErr) {
-          console.error("Direct delete fallback failed:", directErr);
-          throw directErr;
-        }
+        throw funcError;
       }
       
       toast.success('Staff member removed from care team');
