@@ -1,28 +1,21 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useAuth } from "@/context/AuthContext";
 import PatientList from "@/components/charting/PatientList";
 import PatientChart from "@/components/charting/PatientChart";
 import AddPatientSheet from "@/components/charting/AddPatientSheet";
+import { usePatientSelection } from "@/hooks/usePatientSelection";
 
 const Charting = () => {
   const { user } = useAuth();
-  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   
-  const { data: patients } = useQuery({
-    queryKey: ['charting-patients'],
-    queryFn: async () => {
-      const { data, error } = await fetch('/api/patients').then(res => res.json());
-      if (error) throw error;
-      return data;
-    },
-    enabled: false // Disable this query as it's handled in PatientList component
-  });
-  
-  const selectedPatientData = patients?.find(p => p.id === selectedPatient);
+  const { 
+    selectedPatient, 
+    setSelectedPatient, 
+    selectedPatientData 
+  } = usePatientSelection(user?.id);
 
   return (
     <>
