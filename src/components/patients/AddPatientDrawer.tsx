@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -17,6 +17,7 @@ import { usePatientForm } from "@/hooks/usePatientForm";
 import { useAuth } from "@/context/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddPatientDrawerProps {
   open: boolean;
@@ -29,7 +30,19 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   onOpenChange,
   onPatientAdded,
 }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!user);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    if (open) {
+      checkAuth();
+    }
+  }, [open]);
   
   const {
     formState,

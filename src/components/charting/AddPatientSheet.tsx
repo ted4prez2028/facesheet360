@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -8,6 +8,7 @@ import PatientFormFields from "@/components/patients/PatientFormFields";
 import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddPatientSheetProps {
   isOpen: boolean;
@@ -21,6 +22,16 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
   user,
 }) => {
   const { toast } = useToast();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!user);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+  }, [isOpen]);
   
   const {
     formState,
@@ -39,7 +50,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
   const handleSubmitPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
+    if (!isAuthenticated) {
       toast({
         variant: "destructive",
         title: "Authentication Required",
@@ -54,7 +65,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
   
   // Create a handler that doesn't take parameters to match the expected type
   const handleSavePatient = () => {
-    if (!user) {
+    if (!isAuthenticated) {
       toast({
         variant: "destructive",
         title: "Authentication Required",
@@ -76,7 +87,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
           </SheetDescription>
         </SheetHeader>
         
-        {!user && (
+        {!isAuthenticated && (
           <div className="mb-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -91,7 +102,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
           <PatientFormFields
             formData={formState}
             onChange={updateField}
-            onSave={user ? handleSavePatient : undefined}
+            onSave={isAuthenticated ? handleSavePatient : undefined}
             isLoading={formState.isLoading}
           />
           

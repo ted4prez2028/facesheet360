@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Patient } from "@/types";
 import { addPatient } from "@/lib/api/patientApi";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface PatientFormState {
   firstName: string;
@@ -62,12 +63,29 @@ export const usePatientForm = (onSuccess: () => void) => {
     return true;
   };
 
+  const verifySession = async (): Promise<boolean> => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      toast.error("Authentication Required", {
+        description: "You must be logged in to add patients.",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const submitForm = async () => {
     if (!validateForm()) return false;
+    
+    // Verify authentication first
+    const hasSession = await verifySession();
+    if (!hasSession) return false;
 
     setFormState((prev) => ({ ...prev, isLoading: true }));
     
     try {
+      console.log("Submitting patient data...");
+      
       // Convert form state to patient object for API
       const patientData: Partial<Patient> = {
         first_name: formState.firstName,
@@ -83,8 +101,13 @@ export const usePatientForm = (onSuccess: () => void) => {
         facial_data: formState.facialData || null,
       };
       
+      // Log the session before making the request
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Current session exists:", !!sessionData.session);
+      
       // Use the API function instead of direct Supabase access
-      await addPatient(patientData);
+      const result = await addPatient(patientData);
+      console.log("Patient added successfully:", result);
       
       toast.success("Patient Added", {
         description: "Patient added successfully.",
@@ -96,10 +119,13 @@ export const usePatientForm = (onSuccess: () => void) => {
     } catch (error: any) {
       console.error("Error in submitForm:", error);
       
-      // Handle specific error types
-      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      if (error?.message?.includes('Authentication required') || !await verifySession()) {
+        toast.error("Authentication Required", {
+          description: "You must be logged in to add patients.",
+        });
+      } else if (error?.message?.includes('infinite recursion') || error?.code === '42P17' || error?.message?.includes('Database permission')) {
         toast.error("Database Permission Error", {
-          description: "Please ensure you're logged in with the correct credentials before adding a patient.",
+          description: "There's an issue with database permissions. Please contact technical support.",
         });
       } else {
         toast.error("Error Adding Patient", {
