@@ -31,11 +31,14 @@ import PrescriptionList from '@/components/prescriptions/PrescriptionList';
 import PrescriptionForm from '@/components/prescriptions/PrescriptionForm';
 import { useAuth } from '@/context/AuthContext';
 import AuthErrorAlert from '@/components/patients/AuthErrorAlert';
+import { CareTeamAssignments } from '@/components/patients/CareTeamAssignments';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 
 export default function PatientProfile() {
   const { patientId } = useParams<{ patientId: string }>();
   const { patient, isLoading, error } = usePatient(patientId || "");
   const { user, isAuthenticated } = useAuth();
+  const { hasRole } = useRolePermissions();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isCarePlanFormOpen, setIsCarePlanFormOpen] = useState(false);
   const [isPrescriptionFormOpen, setIsPrescriptionFormOpen] = useState(false);
@@ -94,7 +97,6 @@ export default function PatientProfile() {
     );
   }
 
-  // Show auth error or data error
   if (!isAuthenticated || error) {
     return (
       <DashboardLayout>
@@ -105,7 +107,6 @@ export default function PatientProfile() {
             refetch={refetchPatient} 
           />
           
-          {/* Show back button if there's an error */}
           {error && (
             <Button variant="outline" asChild>
               <Link to="/patients">Back to Patients</Link>
@@ -116,8 +117,9 @@ export default function PatientProfile() {
     );
   }
 
-  // Format the patient name from first_name and last_name properties
   const patientName = patient ? `${patient.first_name} ${patient.last_name}` : "";
+
+  const canManageTreatment = hasRole('doctor') || hasRole('admin');
 
   return (
     <DashboardLayout>
@@ -176,6 +178,10 @@ export default function PatientProfile() {
           </div>
         )}
 
+        {patient && patientId && (
+          <CareTeamAssignments patientId={patientId} />
+        )}
+
         {patient && (
           <Tabs defaultValue="care-plan" className="w-full">
             <TabsList className="grid grid-cols-3 w-full md:w-auto">
@@ -196,7 +202,7 @@ export default function PatientProfile() {
               
               <CarePlanList 
                 patient={patient} 
-                onAddNew={() => setIsCarePlanFormOpen(true)}
+                onAddNew={() => canManageTreatment ? setIsCarePlanFormOpen(true) : null}
               />
             </TabsContent>
             
@@ -212,7 +218,7 @@ export default function PatientProfile() {
               
               <PrescriptionList 
                 patientId={patient.id} 
-                onAddNew={() => setIsPrescriptionFormOpen(true)}
+                onAddNew={() => canManageTreatment ? setIsPrescriptionFormOpen(true) : null}
               />
             </TabsContent>
             

@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { Patient } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRolePermissions } from './useRolePermissions';
 
 export const usePatient = (patientId: string) => {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const { hasRole, isAssignedToPatient } = useRolePermissions();
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -31,7 +33,17 @@ export const usePatient = (patientId: string) => {
         
         console.log("Attempting to fetch patient with ID:", patientId);
         
-        // Try direct Edge Function approach first
+        // Check if user is a doctor (who can access all patients)
+        const isDoctor = await hasRole('doctor');
+        
+        // If not a doctor, check if assigned to this patient
+        let hasAccess = isDoctor;
+        if (!hasAccess) {
+          hasAccess = await isAssignedToPatient(patientId);
+        }
+        
+        // If neither a doctor nor assigned, try with Edge Function
+        // which will enforce permissions server-side
         try {
           const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('get-patient-by-id', {
             body: { patientId }
@@ -69,14 +81,13 @@ export const usePatient = (patientId: string) => {
             console.log("Successfully retrieved patient with direct query");
             setPatient(directData);
             return;
+          } else {
+            throw new Error("Patient not found");
           }
         } catch (directErr) {
           console.error("Direct query fallback failed:", directErr);
-          // Continue to next fallback
+          throw directErr;
         }
-        
-        // If we get here, no data was found
-        throw new Error("Patient not found");
       } catch (err) {
         console.error("Error fetching patient:", err);
         setError(err instanceof Error ? err : new Error("Failed to fetch patient"));
@@ -89,7 +100,7 @@ export const usePatient = (patientId: string) => {
     };
 
     fetchPatient();
-  }, [patientId]);
+  }, [patientId, hasRole, isAssignedToPatient]);
 
   return { patient, isLoading, error };
 };

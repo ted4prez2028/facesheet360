@@ -23,6 +23,7 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
   if (isAuthenticated && !error) return null;
   
   const isPatientNotFoundError = error?.message?.includes("Patient not found") || error?.message?.includes("not found");
+  const isPermissionError = error?.message?.includes("permission") || error?.message?.includes("access");
   
   return (
     <div className="space-y-4">
@@ -40,18 +41,29 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
       )}
       
       {error && (
-        <Alert variant={isPatientNotFoundError ? "warning" : "destructive"}>
+        <Alert variant={
+          isPatientNotFoundError ? "warning" : 
+          isPermissionError ? "warning" : 
+          "destructive"
+        }>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>
-            {isPatientNotFoundError ? "Patient Not Found" : "Error Loading Patient Data"}
+            {isPatientNotFoundError 
+              ? "Patient Not Found" 
+              : isPermissionError 
+                ? "Permission Denied"
+                : "Error Loading Patient Data"
+            }
           </AlertTitle>
           <AlertDescription className="flex flex-col space-y-2">
             <div>
               {isPatientNotFoundError 
                 ? "The requested patient could not be found. It may have been deleted or you may not have permission to view it."
-                : error instanceof Error 
-                  ? error.message 
-                  : "Unable to load patient data. Please try again later."}
+                : isPermissionError
+                  ? "You don't have permission to view this patient. Please contact your administrator if you believe this is an error."
+                  : error instanceof Error 
+                    ? error.message 
+                    : "Unable to load patient data. Please try again later."}
             </div>
             <div className="flex gap-2">
               <Button 

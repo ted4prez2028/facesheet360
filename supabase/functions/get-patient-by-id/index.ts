@@ -55,6 +55,55 @@ serve(async (req) => {
     
     console.log(`Fetching patient with ID: ${patientId}`);
     
+    // Check if the user is a doctor (has full access)
+    const { data: userRoles, error: rolesError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id);
+      
+    if (rolesError) {
+      console.error("Error fetching user roles:", rolesError);
+      return new Response(
+        JSON.stringify({ error: `Failed to check permissions: ${rolesError.message}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const roles = userRoles?.map(r => r.role) || [];
+    const isDoctor = roles.includes('doctor');
+    const isAdmin = roles.includes('admin');
+    
+    // If not a doctor, check if the user is assigned to this patient
+    let hasAccess = isDoctor || isAdmin;
+    
+    if (!hasAccess) {
+      const { data: assignment, error: assignmentError } = await supabaseClient
+        .from('care_team_assignments')
+        .select('id')
+        .eq('staff_id', session.user.id)
+        .eq('patient_id', patientId)
+        .eq('active', true)
+        .maybeSingle();
+        
+      if (assignmentError) {
+        console.error("Error checking patient assignment:", assignmentError);
+        return new Response(
+          JSON.stringify({ error: `Failed to check permissions: ${assignmentError.message}` }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      hasAccess = !!assignment;
+    }
+    
+    // If the user doesn't have access, return an error
+    if (!hasAccess) {
+      return new Response(
+        JSON.stringify({ error: "You do not have permission to view this patient" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     // Direct query with admin rights to bypass RLS
     const { data, error } = await supabaseClient
       .from('patients')
