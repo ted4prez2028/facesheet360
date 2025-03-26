@@ -2,6 +2,7 @@
 import { getUserProfile } from '@/lib/supabaseApi';
 import { Session } from '@supabase/supabase-js';
 import { User } from '@/types/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 export const updateUserState = async (currentSession: Session | null): Promise<User | null> => {
   if (!currentSession?.user) {
@@ -9,7 +10,12 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
   }
   
   try {
-    const userData = await getUserProfile(currentSession.user.id);
+    // Try to get the user profile from the database first
+    const userData = await getUserProfile(currentSession.user.id).catch(error => {
+      console.warn("Error from getUserProfile, falling back to auth metadata:", error);
+      return null;
+    });
+    
     if (userData) {
       return {
         id: userData.id,
@@ -22,16 +28,31 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
         careCoinsBalance: userData.care_coins_balance || 0
       };
     } else {
+      // If database query fails, fall back to session user metadata
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return null;
+      
+      const userMeta = user.user_metadata || {};
+      
       return {
-        id: currentSession.user.id,
-        name: currentSession.user.email || '',
-        email: currentSession.user.email || '',
-        role: 'doctor',
+        id: user.id,
+        name: userMeta.name || user.email || '',
+        email: user.email || '',
+        role: userMeta.role || 'doctor',
         careCoinsBalance: 0
       };
     }
   } catch (error) {
     console.error("Error fetching user data:", error);
-    return null;
+    
+    // Last resort fallback - construct user from session only
+    return {
+      id: currentSession.user.id,
+      name: currentSession.user.email || '',
+      email: currentSession.user.email || '',
+      role: 'doctor',
+      careCoinsBalance: 0
+    };
   }
 };

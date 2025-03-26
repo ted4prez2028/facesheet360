@@ -36,8 +36,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (currentSession?.user) {
           // Use setTimeout to prevent deadlocks with Supabase client
           setTimeout(async () => {
-            const userData = await updateUserState(currentSession);
-            setUser(userData);
+            try {
+              const userData = await updateUserState(currentSession);
+              setUser(userData);
+            } catch (error) {
+              console.error("Error updating user state:", error);
+              // Set minimal user data in case of error
+              setUser({
+                id: currentSession.user.id,
+                name: currentSession.user.email || '',
+                email: currentSession.user.email || '',
+                role: 'doctor',
+                careCoinsBalance: 0
+              });
+            }
           }, 0);
         } else {
           setUser(null);
@@ -55,8 +67,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          const userData = await updateUserState(currentSession);
-          setUser(userData);
+          try {
+            const userData = await updateUserState(currentSession);
+            setUser(userData);
+          } catch (error) {
+            console.error("Error initializing user state:", error);
+            // Set minimal user data in case of error
+            setUser({
+              id: currentSession.user.id,
+              name: currentSession.user.email || '',
+              email: currentSession.user.email || '',
+              role: 'doctor',
+              careCoinsBalance: 0
+            });
+          }
         }
       } catch (error) {
         console.error("Error initializing auth:", error);
@@ -80,6 +104,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isAuthenticated: !!user,
         isLoading,
         ...authOperations,
+        updateCurrentUser: (userData: Partial<User>) => {
+          setUser(prevUser => prevUser ? { ...prevUser, ...userData } : null);
+        }
       }}
     >
       {children}
