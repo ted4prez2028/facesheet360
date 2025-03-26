@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ConnectWallet } from "@/components/wallet/ConnectWallet";
+import ConnectWallet from "@/components/wallet/ConnectWallet";
 import { WalletBalance } from "@/components/wallet/WalletBalance";
-import { SendTransaction } from "@/components/wallet/SendTransaction";
+import SendTransaction from "@/components/wallet/SendTransaction";
 import { TokenDeployer } from "@/components/wallet/TokenDeployer";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { zodResolver } from "@hookform/resolvers/zod";

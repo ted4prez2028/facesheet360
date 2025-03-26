@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +26,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<void>;
   logout: () => void;
   updateUserProfile: (userData: Partial<User>) => void;
+  updateCurrentUser?: (userData: Partial<User>) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -231,6 +231,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateCurrentUser = (userData: Partial<User>) => {
+    if (user) {
+      setUser({
+        ...user,
+        ...userData
+      });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -242,6 +251,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         logout,
         updateUserProfile,
+        updateCurrentUser,
       }}
     >
       {children}

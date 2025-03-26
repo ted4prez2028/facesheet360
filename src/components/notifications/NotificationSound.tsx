@@ -13,7 +13,7 @@ const NotificationSound = () => {
     // Create a channel to listen for notifications
     const channel = supabase.channel('notifications')
       .on('broadcast', { event: 'notification' }, (payload: any) => {
-        const { title, description, recipient_id } = payload;
+        const { title, description, recipient_id } = payload.payload || payload;
         
         // Only show notifications meant for this user
         if (recipient_id === user.id) {

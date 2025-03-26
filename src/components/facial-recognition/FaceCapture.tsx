@@ -1,262 +1,323 @@
-
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Camera, Check, X } from 'lucide-react';
-import { identifyPatientByFace, registerFacialData, loadFaceDetectionModels } from '@/lib/facialRecognition';
-import * as faceapi from 'face-api.js';
+import { Card } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
+import { detectFace, matchPatientByFace } from '@/lib/facialRecognition';
+import { getPatientByFacialData } from '@/lib/supabaseApi';
+import { Patient } from '@/types';
+import { Loader2, Camera, Check, AlertCircle } from 'lucide-react';
 
-interface FaceCaptureProps {
-  onSuccess?: (patientData: any) => void;
-  mode: 'identify' | 'register';
-  userId?: string;
-}
+export type FaceCaptureProps = {
+  mode: 'register' | 'identify';
+  patientId?: string;
+  onSuccess?: (data: Patient) => void;
+  onFaceCapture?: (faceData: string) => void;
+};
 
-const FaceCapture = ({ onSuccess, mode, userId }: FaceCaptureProps) => {
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [faceDetections, setFaceDetections] = useState<faceapi.WithFaceLandmarks<{
-    detection: faceapi.FaceDetection;
-  }, faceapi.FaceLandmarks68>[]>([]);
-  
+const FaceCapture: React.FC<FaceCaptureProps> = ({ 
+  mode, 
+  patientId, 
+  onSuccess, 
+  onFaceCapture 
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const faceOverlayRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  
-  // Load face detection models on component mount
+  const [hasCamera, setHasCamera] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCaptured, setIsCaptured] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    loadFaceDetectionModels().catch(error => {
-      console.error('Failed to load face detection models:', error);
-    });
-  }, []);
-  
-  const startCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'user'
-        } 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setIsStreaming(true);
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      toast.error('Could not access camera. Please check permissions.');
-    }
-  }, []);
-  
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-      setIsStreaming(false);
-    }
-  }, []);
-  
-  const captureImage = useCallback(() => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = canvas.toDataURL('image/jpeg');
-        setCapturedImage(imageData);
-        stopCamera();
-      }
-    }
-  }, [stopCamera]);
-  
-  const resetCapture = useCallback(() => {
-    setCapturedImage(null);
-    setFaceDetections([]);
-    startCamera();
-  }, [startCamera]);
-  
-  const processImage = useCallback(async () => {
-    if (!capturedImage) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      if (mode === 'identify') {
-        // Send captured image for facial recognition
-        const data = await identifyPatientByFace(capturedImage);
-        
-        if (data) {
-          toast.success('Patient identified successfully');
-          if (onSuccess) onSuccess(data);
-        } else {
-          toast.error('No match found. Please try again or search manually.');
-        }
-      } else if (mode === 'register' && userId) {
-        // Store facial data for a user
-        await registerFacialData(userId, capturedImage);
-        toast.success('Facial data registered successfully');
-        if (onSuccess) onSuccess({ success: true });
-      }
-    } catch (error) {
-      console.error('Facial recognition error:', error);
-      toast.error('Error processing facial data. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [capturedImage, mode, userId, onSuccess]);
-  
-  // Real-time face detection
-  useEffect(() => {
-    let animationId: number;
-    let intervalId: NodeJS.Timeout;
-    
-    const detectFaces = async () => {
-      if (!isStreaming || !videoRef.current || !faceOverlayRef.current || !faceapi.nets.ssdMobilenetv1.isLoaded) {
-        return;
-      }
-      
-      const video = videoRef.current;
-      const canvas = faceOverlayRef.current;
-      
-      // Set canvas dimensions to match video
-      const displaySize = { width: video.videoWidth, height: video.videoHeight };
-      faceapi.matchDimensions(canvas, displaySize);
-      
-      // Detect faces
-      const detections = await faceapi.detectAllFaces(video)
-        .withFaceLandmarks();
-      
-      // Update state with detections
-      setFaceDetections(detections);
-      
-      // Draw detections on canvas
-      const resizedDetections = faceapi.resizeResults(detections, displaySize);
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw face boxes
-        resizedDetections.forEach(detection => {
-          const box = detection.detection.box;
-          ctx.beginPath();
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = '#4CAF50';
-          ctx.rect(box.x, box.y, box.width, box.height);
-          ctx.stroke();
-          
-          // Add text label above box
-          ctx.font = '16px Arial';
-          ctx.fillStyle = '#4CAF50';
-          ctx.fillText('Face Detected', box.x, box.y - 10);
+    const checkCameraAvailability = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCamera(true);
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err) {
+        setHasCamera(false);
+        setError("Camera not found. Please connect a camera and try again.");
+        toast({
+          title: "Error",
+          description: "Camera not found. Please connect a camera and try again.",
+          variant: "destructive",
         });
       }
-      
-      // Continue detection loop
-      animationId = requestAnimationFrame(detectFaces);
     };
-    
-    if (isStreaming) {
-      // Start face detection after a short delay to make sure video is playing
-      intervalId = setTimeout(() => {
-        animationId = requestAnimationFrame(detectFaces);
-      }, 1000);
+
+    checkCameraAvailability();
+  }, []);
+
+  const startCamera = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(err => {
+            console.error("Autoplay error:", err);
+            setError("Failed to start camera. Autoplay might be disabled.");
+            toast({
+              title: "Error",
+              description: "Failed to start camera. Autoplay might be disabled.",
+              variant: "destructive",
+            });
+          });
+          setIsLoading(false);
+        };
+      }
+    } catch (err: any) {
+      console.error("Camera access error:", err);
+      setError(err.message || "Failed to access camera.");
+      toast({
+        title: "Error",
+        description: err.message || "Failed to access camera.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
     }
-    
-    return () => {
-      cancelAnimationFrame(animationId);
-      clearTimeout(intervalId);
-    };
-  }, [isStreaming]);
-  
-  useEffect(() => {
-    startCamera();
-    
-    return () => {
-      stopCamera();
-    };
-  }, [startCamera, stopCamera]);
-  
+  };
+
+  const capture = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext('2d');
+    context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageDataURL = canvas.toDataURL('image/jpeg');
+    setCapturedImage(imageDataURL);
+    setIsCaptured(true);
+  };
+
+  const identify = async () => {
+    if (!capturedImage) {
+      setError("No image captured. Please capture an image first.");
+      toast({
+        title: "Error",
+        description: "No image captured. Please capture an image first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const faceData = await detectFace(capturedImage);
+      if (!faceData) {
+        setError("No face detected. Please try again.");
+        toast({
+          title: "Error",
+          description: "No face detected. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const patients = await getPatientByFacialData(""); // Fetch all patients with facial data
+      if (!patients || patients.length === 0) {
+        setError("No patients with facial data found.");
+        toast({
+          title: "Error",
+          description: "No patients with facial data found.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const matchedPatient = await matchPatientByFace(faceData, patients);
+      if (matchedPatient) {
+        toast({
+          title: "Success",
+          description: `Patient identified: ${matchedPatient.first_name} ${matchedPatient.last_name}`,
+        });
+        onSuccess?.(matchedPatient);
+      } else {
+        setError("No matching patient found.");
+        toast({
+          title: "Error",
+          description: "No matching patient found.",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      console.error("Facial recognition error:", err);
+      setError(err.message || "Failed to identify patient.");
+      toast({
+        title: "Error",
+        description: err.message || "Failed to identify patient.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const registerFace = async () => {
+    if (!capturedImage) {
+      setError("No image captured. Please capture an image first.");
+      toast({
+        title: "Error",
+        description: "No image captured. Please capture an image first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const faceData = await detectFace(capturedImage);
+      if (!faceData) {
+        setError("No face detected. Please try again.");
+        toast({
+          title: "Error",
+          description: "No face detected. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Convert faceData to string
+      const faceDataString = JSON.stringify(faceData);
+
+      // Call the onFaceCapture prop with the face data
+      onFaceCapture?.(faceDataString);
+
+      toast({
+        title: "Success",
+        description: "Face data captured successfully.",
+      });
+      onSuccess?.({ id: patientId! } as Patient);
+    } catch (err: any) {
+      console.error("Facial recognition error:", err);
+      setError(err.message || "Failed to register face.");
+      toast({
+        title: "Error",
+        description: err.message || "Failed to register face.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="relative w-full rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
-        {isStreaming && !capturedImage ? (
-          <>
-            <video 
-              ref={videoRef} 
-              autoPlay 
-              playsInline 
-              muted 
-              className="w-full h-full object-cover"
-            />
-            <canvas 
-              ref={faceOverlayRef}
-              className="absolute top-0 left-0 w-full h-full pointer-events-none"
-            />
-          </>
-        ) : capturedImage ? (
-          <img 
-            src={capturedImage} 
-            alt="Captured facial image" 
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="text-white text-center p-4">
-            <Camera className="h-8 w-8 mx-auto mb-2" />
-            <p>Camera is initializing...</p>
+    <Card>
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        {error && (
+          <div className="text-red-500 text-sm">
+            <AlertCircle className="mr-2 inline-block h-4 w-4 align-middle" />
+            {error}
           </div>
         )}
-        
-        {/* Hidden canvas for capturing the image */}
-        <canvas ref={canvasRef} className="hidden" />
-      </div>
-      
-      <div className="flex gap-2 justify-center">
-        {!capturedImage ? (
-          <Button
-            onClick={captureImage}
-            disabled={!isStreaming || faceDetections.length === 0}
-            className="gap-2 bg-health-600 hover:bg-health-700"
-          >
-            <Camera className="h-4 w-4" />
-            <span>
-              {faceDetections.length === 0 ? "No Face Detected" : "Capture Image"}
-            </span>
-          </Button>
+
+        {!hasCamera ? (
+          <div className="text-muted-foreground">
+            <AlertCircle className="mr-2 inline-block h-4 w-4 align-middle" />
+            No camera found.
+          </div>
         ) : (
           <>
-            <Button variant="outline" onClick={resetCapture} className="gap-2">
-              <X className="h-4 w-4" />
-              <span>Retake</span>
-            </Button>
-            <Button 
-              onClick={processImage} 
-              disabled={isProcessing}
-              className="gap-2 bg-health-600 hover:bg-health-700"
-            >
-              <Check className="h-4 w-4" />
-              <span>
-                {isProcessing 
-                  ? 'Processing...' 
-                  : mode === 'identify' 
-                    ? 'Identify Patient' 
-                    : 'Register Face'
-                }
-              </span>
-            </Button>
+            <video ref={videoRef} className="w-full max-w-md rounded-md" />
+            <canvas ref={canvasRef} className="hidden" />
+
+            {!isCaptured && (
+              <Button
+                onClick={startCamera}
+                disabled={isLoading || isCaptured}
+                className="w-full max-w-md"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading ...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="mr-2 h-4 w-4" />
+                    Start Camera
+                  </>
+                )}
+              </Button>
+            )}
+
+            {videoRef.current?.srcObject && !isCaptured && (
+              <Button
+                onClick={capture}
+                disabled={isLoading || isCaptured}
+                className="w-full max-w-md"
+              >
+                Capture
+              </Button>
+            )}
+
+            {isCaptured && capturedImage && (
+              <div className="flex flex-col items-center space-y-2">
+                <img
+                  src={capturedImage}
+                  alt="Captured"
+                  className="w-full max-w-md rounded-md"
+                />
+                {mode === 'identify' ? (
+                  <Button
+                    onClick={identify}
+                    disabled={isLoading}
+                    className="w-full max-w-md"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Identifying ...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Identify
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={registerFace}
+                    disabled={isLoading}
+                    className="w-full max-w-md"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Registering ...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Register Face
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 
