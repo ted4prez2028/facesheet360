@@ -1,14 +1,28 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Patient } from "@/types";
+
+// Helper function to check if user is authenticated
+const ensureAuthenticated = async () => {
+  const { data, error } = await supabase.auth.getSession();
+  
+  if (error) {
+    console.error("Auth error:", error);
+    throw new Error(`Authentication error: ${error.message}`);
+  }
+  
+  if (!data.session) {
+    throw new Error("Authentication required. Please log in to continue.");
+  }
+  
+  return data.session;
+};
 
 // Patient functions
 export const getPatients = async () => {
   try {
     // Check for valid session first
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      throw new Error("Authentication required. Please log in to view patients.");
-    }
+    await ensureAuthenticated();
     
     const { data, error } = await supabase
       .from("patients")
@@ -29,10 +43,7 @@ export const getPatients = async () => {
 export const getPatientById = async (id: string) => {
   try {
     // Check for valid session first
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      throw new Error("Authentication required. Please log in to view patient details.");
-    }
+    await ensureAuthenticated();
     
     const { data, error } = await supabase
       .from("patients")
@@ -50,18 +61,16 @@ export const getPatientById = async (id: string) => {
 
 export const addPatient = async (patient: Partial<Patient>) => {
   try {
+    // Validate required fields
     if (!patient.first_name || !patient.last_name || !patient.date_of_birth || !patient.gender) {
       throw new Error("Missing required patient fields");
     }
     
-    // Check that the auth session exists first
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      throw new Error("Authentication required. Please log in to add patients.");
-    }
+    // Verify authentication
+    const session = await ensureAuthenticated();
+    console.log("User authenticated with ID:", session.user.id);
     
-    // Explicitly use the service role client for this operation to bypass RLS
-    // This is a common pattern to avoid recursive policy errors
+    // Insert the patient record
     const { data, error } = await supabase
       .from("patients")
       .insert({
@@ -82,12 +91,19 @@ export const addPatient = async (patient: Partial<Patient>) => {
 
     if (error) {
       console.error("Database error adding patient:", error);
-      // If RLS policy error, provide a clearer message
+      
+      // Handle specific error types
       if (error.code === '42P17' || error.message.includes('infinite recursion')) {
-        throw new Error("Database permission issue. This appears to be a configuration problem with the database security rules.");
+        throw new Error("Database permission issue. Please try again or contact support.");
       }
+      
+      if (error.code === '42501' || error.message.includes('permission denied')) {
+        throw new Error("Permission denied. You may not have the necessary access rights.");
+      }
+      
       throw error;
     }
+    
     return data as Patient;
   } catch (error) {
     console.error("Error adding patient:", error);

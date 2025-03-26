@@ -30,18 +30,28 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   onOpenChange,
   onPatientAdded,
 }) => {
-  const { user } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!user);
+  const { user, isAuthenticated } = useAuth();
+  const [isAuthChecked, setIsAuthChecked] = useState<boolean>(false);
   
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      if (!open) return;
+      
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          toast.error("Authentication Required", {
+            description: "You must be logged in to add patients."
+          });
+        }
+        setIsAuthChecked(true);
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setIsAuthChecked(true);
+      }
     };
     
-    if (open) {
-      checkAuth();
-    }
+    checkAuth();
   }, [open]);
   
   const {
@@ -65,11 +75,9 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
       return;
     }
     
-    console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
   
-  // Create a handler that doesn't take parameters to match the expected type
   const handleSavePatient = () => {
     if (!isAuthenticated) {
       toast.error("Authentication Required", {
@@ -79,6 +87,11 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
     }
     
     submitForm();
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
   return (
@@ -117,10 +130,18 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
           
           <DrawerFooter className="flex flex-col sm:flex-row gap-3 mt-6">
             <DrawerClose asChild>
-              <Button variant="outline" onClick={resetForm} className="w-full sm:w-auto">
+              <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
                 Cancel
               </Button>
             </DrawerClose>
+            
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto"
+              disabled={!isAuthenticated || formState.isLoading}
+            >
+              {formState.isLoading ? "Saving..." : "Save Patient"}
+            </Button>
           </DrawerFooter>
         </form>
       </DrawerContent>

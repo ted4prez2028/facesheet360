@@ -64,14 +64,22 @@ export const usePatientForm = (onSuccess: () => void) => {
   };
 
   const verifySession = async (): Promise<boolean> => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      toast.error("Authentication Required", {
-        description: "You must be logged in to add patients.",
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error("Authentication Required", {
+          description: "You must be logged in to add patients.",
+        });
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Error verifying session:", error);
+      toast.error("Authentication Error", {
+        description: "There was a problem verifying your authentication status.",
       });
       return false;
     }
-    return true;
   };
 
   const submitForm = async () => {
@@ -101,10 +109,6 @@ export const usePatientForm = (onSuccess: () => void) => {
         facial_data: formState.facialData || null,
       };
       
-      // Log the session before making the request
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log("Current session exists:", !!sessionData.session);
-      
       // Use the API function instead of direct Supabase access
       const result = await addPatient(patientData);
       console.log("Patient added successfully:", result);
@@ -119,13 +123,16 @@ export const usePatientForm = (onSuccess: () => void) => {
     } catch (error: any) {
       console.error("Error in submitForm:", error);
       
-      if (error?.message?.includes('Authentication required') || !await verifySession()) {
+      if (error?.message?.includes('Authentication required') || 
+          error?.message?.includes('auth')) {
         toast.error("Authentication Required", {
           description: "You must be logged in to add patients.",
         });
-      } else if (error?.message?.includes('infinite recursion') || error?.code === '42P17' || error?.message?.includes('Database permission')) {
+      } else if (error?.message?.includes('permission') || 
+                error?.code === '42P17' || 
+                error?.message?.includes('infinite recursion')) {
         toast.error("Database Permission Error", {
-          description: "There's an issue with database permissions. Please contact technical support.",
+          description: "There's an issue with database permissions. Please try again or contact support.",
         });
       } else {
         toast.error("Error Adding Patient", {

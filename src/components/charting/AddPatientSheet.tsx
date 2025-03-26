@@ -26,12 +26,27 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
   
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      if (!isOpen) return;
+      
+      try {
+        const { data } = await supabase.auth.getSession();
+        setIsAuthenticated(!!data.session);
+        
+        if (!data.session) {
+          toast({
+            variant: "destructive",
+            title: "Authentication Required",
+            description: "You must be logged in to add patients."
+          });
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setIsAuthenticated(false);
+      }
     };
     
     checkAuth();
-  }, [isOpen]);
+  }, [isOpen, toast]);
   
   const {
     formState,
@@ -63,7 +78,6 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
     await submitForm();
   };
   
-  // Create a handler that doesn't take parameters to match the expected type
   const handleSavePatient = () => {
     if (!isAuthenticated) {
       toast({
@@ -75,6 +89,11 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
     }
     
     submitForm();
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
   return (
@@ -115,13 +134,18 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
             <Button 
               type="button"
               variant="outline" 
-              onClick={() => {
-                resetForm();
-                onOpenChange(false);
-              }} 
+              onClick={handleClose} 
               className="w-full sm:w-auto"
             >
               Cancel
+            </Button>
+            
+            <Button
+              type="submit"
+              className="w-full sm:w-auto"
+              disabled={!isAuthenticated || formState.isLoading}
+            >
+              {formState.isLoading ? "Saving..." : "Save Patient"}
             </Button>
           </SheetFooter>
         </form>

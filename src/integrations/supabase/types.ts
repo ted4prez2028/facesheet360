@@ -687,6 +687,10 @@ export type Database = {
           cancelled: number
         }[]
       }
+      get_auth_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_care_coins_analytics: {
         Args: {
           user_id_param: string
@@ -743,6 +747,10 @@ export type Database = {
         Args: {
           user_id: string
         }
+        Returns: boolean
+      }
+      user_can_access_patients: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
