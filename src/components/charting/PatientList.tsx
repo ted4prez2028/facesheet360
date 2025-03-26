@@ -1,6 +1,5 @@
+
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Search, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Patient {
   id: string;
@@ -23,55 +23,19 @@ interface PatientListProps {
   setSelectedPatient: (id: string) => void;
   setIsAddPatientOpen: (isOpen: boolean) => void;
   user: any;
+  patients?: Patient[];
+  isLoading: boolean;
 }
 
 const PatientList = ({ 
   selectedPatient, 
   setSelectedPatient, 
   setIsAddPatientOpen,
-  user 
+  user,
+  patients = [],
+  isLoading
 }: PatientListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-
-  const { data: patients, isLoading: isLoadingPatients } = useQuery({
-    queryKey: ['charting-patients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('patients')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          date_of_birth,
-          gender,
-          facial_data
-        `)
-        .order('last_name', { ascending: true });
-        
-      if (error) throw error;
-      
-      return data.map(patient => ({
-        id: patient.id,
-        name: `${patient.first_name} ${patient.last_name}`,
-        age: calculateAge(patient.date_of_birth),
-        status: "Active",
-        lastVisit: new Date().toISOString().split('T')[0],
-        imgUrl: null
-      }));
-    },
-    enabled: !!user?.id
-  });
-
-  const calculateAge = (dateOfBirth: string) => {
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
 
   const filteredPatients = searchQuery && patients 
     ? patients.filter(p => 
@@ -108,7 +72,7 @@ const PatientList = ({
       </CardHeader>
       <CardContent className="px-1.5 py-0 flex-1 overflow-hidden">
         <ScrollArea className="h-full pr-3">
-          {isLoadingPatients ? (
+          {isLoading ? (
             <div className="space-y-2 p-2">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center p-3 rounded-md animate-pulse">

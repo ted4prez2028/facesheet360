@@ -6,6 +6,7 @@ import PatientList from "@/components/charting/PatientList";
 import PatientChart from "@/components/charting/PatientChart";
 import AddPatientSheet from "@/components/charting/AddPatientSheet";
 import { usePatientSelection } from "@/hooks/usePatientSelection";
+import { toast } from "sonner";
 
 const Charting = () => {
   const { user } = useAuth();
@@ -14,8 +15,15 @@ const Charting = () => {
   const { 
     selectedPatient, 
     setSelectedPatient, 
-    selectedPatientData 
+    selectedPatientData,
+    patients,
+    isLoading
   } = usePatientSelection(user?.id);
+
+  // Show a notification if no patients are found after loading completes
+  if (!isLoading && (!patients || patients.length === 0)) {
+    console.log("No patients found for charting, user ID:", user?.id);
+  }
 
   return (
     <>
@@ -27,6 +35,8 @@ const Charting = () => {
               setSelectedPatient={(id) => setSelectedPatient(id)}
               setIsAddPatientOpen={setIsAddPatientOpen}
               user={user}
+              patients={patients}
+              isLoading={isLoading}
             />
           </div>
           
