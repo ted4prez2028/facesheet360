@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   DropdownMenu,
@@ -77,14 +76,10 @@ const TopNav = () => {
       await logout();
       // Check if communication context exists and has the properties we need
       if (communication) {
-        // Since setCallActive might not exist in the type, we use optional chaining
-        // or try to access it using alternative syntax to avoid TypeScript errors
-        if (typeof communication.setCallActive === 'function') {
-          communication.setCallActive(false);
-        } else if (communication['setCallActive']) {
-          // Alternative way to access the property
-          communication['setCallActive'](false);
-        }
+        // Correctly handle the communication context
+        communication.setCallActive?.(false);
+        // Or use a type assertion if needed
+        // (communication as any).setCallActive?.(false);
       }
       navigate('/login');
     } catch (error) {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -47,6 +46,8 @@ const Login = () => {
     
     try {
       await login(loginData.email, loginData.password);
+      // After successful login, navigate to dashboard
+      // (AuthContext will update isAuthenticated which triggers the useEffect above)
     } catch (error) {
       console.error("Login error:", error);
     } finally {
@@ -87,6 +88,7 @@ const Login = () => {
         role: "doctor",
       });
       
+      // Navigation will happen via useEffect when isAuthenticated changes
     } catch (error) {
       console.error("Registration error:", error);
     } finally {
