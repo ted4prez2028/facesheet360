@@ -14,13 +14,28 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with admin privileges
+    // Create a Supabase client with the service role key for admin access
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    
+    // Create a second client that passes along the user's token for authentication
+    const authHeader = req.headers.get('Authorization');
+    
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authorization header is required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
@@ -44,7 +59,16 @@ serve(async (req) => {
     }
     
     // Get request body
-    const { patientId } = await req.json();
+    let patientId;
+    try {
+      const body = await req.json();
+      patientId = body.patientId;
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     if (!patientId) {
       return new Response(
@@ -55,11 +79,11 @@ serve(async (req) => {
     
     console.log(`Fetching patient with ID: ${patientId}`);
     
-    // Check if the user is a doctor (has full access)
-    const { data: userRoles, error: rolesError } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id);
+    // Check if the user has a doctor role first (using RPC to bypass potential recursion)
+    const { data: userRoles, error: rolesError } = await supabaseAdmin.rpc(
+      'get_user_roles',
+      { user_id_param: session.user.id }
+    );
       
     if (rolesError) {
       console.error("Error fetching user roles:", rolesError);
@@ -69,7 +93,7 @@ serve(async (req) => {
       );
     }
     
-    const roles = userRoles?.map(r => r.role) || [];
+    const roles = userRoles || [];
     const isDoctor = roles.includes('doctor');
     const isAdmin = roles.includes('admin');
     
@@ -77,13 +101,13 @@ serve(async (req) => {
     let hasAccess = isDoctor || isAdmin;
     
     if (!hasAccess) {
-      const { data: assignment, error: assignmentError } = await supabaseClient
-        .from('care_team_assignments')
-        .select('id')
-        .eq('staff_id', session.user.id)
-        .eq('patient_id', patientId)
-        .eq('active', true)
-        .maybeSingle();
+      const { data: isAssigned, error: assignmentError } = await supabaseAdmin.rpc(
+        'is_staff_assigned_to_patient',
+        { 
+          staff_id_param: session.user.id,
+          patient_id_param: patientId
+        }
+      );
         
       if (assignmentError) {
         console.error("Error checking patient assignment:", assignmentError);
@@ -93,7 +117,7 @@ serve(async (req) => {
         );
       }
       
-      hasAccess = !!assignment;
+      hasAccess = !!isAssigned;
     }
     
     // If the user doesn't have access, return an error
@@ -105,21 +129,21 @@ serve(async (req) => {
     }
     
     // Direct query with admin rights to bypass RLS
-    const { data, error } = await supabaseClient
+    const { data: patient, error: patientError } = await supabaseAdmin
       .from('patients')
       .select('*')
       .eq('id', patientId)
       .maybeSingle();
     
-    if (error) {
-      console.error("Error fetching patient:", error);
+    if (patientError) {
+      console.error("Error fetching patient:", patientError);
       return new Response(
-        JSON.stringify({ error: `Failed to fetch patient: ${error.message}` }),
+        JSON.stringify({ error: `Failed to fetch patient: ${patientError.message}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    if (!data) {
+    if (!patient) {
       return new Response(
         JSON.stringify({ error: "Patient not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -128,7 +152,7 @@ serve(async (req) => {
     
     // Return the patient data
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(patient),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
     
