@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserPlus, Scan, Search } from "lucide-react";
+import { UserPlus, Scan, Search, MoreHorizontal } from "lucide-react";
 import { AddPatientDrawer } from "@/components/patients/AddPatientDrawer";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,7 +29,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import FaceIdentificationDialog from "@/components/facial-recognition/FaceIdentificationDialog";
@@ -207,7 +207,7 @@ const Patients = () => {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                           <span className="sr-only">Open menu</span>
-                          <DotsHorizontalIcon
+                          <MoreHorizontal
                             className="h-4 w-4"
                             aria-hidden="true"
                           />

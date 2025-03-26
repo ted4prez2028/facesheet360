@@ -12,13 +12,13 @@ const NotificationSound = () => {
     
     // Create a channel to listen for notifications
     const channel = supabase.channel('notifications')
-      .on('broadcast', { event: 'notification' }, payload => {
+      .on('broadcast', { event: 'notification' }, (payload: any) => {
         const { title, description, recipient_id } = payload;
         
         // Only show notifications meant for this user
         if (recipient_id === user.id) {
           // Play notification sound
-          const audio = new Audio('/notification.mp3');
+          const audio = new Audio('/ringtone.mp3');
           audio.play().catch(err => console.log('Error playing notification sound:', err));
           
           // Show toast notification
