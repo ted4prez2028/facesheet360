@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -237,7 +236,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
               <p className="text-sm text-muted-foreground mb-2">
                 Capture the patient's face to enable identification by facial recognition.
               </p>
-              <FaceCapture onCapture={handleFacialDataCapture} />
+              <FaceCapture mode="register" onCapture={handleFacialDataCapture} />
               {facialData && (
                 <p className="text-sm text-green-600 mt-2">
                   ✓ Facial data captured successfully

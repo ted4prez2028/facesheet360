@@ -67,7 +67,15 @@ export const getPatientAppointments = async (patientId: string) => {
 
 export const addPatient = async (patient: Partial<Patient>) => {
   try {
-    const { data, error } = await supabase.from("patients").insert(patient).select().single();
+    if (!patient.first_name || !patient.last_name || !patient.date_of_birth || !patient.gender) {
+      throw new Error("Missing required patient fields");
+    }
+    
+    const { data, error } = await supabase
+      .from("patients")
+      .insert(patient)
+      .select()
+      .single();
 
     if (error) throw error;
     return data as Patient;
@@ -109,6 +117,10 @@ export const deletePatient = async (id: string) => {
 // Chart record functions
 export const addChartRecord = async (record: Partial<ChartRecord>) => {
   try {
+    if (!record.patient_id || !record.provider_id || !record.record_type) {
+      throw new Error("Missing required chart record fields");
+    }
+    
     const { data, error } = await supabase
       .from("chart_records")
       .insert(record)
@@ -143,6 +155,10 @@ export const updateChartRecord = async (id: string, updates: Partial<ChartRecord
 // Appointment functions
 export const addAppointment = async (appointment: Partial<Appointment>) => {
   try {
+    if (!appointment.patient_id || !appointment.provider_id || !appointment.appointment_date || !appointment.status) {
+      throw new Error("Missing required appointment fields");
+    }
+    
     const { data, error } = await supabase
       .from("appointments")
       .insert(appointment)
@@ -175,7 +191,7 @@ export const updateAppointment = async (id: string, updates: Partial<Appointment
 };
 
 // Patient Identification by Facial Data
-export const getPatientByFacialData = async (facialData: string) => {
+export const getPatientByFacialData = async () => {
   try {
     const { data, error } = await supabase
       .from("patients")
@@ -188,6 +204,23 @@ export const getPatientByFacialData = async (facialData: string) => {
     return data as Patient[];
   } catch (error) {
     console.error("Error fetching patients with facial data:", error);
+    throw error;
+  }
+};
+
+export const storeFacialData = async (patientId: string, facialData: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("patients")
+      .update({ facial_data: facialData })
+      .eq("id", patientId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Patient;
+  } catch (error) {
+    console.error("Error storing facial data:", error);
     throw error;
   }
 };
@@ -318,4 +351,26 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
     console.error("Error transferring CareCoins:", error);
     throw error;
   }
+};
+
+// Add function for getting care coins balance
+export const getCareCoinsBalance = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("care_coins_balance")
+      .eq("id", userId)
+      .single();
+
+    if (error) throw error;
+    return data.care_coins_balance || 0;
+  } catch (error) {
+    console.error("Error fetching care coins balance:", error);
+    throw error;
+  }
+};
+
+// Add function for creating patients (for usePatients hook)
+export const createPatient = async (patient: Partial<Patient>) => {
+  return addPatient(patient);
 };

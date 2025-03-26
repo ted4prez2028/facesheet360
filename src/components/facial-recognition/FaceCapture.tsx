@@ -1,24 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
-import { detectFace, matchPatientByFace } from '@/lib/facialRecognition';
+import { toast } from 'sonner';
+import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import { Loader2, Camera, Check, AlertCircle } from 'lucide-react';
 
 export type FaceCaptureProps = {
-  mode: 'register' | 'identify';
+  mode?: 'register' | 'identify';
   patientId?: string;
+  userId?: string;
   onSuccess?: (data: Patient) => void;
-  onFaceCapture?: (faceData: string) => void;
+  onCapture?: (faceData: string) => void;
 };
 
-const FaceCapture: React.FC<FaceCaptureProps> = ({ 
-  mode, 
-  patientId, 
-  onSuccess, 
-  onFaceCapture 
+const FaceCapture: React.FC<FaceCaptureProps> = ({
+  mode = 'identify',
+  patientId,
+  userId,
+  onSuccess,
+  onCapture
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,11 +39,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       } catch (err) {
         setHasCamera(false);
         setError("Camera not found. Please connect a camera and try again.");
-        toast({
-          title: "Error",
-          description: "Camera not found. Please connect a camera and try again.",
-          variant: "destructive",
-        });
+        toast.error("Camera not found. Please connect a camera and try again.");
       }
     };
 
@@ -63,11 +61,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
           videoRef.current?.play().catch(err => {
             console.error("Autoplay error:", err);
             setError("Failed to start camera. Autoplay might be disabled.");
-            toast({
-              title: "Error",
-              description: "Failed to start camera. Autoplay might be disabled.",
-              variant: "destructive",
-            });
+            toast.error("Failed to start camera. Autoplay might be disabled.");
           });
           setIsLoading(false);
         };
@@ -75,11 +69,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     } catch (err: any) {
       console.error("Camera access error:", err);
       setError(err.message || "Failed to access camera.");
-      toast({
-        title: "Error",
-        description: err.message || "Failed to access camera.",
-        variant: "destructive",
-      });
+      toast.error(err.message || "Failed to access camera.");
       setIsLoading(false);
     }
   };
@@ -103,11 +93,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const identify = async () => {
     if (!capturedImage) {
       setError("No image captured. Please capture an image first.");
-      toast({
-        title: "Error",
-        description: "No image captured. Please capture an image first.",
-        variant: "destructive",
-      });
+      toast.error("No image captured. Please capture an image first.");
       return;
     }
 
@@ -115,53 +101,34 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     setError(null);
 
     try {
-      const faceData = await detectFace(capturedImage);
+      const faceData = await detectFaces(capturedImage);
       if (!faceData) {
         setError("No face detected. Please try again.");
-        toast({
-          title: "Error",
-          description: "No face detected. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("No face detected. Please try again.");
         setIsLoading(false);
         return;
       }
 
-      const patients = await getPatientByFacialData(""); // Fetch all patients with facial data
+      const patients = await getPatientByFacialData();
       if (!patients || patients.length === 0) {
         setError("No patients with facial data found.");
-        toast({
-          title: "Error",
-          description: "No patients with facial data found.",
-          variant: "destructive",
-        });
+        toast.error("No patients with facial data found.");
         setIsLoading(false);
         return;
       }
 
       const matchedPatient = await matchPatientByFace(faceData, patients);
       if (matchedPatient) {
-        toast({
-          title: "Success",
-          description: `Patient identified: ${matchedPatient.first_name} ${matchedPatient.last_name}`,
-        });
+        toast.success(`Patient identified: ${matchedPatient.first_name} ${matchedPatient.last_name}`);
         onSuccess?.(matchedPatient);
       } else {
         setError("No matching patient found.");
-        toast({
-          title: "Error",
-          description: "No matching patient found.",
-          variant: "destructive",
-        });
+        toast.error("No matching patient found.");
       }
     } catch (err: any) {
       console.error("Facial recognition error:", err);
       setError(err.message || "Failed to identify patient.");
-      toast({
-        title: "Error",
-        description: err.message || "Failed to identify patient.",
-        variant: "destructive",
-      });
+      toast.error(err.message || "Failed to identify patient.");
     } finally {
       setIsLoading(false);
     }
@@ -170,11 +137,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const registerFace = async () => {
     if (!capturedImage) {
       setError("No image captured. Please capture an image first.");
-      toast({
-        title: "Error",
-        description: "No image captured. Please capture an image first.",
-        variant: "destructive",
-      });
+      toast.error("No image captured. Please capture an image first.");
       return;
     }
 
@@ -182,14 +145,10 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     setError(null);
 
     try {
-      const faceData = await detectFace(capturedImage);
+      const faceData = await detectFaces(capturedImage);
       if (!faceData) {
         setError("No face detected. Please try again.");
-        toast({
-          title: "Error",
-          description: "No face detected. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("No face detected. Please try again.");
         setIsLoading(false);
         return;
       }
@@ -198,21 +157,14 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       const faceDataString = JSON.stringify(faceData);
 
       // Call the onFaceCapture prop with the face data
-      onFaceCapture?.(faceDataString);
+      onCapture?.(faceDataString);
 
-      toast({
-        title: "Success",
-        description: "Face data captured successfully.",
-      });
-      onSuccess?.({ id: patientId! } as Patient);
+      toast.success("Face data captured successfully.");
+      onSuccess?.({ id: patientId || userId! } as Patient);
     } catch (err: any) {
       console.error("Facial recognition error:", err);
       setError(err.message || "Failed to register face.");
-      toast({
-        title: "Error",
-        description: err.message || "Failed to register face.",
-        variant: "destructive",
-      });
+      toast.error(err.message || "Failed to register face.");
     } finally {
       setIsLoading(false);
     }

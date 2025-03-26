@@ -37,7 +37,7 @@ const FaceRegistration = ({ patientId, onComplete }: FaceRegistrationProps) => {
         {isCapturing ? (
           <FaceCapture 
             mode="register"
-            userId={patientId}
+            patientId={patientId}
             onSuccess={handleRegistrationSuccess}
           />
         ) : (

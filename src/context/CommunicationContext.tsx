@@ -1,10 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
 import { User, Message, Call, ChatWindow } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { getUsers } from '@/lib/supabaseApi';
+import { Button } from '@/components/ui/button';
 
 interface CommunicationContextType {
   onlineUsers: User[];
@@ -35,14 +35,12 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   const peerConnections = useRef<{[key: string]: RTCPeerConnection}>({});
   const channelRef = useRef<any>(null);
 
-  // Initialize and load online users
   useEffect(() => {
     if (!user) return;
 
     const loadUsers = async () => {
       try {
         const users = await getUsers();
-        // Filter out current user
         const filteredUsers = users.filter(u => u.id !== user.id);
         setOnlineUsers(filteredUsers);
       } catch (error) {
@@ -52,27 +50,22 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
 
     loadUsers();
     
-    // Set up realtime subscription for user presence
     const channel = supabase.channel('online-users')
       .on('presence', { event: 'sync' }, () => {
-        // Handle presence sync
         const presenceState = channel.presenceState();
         console.log('Current presence state:', presenceState);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
         console.log('User joined:', key, newPresences);
-        // Update online users
         loadUsers();
       })
       .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
         console.log('User left:', key, leftPresences);
-        // Update online users
         loadUsers();
       });
 
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        // Track user's online presence
         await channel.track({
           user_id: user.id,
           online_at: new Date().toISOString(),
@@ -81,20 +74,16 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     });
 
-    // Subscribe to messages channel for receiving messages
     const messageChannel = supabase.channel('private-messages')
       .on('broadcast', { event: 'message' }, payload => {
         const { sender_id, content, sender_name } = payload;
         
-        // Check if chat window exists, if not create it
         if (!chatWindows.some(window => window.userId === sender_id)) {
           startChat(sender_id, sender_name);
         }
         
-        // Add message to chat
         addMessageToChat(sender_id, content);
         
-        // Play notification sound
         playNotificationSound();
       })
       .on('broadcast', { event: 'call-request' }, payload => {
@@ -118,7 +107,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     return () => {
-      // Cleanup subscriptions and tracks
       if (channelRef.current?.presence) {
         channelRef.current.presence.untrack();
         supabase.removeChannel(channelRef.current.presence);
@@ -127,7 +115,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
         supabase.removeChannel(channelRef.current.messages);
       }
       
-      // Cleanup WebRTC connections
       Object.values(peerConnections.current).forEach(connection => {
         connection.close();
       });
@@ -148,7 +135,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const startChat = (userId: string, userName: string) => {
-    // Check if window already exists
     if (!chatWindows.some(window => window.userId === userId)) {
       setChatWindows(prev => [
         ...prev,
@@ -160,7 +146,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       ]);
     } else {
-      // If minimized, maximize it
       setChatWindows(prev => 
         prev.map(window => 
           window.userId === userId 
@@ -188,7 +173,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   const sendMessage = (userId: string, content: string) => {
     if (!user || !content.trim()) return;
     
-    // Add to local chat window
     setChatWindows(prev => 
       prev.map(window => {
         if (window.userId === userId) {
@@ -211,7 +195,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       })
     );
     
-    // Send via Supabase channel
     channelRef.current?.messages.send({
       type: 'broadcast',
       event: 'message',
@@ -226,10 +209,8 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const addMessageToChat = (senderId: string, content: string) => {
-    // Find sender information
     const sender = onlineUsers.find(u => u.id === senderId);
     
-    // If chat window doesn't exist, create it
     if (!chatWindows.some(window => window.userId === senderId) && sender) {
       setChatWindows(prev => [
         ...prev,
@@ -242,7 +223,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       ]);
     }
     
-    // Add message to chat window
     setChatWindows(prev => 
       prev.map(window => {
         if (window.userId === senderId) {
@@ -270,7 +250,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!user) return;
     
     try {
-      // Request user media (audio/video)
       const mediaConstraints = {
         audio: true,
         video: isVideo
@@ -278,7 +257,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       
       localStream.current = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       
-      // Set current call state
       setCurrentCall({
         callerId: user.id,
         callerName: user.name,
@@ -288,7 +266,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
         status: 'ringing'
       });
       
-      // Send call request via channel
       channelRef.current?.messages.send({
         type: 'broadcast',
         event: 'call-request',
@@ -299,10 +276,8 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
       
-      // Initialize WebRTC connection
       initializeWebRTC(userId);
       
-      // Show toast notification
       toast({
         title: "Calling...",
         description: `Calling ${userName}`,
@@ -319,7 +294,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleIncomingCall = (callerId: string, callerName: string, isVideo: boolean) => {
-    // Set current call with incoming status
     setCurrentCall({
       callerId,
       callerName,
@@ -329,15 +303,12 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       status: 'ringing'
     });
     
-    // Play ringtone
     const audio = new Audio('/ringtone.mp3');
     audio.loop = true;
     audio.play().catch(err => console.log('Error playing ringtone:', err));
     
-    // Save reference to stop it later
     const ringtoneRef = audio;
     
-    // Show toast notification
     toast({
       title: "Incoming Call",
       description: `${callerName} is calling you`,
@@ -364,7 +335,7 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
           </Button>
         </div>
       ),
-      duration: 30000, // 30 seconds
+      duration: 30000,
     });
   };
 
@@ -372,7 +343,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!currentCall) return;
     
     try {
-      // Request user media (audio/video)
       const mediaConstraints = {
         audio: true,
         video: currentCall.isVideoCall
@@ -380,10 +350,8 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       
       localStream.current = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       
-      // Update call status
       setCurrentCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
       
-      // Send answer via channel
       channelRef.current?.messages.send({
         type: 'broadcast',
         event: 'call-answer',
@@ -392,7 +360,6 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
       
-      // Initialize WebRTC connection
       initializeWebRTC(currentCall.callerId);
       
     } catch (error) {
@@ -409,12 +376,10 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleCallAnswered = (userId: string) => {
     if (!currentCall) return;
     
-    // Update call status
     setCurrentCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
   };
 
   const initializeWebRTC = (remotePeerId: string) => {
-    // Create new RTCPeerConnection
     const peerConnection = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -422,17 +387,14 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       ]
     });
     
-    // Add local stream tracks to connection
     if (localStream.current) {
       localStream.current.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStream.current!);
       });
     }
     
-    // Set up event handlers
     peerConnection.onicecandidate = event => {
       if (event.candidate) {
-        // Send ICE candidate to remote peer via signaling channel
         channelRef.current?.messages.send({
           type: 'broadcast',
           event: 'ice-candidate',
@@ -445,19 +407,16 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
     };
     
     peerConnection.ontrack = event => {
-      // Handle incoming remote stream
       const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
       if (remoteVideo && event.streams[0]) {
         remoteVideo.srcObject = event.streams[0];
       }
     };
     
-    // Store connection
     peerConnections.current[remotePeerId] = peerConnection;
   };
 
   const endCall = () => {
-    // Send call end notification
     if (currentCall) {
       channelRef.current?.messages.send({
         type: 'broadcast',
@@ -468,16 +427,13 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       });
     }
     
-    // Clear call state
     setCurrentCall(null);
     
-    // Stop local media tracks
     if (localStream.current) {
       localStream.current.getTracks().forEach(track => track.stop());
       localStream.current = null;
     }
     
-    // Close peer connections
     Object.values(peerConnections.current).forEach(connection => {
       connection.close();
     });

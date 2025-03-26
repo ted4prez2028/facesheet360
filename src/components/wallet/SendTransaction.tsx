@@ -1,74 +1,82 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { transferCareCoins } from "@/lib/supabaseApi";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from '@/context/AuthContext';
+import { transferCareCoins } from '@/lib/supabaseApi';
 
 const SendTransaction = () => {
+  const [open, setOpen] = useState(false);
   const [recipient, setRecipient] = useState("");
-  const [amount, setAmount] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [amount, setAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast()
   const { user, updateCurrentUser } = useAuth();
 
-  const sendTransaction = async () => {
-    if (!recipient || !amount) {
+  const handleSendCoins = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) return;
+    
+    if (amount <= 0) {
       toast({
-        title: "Missing information",
-        description: "Please enter a recipient address and amount",
+        title: "Invalid amount",
+        description: "Please enter an amount greater than 0.",
         variant: "destructive",
       });
       return;
     }
-
-    if (!user) {
+    
+    if (amount > user.careCoinsBalance) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to send transactions",
+        title: "Insufficient balance",
+        description: "You don't have enough CareCoins for this transaction.",
         variant: "destructive",
       });
       return;
     }
-
+    
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
+      await transferCareCoins(user.id, recipient, amount);
       
-      // Parse the amount as a number
-      const amountToSend = parseInt(amount, 10);
-      
-      if (isNaN(amountToSend) || amountToSend <= 0) {
-        throw new Error("Please enter a valid positive amount");
-      }
-      
-      if (user.care_coins_balance && amountToSend > user.care_coins_balance) {
-        throw new Error("Insufficient balance");
-      }
-
-      // Send the transaction
-      await transferCareCoins(user.id, recipient, amountToSend);
-      
-      // Update local user state with new balance
-      if (user.care_coins_balance) {
+      // Update the user's local balance
+      if (updateCurrentUser) {
         updateCurrentUser({
-          ...user,
-          care_coins_balance: user.care_coins_balance - amountToSend
+          careCoinsBalance: user.careCoinsBalance - amount
         });
       }
       
       toast({
         title: "Transaction successful",
-        description: `You've sent ${amountToSend} CareCoins to ${recipient.substring(0, 8)}...`,
+        description: `You have sent ${amount} CareCoins to ${recipientName}.`,
       });
       
       // Reset form
       setRecipient("");
-      setAmount("");
+      setRecipientName("");
+      setAmount(0);
+      
+      // Close modal
+      setOpen(false);
+      
     } catch (error: any) {
-      console.error(error);
+      console.error("Transfer error:", error);
       toast({
         title: "Transaction failed",
-        description: error.message || "Failed to send transaction. Please try again.",
+        description: error.message || "Failed to send CareCoins. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -77,46 +85,73 @@ const SendTransaction = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Send CareCoins</h3>
-      <div className="space-y-3">
-        <div>
-          <label htmlFor="recipient" className="text-sm font-medium">
-            Recipient Address
-          </label>
-          <Input
-            id="recipient"
-            placeholder="Recipient address"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="amount" className="text-sm font-medium">
-            Amount
-          </label>
-          <Input
-            id="amount"
-            type="number"
-            placeholder="Amount to send"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          {user?.care_coins_balance !== undefined && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Available balance: {user.care_coins_balance} CareCoins
-            </p>
-          )}
-        </div>
-        <Button 
-          className="w-full" 
-          onClick={sendTransaction} 
-          disabled={isLoading || !recipient || !amount}
-        >
-          {isLoading ? "Sending..." : "Send CareCoins"}
-        </Button>
-      </div>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Send CareCoins</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Send CareCoins</DialogTitle>
+          <DialogDescription>
+            Send CareCoins to another user.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSendCoins}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="recipient" className="text-right">
+                Recipient
+              </Label>
+              <Input
+                type="text"
+                id="recipient"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                className="col-span-3"
+                placeholder="Recipient User ID"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="recipientName" className="text-right">
+                Recipient Name
+              </Label>
+              <Input
+                type="text"
+                id="recipientName"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className="col-span-3"
+                placeholder="Recipient Name"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="amount" className="text-right">
+                Amount
+              </Label>
+              <Input
+                type="number"
+                id="amount"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                className="col-span-3"
+                placeholder="Amount"
+                required
+              />
+            </div>
+            <div className="p-1 border rounded flex items-center mb-4">
+              <span className="text-sm font-medium px-3">Balance: {user?.careCoinsBalance || 0} CC</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send CareCoins"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { storeFacialData } from './supabaseApi';
 import * as faceapi from 'face-api.js';
+import { Patient } from '@/types';
 
 // Flag to track whether models are loaded
 let modelsLoaded = false;
@@ -56,6 +57,9 @@ export const detectFaces = async (imageData: string) => {
   }
 };
 
+// Alias for detectFaces to maintain compatibility
+export const detectFace = detectFaces;
+
 // Helper function to create an image element from base64 data
 const createImageFromBase64 = (base64Data: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
@@ -93,6 +97,50 @@ export const registerFacialData = async (patientId: string, facialData: string) 
   } catch (error) {
     console.error('Error registering facial data:', error);
     toast.error('Failed to register facial data');
+    throw error;
+  }
+};
+
+// Function to compare face descriptors and find the best match
+export const matchPatientByFace = async (faceDescriptor: number[], patients: Patient[]) => {
+  try {
+    if (!faceDescriptor || !patients.length) {
+      return null;
+    }
+    
+    let bestMatch = null;
+    let bestMatchDistance = 0.6; // Threshold for face recognition (lower is more strict)
+    
+    for (const patient of patients) {
+      if (!patient.facial_data) continue;
+      
+      try {
+        const storedData = JSON.parse(patient.facial_data);
+        if (!storedData.descriptor) continue;
+        
+        const storedDescriptor = storedData.descriptor;
+        
+        // Compare descriptors using Euclidean distance
+        const distance = faceapi.euclideanDistance(
+          new Float32Array(faceDescriptor),
+          new Float32Array(storedDescriptor)
+        );
+        
+        // If this is a better match, update our best match
+        if (distance < bestMatchDistance) {
+          bestMatchDistance = distance;
+          bestMatch = patient;
+        }
+      } catch (err) {
+        console.warn(`Failed to parse facial data for patient ${patient.id}`, err);
+        continue;
+      }
+    }
+    
+    return bestMatch;
+  } catch (error) {
+    console.error('Error matching face:', error);
+    toast.error('Failed to match face');
     throw error;
   }
 };
