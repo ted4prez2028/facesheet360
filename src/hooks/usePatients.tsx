@@ -13,15 +13,30 @@ import { supabase } from "@/integrations/supabase/client";
 
 const patientsQueryKey = "patients";
 
+// Enhanced session check with detailed error handling
+const verifySession = async () => {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError) {
+    console.error("Session verification error:", sessionError);
+    throw new Error("Authentication error. Please try logging in again.");
+  }
+  
+  if (!sessionData.session) {
+    throw new Error("Authentication required. Please log in to view patients.");
+  }
+  
+  // Session exists and is valid
+  return sessionData.session;
+};
+
 // Fetch all patients
 const fetchPatients = async () => {
   try {
     // First check if we have a valid session
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      throw new Error("Authentication required. Please log in to view patients.");
-    }
+    await verifySession();
     
+    // If we have a valid session, fetch patients
     return await getPatientsApi();
   } catch (error: any) {
     console.error("Error fetching patients:", error);
@@ -48,10 +63,7 @@ export const usePatients = () => {
 const fetchPatient = async (id: string) => {
   try {
     // First check if we have a valid session
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      throw new Error("Authentication required. Please log in to view patient details.");
-    }
+    await verifySession();
     
     return await getPatientApi(id);
   } catch (error: any) {
@@ -81,7 +93,11 @@ export const useCreatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createPatientApi,
+    mutationFn: async (patientData: Partial<Patient>) => {
+      // Verify session before attempting to create
+      await verifySession();
+      return createPatientApi(patientData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
       toast.success("Patient created successfully");
@@ -102,8 +118,11 @@ export const useUpdatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: { id: string; data: Partial<Patient> }) => 
-      updatePatientApi(params.id, params.data),
+    mutationFn: async (params: { id: string; data: Partial<Patient> }) => {
+      // Verify session before attempting to update
+      await verifySession();
+      return updatePatientApi(params.id, params.data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
       toast.success("Patient updated successfully");
@@ -124,7 +143,11 @@ export const useDeletePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deletePatientApi(id),
+    mutationFn: async (id: string) => {
+      // Verify session before attempting to delete
+      await verifySession();
+      return deletePatientApi(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
       toast.success("Patient deleted successfully");

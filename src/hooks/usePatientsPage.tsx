@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePatients, useDeletePatient } from "@/hooks/usePatients";
 import { useAuth } from "@/context/AuthContext";
@@ -15,46 +15,69 @@ export const usePatientsPage = () => {
   const navigate = useNavigate();
   const { data: patients = [], isLoading, error, refetch } = usePatients();
   const deletePatientMutation = useDeletePatient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, session } = useAuth();
 
   // Verify session and attempt to refresh it if needed
   useEffect(() => {
     const checkAndRefreshSession = async () => {
+      // First check if we're authenticated based on our context
       if (!isAuthenticated) {
+        console.log("Not authenticated according to context, checking session...");
+        
+        // Double-check with Supabase directly
         const { data } = await supabase.auth.getSession();
         if (!data.session) {
+          console.log("No valid session found, redirecting to login");
           toast.error("Please login to access patient data");
-          navigate("/login");
+          navigate("/login", { replace: true });
+        } else {
+          console.log("Session exists but context doesn't reflect it, refreshing...");
+          // We have a session but our context doesn't show it, refresh the page
+          window.location.reload();
         }
+      } else {
+        console.log("Authentication verified, user:", user?.id);
       }
     };
     
     checkAndRefreshSession();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user]);
 
-  // When we detect an error, try to refetch the data
+  // When we detect an error, log it and try to refetch the data
   useEffect(() => {
     if (error) {
       console.error("Patient data fetch error:", error);
+      
+      // If we get a database error but we're authenticated, the session might be invalid
+      if (isAuthenticated && error.message?.includes("Database permission error")) {
+        // Check session validity
+        supabase.auth.getSession().then(({ data }) => {
+          if (!data.session) {
+            toast.error("Your session has expired. Please login again.");
+            navigate("/login", { replace: true });
+          }
+        });
+      }
+      
       // Attempt to refetch after a delay
       const timer = setTimeout(() => {
         refetch();
-      }, 1000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [error, refetch]);
+  }, [error, refetch, isAuthenticated, navigate]);
 
-  const handleIdentifyPatient = (patientId: string) => {
+  const handleIdentifyPatient = useCallback((patientId: string) => {
     if (patientId) {
       navigate(`/patients/${patientId}`);
     }
-  };
+  }, [navigate]);
 
-  const handleDeletePatient = async (id: string) => {
+  const handleDeletePatient = useCallback(async (id: string) => {
     if (window.confirm("Are you sure you want to delete this patient?")) {
       deletePatientMutation.mutate(id);
     }
-  };
+  }, [deletePatientMutation]);
 
   const filteredPatients = patients.filter((patient: Patient) => {
     const searchStr = searchQuery.toLowerCase();

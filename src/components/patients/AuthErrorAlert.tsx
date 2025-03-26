@@ -27,8 +27,12 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
       {!isAuthenticated && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            You need to be logged in to view and manage patients. Please <Link to="/login" className="font-medium underline">log in</Link> with your credentials.
+          <AlertTitle>Authentication Required</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center gap-2">
+            You need to be logged in to view and manage patients. 
+            <Link to="/login" className="font-medium underline">
+              Log in with your credentials
+            </Link>
           </AlertDescription>
         </Alert>
       )}
@@ -37,12 +41,13 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Database Permission Error</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Please ensure you're logged in with the correct credentials."}
+          <AlertDescription className="flex flex-wrap items-center gap-2">
+            {error instanceof Error ? error.message : "Database permission error. Please ensure you're logged in with the correct credentials."}
             <Button 
               variant="outline" 
-              className="ml-2" 
               onClick={() => refetch()}
+              size="sm"
+              className="mt-1 md:mt-0"
             >
               Try Again
             </Button>
