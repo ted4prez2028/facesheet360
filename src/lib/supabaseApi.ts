@@ -73,7 +73,19 @@ export const addPatient = async (patient: Partial<Patient>) => {
     
     const { data, error } = await supabase
       .from("patients")
-      .insert(patient)
+      .insert({
+        first_name: patient.first_name,
+        last_name: patient.last_name,
+        date_of_birth: patient.date_of_birth,
+        gender: patient.gender,
+        email: patient.email,
+        phone: patient.phone,
+        address: patient.address,
+        medical_record_number: patient.medical_record_number,
+        insurance_provider: patient.insurance_provider,
+        policy_number: patient.policy_number,
+        facial_data: patient.facial_data
+      })
       .select()
       .single();
 
@@ -126,7 +138,16 @@ export const addChartRecord = async (record: Partial<ChartRecord>) => {
     
     const { data, error } = await supabase
       .from("chart_records")
-      .insert(record)
+      .insert({
+        patient_id: record.patient_id,
+        provider_id: record.provider_id,
+        record_type: record.record_type,
+        record_date: record.record_date || new Date().toISOString(),
+        diagnosis: record.diagnosis,
+        notes: record.notes,
+        vital_signs: record.vital_signs,
+        medications: record.medications
+      })
       .select()
       .single();
 
@@ -173,7 +194,13 @@ export const addAppointment = async (appointment: Partial<Appointment>) => {
     
     const { data, error } = await supabase
       .from("appointments")
-      .insert(appointment)
+      .insert({
+        patient_id: appointment.patient_id,
+        provider_id: appointment.provider_id,
+        appointment_date: appointment.appointment_date,
+        status: appointment.status,
+        notes: appointment.notes
+      })
       .select()
       .single();
 
@@ -397,4 +424,25 @@ export const getCareCoinsBalance = async (userId: string) => {
 // Add function for creating patients (for usePatients hook)
 export const createPatient = async (patient: Partial<Patient>) => {
   return addPatient(patient);
+};
+
+// Get notifications
+export const getNotifications = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return [];
+  }
+};
+
+// Add getPatient function for usePatient hook
+export const getPatient = async (id: string) => {
+  return getPatientById(id);
 };

@@ -11,7 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Bell, Home, Users, Calendar, BarChart, Settings } from 'lucide-react';
+import { Bell, Home, Users, Calendar, BarChart, Settings, CreditCard } from 'lucide-react';
 import { Badge } from "@/components/ui/badge"
 import { useCommunication } from '@/context/CommunicationContext';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ interface Notification {
 const TopNav = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { setCallActive } = useCommunication();
+  const communication = useCommunication();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const notificationSoundRef = useRef<HTMLAudioElement>(null);
@@ -49,7 +49,6 @@ const TopNav = () => {
   useEffect(() => {
     const handleRealtimeNotification = (payload: any) => {
       if (payload.new && payload.new.type === 'broadcast') {
-        // Use type assertion to fix the type conversion error
         const notification = payload.new as unknown as Notification;
         setNotifications((prev) => [...prev, notification]);
         if (notificationSoundRef.current) {
@@ -58,7 +57,6 @@ const TopNav = () => {
       }
     };
 
-    // Assuming you have a Supabase client set up elsewhere
     const channel = (window as any).supabase.channel('public:notifications')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, handleRealtimeNotification)
       .subscribe()
@@ -71,7 +69,9 @@ const TopNav = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      setCallActive(false);
+      if (communication && typeof communication.setCallActive === 'function') {
+        communication.setCallActive(false);
+      }
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -84,11 +84,9 @@ const TopNav = () => {
   };
 
   const markAllAsRead = async () => {
-    // Optimistically update the local state
     const updatedNotifications = notifications.map(notification => ({ ...notification, read: true }));
     setNotifications(updatedNotifications);
   
-    // Call the Supabase function to mark all notifications as read
     try {
       const { error } = await (window as any).supabase.functions.invoke('mark-all-notifications-as-read', {
         method: 'POST',
@@ -101,14 +99,12 @@ const TopNav = () => {
         throw error;
       }
   
-      // If the function call was successful, refetch the notifications to update the state
       await refetch();
       toast.success('All notifications marked as read!');
     } catch (error: any) {
       console.error('Error marking notifications as read:', error);
       toast.error(error.message || 'Failed to mark notifications as read.');
   
-      // If there was an error, revert the local state
       setNotifications(notifications);
     }
   };
@@ -142,6 +138,12 @@ const TopNav = () => {
             <Link to="/analytics">
               <BarChart className="mr-2 h-4 w-4" />
               <span>Analytics</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/subscription">
+              <CreditCard className="mr-2 h-4 w-4" />
+              <span>Subscription</span>
             </Link>
           </Button>
           <DropdownMenu>
@@ -206,6 +208,12 @@ const TopNav = () => {
                   <Link to="/settings">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/subscription">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Subscription</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

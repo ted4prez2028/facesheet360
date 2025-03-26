@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createPatient as createPatientApi,
@@ -42,7 +43,7 @@ export const useCreatePatient = () => {
   return useMutation({
     mutationFn: createPatientApi,
     onSuccess: () => {
-      queryClient.invalidateQueries([patientsQueryKey]);
+      queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
   });
 };
@@ -52,10 +53,10 @@ export const useUpdatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; data: Partial<Patient> }) =>
-      updatePatientApi(id, data),
+    mutationFn: (params: { id: string; data: Partial<Patient> }) => 
+      updatePatient(params.id, params.data),
     onSuccess: () => {
-      queryClient.invalidateQueries([patientsQueryKey]);
+      queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
   });
 };
@@ -67,7 +68,7 @@ export const useDeletePatient = () => {
   return useMutation({
     mutationFn: (id: string) => deletePatientApi(id),
     onSuccess: () => {
-      queryClient.invalidateQueries([patientsQueryKey]);
+      queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
   });
 };

@@ -13,6 +13,7 @@ import Charting from "./pages/Charting";
 import Appointments from "./pages/Appointments";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 import EnvExample from "./components/EnvExample";
 import PatientProfile from "./pages/PatientProfile";
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/appointments" element={<Appointments />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/subscription" element={<Subscription />} />
                 <Route path="/settings/configuration" element={<EnvExample />} />
                 <Route path="/patients/:patientId" element={<PatientProfile />} />
                 <Route path="*" element={<NotFound />} />
