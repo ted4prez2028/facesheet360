@@ -23,13 +23,14 @@ export const useCarePlans = (patientId?: string) => {
     queryKey: ["carePlans", patientId],
     queryFn: async () => {
       try {
-        let query = supabase
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
+        const query = supabase
           .from("care_plans")
           .select("*")
           .order("created_at", { ascending: false });
 
         if (patientId) {
-          query = query.eq("patient_id", patientId);
+          query.eq("patient_id", patientId);
         }
 
         const { data, error } = await query;
@@ -62,6 +63,7 @@ export const useGenerateAICarePlan = () => {
         if (apiError) throw new Error(apiError.message);
         
         // Save the AI-generated care plan to the database
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("care_plans")
           .insert({
@@ -70,7 +72,7 @@ export const useGenerateAICarePlan = () => {
             content: carePlan.carePlan,
             is_ai_generated: true,
             status: "draft"
-          })
+          } as any)
           .select()
           .single();
 
@@ -98,9 +100,10 @@ export const useAddCarePlan = () => {
   return useMutation({
     mutationFn: async (carePlan: Omit<CarePlan, "id" | "created_at" | "updated_at">) => {
       try {
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("care_plans")
-          .insert(carePlan)
+          .insert(carePlan as any)
           .select()
           .single();
 
@@ -128,9 +131,10 @@ export const useUpdateCarePlanStatus = () => {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: CarePlan["status"] }) => {
       try {
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("care_plans")
-          .update({ status })
+          .update({ status } as any)
           .eq("id", id)
           .select()
           .single();

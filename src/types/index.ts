@@ -117,3 +117,33 @@ export interface Call {
   isVideoCall: boolean;
   status: "ringing" | "ongoing" | "ended";
 }
+
+// Add Prescription interface
+export interface Prescription {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date?: string;
+  instructions?: string;
+  status: "prescribed" | "administered" | "cancelled";
+  administered_by?: string;
+  administered_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Add CarePlan interface
+export interface CarePlan {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  content: string;
+  is_ai_generated: boolean;
+  status: "draft" | "active" | "completed" | "cancelled";
+  created_at: string;
+  updated_at: string;
+}

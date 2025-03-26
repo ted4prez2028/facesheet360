@@ -14,7 +14,9 @@ export interface Prescription {
   start_date: string;
   end_date?: string;
   instructions?: string;
-  status: "prescribed" | "active" | "completed" | "cancelled";
+  status: "prescribed" | "administered" | "cancelled";
+  administered_by?: string;
+  administered_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -26,13 +28,14 @@ export const usePrescriptions = (patientId?: string) => {
     queryKey: ["prescriptions", patientId],
     queryFn: async () => {
       try {
-        let query = supabase
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
+        const query = supabase
           .from("prescriptions")
           .select("*")
           .order("created_at", { ascending: false });
 
         if (patientId) {
-          query = query.eq("patient_id", patientId);
+          query.eq("patient_id", patientId);
         }
 
         const { data, error } = await query;
@@ -55,9 +58,10 @@ export const useAddPrescription = () => {
   return useMutation({
     mutationFn: async (prescription: Omit<Prescription, "id" | "created_at" | "updated_at">) => {
       try {
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("prescriptions")
-          .insert(prescription)
+          .insert(prescription as any)
           .select()
           .single();
 
@@ -79,41 +83,41 @@ export const useAddPrescription = () => {
   });
 };
 
-export const useUpdatePrescriptionStatus = () => {
+export const useAdministerPrescription = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, status, administeredBy }: 
-      { id: string; status: Prescription["status"]; administeredBy?: string }) => {
+    mutationFn: async (prescriptionId: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
       try {
-        const updateData: any = { status };
-        
-        if (status === "active" && administeredBy) {
-          updateData.administered_by = administeredBy;
-          updateData.administered_at = new Date().toISOString();
-        }
-        
+        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("prescriptions")
-          .update(updateData)
-          .eq("id", id)
+          .update({
+            status: "administered",
+            administered_by: user.id,
+            administered_at: new Date().toISOString()
+          } as any)
+          .eq("id", prescriptionId)
           .select()
           .single();
 
         if (error) throw error;
         return data as Prescription;
       } catch (error) {
-        console.error("Error updating prescription status:", error);
+        console.error("Error administering prescription:", error);
         throw error;
       }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
       queryClient.invalidateQueries({ queryKey: ["prescriptions", data.patient_id] });
-      toast.success(`Prescription status updated to ${data.status}`);
+      toast.success("Medication marked as administered");
     },
     onError: (error) => {
-      toast.error(`Failed to update prescription: ${(error as Error).message}`);
+      toast.error(`Failed to administer medication: ${(error as Error).message}`);
     },
   });
 };

@@ -1,575 +1,274 @@
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
+import { User, Message, Call } from "@/types";
+import { useAuth } from "./AuthContext";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
-import { useAuth } from './AuthContext';
-import { User, Message, Call, ChatWindow } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
-import { getUsers } from '@/lib/supabaseApi';
-import { Button } from '@/components/ui/button';
-
-interface CommunicationContextType {
+interface ContactsState {
   onlineUsers: User[];
-  allUsers: User[];
-  chatWindows: ChatWindow[];
-  currentCall: Call | null;
-  isContactsOpen: boolean;
-  toggleContacts: () => void;
-  startChat: (userId: string, userName: string) => void;
-  closeChat: (userId: string) => void;
-  minimizeChat: (userId: string) => void;
-  sendMessage: (userId: string, content: string) => void;
-  startCall: (userId: string, userName: string, isVideo: boolean) => void;
-  answerCall: () => void;
-  endCall: () => void;
-  addMessageToChat: (senderId: string, content: string) => void;
-  setCallActive?: (active: boolean) => void;
+  isOpen: boolean;
 }
 
-const CommunicationContext = createContext<CommunicationContextType | undefined>(undefined);
+interface ChatWindow {
+  userId: string;
+  userName: string;
+  minimized: boolean;
+  messages: Message[];
+}
 
-export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+interface CommunicationContextType {
+  contacts: ContactsState;
+  chatWindows: ChatWindow[];
+  activeCall: Call | null;
+  isCallActive: boolean;
+  isCallIncoming: boolean;
+  toggleContacts: () => void;
+  addOnlineUser: (user: User) => void;
+  removeOnlineUser: (userId: string) => void;
+  openChatWindow: (userId: string, userName: string) => void;
+  closeChatWindow: (userId: string) => void;
+  minimizeChatWindow: (userId: string) => void;
+  maximizeChatWindow: (userId: string) => void;
+  sendMessage: (recipientId: string, content: string) => void;
+  startCall: (userId: string, userName: string, isVideo: boolean) => void;
+  acceptCall: () => void;
+  rejectCall: () => void;
+  endCall: () => void;
+  setCallStatus: (status: Call["status"]) => void;
+}
+
+const CommunicationContext = createContext<CommunicationContextType | undefined>(
+  undefined
+);
+
+export const useCommunication = () => {
+  const context = useContext(CommunicationContext);
+  if (!context) {
+    throw new Error(
+      "useCommunication must be used within a CommunicationProvider"
+    );
+  }
+  return context;
+};
+
+interface CommunicationProviderProps {
+  children: React.ReactNode;
+}
+
+export const CommunicationProvider = ({ children }: CommunicationProviderProps) => {
+  const [contacts, setContacts] = useState<ContactsState>({
+    onlineUsers: [],
+    isOpen: false,
+  });
   const [chatWindows, setChatWindows] = useState<ChatWindow[]>([]);
-  const [currentCall, setCurrentCall] = useState<Call | null>(null);
-  const [isContactsOpen, setIsContactsOpen] = useState(false);
-  
-  const localStream = useRef<MediaStream | null>(null);
-  const peerConnections = useRef<{[key: string]: RTCPeerConnection}>({});
-  const channelRef = useRef<any>(null);
+  const [activeCall, setActiveCall] = useState<Call | null>(null);
+  const [isCallActive, setIsCallActive] = useState<boolean>(false);
+  const [isCallIncoming, setIsCallIncoming] = useState<boolean>(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
+    // Mock online users - replace with actual data fetching
+    const mockOnlineUsers = [
+      {
+        id: "2",
+        name: "Dr. Emily Carter",
+        email: "emily.carter@example.com",
+        role: "doctor",
+      },
+      {
+        id: "3",
+        name: "Nurse David Lee",
+        email: "david.lee@example.com",
+        role: "nurse",
+      },
+    ];
 
-    const loadUsers = async () => {
-      try {
-        const users = await getUsers();
-        const filteredUsers = users.filter(u => u.id !== user.id);
-        setAllUsers(filteredUsers);
-        setOnlineUsers(filteredUsers);
-      } catch (error) {
-        console.error("Error loading users:", error);
-        toast.error("Error loading users");
+    // Add mock users to online users if they aren't the current user
+    mockOnlineUsers.forEach((mockUser) => {
+      if (user && mockUser.id !== user.id) {
+        addOnlineUser(mockUser);
       }
-    };
-
-    loadUsers();
-    
-    try {
-      const channel = supabase.channel('online-users')
-        .on('presence', { event: 'sync' }, () => {
-          const presenceState = channel.presenceState();
-          console.log('Current presence state:', presenceState);
-        })
-        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-          console.log('User joined:', key, newPresences);
-          loadUsers();
-        })
-        .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-          console.log('User left:', key, leftPresences);
-          loadUsers();
-        });
-
-      channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          try {
-            await channel.track({
-              user_id: user.id,
-              online_at: new Date().toISOString(),
-              name: user.name
-            });
-          } catch (error) {
-            console.error("Error tracking user presence:", error);
-          }
-        }
-      });
-
-      const messageChannel = supabase.channel('private-messages')
-        .on('broadcast', { event: 'message' }, payload => {
-          const { sender_id, content, sender_name } = payload;
-          
-          if (!chatWindows.some(window => window.userId === sender_id)) {
-            startChat(sender_id, sender_name);
-          }
-          
-          addMessageToChat(sender_id, content);
-          
-          playNotificationSound();
-        })
-        .on('broadcast', { event: 'call-request' }, payload => {
-          const { caller_id, caller_name, is_video } = payload;
-          handleIncomingCall(caller_id, caller_name, is_video);
-        })
-        .on('broadcast', { event: 'call-answer' }, payload => {
-          const { user_id } = payload;
-          handleCallAnswered(user_id);
-        })
-        .on('broadcast', { event: 'call-end' }, payload => {
-          const { user_id } = payload;
-          handleCallEnded(user_id);
-        })
-        .on('broadcast', { event: 'ice-candidate' }, payload => {
-          const { candidate, user_id } = payload;
-          handleIceCandidate(user_id, candidate);
-        });
-        
-      messageChannel.subscribe();
-
-      channelRef.current = {
-        presence: channel,
-        messages: messageChannel
-      };
-    } catch (error) {
-      console.error("Error setting up Supabase channels:", error);
-    }
-
-    return () => {
-      if (channelRef.current?.presence) {
-        try {
-          channelRef.current.presence.untrack();
-          supabase.removeChannel(channelRef.current.presence);
-        } catch (error) {
-          console.error("Error removing presence channel:", error);
-        }
-      }
-      if (channelRef.current?.messages) {
-        try {
-          supabase.removeChannel(channelRef.current.messages);
-        } catch (error) {
-          console.error("Error removing message channel:", error);
-        }
-      }
-      
-      Object.values(peerConnections.current).forEach(connection => {
-        connection.close();
-      });
-      
-      if (localStream.current) {
-        localStream.current.getTracks().forEach(track => track.stop());
-      }
-    };
+    });
   }, [user]);
 
-  const handleIceCandidate = (userId: string, candidate: RTCIceCandidate) => {
-    if (peerConnections.current[userId]) {
-      peerConnections.current[userId].addIceCandidate(new RTCIceCandidate(candidate))
-        .catch(err => console.error("Error adding ice candidate:", err));
-    }
-  };
-
-  const playNotificationSound = () => {
-    const audio = new Audio('/notification.mp3');
-    audio.play().catch(err => console.log('Error playing notification sound:', err));
-  };
-
   const toggleContacts = () => {
-    setIsContactsOpen(prev => !prev);
+    setContacts({ ...contacts, isOpen: !contacts.isOpen });
   };
 
-  const startChat = (userId: string, userName: string) => {
-    if (!chatWindows.some(window => window.userId === userId)) {
-      setChatWindows(prev => [
-        ...prev,
-        {
-          userId,
-          userName,
-          minimized: false,
-          messages: []
-        }
-      ]);
-    } else {
-      setChatWindows(prev => 
-        prev.map(window => 
-          window.userId === userId 
-            ? { ...window, minimized: false } 
-            : window
-        )
-      );
-    }
+  const addOnlineUser = (user: User) => {
+    setContacts((prevContacts) => ({
+      ...prevContacts,
+      onlineUsers: [...prevContacts.onlineUsers, user],
+    }));
   };
 
-  const closeChat = (userId: string) => {
-    setChatWindows(prev => prev.filter(window => window.userId !== userId));
+  const removeOnlineUser = (userId: string) => {
+    setContacts((prevContacts) => ({
+      ...prevContacts,
+      onlineUsers: prevContacts.onlineUsers.filter((user) => user.id !== userId),
+    }));
   };
 
-  const minimizeChat = (userId: string) => {
-    setChatWindows(prev => 
-      prev.map(window => 
-        window.userId === userId 
-          ? { ...window, minimized: !window.minimized } 
-          : window
+  const openChatWindow = (userId: string, userName: string) => {
+    setChatWindows((prevChatWindows) => {
+      if (prevChatWindows.find((window) => window.userId === userId)) {
+        return prevChatWindows;
+      }
+      return [...prevChatWindows, { userId, userName, minimized: false, messages: [] }];
+    });
+  };
+
+  const closeChatWindow = (userId: string) => {
+    setChatWindows((prevChatWindows) =>
+      prevChatWindows.filter((window) => window.userId !== userId)
+    );
+  };
+
+  const minimizeChatWindow = (userId: string) => {
+    setChatWindows((prevChatWindows) =>
+      prevChatWindows.map((window) =>
+        window.userId === userId ? { ...window, minimized: true } : window
       )
     );
   };
 
-  const sendMessage = (userId: string, content: string) => {
-    if (!user || !content.trim()) return;
-    
-    setChatWindows(prev => 
-      prev.map(window => {
-        if (window.userId === userId) {
-          return {
-            ...window,
-            messages: [
-              ...window.messages,
-              {
-                id: Date.now().toString(),
-                sender_id: user.id,
-                recipient_id: userId,
-                content,
-                timestamp: new Date().toISOString(),
-                read: true
-              }
-            ]
-          };
-        }
-        return window;
-      })
-    );
-    
-    try {
-      if (channelRef.current?.messages) {
-        channelRef.current.messages.send({
-          type: 'broadcast',
-          event: 'message',
-          payload: {
-            sender_id: user.id,
-            recipient_id: userId,
-            content,
-            sender_name: user.name,
-            timestamp: new Date().toISOString()
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Error sending message");
-    }
-  };
-
-  const addMessageToChat = (senderId: string, content: string) => {
-    const sender = allUsers.find(u => u.id === senderId);
-    
-    if (!chatWindows.some(window => window.userId === senderId) && sender) {
-      setChatWindows(prev => [
-        ...prev,
-        {
-          userId: senderId,
-          userName: sender.name,
-          minimized: false,
-          messages: []
-        }
-      ]);
-    }
-    
-    setChatWindows(prev => 
-      prev.map(window => {
-        if (window.userId === senderId) {
-          return {
-            ...window,
-            messages: [
-              ...window.messages,
-              {
-                id: Date.now().toString(),
-                sender_id: senderId,
-                recipient_id: user?.id || '',
-                content,
-                timestamp: new Date().toISOString(),
-                read: true
-              }
-            ]
-          };
-        }
-        return window;
-      })
+  const maximizeChatWindow = (userId: string) => {
+    setChatWindows((prevChatWindows) =>
+      prevChatWindows.map((window) =>
+        window.userId === userId ? { ...window, minimized: false } : window
+      )
     );
   };
 
-  const startCall = async (userId: string, userName: string, isVideo: boolean) => {
-    if (!user) return;
-    
-    try {
-      const mediaConstraints = {
-        audio: true,
-        video: isVideo
-      };
-      
-      localStream.current = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-      
-      setCurrentCall({
-        callerId: user.id,
-        callerName: user.name,
-        receiverId: userId,
-        receiverName: userName,
-        isVideoCall: isVideo,
-        status: 'ringing'
-      });
-      
-      try {
-        if (channelRef.current?.messages) {
-          channelRef.current.messages.send({
-            type: 'broadcast',
-            event: 'call-request',
-            payload: {
-              caller_id: user.id,
-              caller_name: user.name,
-              is_video: isVideo
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error sending call request:", error);
-        toast.error("Error initiating call");
-        endCall();
-        return;
-      }
-      
-      initializeWebRTC(userId);
-      
-      toast({
-        title: "Calling...",
-        description: `Calling ${userName}`,
-      });
-      
-    } catch (error) {
-      console.error("Error starting call:", error);
-      toast({
-        title: "Call Failed",
-        description: "Could not access camera or microphone",
-        variant: "destructive"
-      });
+  const handleStartCall = (userId: string, userName: string, isVideo: boolean) => {
+    if (!user) {
+      toast.error("You must be logged in to start a call.");
+      return;
     }
-  };
 
-  const handleIncomingCall = (callerId: string, callerName: string, isVideo: boolean) => {
-    setCurrentCall({
-      callerId,
-      callerName,
-      receiverId: user?.id || '',
-      receiverName: user?.name || '',
+    const newCall: Call = {
+      callerId: user.id,
+      callerName: user.name,
+      receiverId: userId,
+      receiverName: userName,
       isVideoCall: isVideo,
-      status: 'ringing'
-    });
-    
-    const audio = new Audio('/ringtone.mp3');
-    audio.loop = true;
-    audio.play().catch(err => console.log('Error playing ringtone:', err));
-    
-    const ringtoneRef = audio;
+      status: "ringing",
+    };
+
+    setActiveCall(newCall);
+    setIsCallActive(true);
+    setIsCallIncoming(false);
     
     toast({
-      title: "Incoming Call",
-      description: `${callerName} is calling you`,
-      action: (
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => {
-              ringtoneRef.pause();
-              endCall();
-            }}
-          >
-            Decline
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={() => {
-              ringtoneRef.pause();
-              answerCall();
-            }}
-          >
-            Answer
-          </Button>
-        </div>
-      ),
-      duration: 30000,
+      description: `Calling ${userName}...`,
+      duration: 3000,
     });
   };
 
-  const answerCall = async () => {
-    if (!currentCall) return;
-    
-    try {
-      const mediaConstraints = {
-        audio: true,
-        video: currentCall.isVideoCall
-      };
-      
-      localStream.current = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-      
-      setCurrentCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
-      
-      try {
-        if (channelRef.current?.messages) {
-          channelRef.current.messages.send({
-            type: 'broadcast',
-            event: 'call-answer',
-            payload: {
-              user_id: currentCall.callerId
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error sending call answer:", error);
-        toast.error("Error answering call");
-        endCall();
-        return;
-      }
-      
-      initializeWebRTC(currentCall.callerId);
-      
-    } catch (error) {
-      console.error("Error answering call:", error);
-      toast({
-        title: "Call Failed",
-        description: "Could not access camera or microphone",
-        variant: "destructive"
-      });
-      endCall();
-    }
-  };
-
-  const handleCallAnswered = (userId: string) => {
-    if (!currentCall) return;
-    
-    setCurrentCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
-  };
-
-  const initializeWebRTC = (remotePeerId: string) => {
-    try {
-      const peerConnection = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      });
-      
-      if (localStream.current) {
-        localStream.current.getTracks().forEach(track => {
-          peerConnection.addTrack(track, localStream.current!);
-        });
-      }
-      
-      peerConnection.onicecandidate = event => {
-        if (event.candidate && channelRef.current?.messages) {
-          try {
-            channelRef.current.messages.send({
-              type: 'broadcast',
-              event: 'ice-candidate',
-              payload: {
-                candidate: event.candidate,
-                user_id: remotePeerId
-              }
-            });
-          } catch (error) {
-            console.error("Error sending ICE candidate:", error);
-          }
-        }
-      };
-      
-      peerConnection.ontrack = event => {
-        const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
-        if (remoteVideo && event.streams[0]) {
-          remoteVideo.srcObject = event.streams[0];
-        }
-      };
-      
-      peerConnection.onnegotiationneeded = async () => {
-        try {
-          const offer = await peerConnection.createOffer();
-          await peerConnection.setLocalDescription(offer);
-          
-          if (channelRef.current?.messages) {
-            channelRef.current.messages.send({
-              type: 'broadcast',
-              event: 'offer',
-              payload: {
-                offer: peerConnection.localDescription,
-                user_id: remotePeerId
-              }
-            });
-          }
-        } catch (error) {
-          console.error("Error creating offer:", error);
-        }
-      };
-      
-      peerConnections.current[remotePeerId] = peerConnection;
-    } catch (error) {
-      console.error("Error initializing WebRTC:", error);
-      toast.error("Error establishing call connection");
-    }
-  };
-
-  const endCall = () => {
-    if (currentCall) {
-      try {
-        if (channelRef.current?.messages) {
-          channelRef.current.messages.send({
-            type: 'broadcast',
-            event: 'call-end',
-            payload: {
-              user_id: currentCall.callerId === user?.id ? currentCall.receiverId : currentCall.callerId
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error sending call end signal:", error);
-      }
-    }
-    
-    setCurrentCall(null);
-    
-    if (localStream.current) {
-      localStream.current.getTracks().forEach(track => track.stop());
-      localStream.current = null;
-    }
-    
-    Object.values(peerConnections.current).forEach(connection => {
-      connection.close();
-    });
-    peerConnections.current = {};
-  };
-
-  const handleCallEnded = (userId: string) => {
-    endCall();
+  const handleAcceptCall = () => {
+    setIsCallActive(true);
+    setIsCallIncoming(false);
+    setCallStatus("ongoing");
     
     toast({
-      title: "Call Ended",
-      description: "The call has ended"
+      description: `Call connected with ${activeCall?.callerName || activeCall?.receiverName}`,
+      duration: 3000,
     });
   };
 
-  const value = {
-    onlineUsers,
-    allUsers,
+  const handleEndCall = () => {
+    setIsCallActive(false);
+    setIsCallIncoming(false);
+    setActiveCall(null);
+    setCallStatus("ended");
+    
+    toast({
+      description: `Call ended with ${activeCall?.callerName || activeCall?.receiverName}`,
+      duration: 3000,
+    });
+  };
+
+  const handleRejectCall = () => {
+    setIsCallActive(false);
+    setIsCallIncoming(false);
+    setActiveCall(null);
+    setCallStatus("ended");
+    
+    toast({
+      description: `Call rejected`,
+      duration: 3000,
+    });
+  };
+
+  const sendMessage = (recipientId: string, content: string) => {
+    const newMessage: Message = {
+      id: uuidv4(),
+      sender_id: user?.id || "default_sender_id",
+      recipient_id: recipientId,
+      content: content,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+
+    setChatWindows((prevChatWindows) => {
+      return prevChatWindows.map((window) => {
+        if (window.userId === recipientId) {
+          return {
+            ...window,
+            messages: [...window.messages, newMessage],
+          };
+        }
+        return window;
+      });
+    });
+  };
+
+  const setCallStatus = (status: Call["status"]) => {
+    setActiveCall((prevCall) => {
+      if (prevCall) {
+        return { ...prevCall, status: status };
+      }
+      return prevCall;
+    });
+
+    if (status === "ringing") {
+      setIsCallIncoming(true);
+      setIsCallActive(true);
+    } else {
+      setIsCallIncoming(false);
+    }
+  };
+
+  const contextValue: CommunicationContextType = {
+    contacts,
     chatWindows,
-    currentCall,
-    isContactsOpen,
+    activeCall,
+    isCallActive,
+    isCallIncoming,
     toggleContacts,
-    startChat,
-    closeChat,
-    minimizeChat,
+    addOnlineUser,
+    removeOnlineUser,
+    openChatWindow,
+    closeChatWindow,
+    minimizeChatWindow,
+    maximizeChatWindow,
     sendMessage,
     startCall,
-    answerCall,
+    acceptCall,
+    rejectCall,
     endCall,
-    addMessageToChat
+    setCallStatus,
   };
 
   return (
-    <CommunicationContext.Provider value={value}>
+    <CommunicationContext.Provider value={contextValue}>
       {children}
     </CommunicationContext.Provider>
   );
-};
-
-export const useCommunication = () => {
-  const context = useContext(CommunicationContext);
-  if (context === undefined) {
-    throw new Error('useCommunication must be used within a CommunicationProvider');
-  }
-  return context;
 };
