@@ -37,7 +37,7 @@ const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate("/"); // Redirect to homepage after logout
     } catch (error) {
       console.error('Logout error:', error);
     }

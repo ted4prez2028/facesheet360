@@ -25,14 +25,20 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/AuthContext";
 
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   
-  const handleLogout = () => {
-    localStorage.removeItem("healthcareAuth");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");  // Redirect to homepage after logout
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const menuItems = [

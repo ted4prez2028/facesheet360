@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/auth';
@@ -83,6 +82,8 @@ export const useAuthOperations = (
       setUser(null);
       setSession(null);
       sonnerToast.success('Logged out successfully');
+      
+      return Promise.resolve();
     } catch (error) {
       console.error('Logout error:', error);
       toast({
@@ -90,6 +91,7 @@ export const useAuthOperations = (
         description: "An error occurred while logging out. Please try again.",
         variant: "destructive",
       });
+      return Promise.reject(error);
     }
   };
 
