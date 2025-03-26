@@ -659,6 +659,56 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_patient: {
+        Args: {
+          p_first_name: string
+          p_last_name: string
+          p_date_of_birth: string
+          p_gender: string
+          p_email?: string
+          p_phone?: string
+          p_address?: string
+          p_medical_record_number?: string
+          p_insurance_provider?: string
+          p_policy_number?: string
+          p_facial_data?: string
+        }
+        Returns: {
+          address: string | null
+          created_at: string
+          date_of_birth: string
+          email: string | null
+          facial_data: string | null
+          first_name: string
+          gender: string
+          id: string
+          insurance_provider: string | null
+          last_name: string
+          medical_record_number: string | null
+          phone: string | null
+          policy_number: string | null
+          updated_at: string
+        }
+      }
+      get_all_patients: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string | null
+          created_at: string
+          date_of_birth: string
+          email: string | null
+          facial_data: string | null
+          first_name: string
+          gender: string
+          id: string
+          insurance_provider: string | null
+          last_name: string
+          medical_record_number: string | null
+          phone: string | null
+          policy_number: string | null
+          updated_at: string
+        }[]
+      }
       get_analytics_overview: {
         Args: {
           provider_id_param: string

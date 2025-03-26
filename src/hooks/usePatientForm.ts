@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Patient } from "@/types";
 import { addPatient } from "@/lib/api/patientApi";
+import { addPatientDirect } from "@/lib/api/directPatientsApi";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PatientFormState {
@@ -122,18 +123,16 @@ export const usePatientForm = (onSuccess: () => void) => {
         facial_data: formState.facialData || null,
       };
       
-      // Try with alternative direct method if available (added as fallback)
+      // Try with direct method first
       let result;
       try {
-        result = await addPatient(patientData);
+        console.log("Using direct patient API method");
+        result = await addPatientDirect(patientData);
       } catch (error: any) {
-        if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
-          console.log("Trying fallback method due to RLS recursion issue");
-          // This would use our direct API if implemented in database
-          throw error; // For now still throw since we don't have the DB function yet
-        } else {
-          throw error;
-        }
+        console.error("Direct API method failed:", error);
+        // Fall back to the regular method
+        console.log("Falling back to regular API method");
+        result = await addPatient(patientData);
       }
       
       console.log("Patient added successfully:", result);

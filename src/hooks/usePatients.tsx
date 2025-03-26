@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createPatient as createPatientApi,
@@ -6,6 +7,7 @@ import {
   updatePatient as updatePatientApi,
   deletePatient as deletePatientApi,
 } from "@/lib/supabaseApi";
+import { getPatientsDirect } from "@/lib/api/directPatientsApi";
 import { Patient } from "@/types";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,8 +51,20 @@ const fetchPatients = async () => {
     // First check if we have a valid session
     await verifySession();
     
-    // If we have a valid session, fetch patients
-    return await getPatientsApi();
+    // Try the regular API method first
+    try {
+      return await getPatientsApi();
+    } catch (error: any) {
+      console.error("Regular API method failed, trying direct method:", error);
+      
+      // If we get a recursion error, try the direct method
+      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+        console.log("Using direct API method due to recursion issue");
+        return await getPatientsDirect();
+      }
+      
+      throw error;
+    }
   } catch (error: any) {
     console.error("Error fetching patients:", error);
     

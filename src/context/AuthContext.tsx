@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { AuthContextType, User } from '@/types/auth';
 import { useAuthOperations } from '@/hooks/useAuthOperations';
-import { updateUserState } from '@/hooks/useUserStateUpdater';
 import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +15,7 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => {},
   logout: async () => {},
   updateUserProfile: async () => {},
+  updateCurrentUser: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -79,9 +79,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Then check for existing session
     const initializeAuth = async () => {
       try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log("Got existing session:", !!currentSession);
-        setSession(currentSession);
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Failed to get session:", error);
+          // Try refreshing the session if we get an error
+          await supabase.auth.refreshSession();
+          const { data: { session: refreshedSession } } = await supabase.auth.getSession();
+          console.log("Session refreshed:", !!refreshedSession);
+          if (refreshedSession) {
+            setSession(refreshedSession);
+          }
+        } else {
+          console.log("Got existing session:", !!currentSession);
+          setSession(currentSession);
+        }
         
         if (currentSession?.user) {
           try {

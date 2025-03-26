@@ -13,7 +13,7 @@ export const getPatientsDirect = async () => {
       throw new Error("Authentication required");
     }
     
-    // Use RPC for direct SQL execution
+    // Use RPC for direct SQL execution with the custom function
     const { data, error } = await supabase.rpc('get_all_patients');
     
     if (error) {
@@ -47,13 +47,13 @@ export const addPatientDirect = async (patient: Partial<Patient>) => {
       p_last_name: patient.last_name,
       p_date_of_birth: patient.date_of_birth,
       p_gender: patient.gender,
-      p_email: patient.email,
-      p_phone: patient.phone,
-      p_address: patient.address,
-      p_medical_record_number: patient.medical_record_number,
-      p_insurance_provider: patient.insurance_provider,
-      p_policy_number: patient.policy_number,
-      p_facial_data: patient.facial_data
+      p_email: patient.email || null,
+      p_phone: patient.phone || null,
+      p_address: patient.address || null,
+      p_medical_record_number: patient.medical_record_number || null,
+      p_insurance_provider: patient.insurance_provider || null,
+      p_policy_number: patient.policy_number || null,
+      p_facial_data: patient.facial_data || null
     });
     
     if (error) {
