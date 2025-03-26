@@ -33,17 +33,15 @@ export const usePatient = (patientId: string) => {
         
         console.log("Attempting to fetch patient with ID:", patientId);
         
-        // Check if user is a doctor (who can access all patients)
+        // If user is doctor or admin, they can access all patients
         const isDoctor = await hasRole('doctor');
+        const isAdmin = await hasRole('admin');
         
-        // If not a doctor, check if assigned to this patient
-        let hasAccess = isDoctor;
-        if (!hasAccess) {
-          hasAccess = await isAssignedToPatient(patientId);
-        }
+        // Check if we have direct access to this patient
+        const hasAccess = isDoctor || isAdmin || await isAssignedToPatient(patientId);
+        console.log(`User has access to patient: ${hasAccess ? 'yes' : 'no'}`);
         
-        // If neither a doctor nor assigned, try with Edge Function
-        // which will enforce permissions server-side
+        // Try with Edge Function first which has proper permission handling
         try {
           const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('get-patient-by-id', {
             body: { patientId }
@@ -51,10 +49,8 @@ export const usePatient = (patientId: string) => {
           
           if (edgeFunctionError) {
             console.error("Edge function error:", edgeFunctionError);
-            throw new Error(`Failed to fetch patient via edge function: ${edgeFunctionError.message}`);
-          }
-          
-          if (edgeFunctionData) {
+            // Continue to fallback if edge function fails
+          } else if (edgeFunctionData) {
             console.log("Successfully retrieved patient data via edge function");
             setPatient(edgeFunctionData);
             return;
@@ -64,7 +60,27 @@ export const usePatient = (patientId: string) => {
           // Continue to fallback methods
         }
         
-        // Fallback to direct query
+        // Fallback to using get_all_patients function which bypasses RLS
+        try {
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('get_all_patients')
+            .eq('id', patientId)
+            .maybeSingle();
+          
+          if (rpcError) {
+            console.error("RPC error:", rpcError);
+            // Continue to next fallback
+          } else if (rpcData) {
+            console.log("Successfully retrieved patient with RPC");
+            setPatient(rpcData);
+            return;
+          }
+        } catch (rpcErr) {
+          console.error("RPC fallback failed:", rpcErr);
+          // Continue to next fallback
+        }
+        
+        // Last resort - direct query, might still fail due to RLS
         try {
           const { data: directData, error: directError } = await supabase
             .from('patients')

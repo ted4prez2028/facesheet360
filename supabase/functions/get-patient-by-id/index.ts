@@ -14,37 +14,35 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with the service role key for admin access
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
-    // Get the authorization header from the request
+    if (!supabaseUrl || !supabaseServiceRoleKey || !supabaseAnonKey) {
+      console.error("Missing Supabase environment variables");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // First validate that the request has a valid session
     const authHeader = req.headers.get('Authorization');
-    
     if (!authHeader) {
-      console.log("Missing Authorization header");
+      console.error("Missing Authorization header");
       return new Response(
         JSON.stringify({ error: "Authorization header is required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Create client with the user JWT to verify authentication
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
     
-    // Create client with user's auth token to verify authentication
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
-    
-    // Verify user is authenticated
+    // Verify authentication
     const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-    
     if (sessionError || !session) {
       console.error("Session verification failed:", sessionError);
       return new Response(
@@ -54,17 +52,9 @@ serve(async (req) => {
     }
     
     // Get the patient ID from the request body
-    let patientId;
+    let requestBody;
     try {
-      const body = await req.json();
-      patientId = body.patientId;
-      
-      if (!patientId) {
-        return new Response(
-          JSON.stringify({ error: "Patient ID is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      requestBody = await req.json();
     } catch (e) {
       return new Response(
         JSON.stringify({ error: "Invalid request body" }),
@@ -72,21 +62,31 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Fetching patient with ID: ${patientId}`);
+    const patientId = requestBody.patientId;
+    if (!patientId) {
+      return new Response(
+        JSON.stringify({ error: "Patient ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
-    // Check if user is a doctor or admin role using the admin client
+    console.log(`Fetching patient with ID: ${patientId} for user ${session.user.id}`);
+    
+    // Now use admin client with service role key to bypass RLS
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+    
+    // Check if user is an admin or doctor (who can access all patients)
     const { data: userRoles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', session.user.id);
     
     const roles = userRoles ? userRoles.map(r => r.role) : [];
-    const isDoctor = roles.includes('doctor');
-    const isAdmin = roles.includes('admin');
+    const isAdminOrDoctor = roles.includes('admin') || roles.includes('doctor');
     
-    // Check if the user is assigned to this patient
-    let hasAccess = isDoctor || isAdmin;
+    let hasAccess = isAdminOrDoctor;
     
+    // If not admin or doctor, check if user is assigned to this patient
     if (!hasAccess) {
       const { data: assignment } = await supabaseAdmin
         .from('care_team_assignments')
@@ -98,15 +98,15 @@ serve(async (req) => {
       hasAccess = !!assignment;
     }
     
-    // If the user doesn't have access, return a permission denied error
+    // If user doesn't have access, return permission denied
     if (!hasAccess) {
       return new Response(
-        JSON.stringify({ error: "You do not have permission to view this patient" }),
+        JSON.stringify({ error: "You do not have permission to access this patient" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Fetch the patient data directly using the admin client to bypass RLS
+    // Fetch the patient data using the admin client to bypass RLS
     const { data: patient, error: patientError } = await supabaseAdmin
       .from('patients')
       .select('*')
@@ -128,12 +128,10 @@ serve(async (req) => {
       );
     }
     
-    // Return the patient data
     return new Response(
       JSON.stringify(patient),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-    
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(

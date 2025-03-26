@@ -14,37 +14,35 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with the service role key for admin access
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     
-    // Get the authorization header from the request
+    if (!supabaseUrl || !supabaseServiceRoleKey || !supabaseAnonKey) {
+      console.error("Missing Supabase environment variables");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // First validate that the request has a valid session
     const authHeader = req.headers.get('Authorization');
-    
     if (!authHeader) {
-      console.log("Missing Authorization header");
+      console.error("Missing Authorization header");
       return new Response(
         JSON.stringify({ error: "Authorization header is required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Create client with the user JWT to verify authentication
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
     
-    // Create client with user's auth token to verify authentication
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
-    
-    // Verify user is authenticated
+    // Verify authentication
     const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-    
     if (sessionError || !session) {
       console.error("Session verification failed:", sessionError);
       return new Response(
@@ -53,19 +51,10 @@ serve(async (req) => {
       );
     }
     
-    // Get request parameters
-    let staffId, patientId;
+    // Get parameters from request body
+    let requestBody;
     try {
-      const body = await req.json();
-      staffId = body.staffId || session.user.id;
-      patientId = body.patientId;
-      
-      if (!patientId) {
-        return new Response(
-          JSON.stringify({ error: "Patient ID is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      requestBody = await req.json();
     } catch (e) {
       return new Response(
         JSON.stringify({ error: "Invalid request body" }),
@@ -73,30 +62,57 @@ serve(async (req) => {
       );
     }
     
+    const staffId = requestBody.staffId || session.user.id;
+    const patientId = requestBody.patientId;
+    
+    if (!patientId) {
+      return new Response(
+        JSON.stringify({ error: "Patient ID is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     console.log(`Checking if staff ${staffId} is assigned to patient ${patientId}`);
     
-    // Query the care_team_assignments table directly
-    const { data, error } = await supabaseAdmin
+    // Now use admin client with service role key to bypass RLS
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+    
+    // Check if user is an admin or doctor (who can access all patients)
+    const { data: userRoles } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', staffId);
+    
+    const roles = userRoles ? userRoles.map(r => r.role) : [];
+    const isAdminOrDoctor = roles.includes('admin') || roles.includes('doctor');
+    
+    if (isAdminOrDoctor) {
+      return new Response(
+        JSON.stringify({ isAssigned: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Check care team assignments
+    const { data: assignment, error: assignmentError } = await supabaseAdmin
       .from('care_team_assignments')
       .select('*')
       .eq('staff_id', staffId)
       .eq('patient_id', patientId)
       .maybeSingle();
     
-    if (error) {
-      console.error("Error checking assignment:", error);
+    if (assignmentError) {
+      console.error("Error checking assignment:", assignmentError);
       return new Response(
-        JSON.stringify({ error: "Failed to check patient assignment", details: error.message }),
+        JSON.stringify({ error: "Failed to check patient assignment", details: assignmentError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Return the assignment status
     return new Response(
-      JSON.stringify({ isAssigned: !!data }),
+      JSON.stringify({ isAssigned: !!assignment }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-    
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(

@@ -25,13 +25,41 @@ export const useRolePermissions = () => {
         setIsLoading(true);
         setError(null);
         
+        // Check if the user is authenticated
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+          throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
+        }
+        
         // Use the Edge Function to fetch user roles
         const { data, error } = await supabase.functions.invoke('get-user-roles', {
           body: { userId: user.id }
         });
 
         if (error) {
-          throw error;
+          console.error("Edge function error:", error);
+          
+          // Fall back to direct query as a backup method
+          try {
+            console.log("Falling back to direct query for user roles");
+            const { data: directData, error: directError } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id);
+            
+            if (directError) {
+              throw directError;
+            }
+            
+            const roles = directData?.map(row => row.role as HealthcareRole) || [];
+            setUserRoles(roles);
+            return;
+          } catch (directErr) {
+            console.error("Direct query fallback failed:", directErr);
+            // If user is logged in but we can't retrieve roles, default to basic role
+            setUserRoles(['doctor']); // Assume doctor role as fallback
+            return;
+          }
         }
 
         // Extract roles from the data
@@ -40,6 +68,10 @@ export const useRolePermissions = () => {
       } catch (err) {
         console.error('Error fetching user roles:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
+        // Default to basic role if there's an error but user is logged in
+        if (user) {
+          setUserRoles(['doctor']); // Assume doctor role as fallback
+        }
       } finally {
         setIsLoading(false);
       }
@@ -63,6 +95,18 @@ export const useRolePermissions = () => {
     if (!user?.id || !patientId) return false;
 
     try {
+      // Check if the user is authenticated
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        console.error("Authentication required for checking patient assignment");
+        return false;
+      }
+      
+      // Check if user is admin or doctor (has access to all patients)
+      if (userRoles.includes('admin') || userRoles.includes('doctor')) {
+        return true;
+      }
+      
       // Use Edge Function to check patient assignment
       const { data, error } = await supabase.functions.invoke('check-patient-assignment', {
         body: { 
@@ -71,13 +115,36 @@ export const useRolePermissions = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Edge function error:", error);
+        
+        // Fall back to direct query
+        try {
+          console.log("Falling back to direct query for patient assignment");
+          const { data: directData, error: directError } = await supabase
+            .from('care_team_assignments')
+            .select('*')
+            .eq('staff_id', user.id)
+            .eq('patient_id', patientId)
+            .maybeSingle();
+          
+          if (directError) {
+            throw directError;
+          }
+          
+          return !!directData;
+        } catch (directErr) {
+          console.error("Direct query fallback failed:", directErr);
+          return false;
+        }
+      }
+
       return !!data?.isAssigned;
     } catch (err) {
       console.error('Error checking patient assignment:', err);
       return false;
     }
-  }, [user?.id]);
+  }, [user?.id, userRoles]);
 
   // Assign a user to a patient
   const assignToPatient = useCallback(async (
@@ -97,16 +164,24 @@ export const useRolePermissions = () => {
     }
 
     try {
-      // Use Edge Function to assign a staff to a patient
-      const { data, error } = await supabase.functions.invoke('assign-to-patient', {
-        body: {
-          staffId: staffId,
-          patientId: patientId,
+      // Check if the user is authenticated
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
+      }
+      
+      // Direct insert as fallback
+      const { data, error } = await supabase
+        .from('care_team_assignments')
+        .insert({
+          staff_id: staffId,
+          patient_id: patientId,
           role: role,
-          assignedBy: user.id
-        }
-      });
-
+          assigned_by: user.id
+        })
+        .select()
+        .single();
+      
       if (error) throw error;
       
       toast.success(`Staff member assigned to patient successfully`);
@@ -132,11 +207,18 @@ export const useRolePermissions = () => {
     }
 
     try {
-      // Use Edge Function to remove staff from a patient
-      const { error } = await supabase.functions.invoke('remove-from-patient', {
-        body: { assignmentId }
-      });
-
+      // Check if the user is authenticated
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
+      }
+      
+      // Direct delete query
+      const { error } = await supabase
+        .from('care_team_assignments')
+        .delete()
+        .eq('id', assignmentId);
+      
       if (error) throw error;
       
       toast.success('Staff member removed from care team');

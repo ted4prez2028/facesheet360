@@ -20,8 +20,8 @@ const AuthErrorAlert = ({ isAuthenticated, error, refetch }: AuthErrorAlertProps
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Authentication Required</AlertTitle>
-        <AlertDescription>
-          <p className="mb-2">You need to be logged in to view this content.</p>
+        <AlertDescription className="space-y-2">
+          <p>You need to be logged in to view this content.</p>
           <Button 
             variant="outline" 
             size="sm" 
@@ -66,8 +66,8 @@ const AuthErrorAlert = ({ isAuthenticated, error, refetch }: AuthErrorAlertProps
     <Alert variant={variant} className="mb-6">
       {icon}
       <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>
-        <p className="mb-2">{errorMessage}</p>
+      <AlertDescription className="space-y-2">
+        <p>{errorMessage}</p>
         <Button 
           variant="outline" 
           size="sm" 
