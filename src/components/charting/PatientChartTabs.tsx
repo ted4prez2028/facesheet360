@@ -1,66 +1,104 @@
-
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Activity, Pill, TestTube, Image } from "lucide-react";
-import PatientNotes from "./PatientNotes";
-import VitalSignsPanel from "@/components/charting/VitalSignsPanel";
-import LabResultsPanel from "@/components/charting/LabResultsPanel";
-import MedicationsPanel from "@/components/charting/MedicationsPanel";
-import ImagingPanel from "@/components/charting/ImagingPanel";
+import { VitalsTable } from "@/components/charting/VitalsTable";
+import { MedicationsTable } from "@/components/charting/MedicationsTable";
+import { LabResultsTable } from "@/components/charting/LabResultsTable";
+import { ImagingTable } from "@/components/charting/ImagingTable";
+import { NotesTable } from "@/components/charting/NotesTable";
+import { CarePlanList } from "@/components/charting/CarePlanList";
+
+import { GenerateCarePlanButton } from "@/components/care-plan/GenerateCarePlanButton";
+import { useCarePlanGenerator } from "@/hooks/useCarePlanGenerator";
 
 interface PatientChartTabsProps {
-  patientId: string;
-  userId: string | undefined;
+  patient: any;
+  chartData: any;
 }
 
-const PatientChartTabs = ({ patientId, userId }: PatientChartTabsProps) => {
-  return (
-    <Tabs defaultValue="notes" className="flex-1 flex flex-col">
-      <div className="px-6">
-        <TabsList className="my-2">
-          <TabsTrigger value="notes" className="flex items-center gap-1">
-            <FileText className="h-4 w-4" />
-            <span>Notes</span>
-          </TabsTrigger>
-          <TabsTrigger value="vitals" className="flex items-center gap-1">
-            <Activity className="h-4 w-4" />
-            <span>Vital Signs</span>
-          </TabsTrigger>
-          <TabsTrigger value="meds" className="flex items-center gap-1">
-            <Pill className="h-4 w-4" />
-            <span>Medications</span>
-          </TabsTrigger>
-          <TabsTrigger value="labs" className="flex items-center gap-1">
-            <TestTube className="h-4 w-4" />
-            <span>Lab Results</span>
-          </TabsTrigger>
-          <TabsTrigger value="imaging" className="flex items-center gap-1">
-            <Image className="h-4 w-4" />
-            <span>Imaging</span>
-          </TabsTrigger>
-        </TabsList>
-      </div>
-      
-      <TabsContent value="notes" className="flex-1 flex flex-col pt-0 px-0 m-0">
-        <PatientNotes patientId={patientId} userId={userId} />
-      </TabsContent>
-      
-      <TabsContent value="vitals" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-        <VitalSignsPanel patientId={patientId} />
-      </TabsContent>
-      
-      <TabsContent value="meds" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-        <MedicationsPanel patientId={patientId} />
-      </TabsContent>
-      
-      <TabsContent value="labs" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-        <LabResultsPanel patientId={patientId} />
-      </TabsContent>
-      
-      <TabsContent value="imaging" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-        <ImagingPanel patientId={patientId} />
-      </TabsContent>
-    </Tabs>
-  );
-};
+export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) {
+  const [selectedTab, setSelectedTab] = useState("vitals");
+  
+  const { generateCarePlan, isGenerating } = useCarePlanGenerator({ 
+    patientId: patient?.id || '' 
+  });
+  
+  // Handler for when a care plan is generated
+  const handlePlanGenerated = async (carePlan: string) => {
+    // You can add additional logic here if needed
+    // For example, you might want to switch to the care plan tab
+  };
+  
+  // Prepare patient data for AI care plan generation
+  const preparePatientDataForAI = () => {
+    if (!patient) return null;
+    
+    return {
+      ...patient,
+      vitalSigns: chartData?.vitalSigns,
+      medications: chartData?.medications?.map(med => med.medication_name),
+      medicalHistory: chartData?.history || [],
+      condition: chartData?.diagnosis,
+      allergies: chartData?.allergies || [],
+    };
+  };
 
-export default PatientChartTabs;
+  return (
+    <div className="space-y-4">
+      <Tabs defaultValue="vitals" className="w-full">
+        <TabsList className="grid grid-cols-6 mb-4">
+          <TabsTrigger value="vitals">Vital Signs</TabsTrigger>
+          <TabsTrigger value="medications">Medications</TabsTrigger>
+          <TabsTrigger value="lab">Lab Results</TabsTrigger>
+          <TabsTrigger value="imaging">Imaging</TabsTrigger>
+          <TabsTrigger value="notes">Notes</TabsTrigger>
+          <TabsTrigger value="care-plans">Care Plans</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="vitals">
+          <VitalsTable vitals={chartData?.vitalSigns} />
+        </TabsContent>
+        
+        <TabsContent value="medications">
+          <MedicationsTable medications={chartData?.medications} />
+        </TabsContent>
+        
+        <TabsContent value="lab">
+          <LabResultsTable labResults={chartData?.labResults} />
+        </TabsContent>
+        
+        <TabsContent value="imaging">
+          <ImagingTable imaging={chartData?.imaging} />
+        </TabsContent>
+        
+        <TabsContent value="notes">
+          <NotesTable notes={chartData?.notes} />
+        </TabsContent>
+        
+        {/* Add the AI Care Plan generator button to the care plans tab */}
+        <TabsContent value="care-plans" className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="md:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Generate Care Plan</CardTitle>
+                  <CardDescription>Use AI to create a comprehensive care plan based on patient data.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GenerateCarePlanButton 
+                    patientId={patient?.id || ''}
+                    onPlanGenerated={handlePlanGenerated}
+                    patientData={preparePatientDataForAI()}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="md:col-span-2">
+              <CarePlanList patientId={patient?.id || ''} />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

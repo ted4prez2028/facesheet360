@@ -41,6 +41,18 @@ interface AnalyticsData {
   error: Error | null;
 }
 
+// Define an interface for the Supabase RPC response
+interface OverviewDataResponse {
+  totalpatients: number;
+  appointments: number;
+  chartingrate: number;
+  carecoinsgenerated: number;
+  patientsgrowth: number;
+  appointmentsgrowth: number;
+  chartingrategrowth: number;
+  carecoinsgrowth: number;
+}
+
 export function useAnalyticsData() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     overview: {
@@ -124,7 +136,7 @@ export function useAnalyticsData() {
         
         if (Array.isArray(overviewData) && overviewData.length > 0) {
           // If it's an array, take the first item
-          const item = overviewData[0];
+          const item = overviewData[0] as OverviewDataResponse;
           formattedOverviewData = {
             totalPatients: item.totalpatients || 0,
             appointments: item.appointments || 0,
@@ -137,15 +149,16 @@ export function useAnalyticsData() {
           };
         } else if (overviewData) {
           // If it's a single object
+          const item = overviewData as OverviewDataResponse;
           formattedOverviewData = {
-            totalPatients: overviewData.totalpatients || 0,
-            appointments: overviewData.appointments || 0,
-            chartingRate: overviewData.chartingrate || 0,
-            careCoinsGenerated: overviewData.carecoinsgenerated || 0,
-            patientsGrowth: overviewData.patientsgrowth || 0,
-            appointmentsGrowth: overviewData.appointmentsgrowth || 0,
-            chartingRateGrowth: overviewData.chartingrategrowth || 0,
-            careCoinsGrowth: overviewData.carecoinsgrowth || 0
+            totalPatients: item.totalpatients || 0,
+            appointments: item.appointments || 0,
+            chartingRate: item.chartingrate || 0,
+            careCoinsGenerated: item.carecoinsgenerated || 0,
+            patientsGrowth: item.patientsgrowth || 0,
+            appointmentsGrowth: item.appointmentsgrowth || 0,
+            chartingRateGrowth: item.chartingrategrowth || 0,
+            careCoinsGrowth: item.carecoinsgrowth || 0
           };
         } else {
           // Default empty values
