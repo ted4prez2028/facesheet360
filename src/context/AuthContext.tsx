@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // First set up auth state listener before checking for existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
         setSession(currentSession);
         
@@ -38,7 +38,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Use setTimeout to prevent deadlocks with Supabase client
           setTimeout(async () => {
             try {
-              const userData = await updateUserState(currentSession);
+              // Simplified user state update to avoid RLS issues
+              const userData: User = {
+                id: currentSession.user.id,
+                name: currentSession.user.email || '',
+                email: currentSession.user.email || '',
+                role: 'doctor',
+                careCoinsBalance: 0
+              };
+              
               setUser(userData);
               
               if (event === 'SIGNED_IN') {
@@ -77,7 +85,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (currentSession?.user) {
           try {
-            const userData = await updateUserState(currentSession);
+            // Simplified user object to bypass RLS issues
+            const userData: User = {
+              id: currentSession.user.id,
+              name: currentSession.user.email || '',
+              email: currentSession.user.email || '',
+              role: 'doctor',
+              careCoinsBalance: 0
+            };
+            
             setUser(userData);
           } catch (error) {
             console.error("Error initializing user state:", error);

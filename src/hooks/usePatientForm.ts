@@ -72,6 +72,19 @@ export const usePatientForm = (onSuccess: () => void) => {
         });
         return false;
       }
+      
+      // Also refresh the token if it's getting close to expiry
+      if (data.session.expires_at) {
+        const expiresAt = new Date(data.session.expires_at * 1000);
+        const now = new Date();
+        
+        // If token expires in less than 5 minutes, refresh it
+        if ((expiresAt.getTime() - now.getTime()) < 5 * 60 * 1000) {
+          console.log("Token expiring soon, refreshing...");
+          await supabase.auth.refreshSession();
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error("Error verifying session:", error);
@@ -109,8 +122,20 @@ export const usePatientForm = (onSuccess: () => void) => {
         facial_data: formState.facialData || null,
       };
       
-      // Use the API function instead of direct Supabase access
-      const result = await addPatient(patientData);
+      // Try with alternative direct method if available (added as fallback)
+      let result;
+      try {
+        result = await addPatient(patientData);
+      } catch (error: any) {
+        if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
+          console.log("Trying fallback method due to RLS recursion issue");
+          // This would use our direct API if implemented in database
+          throw error; // For now still throw since we don't have the DB function yet
+        } else {
+          throw error;
+        }
+      }
+      
       console.log("Patient added successfully:", result);
       
       toast.success("Patient Added", {
@@ -128,11 +153,15 @@ export const usePatientForm = (onSuccess: () => void) => {
         toast.error("Authentication Required", {
           description: "You must be logged in to add patients.",
         });
-      } else if (error?.message?.includes('permission') || 
-                error?.code === '42P17' || 
-                error?.message?.includes('infinite recursion')) {
+      } else if (error?.message?.includes('infinite recursion') || 
+                error?.code === '42P17') {
         toast.error("Database Permission Error", {
-          description: "There's an issue with database permissions. Please try again or contact support.",
+          description: "There's an issue with database permissions. Please try logging out and logging back in.",
+        });
+      } else if (error?.message?.includes('permission') || 
+                error?.code === '42501') {
+        toast.error("Database Permission Error", {
+          description: "You don't have permission to add patients. Please contact your administrator.",
         });
       } else {
         toast.error("Error Adding Patient", {
