@@ -88,7 +88,7 @@ export function AppSidebar() {
       <SidebarHeader className="py-6">
         <div className="flex items-center px-4">
           <Heart className="h-6 w-6 text-health-600 mr-2" />
-          <h1 className="text-xl font-semibold">HealthTrack</h1>
+          <h1 className="text-xl font-semibold">Facesheet360</h1>
         </div>
         <div className="lg:hidden">
           <SidebarTrigger />

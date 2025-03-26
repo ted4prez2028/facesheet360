@@ -128,7 +128,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-health-50 to-health-100 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-health-900">HealthTrack</h1>
+          <h1 className="text-3xl font-bold text-health-900">Facesheet360</h1>
           <p className="text-health-600">Healthcare Management Platform</p>
         </div>
         
