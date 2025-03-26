@@ -1,8 +1,26 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Message, Call, ChatWindow } from '@/types';
 import { toast } from 'sonner';
+
+// Define an interface for the database user to avoid type errors
+interface DbUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  specialty?: string;
+  license_number?: string;
+  profile_image?: string;
+  care_coins_balance?: number;
+  online_status?: boolean;
+  last_seen?: string;
+  organization?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export function useCommunicationService() {
   const { user } = useAuth();
@@ -26,7 +44,7 @@ export function useCommunicationService() {
       if (error) throw error;
       
       // Transform database users to match our User type
-      const typedUsers: User[] = data?.map(dbUser => ({
+      const typedUsers: User[] = data?.map((dbUser: DbUser) => ({
         id: dbUser.id,
         name: dbUser.name,
         email: dbUser.email,

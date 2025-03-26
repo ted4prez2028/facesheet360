@@ -119,29 +119,50 @@ export function useAnalyticsData() {
           discharge: item.discharge
         })) : [];
         
-        // Format overview data - overviewData is a single object, not an array
-        const transformedOverviewData = overviewData ? {
-          totalPatients: overviewData.totalpatients || 0,
-          appointments: overviewData.appointments || 0,
-          chartingRate: overviewData.chartingrate || 0,
-          careCoinsGenerated: overviewData.carecoinsgenerated || 0,
-          patientsGrowth: overviewData.patientsgrowth || 0,
-          appointmentsGrowth: overviewData.appointmentsgrowth || 0,
-          chartingRateGrowth: overviewData.chartingrategrowth || 0,
-          careCoinsGrowth: overviewData.carecoinsgrowth || 0
-        } : {
-          totalPatients: 0,
-          appointments: 0,
-          chartingRate: 0,
-          careCoinsGenerated: 0,
-          patientsGrowth: 0,
-          appointmentsGrowth: 0,
-          chartingRateGrowth: 0,
-          careCoinsGrowth: 0
-        };
+        // Format overview data - overviewData is a single object or might be the first element of an array
+        let formattedOverviewData: OverviewData;
+        
+        if (Array.isArray(overviewData) && overviewData.length > 0) {
+          // If it's an array, take the first item
+          const item = overviewData[0];
+          formattedOverviewData = {
+            totalPatients: item.totalpatients || 0,
+            appointments: item.appointments || 0,
+            chartingRate: item.chartingrate || 0,
+            careCoinsGenerated: item.carecoinsgenerated || 0,
+            patientsGrowth: item.patientsgrowth || 0,
+            appointmentsGrowth: item.appointmentsgrowth || 0,
+            chartingRateGrowth: item.chartingrategrowth || 0,
+            careCoinsGrowth: item.carecoinsgrowth || 0
+          };
+        } else if (overviewData) {
+          // If it's a single object
+          formattedOverviewData = {
+            totalPatients: overviewData.totalpatients || 0,
+            appointments: overviewData.appointments || 0,
+            chartingRate: overviewData.chartingrate || 0,
+            careCoinsGenerated: overviewData.carecoinsgenerated || 0,
+            patientsGrowth: overviewData.patientsgrowth || 0,
+            appointmentsGrowth: overviewData.appointmentsgrowth || 0,
+            chartingRateGrowth: overviewData.chartingrategrowth || 0,
+            careCoinsGrowth: overviewData.carecoinsgrowth || 0
+          };
+        } else {
+          // Default empty values
+          formattedOverviewData = {
+            totalPatients: 0,
+            appointments: 0,
+            chartingRate: 0,
+            careCoinsGenerated: 0,
+            patientsGrowth: 0,
+            appointmentsGrowth: 0,
+            chartingRateGrowth: 0,
+            careCoinsGrowth: 0
+          };
+        }
         
         setAnalyticsData({
-          overview: transformedOverviewData,
+          overview: formattedOverviewData,
           monthlyTrends: transformedMonthlyData,
           patientsByAge: transformedAgeData,
           patientsByGender: transformedGenderData,
