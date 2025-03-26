@@ -107,8 +107,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
 
   const handleFacialDataCapture = (data: string) => {
     setFacialData(data);
-    toast({
-      title: "Facial data captured",
+    toast("Facial data captured", {
       description: "Facial recognition data has been captured successfully.",
     });
   };
