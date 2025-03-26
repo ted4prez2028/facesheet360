@@ -1,27 +1,20 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPatients, createPatient, updatePatient } from '@/lib/mongodb';
+import { getPatients, createPatient, updatePatient } from '@/lib/supabaseApi';
 import { toast } from 'sonner';
 
 export interface PatientType {
-  _id: string;
-  name: string;
-  age: number;
+  id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
   gender: string;
   phone: string;
-  condition: string;
-  status: 'Active' | 'Stable' | 'Critical';
-  lastVisit: string;
-  assignedDoctor: string;
-  medicalHistory?: string[];
-  medications?: string[];
-  allergies?: string[];
-  vitalSigns?: {
-    bloodPressure?: string;
-    heartRate?: number;
-    temperature?: number;
-    respiratoryRate?: number;
-  };
+  email?: string;
+  medical_record_number?: string;
+  insurance_provider?: string;
+  policy_number?: string;
+  facial_data?: string;
 }
 
 export const usePatients = (filters = {}) => {
@@ -33,7 +26,7 @@ export const usePatients = (filters = {}) => {
   });
   
   const createPatientMutation = useMutation({
-    mutationFn: (newPatient: Omit<PatientType, '_id'>) => createPatient(newPatient),
+    mutationFn: (newPatient: Omit<PatientType, 'id'>) => createPatient(newPatient),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       toast.success('Patient added successfully');

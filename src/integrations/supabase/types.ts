@@ -9,7 +9,246 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          provider_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      care_coins_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          from_user_id: string | null
+          id: string
+          to_user_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          from_user_id?: string | null
+          id?: string
+          to_user_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          from_user_id?: string | null
+          id?: string
+          to_user_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_coins_transactions_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_coins_transactions_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chart_records: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          id: string
+          medications: Json | null
+          notes: string | null
+          patient_id: string
+          provider_id: string
+          record_date: string
+          record_type: string
+          updated_at: string
+          vital_signs: Json | null
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          medications?: Json | null
+          notes?: string | null
+          patient_id: string
+          provider_id: string
+          record_date?: string
+          record_type: string
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          medications?: Json | null
+          notes?: string | null
+          patient_id?: string
+          provider_id?: string
+          record_date?: string
+          record_type?: string
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chart_records_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          address: string | null
+          created_at: string
+          date_of_birth: string
+          email: string | null
+          facial_data: string | null
+          first_name: string
+          gender: string
+          id: string
+          insurance_provider: string | null
+          last_name: string
+          medical_record_number: string | null
+          phone: string | null
+          policy_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          date_of_birth: string
+          email?: string | null
+          facial_data?: string | null
+          first_name: string
+          gender: string
+          id?: string
+          insurance_provider?: string | null
+          last_name: string
+          medical_record_number?: string | null
+          phone?: string | null
+          policy_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          date_of_birth?: string
+          email?: string | null
+          facial_data?: string | null
+          first_name?: string
+          gender?: string
+          id?: string
+          insurance_provider?: string | null
+          last_name?: string
+          medical_record_number?: string | null
+          phone?: string | null
+          policy_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          care_coins_balance: number | null
+          created_at: string
+          email: string
+          id: string
+          license_number: string | null
+          name: string
+          profile_image: string | null
+          role: string
+          specialty: string | null
+          updated_at: string
+        }
+        Insert: {
+          care_coins_balance?: number | null
+          created_at?: string
+          email: string
+          id: string
+          license_number?: string | null
+          name: string
+          profile_image?: string | null
+          role: string
+          specialty?: string | null
+          updated_at?: string
+        }
+        Update: {
+          care_coins_balance?: number | null
+          created_at?: string
+          email?: string
+          id?: string
+          license_number?: string | null
+          name?: string
+          profile_image?: string | null
+          role?: string
+          specialty?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

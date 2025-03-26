@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
-import { registerUser } from "@/lib/mongodb";
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +21,15 @@ const Login = () => {
     role: "doctor",
   });
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login, signUp, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,19 +69,16 @@ const Login = () => {
     }
     
     try {
-      await registerUser({
-        name: registerData.name,
-        email: registerData.email,
-        password: registerData.password,
-        role: registerData.role,
-      });
+      await signUp(
+        registerData.email, 
+        registerData.password, 
+        {
+          name: registerData.name,
+          role: registerData.role as any,
+        }
+      );
       
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created. You can now login.",
-      });
-      
-      // Reset form and switch to login tab
+      // Reset form
       setRegisterData({
         name: "",
         email: "",
@@ -83,17 +87,8 @@ const Login = () => {
         role: "doctor",
       });
       
-      const loginTab = document.querySelector('[data-value="login"]');
-      if (loginTab) {
-        (loginTab as HTMLElement).click();
-      }
     } catch (error) {
       console.error("Registration error:", error);
-      toast({
-        title: "Registration failed",
-        description: "There was an error creating your account. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setIsSubmitting(false);
     }
