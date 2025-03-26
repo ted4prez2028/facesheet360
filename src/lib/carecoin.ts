@@ -1,5 +1,6 @@
 
 import { toast } from 'sonner';
+import { ethers } from 'ethers';
 
 // Check if MetaMask is installed
 export const isMetaMaskInstalled = () => {
@@ -36,21 +37,93 @@ export const getConnectedAccount = async () => {
   }
 };
 
-// Transfer CareCoins (this would be integrated with actual smart contract calls)
-export const transferCareCoins = async (toAddress: string, amount: number) => {
+// Get current balance of native token (ETH, Matic, etc.)
+export const getBalance = async (address: string) => {
+  if (!isMetaMaskInstalled() || !address) return '0';
+  
   try {
-    // In a real implementation, this would call a smart contract method
-    // For this demo, we'll just simulate a successful transfer
-    
-    // Simulate a blockchain delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success(`Successfully transferred ${amount} CareCoins`);
-    return true;
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const balance = await provider.getBalance(address);
+    return ethers.utils.formatEther(balance);
   } catch (error) {
-    console.error('Error transferring CareCoins:', error);
-    toast.error('Failed to transfer CareCoins. Please try again.');
+    console.error('Error getting balance:', error);
+    return '0';
+  }
+};
+
+// Transfer native tokens (ETH, Matic, etc.)
+export const sendTransaction = async (toAddress: string, amount: string) => {
+  if (!isMetaMaskInstalled()) {
+    toast.error('MetaMask is not installed.');
     return false;
+  }
+  
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const fromAddress = await signer.getAddress();
+    
+    // Convert amount to wei
+    const amountWei = ethers.utils.parseEther(amount);
+    
+    // Create transaction
+    const tx = {
+      to: toAddress,
+      value: amountWei,
+      from: fromAddress,
+    };
+    
+    // Send transaction
+    const txResponse = await signer.sendTransaction(tx);
+    
+    // Show pending toast
+    const pendingToastId = toast.loading('Transaction pending...');
+    
+    // Wait for transaction to be mined
+    const receipt = await txResponse.wait();
+    
+    // Update toast based on transaction status
+    if (receipt.status === 1) {
+      toast.success(`Successfully sent ${amount} tokens to ${toAddress.slice(0, 6)}...${toAddress.slice(-4)}`, {
+        id: pendingToastId,
+      });
+      return true;
+    } else {
+      toast.error('Transaction failed', {
+        id: pendingToastId,
+      });
+      return false;
+    }
+  } catch (error: any) {
+    console.error('Error sending transaction:', error);
+    toast.error(error.message || 'Failed to send transaction. Please try again.');
+    return false;
+  }
+};
+
+// Add a listener for account changes
+export const addAccountChangeListener = (callback: (accounts: string[]) => void) => {
+  if (isMetaMaskInstalled()) {
+    window.ethereum.on('accountsChanged', callback);
+    return true;
+  }
+  return false;
+};
+
+// Add a listener for chain changes
+export const addChainChangeListener = (callback: (chainId: string) => void) => {
+  if (isMetaMaskInstalled()) {
+    window.ethereum.on('chainChanged', callback);
+    return true;
+  }
+  return false;
+};
+
+// Remove MetaMask event listeners
+export const removeMetaMaskListeners = () => {
+  if (isMetaMaskInstalled()) {
+    window.ethereum.removeAllListeners('accountsChanged');
+    window.ethereum.removeAllListeners('chainChanged');
   }
 };
 

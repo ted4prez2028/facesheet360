@@ -52,10 +52,9 @@ export const usePatients = (filters = {}) => {
   const createPatientMutation = useMutation({
     mutationFn: (newPatient: Omit<PatientType, 'id'>) => {
       // Adapt the patient data structure for Supabase
-      const supabasePatient = {
+      const supabasePatient: Record<string, any> = {
         first_name: newPatient.first_name || (newPatient.name ? newPatient.name.split(' ')[0] : ''),
         last_name: newPatient.last_name || (newPatient.name ? newPatient.name.split(' ').slice(1).join(' ') : ''),
-        date_of_birth: newPatient.date_of_birth || new Date(Date.now() - (newPatient.age || 30) * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         gender: newPatient.gender,
         phone: newPatient.phone,
         email: newPatient.email,
@@ -63,6 +62,20 @@ export const usePatients = (filters = {}) => {
         insurance_provider: newPatient.insurance_provider,
         policy_number: newPatient.policy_number
       };
+      
+      // Handle date of birth field
+      if (newPatient.date_of_birth) {
+        supabasePatient.date_of_birth = newPatient.date_of_birth;
+      } else if (newPatient.age) {
+        const today = new Date();
+        today.setFullYear(today.getFullYear() - newPatient.age);
+        supabasePatient.date_of_birth = today.toISOString().split('T')[0];
+      } else {
+        // Default to adult age if nothing provided
+        const today = new Date();
+        today.setFullYear(today.getFullYear() - 30);
+        supabasePatient.date_of_birth = today.toISOString().split('T')[0];
+      }
       
       return createPatient(supabasePatient);
     },

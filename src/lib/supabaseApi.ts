@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -10,7 +11,10 @@ export const getUserProfile = async (userId: string) => {
       .eq('id', userId)
       .maybeSingle();
       
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching user profile:", error);
+      return null;
+    }
     
     if (!data) {
       console.log("No user profile found for ID:", userId);
@@ -20,7 +24,6 @@ export const getUserProfile = async (userId: string) => {
     return data;
   } catch (error) {
     console.error("Error fetching user profile:", error);
-    toast.error("Error fetching user profile");
     return null;
   }
 };
@@ -44,7 +47,7 @@ export const updateUserProfile = async (userId: string, updates: any) => {
 };
 
 // Patient management
-export const getPatients = async (filters = {}) => {
+export const getPatients = async (filters: Record<string, any> = {}) => {
   try {
     let query = supabase.from('patients').select('*');
     
@@ -255,6 +258,24 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
   } catch (error) {
     console.error("Error transferring CareCoins:", error);
     toast.error("Error transferring CareCoins");
+    throw error;
+  }
+};
+
+export const updateWalletAddress = async (userId: string, walletAddress: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ wallet_address: walletAddress })
+      .eq('id', userId)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error updating wallet address:", error);
+    toast.error("Error updating wallet address");
     throw error;
   }
 };
