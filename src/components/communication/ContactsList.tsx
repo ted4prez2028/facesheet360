@@ -1,12 +1,10 @@
 
-import React from 'react';
-import { User } from '@/types';
+import React, { useState } from 'react';
 import { 
   Sheet, 
   SheetContent, 
   SheetHeader, 
-  SheetTitle,
-  SheetTrigger
+  SheetTitle
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,6 +17,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCommunication } from '@/context/CommunicationContext';
 import { Input } from '@/components/ui/input';
+import { User } from '@/types';
 
 const ContactsList = () => {
   const { 
@@ -28,7 +27,7 @@ const ContactsList = () => {
     startCall
   } = useCommunication();
   
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const filteredUsers = contacts.onlineUsers.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,7 +68,7 @@ const ContactsList = () => {
               ) : (
                 <div className="space-y-2">
                   {filteredUsers.map((user) => {
-                    const isOnline = true; // All users in contacts.onlineUsers are online
+                    const isOnline = user.online_status === true;
                     return (
                       <ContactCard 
                         key={user.id} 

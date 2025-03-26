@@ -7,7 +7,15 @@ import { useCommunication } from '@/context/CommunicationContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const CallDialog = () => {
-  const { activeCall, endCall } = useCommunication();
+  const { 
+    activeCall, 
+    endCall, 
+    localStream, 
+    remoteStream, 
+    toggleAudio, 
+    toggleVideo 
+  } = useCommunication();
+  
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
@@ -20,27 +28,16 @@ const CallDialog = () => {
   
   // Set up video streams when call is ongoing
   useEffect(() => {
-    if (isDialogOpen) {
-      // Reset states when call starts
-      setMicMuted(false);
-      setVideoOff(false);
-      setSpeakerMuted(false);
-      setCallDuration(0);
-      
-      // Get local media stream
-      navigator.mediaDevices
-        .getUserMedia({ 
-          video: activeCall?.isVideoCall, 
-          audio: true 
-        })
-        .then(stream => {
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
-        })
-        .catch(err => console.error('Error accessing media devices:', err));
+    // Set local stream to video element
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
     }
-  }, [isDialogOpen, activeCall]);
+    
+    // Set remote stream to video element
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [localStream, remoteStream, isDialogOpen]);
   
   // Call duration timer
   useEffect(() => {
@@ -65,25 +62,15 @@ const CallDialog = () => {
   };
   
   // Toggle microphone
-  const toggleMic = () => {
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      const stream = localVideoRef.current.srcObject as MediaStream;
-      stream.getAudioTracks().forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setMicMuted(!micMuted);
-    }
+  const handleToggleMic = () => {
+    toggleAudio(!micMuted);
+    setMicMuted(!micMuted);
   };
   
   // Toggle video
-  const toggleVideo = () => {
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      const stream = localVideoRef.current.srcObject as MediaStream;
-      stream.getVideoTracks().forEach(track => {
-        track.enabled = !track.enabled;
-      });
-      setVideoOff(!videoOff);
-    }
+  const handleToggleVideo = () => {
+    toggleVideo(!videoOff);
+    setVideoOff(!videoOff);
   };
   
   // Toggle speaker
@@ -113,7 +100,6 @@ const CallDialog = () => {
               {/* Remote video (large) */}
               <video
                 ref={remoteVideoRef}
-                id="remoteVideo"
                 autoPlay
                 playsInline
                 className="w-full h-full object-cover"
@@ -161,7 +147,7 @@ const CallDialog = () => {
             variant="outline" 
             size="icon" 
             className={`rounded-full h-12 w-12 ${micMuted ? 'bg-red-100' : ''}`}
-            onClick={toggleMic}
+            onClick={handleToggleMic}
           >
             {micMuted ? <MicOff className="h-5 w-5 text-red-500" /> : <Mic className="h-5 w-5" />}
           </Button>
@@ -172,7 +158,7 @@ const CallDialog = () => {
               variant="outline" 
               size="icon" 
               className={`rounded-full h-12 w-12 ${videoOff ? 'bg-red-100' : ''}`}
-              onClick={toggleVideo}
+              onClick={handleToggleVideo}
             >
               {videoOff ? <VideoOff className="h-5 w-5 text-red-500" /> : <Video className="h-5 w-5" />}
             </Button>

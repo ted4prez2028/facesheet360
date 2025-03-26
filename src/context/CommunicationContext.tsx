@@ -1,15 +1,10 @@
 
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-} from "react";
+import React, { createContext, useState, useContext, useCallback } from "react";
 import { User, Message, Call, ChatWindow, ContactsState } from "@/types";
 import { useAuth } from "./AuthContext";
+import { useCommunicationService } from "@/hooks/useCommunicationService";
+import { usePeerConnection } from "@/hooks/usePeerConnection";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from 'uuid';
 
 interface CommunicationContextType {
   contacts: ContactsState;
@@ -17,20 +12,19 @@ interface CommunicationContextType {
   activeCall: Call | null;
   isCallActive: boolean;
   isCallIncoming: boolean;
+  localStream: MediaStream | null;
+  remoteStream: MediaStream | null;
   toggleContacts: () => void;
-  addOnlineUser: (user: User) => void;
-  removeOnlineUser: (userId: string) => void;
   openChatWindow: (userId: string, userName: string) => void;
   closeChatWindow: (userId: string) => void;
   minimizeChatWindow: (userId: string) => void;
-  maximizeChatWindow: (userId: string) => void;
   sendMessage: (recipientId: string, content: string) => void;
   startCall: (userId: string, userName: string, isVideo: boolean) => void;
   acceptCall: () => void;
   rejectCall: () => void;
   endCall: () => void;
-  setCallStatus: (status: Call["status"]) => void;
-  setIsCallActive: (active: boolean) => void;
+  toggleAudio: (mute: boolean) => void;
+  toggleVideo: (hide: boolean) => void;
 }
 
 const CommunicationContext = createContext<CommunicationContextType | undefined>(
@@ -52,209 +46,81 @@ interface CommunicationProviderProps {
 }
 
 export const CommunicationProvider = ({ children }: CommunicationProviderProps) => {
-  const [contacts, setContacts] = useState<ContactsState>({
-    onlineUsers: [],
-    isOpen: false,
-  });
-  const [chatWindows, setChatWindows] = useState<ChatWindow[]>([]);
-  const [activeCall, setActiveCall] = useState<Call | null>(null);
-  const [isCallActive, setIsCallActive] = useState<boolean>(false);
-  const [isCallIncoming, setIsCallIncoming] = useState<boolean>(false);
+  const [isContactsOpen, setIsContactsOpen] = useState(false);
   const { user } = useAuth();
+  
+  // Use our communication service hook
+  const communicationService = useCommunicationService();
+  
+  // Use our peer connection hook for WebRTC
+  const peerConnection = usePeerConnection();
 
-  useEffect(() => {
-    // Mock online users - replace with actual data fetching
-    const mockOnlineUsers: User[] = [
-      {
-        id: "2",
-        name: "Dr. Emily Carter",
-        email: "emily.carter@example.com",
-        role: "doctor",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: "3",
-        name: "Nurse David Lee",
-        email: "david.lee@example.com",
-        role: "nurse",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-    ];
+  const toggleContacts = useCallback(() => {
+    setIsContactsOpen(prev => !prev);
+  }, []);
 
-    // Add mock users to online users if they aren't the current user
-    mockOnlineUsers.forEach((mockUser) => {
-      if (user && mockUser.id !== user.id) {
-        addOnlineUser(mockUser);
-      }
-    });
-  }, [user]);
-
-  const toggleContacts = () => {
-    setContacts({ ...contacts, isOpen: !contacts.isOpen });
-  };
-
-  const addOnlineUser = (user: User) => {
-    setContacts((prevContacts) => ({
-      ...prevContacts,
-      onlineUsers: [...prevContacts.onlineUsers, user],
-    }));
-  };
-
-  const removeOnlineUser = (userId: string) => {
-    setContacts((prevContacts) => ({
-      ...prevContacts,
-      onlineUsers: prevContacts.onlineUsers.filter((user) => user.id !== userId),
-    }));
-  };
-
-  const openChatWindow = (userId: string, userName: string) => {
-    setChatWindows((prevChatWindows) => {
-      if (prevChatWindows.find((window) => window.userId === userId)) {
-        return prevChatWindows;
-      }
-      return [...prevChatWindows, { userId, userName, minimized: false, messages: [] }];
-    });
-  };
-
-  const closeChatWindow = (userId: string) => {
-    setChatWindows((prevChatWindows) =>
-      prevChatWindows.filter((window) => window.userId !== userId)
-    );
-  };
-
-  const minimizeChatWindow = (userId: string) => {
-    setChatWindows((prevChatWindows) =>
-      prevChatWindows.map((window) =>
-        window.userId === userId ? { ...window, minimized: true } : window
-      )
-    );
-  };
-
-  const maximizeChatWindow = (userId: string) => {
-    setChatWindows((prevChatWindows) =>
-      prevChatWindows.map((window) =>
-        window.userId === userId ? { ...window, minimized: false } : window
-      )
-    );
-  };
-
+  // Start a call - initialize both WebRTC and update database
   const startCall = useCallback((userId: string, userName: string, isVideo: boolean) => {
     if (!user) {
       toast.error("You must be logged in to start a call.");
       return;
     }
 
-    const newCall: Call = {
-      callerId: user.id,
-      callerName: user.name,
-      receiverId: userId,
-      receiverName: userName,
-      isVideoCall: isVideo,
-      status: "ringing",
-    };
-
-    setActiveCall(newCall);
-    setIsCallActive(true);
-    setIsCallIncoming(false);
+    // Start the database call tracking
+    communicationService.startCall(userId, userName, isVideo);
     
-    toast("Calling...", {
-      description: `Calling ${userName}...`,
-    });
-  }, [user]);
+    // Initialize WebRTC connection
+    peerConnection.startCall(userId, isVideo);
+  }, [user, communicationService, peerConnection]);
 
+  // Accept an incoming call
   const acceptCall = useCallback(() => {
-    setIsCallActive(true);
-    setIsCallIncoming(false);
-    setCallStatus("ongoing");
+    if (!communicationService.activeCall) return;
     
-    toast("Call Connected", {
-      description: `Call connected with ${activeCall?.callerName || activeCall?.receiverName}`,
-    });
-  }, [activeCall]);
+    communicationService.acceptCall();
+    
+    // For WebRTC, the peer connection is already set up when answering
+    // from the peer event handler, so we don't need to do anything here
+  }, [communicationService]);
 
+  // Reject an incoming call
   const rejectCall = useCallback(() => {
-    setIsCallActive(false);
-    setIsCallIncoming(false);
-    setActiveCall(null);
-    setCallStatus("ended");
+    if (!communicationService.activeCall) return;
     
-    toast("Call Rejected", {
-      description: "Call rejected",
-    });
-  }, []);
+    communicationService.endCall();
+  }, [communicationService]);
 
+  // End an ongoing call
   const endCall = useCallback(() => {
-    setIsCallActive(false);
-    setIsCallIncoming(false);
-    setActiveCall(null);
-    setCallStatus("ended");
+    // End the call in the database
+    communicationService.endCall();
     
-    toast("Call Ended", {
-      description: `Call ended with ${activeCall?.callerName || activeCall?.receiverName}`,
-    });
-  }, [activeCall]);
-
-  const sendMessage = (recipientId: string, content: string) => {
-    const newMessage: Message = {
-      id: uuidv4(),
-      sender_id: user?.id || "default_sender_id",
-      recipient_id: recipientId,
-      content: content,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
-
-    setChatWindows((prevChatWindows) => {
-      return prevChatWindows.map((window) => {
-        if (window.userId === recipientId) {
-          return {
-            ...window,
-            messages: [...window.messages, newMessage],
-          };
-        }
-        return window;
-      });
-    });
-  };
-
-  const setCallStatus = (status: Call["status"]) => {
-    setActiveCall((prevCall) => {
-      if (prevCall) {
-        return { ...prevCall, status: status };
-      }
-      return prevCall;
-    });
-
-    if (status === "ringing") {
-      setIsCallIncoming(true);
-      setIsCallActive(true);
-    } else {
-      setIsCallIncoming(false);
-    }
-  };
+    // End the WebRTC connection
+    peerConnection.endCall();
+  }, [communicationService, peerConnection]);
 
   const contextValue: CommunicationContextType = {
-    contacts,
-    chatWindows,
-    activeCall,
-    isCallActive,
-    isCallIncoming,
+    contacts: {
+      onlineUsers: communicationService.onlineUsers,
+      isOpen: isContactsOpen
+    },
+    chatWindows: communicationService.chatWindows,
+    activeCall: communicationService.activeCall,
+    isCallActive: communicationService.isCallActive,
+    isCallIncoming: communicationService.isCallIncoming,
+    localStream: peerConnection.localStream,
+    remoteStream: peerConnection.remoteStream,
     toggleContacts,
-    addOnlineUser,
-    removeOnlineUser,
-    openChatWindow,
-    closeChatWindow,
-    minimizeChatWindow,
-    maximizeChatWindow,
-    sendMessage,
+    openChatWindow: communicationService.openChatWindow,
+    closeChatWindow: communicationService.closeChatWindow,
+    minimizeChatWindow: communicationService.minimizeChatWindow,
+    sendMessage: communicationService.sendMessage,
     startCall,
     acceptCall,
     rejectCall,
     endCall,
-    setCallStatus,
-    setIsCallActive,
+    toggleAudio: peerConnection.toggleAudio,
+    toggleVideo: peerConnection.toggleVideo
   };
 
   return (

@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      active_calls: {
+        Row: {
+          call_status: string
+          caller_id: string
+          created_at: string
+          id: string
+          is_video_call: boolean
+          peer_data: Json | null
+          receiver_id: string
+          updated_at: string
+        }
+        Insert: {
+          call_status?: string
+          caller_id: string
+          created_at?: string
+          id?: string
+          is_video_call?: boolean
+          peer_data?: Json | null
+          receiver_id: string
+          updated_at?: string
+        }
+        Update: {
+          call_status?: string
+          caller_id?: string
+          created_at?: string
+          id?: string
+          is_video_call?: boolean
+          peer_data?: Json | null
+          receiver_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -206,6 +239,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read: boolean
+          recipient_id: string
+          sender_id: string
+          timestamp: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          recipient_id: string
+          sender_id: string
+          timestamp?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read?: boolean
+          recipient_id?: string
+          sender_id?: string
+          timestamp?: string
+        }
+        Relationships: []
       }
       imaging_records: {
         Row: {
@@ -466,8 +529,10 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          last_seen: string | null
           license_number: string | null
           name: string
+          online_status: boolean | null
           profile_image: string | null
           role: string
           specialty: string | null
@@ -478,8 +543,10 @@ export type Database = {
           created_at?: string
           email: string
           id: string
+          last_seen?: string | null
           license_number?: string | null
           name: string
+          online_status?: boolean | null
           profile_image?: string | null
           role: string
           specialty?: string | null
@@ -490,8 +557,10 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_seen?: string | null
           license_number?: string | null
           name?: string
+          online_status?: boolean | null
           profile_image?: string | null
           role?: string
           specialty?: string | null

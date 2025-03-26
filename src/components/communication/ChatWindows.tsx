@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useCommunication } from '@/context/CommunicationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,11 +25,11 @@ const ChatWindows = () => {
 const ChatWindow = ({ window }: { window: any }) => {
   const { user } = useAuth();
   const { minimizeChatWindow, closeChatWindow, sendMessage, startCall } = useCommunication();
-  const [message, setMessage] = React.useState('');
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Scroll to bottom when messages change
-  React.useEffect(() => {
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [window.messages]);
   
@@ -114,32 +114,38 @@ const ChatWindow = ({ window }: { window: any }) => {
       
       <ScrollArea className="flex-1 p-3">
         <div className="space-y-3">
-          {window.messages.map((msg: any) => {
-            const isCurrentUser = msg.sender_id === user?.id;
-            return (
-              <div 
-                key={msg.id} 
-                className={cn(
-                  "flex",
-                  isCurrentUser ? "justify-end" : "justify-start"
-                )}
-              >
+          {window.messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm p-4">
+              <p>No messages yet. Start a conversation!</p>
+            </div>
+          ) : (
+            window.messages.map((msg: any) => {
+              const isCurrentUser = msg.sender_id === user?.id;
+              return (
                 <div 
+                  key={msg.id} 
                   className={cn(
-                    "max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                    isCurrentUser 
-                      ? "bg-health-600 text-white" 
-                      : "bg-muted text-foreground"
+                    "flex",
+                    isCurrentUser ? "justify-end" : "justify-start"
                   )}
                 >
-                  <p>{msg.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {format(new Date(msg.timestamp), 'p')}
-                  </p>
+                  <div 
+                    className={cn(
+                      "max-w-[80%] rounded-lg px-3 py-2 text-sm",
+                      isCurrentUser 
+                        ? "bg-health-600 text-white" 
+                        : "bg-muted text-foreground"
+                    )}
+                  >
+                    <p>{msg.content}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {format(new Date(msg.timestamp), 'p')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>

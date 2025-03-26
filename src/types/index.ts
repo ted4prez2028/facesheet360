@@ -1,4 +1,3 @@
-
 export interface Patient {
   id: string;
   first_name: string;
@@ -75,6 +74,7 @@ export interface Message {
   content: string;
   timestamp: string;
   read: boolean;
+  created_at?: string;
 }
 
 export interface Notification {
@@ -118,7 +118,6 @@ export interface Call {
   status: "ringing" | "ongoing" | "ended";
 }
 
-// Add Prescription interface
 export interface Prescription {
   id: string;
   patient_id: string;
@@ -136,7 +135,6 @@ export interface Prescription {
   updated_at: string;
 }
 
-// Add CarePlan interface
 export interface CarePlan {
   id: string;
   patient_id: string;
