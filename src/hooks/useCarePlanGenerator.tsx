@@ -54,7 +54,7 @@ export function useCarePlanGenerator({ patientId }: UseCarePlanGeneratorProps) {
             toast({
               title: "Care plan generated but not saved",
               description: "The care plan couldn't be saved to the database.",
-              variant: "warning",
+              variant: "destructive",
             });
           } else {
             toast({

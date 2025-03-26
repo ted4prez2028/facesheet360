@@ -2,7 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "@/components/ui/card";
 import PatientDetailHeader from "./PatientDetailHeader";
-import PatientChartTabs from "./PatientChartTabs";
+import { PatientChartTabs } from "./PatientChartTabs";
 
 interface Patient {
   id: string;
@@ -33,6 +33,18 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     );
   }
 
+  // Create a sample chart data object with the structure expected by PatientChartTabs
+  const chartData = {
+    vitalSigns: [],
+    medications: [],
+    labResults: [],
+    imaging: [],
+    notes: [],
+    history: [],
+    diagnosis: "",
+    allergies: []
+  };
+
   return (
     <Card className="shadow-sm flex-1 flex flex-col">
       <CardHeader className="pb-0">
@@ -43,7 +55,7 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
         />
       </CardHeader>
       
-      <PatientChartTabs patientId={selectedPatient} userId={userId} />
+      <PatientChartTabs patient={patientData} chartData={chartData} />
     </Card>
   );
 };

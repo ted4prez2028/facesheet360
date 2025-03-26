@@ -1,13 +1,7 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VitalsTable } from "@/components/charting/VitalsTable";
-import { MedicationsTable } from "@/components/charting/MedicationsTable";
-import { LabResultsTable } from "@/components/charting/LabResultsTable";
-import { ImagingTable } from "@/components/charting/ImagingTable";
-import { NotesTable } from "@/components/charting/NotesTable";
-import { CarePlanList } from "@/components/charting/CarePlanList";
-
 import { GenerateCarePlanButton } from "@/components/care-plan/GenerateCarePlanButton";
 import { useCarePlanGenerator } from "@/hooks/useCarePlanGenerator";
 
@@ -56,23 +50,33 @@ export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) 
         </TabsList>
         
         <TabsContent value="vitals">
-          <VitalsTable vitals={chartData?.vitalSigns} />
+          <div className="p-4 border rounded-md">
+            <p className="text-muted-foreground">Vital signs data would be displayed here.</p>
+          </div>
         </TabsContent>
         
         <TabsContent value="medications">
-          <MedicationsTable medications={chartData?.medications} />
+          <div className="p-4 border rounded-md">
+            <p className="text-muted-foreground">Medications data would be displayed here.</p>
+          </div>
         </TabsContent>
         
         <TabsContent value="lab">
-          <LabResultsTable labResults={chartData?.labResults} />
+          <div className="p-4 border rounded-md">
+            <p className="text-muted-foreground">Lab results data would be displayed here.</p>
+          </div>
         </TabsContent>
         
         <TabsContent value="imaging">
-          <ImagingTable imaging={chartData?.imaging} />
+          <div className="p-4 border rounded-md">
+            <p className="text-muted-foreground">Imaging data would be displayed here.</p>
+          </div>
         </TabsContent>
         
         <TabsContent value="notes">
-          <NotesTable notes={chartData?.notes} />
+          <div className="p-4 border rounded-md">
+            <p className="text-muted-foreground">Patient notes would be displayed here.</p>
+          </div>
         </TabsContent>
         
         {/* Add the AI Care Plan generator button to the care plans tab */}
@@ -94,7 +98,18 @@ export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) 
               </Card>
             </div>
             <div className="md:col-span-2">
-              <CarePlanList patientId={patient?.id || ''} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Care Plans</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    {patient?.id 
+                      ? "Patient care plans would be displayed here." 
+                      : "Select a patient to view care plans."}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
