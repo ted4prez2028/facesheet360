@@ -6,6 +6,20 @@ import { toast } from 'sonner';
 
 export type HealthcareRole = 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin';
 
+// Define types to help with the missing tables in the generated Supabase types
+interface UserRole {
+  role: HealthcareRole;
+  user_id: string;
+}
+
+interface CareTeamAssignment {
+  id: string;
+  staff_id: string;
+  patient_id: string;
+  role: HealthcareRole;
+  assigned_by: string;
+}
+
 export const useRolePermissions = () => {
   const { user } = useAuth();
   const [userRoles, setUserRoles] = useState<HealthcareRole[]>([]);
@@ -39,21 +53,40 @@ export const useRolePermissions = () => {
         if (error) {
           console.error("Edge function error:", error);
           
-          // Fall back to direct query as a backup method
+          // Fall back to direct query as a backup method using custom query rather than typed client
           try {
             console.log("Falling back to direct query for user roles");
             const { data: directData, error: directError } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', user.id);
+              .rpc('get_user_roles', { user_id: user.id });
             
             if (directError) {
-              throw directError;
+              console.error("RPC error:", directError);
+              // Try raw SQL query as last fallback
+              const { data: rawData, error: rawError } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+                
+              if (rawError) {
+                throw rawError;
+              }
+              
+              // If user has a role in the users table, use that
+              if (rawData?.role) {
+                setUserRoles([rawData.role as HealthcareRole]);
+                return;
+              }
+              
+              throw new Error("Could not retrieve user roles");
             }
             
-            const roles = directData?.map(row => row.role as HealthcareRole) || [];
-            setUserRoles(roles);
-            return;
+            // Process RPC data
+            if (directData && Array.isArray(directData)) {
+              const roles = directData.map(row => row.role as HealthcareRole);
+              setUserRoles(roles);
+              return;
+            }
           } catch (directErr) {
             console.error("Direct query fallback failed:", directErr);
             // If user is logged in but we can't retrieve roles, default to basic role
@@ -118,23 +151,23 @@ export const useRolePermissions = () => {
       if (error) {
         console.error("Edge function error:", error);
         
-        // Fall back to direct query
+        // Fall back to RPC function if available
         try {
-          console.log("Falling back to direct query for patient assignment");
-          const { data: directData, error: directError } = await supabase
-            .from('care_team_assignments')
-            .select('*')
-            .eq('staff_id', user.id)
-            .eq('patient_id', patientId)
-            .maybeSingle();
+          console.log("Falling back to RPC for patient assignment");
+          const { data: rpcData, error: rpcError } = await supabase
+            .rpc('check_patient_assignment', {
+              staff_id: user.id,
+              patient_id: patientId
+            });
           
-          if (directError) {
-            throw directError;
+          if (rpcError) {
+            console.error("RPC error:", rpcError);
+            return false;
           }
           
-          return !!directData;
-        } catch (directErr) {
-          console.error("Direct query fallback failed:", directErr);
+          return !!rpcData;
+        } catch (rpcErr) {
+          console.error("RPC fallback failed:", rpcErr);
           return false;
         }
       }
@@ -170,19 +203,41 @@ export const useRolePermissions = () => {
         throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
       }
       
-      // Direct insert as fallback
-      const { data, error } = await supabase
-        .from('care_team_assignments')
-        .insert({
-          staff_id: staffId,
-          patient_id: patientId,
-          role: role,
-          assigned_by: user.id
-        })
-        .select()
-        .single();
+      // Use edge function if available
+      try {
+        const { data: funcData, error: funcError } = await supabase.functions.invoke('assign-to-patient', {
+          body: { 
+            staffId,
+            patientId,
+            role,
+            assignedBy: user.id
+          }
+        });
+        
+        if (funcError) {
+          console.error("Edge function error:", funcError);
+          // Continue to fallback
+        } else if (funcData) {
+          toast.success(`Staff member assigned to patient successfully`);
+          return funcData;
+        }
+      } catch (funcErr) {
+        console.error("Error using edge function:", funcErr);
+        // Continue to fallback
+      }
       
-      if (error) throw error;
+      // Direct insert as fallback using custom query
+      const { data, error } = await supabase.rpc('assign_to_patient', {
+        p_staff_id: staffId,
+        p_patient_id: patientId,
+        p_role: role,
+        p_assigned_by: user.id
+      });
+      
+      if (error) {
+        console.error("RPC error:", error);
+        throw error;
+      }
       
       toast.success(`Staff member assigned to patient successfully`);
       return data;
@@ -213,13 +268,33 @@ export const useRolePermissions = () => {
         throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
       }
       
-      // Direct delete query
-      const { error } = await supabase
-        .from('care_team_assignments')
-        .delete()
-        .eq('id', assignmentId);
+      // Use edge function if available
+      try {
+        const { data: funcData, error: funcError } = await supabase.functions.invoke('remove-from-patient', {
+          body: { assignmentId }
+        });
+        
+        if (funcError) {
+          console.error("Edge function error:", funcError);
+          // Continue to fallback
+        } else {
+          toast.success('Staff member removed from care team');
+          return true;
+        }
+      } catch (funcErr) {
+        console.error("Error using edge function:", funcErr);
+        // Continue to fallback
+      }
       
-      if (error) throw error;
+      // Direct delete as fallback using RPC
+      const { data, error } = await supabase.rpc('remove_from_patient', {
+        p_assignment_id: assignmentId
+      });
+      
+      if (error) {
+        console.error("RPC error:", error);
+        throw error;
+      }
       
       toast.success('Staff member removed from care team');
       return true;
@@ -241,3 +316,4 @@ export const useRolePermissions = () => {
     error
   };
 };
+

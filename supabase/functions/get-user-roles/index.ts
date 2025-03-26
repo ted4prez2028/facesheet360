@@ -67,22 +67,43 @@ serve(async (req) => {
     // Now use admin client with service role key to bypass RLS
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
     
-    // Fetch user roles directly from the database
-    const { data: userRoles, error: rolesError } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', targetUserId);
+    // First try to fetch from user_roles table if it exists
+    try {
+      const { data: userRoles, error: userRolesError } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', targetUserId);
+      
+      if (!userRolesError && userRoles && userRoles.length > 0) {
+        // Extract the roles from the results
+        const roles = userRoles.map(row => row.role);
+        
+        return new Response(
+          JSON.stringify({ roles }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch (e) {
+      console.log("user_roles table may not exist, falling back to users table", e);
+    }
     
-    if (rolesError) {
-      console.error("Error fetching roles:", rolesError);
+    // Fall back to getting role from users table
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('role')
+      .eq('id', targetUserId)
+      .single();
+    
+    if (userError) {
+      console.error("Error fetching user:", userError);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch user roles", details: rolesError.message }),
+        JSON.stringify({ error: "Failed to fetch user role", details: userError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Extract the roles from the results
-    const roles = userRoles ? userRoles.map(row => row.role) : [];
+    // Return single role from users table
+    const roles = userData?.role ? [userData.role] : [];
     
     return new Response(
       JSON.stringify({ roles }),
