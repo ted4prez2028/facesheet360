@@ -6,6 +6,7 @@ import { TopNav } from "./TopNav";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { Helmet } from "react-helmet";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -46,6 +47,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider>
+      <Helmet>
+        <title>Facesheet360</title>
+      </Helmet>
       <div className="min-h-screen w-full flex bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-h-screen">

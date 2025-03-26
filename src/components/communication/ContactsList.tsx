@@ -1,0 +1,135 @@
+
+import React from 'react';
+import { User } from '@/types';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle,
+  SheetTrigger
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { 
+  Users,
+  MessageSquare, 
+  Video, 
+  PhoneCall 
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useCommunication } from '@/context/CommunicationContext';
+import { Input } from '@/components/ui/input';
+
+const ContactsList = () => {
+  const { 
+    onlineUsers, 
+    isContactsOpen, 
+    toggleContacts,
+    startChat,
+    startCall
+  } = useCommunication();
+  
+  const [searchTerm, setSearchTerm] = React.useState('');
+  
+  const filteredUsers = onlineUsers.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  return (
+    <>
+      <Button 
+        variant="outline" 
+        size="icon" 
+        className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg bg-health-600 hover:bg-health-700 text-white border-0 z-40"
+        onClick={toggleContacts}
+      >
+        <Users className="h-6 w-6" />
+      </Button>
+      
+      <Sheet open={isContactsOpen} onOpenChange={toggleContacts}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Healthcare Team</SheetTitle>
+          </SheetHeader>
+          
+          <div className="mt-6 space-y-4">
+            <Input
+              placeholder="Search contacts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+            
+            <div className="h-[calc(100vh-180px)] overflow-y-auto pr-2">
+              {filteredUsers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                  <Users className="h-8 w-8 mb-2" />
+                  <p>{searchTerm ? "No contacts match your search" : "No contacts available"}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredUsers.map((user) => (
+                    <ContactCard 
+                      key={user.id} 
+                      user={user} 
+                      onChat={() => startChat(user.id, user.name)}
+                      onVideoCall={() => startCall(user.id, user.name, true)}
+                      onAudioCall={() => startCall(user.id, user.name, false)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+};
+
+interface ContactCardProps {
+  user: User;
+  onChat: () => void;
+  onVideoCall: () => void;
+  onAudioCall: () => void;
+}
+
+const ContactCard = ({ user, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
+  const userInitials = user.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+    : "?";
+    
+  return (
+    <div className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
+      <div className="flex items-center space-x-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={user.profile_image} />
+          <AvatarFallback className="bg-health-600 text-white">
+            {userInitials}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <p className="font-medium text-sm">{user.name}</p>
+          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+        </div>
+      </div>
+      
+      <div className="flex space-x-1">
+        <Button variant="ghost" size="icon" onClick={onChat} className="h-8 w-8">
+          <MessageSquare className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={onVideoCall} className="h-8 w-8">
+          <Video className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={onAudioCall} className="h-8 w-8">
+          <PhoneCall className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default ContactsList;

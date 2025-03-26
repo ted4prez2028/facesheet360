@@ -1,129 +1,113 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { connectMetaMask, getConnectedAccount, isMetaMaskInstalled, addAccountChangeListener } from "@/lib/carecoin";
+import { toast } from "@/hooks/use-toast";
+import { updateUser } from "@/lib/supabaseApi";
 import { useAuth } from "@/context/AuthContext";
-import { updateWalletAddress } from "@/lib/supabaseApi";
 
-export function ConnectWallet() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+const ConnectWallet = () => {
+  const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { user, updateUserProfile } = useAuth();
-  
+  const { user, updateCurrentUser } = useAuth();
+
   useEffect(() => {
-    const checkConnection = async () => {
-      const account = await getConnectedAccount();
-      setWalletAddress(account);
-    };
-    
-    checkConnection();
-    
-    // Set up event listener for account changes
-    if (isMetaMaskInstalled()) {
-      const handleAccountsChanged = (accounts: string[]) => {
-        setWalletAddress(accounts.length > 0 ? accounts[0] : null);
-      };
-      
-      addAccountChangeListener(handleAccountsChanged);
-      
-      // Cleanup
-      return () => {
-        if (window.ethereum) {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        }
-      };
-    }
+    checkIfWalletIsConnected();
   }, []);
-  
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    setError(null);
-    
+
+  const checkIfWalletIsConnected = async () => {
     try {
-      const account = await connectMetaMask();
-      setWalletAddress(account);
-      
-      // Save wallet address to user profile if logged in
-      if (account && user) {
-        await updateWalletAddress(user.id, account);
-        // Update local user state with the wallet address
-        updateUserProfile({ walletAddress: account });
+      const { ethereum } = window as any;
+      if (!ethereum) {
+        console.log("Make sure you have MetaMask installed!");
+        return;
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to connect to MetaMask");
+
+      const accounts = await ethereum.request({ method: "eth_accounts" });
+      if (accounts.length !== 0) {
+        setAddress(accounts[0]);
+      } else {
+        console.log("No authorized account found");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const connectWallet = async () => {
+    try {
+      setIsConnecting(true);
+      const { ethereum } = window as any;
+      if (!ethereum) {
+        toast({
+          title: "MetaMask not detected",
+          description: "Please install MetaMask extension and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      
+      setAddress(accounts[0]);
+      
+      if (user && user.id) {
+        // Update the user in Supabase with the wallet address
+        await updateUser(user.id, { care_coins_balance: user.care_coins_balance });
+        
+        // Update local user state
+        updateCurrentUser({
+          ...user,
+        });
+        
+        toast({
+          title: "Wallet connected",
+          description: "Your MetaMask wallet has been connected successfully.",
+        });
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        title: "Connection failed",
+        description: error.message || "Failed to connect wallet. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsConnecting(false);
     }
   };
 
+  const disconnectWallet = () => {
+    setAddress(null);
+    toast({
+      title: "Wallet disconnected",
+      description: "Your wallet has been disconnected.",
+    });
+  };
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wallet className="h-5 w-5" />
-          Crypto Wallet
-        </CardTitle>
-        <CardDescription>
-          Connect your MetaMask wallet to send and receive CareCoins using cryptocurrency
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {!isMetaMaskInstalled() ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>MetaMask not installed</AlertTitle>
-            <AlertDescription>
-              Please install MetaMask browser extension to use this feature.
-              <div className="mt-4">
-                <a 
-                  href="https://metamask.io/download/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  Download MetaMask
-                </a>
-              </div>
-            </AlertDescription>
-          </Alert>
-        ) : walletAddress ? (
-          <div>
-            <p className="text-sm font-medium">Connected Wallet:</p>
-            <p className="font-mono mt-1 text-sm break-all bg-muted p-3 rounded-md">
-              {walletAddress}
+    <div className="flex flex-col space-y-4">
+      <h3 className="text-lg font-medium">Wallet Connection</h3>
+      {address ? (
+        <div className="space-y-4">
+          <div className="p-4 border rounded-md bg-muted/30">
+            <p className="text-sm font-medium">Connected Wallet</p>
+            <p className="text-xs text-muted-foreground mt-1 break-all">
+              {address}
             </p>
           </div>
-        ) : (
-          <>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <p className="text-sm text-muted-foreground mb-4">
-              Connect your MetaMask wallet to manage your cryptocurrency
-            </p>
-          </>
-        )}
-      </CardContent>
-      <CardFooter>
-        {!walletAddress && isMetaMaskInstalled() && (
-          <Button onClick={handleConnect} disabled={isConnecting} className="w-full">
-            {isConnecting ? "Connecting..." : "Connect MetaMask"}
+          <Button variant="outline" onClick={disconnectWallet}>
+            Disconnect Wallet
           </Button>
-        )}
-        {walletAddress && (
-          <Button variant="outline" onClick={handleConnect} className="w-full">
-            Reconnect Wallet
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+        </div>
+      ) : (
+        <Button onClick={connectWallet} disabled={isConnecting}>
+          {isConnecting ? "Connecting..." : "Connect MetaMask"}
+        </Button>
+      )}
+    </div>
   );
-}
+};
+
+export default ConnectWallet;

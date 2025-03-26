@@ -1,529 +1,265 @@
-
-import { useState } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { UserPlus, Scan, Search } from "lucide-react";
+import { AddPatientDrawer } from "@/components/patients/AddPatientDrawer";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+  getPatients,
+  deletePatient,
+} from "@/lib/supabaseApi";
+import { Patient } from "@/types";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  ChevronDown, 
-  Download, 
-  Filter, 
-  MoreHorizontal, 
-  Plus, 
-  Search, 
-  SortAsc,
-  Loader2,
-  Camera
-} from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePatients, PatientType } from "@/hooks/usePatients";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import FaceCapture from "@/components/facial-recognition/FaceCapture";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
 import FaceIdentificationDialog from "@/components/facial-recognition/FaceIdentificationDialog";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 const Patients = () => {
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentTab, setCurrentTab] = useState("all");
-  const [showAddPatientDialog, setShowAddPatientDialog] = useState(false);
-  const [showFaceIdentificationDialog, setShowFaceIdentificationDialog] = useState(false);
-  const [showFaceRegistration, setShowFaceRegistration] = useState(false);
-  const [newPatient, setNewPatient] = useState({
-    first_name: "",
-    last_name: "",
-    date_of_birth: "",
-    gender: "Male" as const,
-    phone: "",
-    email: "",
-    condition: "",
-    status: "Active" as const,
-  });
-  
-  // Get patients data
-  const { 
-    patients, 
-    isLoading, 
-    createPatient, 
-    isCreating,
-    refetch
-  } = usePatients(
-    currentTab !== "all" ? { status: currentTab.charAt(0).toUpperCase() + currentTab.slice(1) } : {}
-  );
-  
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value.toLowerCase());
-  };
-  
-  const filteredPatients = patients.filter(
-    patient => 
-      (patient.name?.toLowerCase().includes(searchTerm) || 
-       patient.first_name?.toLowerCase().includes(searchTerm) ||
-       patient.last_name?.toLowerCase().includes(searchTerm) ||
-       patient.id?.toLowerCase().includes(searchTerm) ||
-       patient.condition?.toLowerCase().includes(searchTerm))
-  );
-  
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "stable":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "critical":
-        return "bg-red-50 text-red-700 border-red-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
+  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const [isFaceIdDialogOpen, setIsFaceIdDialogOpen] = useState(false);
+
+  const handleIdentifyPatient = (patientId: string) => {
+    if (patientId) {
+      navigate(`/patients/${patientId}`);
     }
   };
-  
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Unknown";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric'
-    }).format(date);
-  };
-  
-  const handleAddPatient = async () => {
-    // Validate required fields
-    if (!newPatient.first_name || !newPatient.last_name || !newPatient.date_of_birth) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    
+
+  const fetchPatients = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const createdPatient = await createPatient(newPatient);
-      
-      setShowAddPatientDialog(false);
-      setNewPatient({
-        first_name: "",
-        last_name: "",
-        date_of_birth: "",
-        gender: "Male",
-        phone: "",
-        email: "",
-        condition: "",
-        status: "Active",
+      const data = await getPatients();
+      setPatients(data);
+    } catch (error: any) {
+      setError(error.message || "Failed to fetch patients");
+      toast({
+        title: "Error",
+        description: "Failed to fetch patients. Please try again.",
+        variant: "destructive",
       });
-      
-      // If face registration is enabled, show the face capture component
-      if (showFaceRegistration && createdPatient?.id) {
-        toast.success("Patient created! Now register facial data.");
-        // Navigate to a route where we can register facial data
-        navigate(`/patients/${createdPatient.id}`);
-      }
-    } catch (error) {
-      console.error("Error adding patient:", error);
-      toast.error("Failed to add patient");
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewPatient(prev => ({ ...prev, [name]: value }));
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const handleDeletePatient = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this patient?")) {
+      try {
+        await deletePatient(id);
+        setPatients((prev) => prev.filter((patient) => patient.id !== id));
+        toast({
+          title: "Success",
+          description: "Patient deleted successfully.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete patient.",
+          variant: "destructive",
+        });
+      }
+    }
   };
-  
-  const handleSelectChange = (name: string, value: string) => {
-    setNewPatient(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handlePatientIdentifiedByFace = (patientId: string) => {
-    toast.success("Patient identified! Navigating to patient's chart.");
-    navigate(`/patients/${patientId}`);
-  };
+
+  const filteredPatients = patients.filter((patient) => {
+    const searchStr = searchQuery.toLowerCase();
+    return (
+      patient.first_name.toLowerCase().includes(searchStr) ||
+      patient.last_name.toLowerCase().includes(searchStr) ||
+      (patient.email && patient.email.toLowerCase().includes(searchStr)) ||
+      (patient.phone && patient.phone.toLowerCase().includes(searchStr)) ||
+      (patient.medical_record_number &&
+        patient.medical_record_number.toLowerCase().includes(searchStr))
+    );
+  });
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 animate-fade-in">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
+      <div className="flex flex-col space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold">Patients</h1>
           <p className="text-muted-foreground">
-            Manage your patients and their medical records
+            Manage your patients and their information.
           </p>
         </div>
         
         <div className="flex flex-col md:flex-row gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search patients..."
-                className="pl-8 bg-background w-full"
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            
-            <Button variant="outline" className="flex gap-2 items-center" onClick={() => setShowFaceIdentificationDialog(true)}>
-              <Camera className="h-4 w-4" />
+          <Button
+            onClick={() => setIsAddPatientOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <UserPlus size={16} />
+            <span>Add New Patient</span>
+          </Button>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => setIsFaceIdDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Scan size={16} />
               <span>Identify by Face</span>
             </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex gap-2 items-center">
-                  <Filter className="h-4 w-4" />
-                  <span>Filter</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>By Status</DropdownMenuItem>
-                <DropdownMenuItem>By Condition</DropdownMenuItem>
-                <DropdownMenuItem>By Doctor</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex gap-2 items-center">
-                  <SortAsc className="h-4 w-4" />
-                  <span>Sort</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Name (A-Z)</DropdownMenuItem>
-                <DropdownMenuItem>Name (Z-A)</DropdownMenuItem>
-                <DropdownMenuItem>Recent Visit</DropdownMenuItem>
-                <DropdownMenuItem>Oldest Visit</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          <div className="flex gap-4">
-            <Button variant="outline" className="flex gap-2 items-center">
-              <Download className="h-4 w-4" />
-              <span>Export</span>
-            </Button>
-            
-            <Button 
-              className="flex gap-2 items-center bg-health-600 hover:bg-health-700"
-              onClick={() => setShowAddPatientDialog(true)}
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Patient</span>
-            </Button>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search patients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full sm:w-[300px]"
+              />
+            </div>
           </div>
         </div>
-        
-        <Tabs 
-          defaultValue="all" 
-          className="w-full"
-          onValueChange={(value) => setCurrentTab(value)}
-        >
-          <TabsList>
-            <TabsTrigger value="all">All Patients</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="stable">Stable</TabsTrigger>
-            <TabsTrigger value="critical">Critical</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={currentTab} className="mt-6">
-            <Card className="shadow-sm">
-              <CardHeader className="pb-0">
-                <CardTitle>Patient List</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center items-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-health-600" />
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto mt-4">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium text-sm">ID</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Name</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Age/Gender</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Phone</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Condition</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Status</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">DOB</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Facial ID</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredPatients.map((patient) => (
-                          <tr 
-                            key={patient.id} 
-                            className="border-b hover:bg-muted/30 transition-colors"
-                          >
-                            <td className="py-3 px-4 text-sm">
-                              {patient.id?.substring(0, 8)}
-                            </td>
-                            <td className="py-3 px-4 font-medium">
-                              {patient.first_name} {patient.last_name}
-                            </td>
-                            <td className="py-3 px-4 text-sm">
-                              {patient.age} / {patient.gender}
-                            </td>
-                            <td className="py-3 px-4 text-sm">
-                              {patient.phone}
-                            </td>
-                            <td className="py-3 px-4 text-sm">
-                              {patient.condition || 'General checkup'}
-                            </td>
-                            <td className="py-3 px-4">
-                              <Badge 
-                                variant="outline" 
-                                className={getStatusColor(patient.status || 'Active')}
-                              >
-                                {patient.status || 'Active'}
-                              </Badge>
-                            </td>
-                            <td className="py-3 px-4 text-sm">
-                              {formatDate(patient.date_of_birth)}
-                            </td>
-                            <td className="py-3 px-4 text-sm">
-                              {patient.facial_data ? (
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                  Registered
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                                  Not Registered
-                                </Badge>
-                              )}
-                            </td>
-                            <td className="py-3 px-4">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}`)}>
-                                    View Profile
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => navigate(`/charting?patientId=${patient.id}`)}>
-                                    View Chart
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                                  <DropdownMenuItem>Create Note</DropdownMenuItem>
-                                  <DropdownMenuItem>Schedule Appointment</DropdownMenuItem>
-                                  {!patient.facial_data && (
-                                    <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}?register-face=true`)}>
-                                      Register Face
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                
-                {!isLoading && filteredPatients.length === 0 && (
-                  <div className="text-center py-10 text-muted-foreground">
-                    No patients found matching your search criteria.
-                  </div>
-                )}
-                
-                {!isLoading && filteredPatients.length > 0 && (
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {filteredPatients.length} of {patients.length} patients
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm" disabled>
-                        Previous
-                      </Button>
-                      <Button variant="outline" size="sm" className="px-3 bg-primary text-primary-foreground hover:bg-primary/90">
-                        1
-                      </Button>
-                      <Button variant="outline" size="sm" className="px-3">
-                        2
-                      </Button>
-                      <Button variant="outline" size="sm" className="px-3">
-                        3
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <Table>
+          <TableCaption>A list of your patients.</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead className="hidden md:table-cell">Email</TableHead>
+              <TableHead className="hidden md:table-cell">Phone</TableHead>
+              <TableHead className="hidden md:table-cell">MRN</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <>
+                {Array(5)
+                  .fill(null)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[200px]" />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <Skeleton className="h-4 w-[150px]" />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <Skeleton className="h-4 w-[100px]" />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <Skeleton className="h-4 w-[100px]" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="h-8 w-[80px]" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </>
+            ) : filteredPatients.length > 0 ? (
+              filteredPatients.map((patient) => (
+                <TableRow key={patient.id}>
+                  <TableCell>
+                    <Link to={`/patients/${patient.id}`}>
+                      {patient.first_name} {patient.last_name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {patient.email}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {patient.phone}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {patient.medical_record_number}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <DotsHorizontalIcon
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/patients/${patient.id}`)}
+                        >
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeletePatient(patient.id)}
+                        >
+                          Delete Patient
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-4 text-muted-foreground"
+                >
+                  No patients found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={5}>
+                {filteredPatients.length} Patient(s)
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
       </div>
-      
-      {/* Add Patient Dialog */}
-      <Dialog open={showAddPatientDialog} onOpenChange={setShowAddPatientDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Add New Patient</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">First Name</Label>
-                <Input 
-                  id="first_name" 
-                  name="first_name"
-                  value={newPatient.first_name} 
-                  onChange={handleInputChange} 
-                  placeholder="John"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input 
-                  id="last_name" 
-                  name="last_name"
-                  value={newPatient.last_name} 
-                  onChange={handleInputChange} 
-                  placeholder="Smith"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date_of_birth">Date of Birth</Label>
-                <Input 
-                  id="date_of_birth" 
-                  name="date_of_birth"
-                  type="date" 
-                  value={newPatient.date_of_birth} 
-                  onChange={handleInputChange} 
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select 
-                  defaultValue={newPatient.gender} 
-                  onValueChange={(value) => handleSelectChange("gender", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input 
-                  id="phone" 
-                  name="phone"
-                  value={newPatient.phone} 
-                  onChange={handleInputChange} 
-                  placeholder="(555) 123-4567"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  name="email"
-                  type="email"
-                  value={newPatient.email} 
-                  onChange={handleInputChange} 
-                  placeholder="patient@example.com"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="condition">Medical Condition</Label>
-              <Input 
-                id="condition" 
-                name="condition"
-                value={newPatient.condition} 
-                onChange={handleInputChange} 
-                placeholder="Hypertension"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select 
-                  defaultValue={newPatient.status} 
-                  onValueChange={(value) => handleSelectChange("status", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Stable">Stable</SelectItem>
-                    <SelectItem value="Critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex items-center mt-2">
-              <input
-                type="checkbox"
-                id="registerFace"
-                checked={showFaceRegistration}
-                onChange={() => setShowFaceRegistration(!showFaceRegistration)}
-                className="mr-2 h-4 w-4"
-              />
-              <Label htmlFor="registerFace" className="text-sm cursor-pointer">Register facial data after creating patient</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddPatientDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleAddPatient} 
-              className="bg-health-600 hover:bg-health-700"
-              disabled={isCreating}
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                "Add Patient"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Face Identification Dialog */}
+
+      <AddPatientDrawer
+        open={isAddPatientOpen}
+        onOpenChange={setIsAddPatientOpen}
+        onPatientAdded={fetchPatients}
+      />
+
       <FaceIdentificationDialog
-        isOpen={showFaceIdentificationDialog}
-        onClose={() => setShowFaceIdentificationDialog(false)}
-        onIdentificationSuccess={handlePatientIdentifiedByFace}
+        isOpen={isFaceIdDialogOpen}
+        onClose={() => setIsFaceIdDialogOpen(false)}
+        onIdentificationSuccess={handleIdentifyPatient}
       />
     </DashboardLayout>
   );
