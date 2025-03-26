@@ -5,6 +5,7 @@ import { Session } from '@supabase/supabase-js';
 import { AuthContextType, User } from '@/types/auth';
 import { useAuthOperations } from '@/hooks/useAuthOperations';
 import { updateUserState } from '@/hooks/useUserStateUpdater';
+import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -39,6 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
               const userData = await updateUserState(currentSession);
               setUser(userData);
+              
+              if (event === 'SIGNED_IN') {
+                toast.success("Successfully logged in");
+              }
             } catch (error) {
               console.error("Error updating user state:", error);
               // Set minimal user data in case of error
@@ -53,6 +58,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 0);
         } else {
           setUser(null);
+          
+          if (event === 'SIGNED_OUT') {
+            toast.success("Successfully logged out");
+          }
         }
         
         setIsLoading(false);

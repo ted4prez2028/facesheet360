@@ -733,6 +733,12 @@ export type Database = {
           "Dr. Brown": number
         }[]
       }
+      is_current_user: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
       is_own_profile: {
         Args: {
           user_id: string

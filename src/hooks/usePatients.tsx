@@ -9,12 +9,19 @@ import {
 } from "@/lib/supabaseApi";
 import { Patient } from "@/types";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const patientsQueryKey = "patients";
 
 // Fetch all patients
 const fetchPatients = async () => {
   try {
+    // First check if we have a valid session
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to view patients.");
+    }
+    
     return await getPatientsApi();
   } catch (error: any) {
     console.error("Error fetching patients:", error);
@@ -24,9 +31,7 @@ const fetchPatients = async () => {
       throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
     }
     
-    toast.error("Error loading patients: " + (error?.message || "Unknown error"));
-    // Return empty array instead of throwing to prevent UI crashes
-    return [];
+    throw error; // Let the calling code handle the error display
   }
 };
 
@@ -34,7 +39,7 @@ export const usePatients = () => {
   return useQuery({
     queryKey: [patientsQueryKey],
     queryFn: fetchPatients,
-    retry: 1,
+    retry: 2,
     retryDelay: 1000,
   });
 };
@@ -42,6 +47,12 @@ export const usePatients = () => {
 // Fetch a single patient by ID
 const fetchPatient = async (id: string) => {
   try {
+    // First check if we have a valid session
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to view patient details.");
+    }
+    
     return await getPatientApi(id);
   } catch (error: any) {
     console.error(`Error fetching patient with ID ${id}:`, error);
@@ -51,7 +62,6 @@ const fetchPatient = async (id: string) => {
       throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
     }
     
-    toast.error(`Error fetching patient: ${error?.message || 'Unknown error'}`);
     throw error;
   }
 };
@@ -61,7 +71,7 @@ export const usePatient = (id: string) => {
     queryKey: [patientsQueryKey, id],
     queryFn: () => fetchPatient(id),
     enabled: !!id, // Only run the query if the patient ID is available
-    retry: 1,
+    retry: 2,
     retryDelay: 1000,
   });
 };
@@ -129,13 +139,3 @@ export const useDeletePatient = () => {
     }
   });
 };
-
-// Remove this unused function since it's already implemented in the useMutation above
-// const updatePatient = async (id: string, data: Partial<Patient>) => {
-//   try {
-//     return await updatePatientApi(id, data);
-//   } catch (error) {
-//     console.error("Error updating patient:", error);
-//     throw error;
-//   }
-// };

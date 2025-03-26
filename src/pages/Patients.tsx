@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,8 @@ import {
   AlertTitle 
 } from "@/components/ui/alert";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Patients = () => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
@@ -38,9 +41,36 @@ const Patients = () => {
   const navigate = useNavigate();
   const [isFaceIdDialogOpen, setIsFaceIdDialogOpen] = useState(false);
   
-  const { data: patients = [], isLoading, error } = usePatients();
+  const { data: patients = [], isLoading, error, refetch } = usePatients();
   const deletePatientMutation = useDeletePatient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+
+  // Verify session and attempt to refresh it if needed
+  React.useEffect(() => {
+    const checkAndRefreshSession = async () => {
+      if (!isAuthenticated) {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          toast.error("Please login to access patient data");
+          navigate("/login");
+        }
+      }
+    };
+    
+    checkAndRefreshSession();
+  }, [isAuthenticated, navigate]);
+
+  // When we detect an error, try to refetch the data
+  React.useEffect(() => {
+    if (error) {
+      console.error("Patient data fetch error:", error);
+      // Attempt to refetch after a delay
+      const timer = setTimeout(() => {
+        refetch();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, refetch]);
 
   const handleIdentifyPatient = (patientId: string) => {
     if (patientId) {
@@ -80,7 +110,24 @@ const Patients = () => {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              You need to be logged in to view and manage patients. Please log in with your credentials.
+              You need to be logged in to view and manage patients. Please <Link to="/login" className="font-medium underline">log in</Link> with your credentials.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Database Permission Error</AlertTitle>
+            <AlertDescription>
+              {error instanceof Error ? error.message : "Please ensure you're logged in with the correct credentials."}
+              <Button 
+                variant="outline" 
+                className="ml-2" 
+                onClick={() => refetch()}
+              >
+                Try Again
+              </Button>
             </AlertDescription>
           </Alert>
         )}
@@ -116,13 +163,6 @@ const Patients = () => {
             </div>
           </div>
         </div>
-
-        {error && (
-          <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error instanceof Error ? error.message : String(error)}</AlertDescription>
-          </Alert>
-        )}
 
         <Table>
           <TableCaption>A list of your patients.</TableCaption>
@@ -210,7 +250,7 @@ const Patients = () => {
                   colSpan={5}
                   className="text-center py-4 text-muted-foreground"
                 >
-                  No patients found.
+                  {error ? "Error loading patients." : "No patients found."}
                 </TableCell>
               </TableRow>
             )}
@@ -229,7 +269,7 @@ const Patients = () => {
         open={isAddPatientOpen}
         onOpenChange={setIsAddPatientOpen}
         onPatientAdded={() => {
-          /* Refetch handled by React Query invalidation */
+          refetch();
         }}
       />
 

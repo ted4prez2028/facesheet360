@@ -5,12 +5,21 @@ import { Patient } from "@/types";
 // Patient functions
 export const getPatients = async () => {
   try {
+    // Check for valid session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to view patients.");
+    }
+    
     const { data, error } = await supabase
       .from("patients")
       .select("*")
       .order("last_name", { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase error:", error);
+      throw error;
+    }
     return data as Patient[];
   } catch (error) {
     console.error("Error fetching patients:", error);
@@ -20,6 +29,12 @@ export const getPatients = async () => {
 
 export const getPatientById = async (id: string) => {
   try {
+    // Check for valid session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to view patient details.");
+    }
+    
     const { data, error } = await supabase
       .from("patients")
       .select("*")
@@ -79,27 +94,47 @@ export const addPatient = async (patient: Partial<Patient>) => {
 };
 
 export const updatePatient = async (id: string, data: Partial<Patient>) => {
-  const { date_of_birth, ...rest } = data;
-  
-  const updateData: any = { ...rest };
-  if (date_of_birth) {
-    updateData.date_of_birth = date_of_birth;
-  }
-  
-  const { data: updatedPatient, error } = await supabase
-    .from('patients')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
+  try {
+    // Check for valid session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to update patient details.");
+    }
+    
+    const { date_of_birth, ...rest } = data;
+    
+    const updateData: any = { ...rest };
+    if (date_of_birth) {
+      updateData.date_of_birth = date_of_birth;
+    }
+    
+    const { data: updatedPatient, error } = await supabase
+      .from('patients')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
 
-  if (error) throw error;
-  return updatedPatient;
+    if (error) throw error;
+    return updatedPatient;
+  } catch (error) {
+    console.error(`Error updating patient with ID ${id}:`, error);
+    throw error;
+  }
 };
 
 export const deletePatient = async (id: string) => {
   try {
-    const { error } = await supabase.from("patients").delete().eq("id", id);
+    // Check for valid session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to delete patients.");
+    }
+    
+    const { error } = await supabase
+      .from("patients")
+      .delete()
+      .eq("id", id);
 
     if (error) throw error;
     return true;
@@ -112,6 +147,12 @@ export const deletePatient = async (id: string) => {
 // Patient Identification by Facial Data
 export const getPatientByFacialData = async () => {
   try {
+    // Check for valid session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to use facial recognition.");
+    }
+    
     const { data, error } = await supabase
       .from("patients")
       .select("*")
@@ -128,6 +169,12 @@ export const getPatientByFacialData = async () => {
 
 export const storeFacialData = async (patientId: string, facialData: string) => {
   try {
+    // Check for valid session first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to store facial data.");
+    }
+    
     const { data, error } = await supabase
       .from("patients")
       .update({ facial_data: facialData })
