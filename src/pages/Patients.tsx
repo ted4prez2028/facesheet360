@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,17 @@ import { usePatients, useDeletePatient } from "@/hooks/usePatients";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import FaceIdentificationDialog from "@/components/facial-recognition/FaceIdentificationDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 
 const Patients = () => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
