@@ -37,7 +37,8 @@ export const {
   getUsers,
   getUserById,
   getUserProfile,
-  updateUser
+  updateUser,
+  updateUserOnlineStatus
 } = userApi;
 
 export const {
