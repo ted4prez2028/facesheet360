@@ -21,6 +21,9 @@ import ContactsList from "./components/communication/ContactsList";
 import ChatWindows from "./components/communication/ChatWindows";
 import CallDialog from "./components/communication/CallDialog";
 import NotificationSound from "./components/notifications/NotificationSound";
+import MedicationReminders from "./components/notifications/MedicationReminders";
+import Index from "./pages/Index";
+import PharmacistDashboard from "./pages/PharmacistDashboard";
 
 // Configure React Query client with optimized settings
 const queryClient = new QueryClient({
@@ -44,7 +47,7 @@ function App() {
             <CommunicationProvider>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/patients" element={<Patients />} />
                 <Route path="/charting" element={<Charting />} />
@@ -54,6 +57,7 @@ function App() {
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/settings/configuration" element={<EnvExample />} />
                 <Route path="/patients/:patientId" element={<PatientProfile />} />
+                <Route path="/pharmacy" element={<PharmacistDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               
@@ -62,6 +66,7 @@ function App() {
               <ChatWindows />
               <CallDialog />
               <NotificationSound />
+              <MedicationReminders />
             </CommunicationProvider>
           </AuthProvider>
         </BrowserRouter>

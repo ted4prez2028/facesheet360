@@ -1,231 +1,146 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
+
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Bell, 
+  LogOut, 
+  MessageSquare, 
+  Settings, 
+  User,
+  ChevronDown,
+  DollarSign,
+  Pill
+} from 'lucide-react';
+import { 
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { useAuth } from '@/context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { Bell, Home, Users, Calendar, BarChart, Settings, CreditCard } from 'lucide-react';
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCommunication } from '@/context/CommunicationContext';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
-// Define our own Notification interface to avoid conflict with the imported one
-interface NotificationItem {
-  id: string;
-  created_at: string;
-  type: string;
-  message: string;
-  read: boolean;
-  user_id: string;
+interface TopNavProps {
+  toggleSidebar?: () => void;
 }
 
-const TopNav = () => {
-  const { user, logout } = useAuth();
+const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const { toggleContacts } = useCommunication();
   const navigate = useNavigate();
-  const communication = useCommunication();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const notificationSoundRef = useRef<HTMLAudioElement>(null);
-
-  const fetchNotifications = async () => {
-    return [] as NotificationItem[];
-  };
-
-  const { data: initialNotifications, refetch } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: fetchNotifications,
-  });
-
-  useEffect(() => {
-    if (initialNotifications) {
-      setNotifications(initialNotifications);
-    }
-  }, [initialNotifications]);
-
-  useEffect(() => {
-    const handleRealtimeNotification = (payload: any) => {
-      if (payload.new && payload.new.type === 'broadcast') {
-        const notification = payload.new as unknown as NotificationItem;
-        setNotifications((prev) => [...prev, notification]);
-        if (notificationSoundRef.current) {
-          notificationSoundRef.current.play().catch(console.error);
-        }
-      }
-    };
-
-    // Using try-catch to safely handle potential errors
-    try {
-      const channel = supabase.channel('public:notifications')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, handleRealtimeNotification)
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } catch (error) {
-      console.error('Error setting up Supabase realtime subscription:', error);
-      return () => {}; // Return empty cleanup function if setup fails
-    }
-  }, []);
 
   const handleLogout = async () => {
     try {
-      await logout();
-      // Check if communication context exists and has the properties we need
-      if (communication && typeof communication.setIsCallActive === 'function') {
-        communication.setIsCallActive(false);
-      }
+      await signOut();
       navigate('/login');
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
     } catch (error) {
-      console.error('Logout failed:', error);
-      toast.error('Logout failed. Please try again.');
+      toast({
+        title: "Error logging out",
+        description: "There was an error logging you out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const markAllAsRead = async () => {
-    const updatedNotifications = notifications.map(notification => ({ ...notification, read: true }));
-    setNotifications(updatedNotifications);
-  
-    try {
-      await refetch();
-      toast.success('All notifications marked as read!');
-    } catch (error: any) {
-      console.error('Error marking notifications as read:', error);
-      toast.error(error.message || 'Failed to mark notifications as read.');
-  
-      setNotifications(notifications);
-    }
-  };
-
-  const unreadCount = notifications?.filter(notification => !notification.read).length;
+  const userInitials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+    : "?";
 
   return (
-    <div className="border-b">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/dashboard" className="font-bold text-xl">CareConnect</Link>
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" asChild>
-            <Link to="/dashboard">
-              <Home className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </Link>
+    <header className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+      <div className="flex items-center">
+        {toggleSidebar && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleSidebar}
+            className="mr-2"
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5">
+              <path d="M1.5 3C1.22386 3 1 3.22386 1 3.5C1 3.77614 1.22386 4 1.5 4H13.5C13.7761 4 14 3.77614 14 3.5C14 3.22386 13.7761 3 13.5 3H1.5ZM1 7.5C1 7.22386 1.22386 7 1.5 7H13.5C13.7761 7 14 7.22386 14 7.5C14 7.77614 13.7761 8 13.5 8H1.5C1.22386 8 1 7.77614 1 7.5ZM1 11.5C1 11.2239 1.22386 11 1.5 11H13.5C13.7761 11 14 11.2239 14 11.5C14 11.7761 13.7761 12 13.5 12H1.5C1.22386 12 1 11.7761 1 11.5Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
+            </svg>
           </Button>
-          <Button variant="ghost" asChild>
-            <Link to="/patients">
-              <Users className="mr-2 h-4 w-4" />
-              <span>Patients</span>
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link to="/appointments">
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>Appointments</span>
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link to="/analytics">
-              <BarChart className="mr-2 h-4 w-4" />
-              <span>Analytics</span>
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link to="/subscription">
-              <CreditCard className="mr-2 h-4 w-4" />
-              <span>Subscription</span>
-            </Link>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative">
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="absolute -top-1 -right-1 rounded-full px-2 py-0.5 text-xs"
-                  >
-                    {unreadCount}
-                  </Badge>
-                )}
-                <span className="sr-only">Toggle notifications</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80" align="end" forceMount>
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {notifications?.length === 0 ? (
-                <DropdownMenuItem className="cursor-default">
-                  No notifications
-                </DropdownMenuItem>
-              ) : (
-                <>
-                  {notifications?.map((notification) => (
-                    <DropdownMenuItem key={notification.id} className="break-words">
-                      <div className="flex justify-between">
-                        <div className="truncate">{notification.message}</div>
-                        {!notification.read && (
-                          <Badge className="ml-2">New</Badge>
-                        )}
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={markAllAsRead}>
-                    Mark all as read
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={user.profileImage}
-                      alt={user.name || 'User'}
-                    />
-                    <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/subscription">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    <span>Subscription</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        )}
+        <Link to="/" className="font-bold text-xl text-health-600">Facesheet360</Link>
       </div>
-      <audio ref={notificationSoundRef} src="/sounds/notification.mp3" preload="auto" />
-    </div>
+      
+      <div className="flex items-center space-x-2">
+        <Button 
+          variant="outline" 
+          size="icon"
+          className="relative"
+          onClick={() => {/* Notification click handler */}}
+        >
+          <Bell className="h-5 w-5" />
+          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-health-600">2</Badge>
+        </Button>
+
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={toggleContacts}
+        >
+          <MessageSquare className="h-5 w-5" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="ml-2 pl-2 pr-1 py-1 h-9">
+              <Avatar className="h-6 w-6 mr-2">
+                <AvatarImage src={user?.profile_image} />
+                <AvatarFallback className="bg-health-600 text-white text-xs">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="mr-1">{user?.name?.split(' ')[0]}</span>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/subscription')}>
+                <DollarSign className="mr-2 h-4 w-4" />
+                <span>Subscription</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/pharmacy')}>
+                <Pill className="mr-2 h-4 w-4" />
+                <span>Pharmacy Dashboard</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
   );
 };
 
