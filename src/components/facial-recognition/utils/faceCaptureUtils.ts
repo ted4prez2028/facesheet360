@@ -3,6 +3,31 @@ import { toast } from 'sonner';
 import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
+import * as faceapi from 'face-api.js';
+
+let modelsLoaded = false;
+
+// Helper function to load face-api.js models
+const loadFaceApiModels = async () => {
+  if (modelsLoaded) return true;
+  
+  try {
+    const MODEL_URL = '/models';
+    
+    await Promise.all([
+      faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
+    
+    modelsLoaded = true;
+    console.log('Face detection models loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('Error loading face detection models:', error);
+    return false;
+  }
+};
 
 export const checkCameraAvailability = async (): Promise<boolean> => {
   try {
@@ -23,6 +48,10 @@ export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElemen
 
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+      
+      // Load face-api models while camera is initializing
+      await loadFaceApiModels();
+      
       return new Promise((resolve) => {
         if (videoRef.current) {
           videoRef.current.onloadedmetadata = () => {
@@ -61,6 +90,52 @@ export const captureImage = (
   context?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   return canvas.toDataURL('image/jpeg');
+};
+
+export const detectFaceInCanvas = async (
+  videoElement: HTMLVideoElement,
+  canvasElement: HTMLCanvasElement
+): Promise<boolean> => {
+  if (!modelsLoaded) {
+    await loadFaceApiModels();
+  }
+  
+  // Get canvas context and clear previous drawings
+  const ctx = canvasElement.getContext('2d');
+  if (!ctx) return false;
+  
+  // Set canvas dimensions to match video
+  canvasElement.width = videoElement.videoWidth;
+  canvasElement.height = videoElement.videoHeight;
+  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  
+  try {
+    // Detect faces in the video stream
+    const detections = await faceapi.detectAllFaces(videoElement);
+    
+    if (detections.length === 0) {
+      return false;
+    }
+    
+    // Draw rectangles around detected faces
+    detections.forEach(detection => {
+      const { x, y, width, height } = detection.box;
+      
+      // Draw green rectangle
+      ctx.strokeStyle = '#22c55e'; // Green-500
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, y, width, height);
+      
+      // Add green semi-transparent overlay
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.15)'; // Green-500 with 15% opacity
+      ctx.fillRect(x, y, width, height);
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error detecting faces:', error);
+    return false;
+  }
 };
 
 export const identifyPatient = async (capturedImage: string): Promise<Patient | null> => {

@@ -9,6 +9,7 @@ interface CameraControlsProps {
   hasVideoStream: boolean;
   onStartCamera: () => void;
   onCapture: () => void;
+  isFaceDetected?: boolean;
 }
 
 const CameraControls: React.FC<CameraControlsProps> = ({
@@ -16,11 +17,12 @@ const CameraControls: React.FC<CameraControlsProps> = ({
   isLoading,
   hasVideoStream,
   onStartCamera,
-  onCapture
+  onCapture,
+  isFaceDetected = false
 }) => {
   return (
     <>
-      {!isCaptured && (
+      {!hasVideoStream && !isCaptured && (
         <Button
           onClick={onStartCamera}
           disabled={isLoading || isCaptured}
@@ -43,10 +45,12 @@ const CameraControls: React.FC<CameraControlsProps> = ({
       {hasVideoStream && !isCaptured && (
         <Button
           onClick={onCapture}
-          disabled={isLoading || isCaptured}
-          className="w-full max-w-md"
+          disabled={isLoading || isCaptured || !isFaceDetected}
+          className={`w-full max-w-md transition-colors ${
+            isFaceDetected ? 'bg-green-500 hover:bg-green-600' : 'bg-muted'
+          }`}
         >
-          Capture
+          {isFaceDetected ? 'Capture Face' : 'Waiting for face...'}
         </Button>
       )}
     </>

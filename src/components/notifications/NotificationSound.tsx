@@ -5,12 +5,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Bell } from "lucide-react";
 
 interface NotificationSoundProps {
-  notifications: any[];
+  notifications?: any[];
   soundEnabled?: boolean;
 }
 
 const NotificationSound: React.FC<NotificationSoundProps> = ({
-  notifications,
+  notifications = [],
   soundEnabled = true,
 }) => {
   const { toast } = useToast();
