@@ -32,7 +32,9 @@ export function ConnectWallet() {
       
       // Cleanup
       return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        if (window.ethereum) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
       };
     }
   }, []);
@@ -48,7 +50,7 @@ export function ConnectWallet() {
       // Save wallet address to user profile if logged in
       if (account && user) {
         await updateWalletAddress(user.id, account);
-        // Update local user state
+        // Update local user state with the wallet address
         updateUserProfile({ walletAddress: account });
       }
     } catch (err: any) {

@@ -1,7 +1,6 @@
-
 // User types
 export interface User {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   role: 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin';
@@ -9,24 +8,30 @@ export interface User {
   licenseNumber?: string;
   profileImage?: string;
   careCoinsBalance: number;
+  walletAddress?: string;
 }
 
 // Patient types
 export interface Patient {
-  _id: string;
-  name: string;
-  age: number;
+  id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
   gender: string;
-  phone: string;
-  condition: string;
-  status: 'Active' | 'Stable' | 'Critical';
-  lastVisit: string;
-  assignedDoctor: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  medical_record_number?: string;
+  insurance_provider?: string;
+  policy_number?: string;
+  facial_data?: string;
+  condition?: string;
+  status?: 'Active' | 'Stable' | 'Critical';
+  assignedDoctor?: string;
   medicalHistory?: string[];
   medications?: string[];
   allergies?: string[];
   vitalSigns?: VitalSigns;
-  facialDataId?: string;
 }
 
 export interface VitalSigns {
@@ -38,7 +43,6 @@ export interface VitalSigns {
   recordedAt?: string;
 }
 
-// Chart types
 export interface ChartNote {
   _id: string;
   patientId: string;
@@ -59,7 +63,6 @@ export interface Attachment {
   uploadedAt: string;
 }
 
-// Appointment types
 export interface Appointment {
   _id: string;
   patientId: string;
@@ -74,7 +77,6 @@ export interface Appointment {
   notes?: string;
 }
 
-// CareCoins types
 export interface CareCoinsTransaction {
   _id: string;
   fromUserId?: string;

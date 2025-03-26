@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { User, Patient } from "@/types";
 
 // User management
 export const getUserProfile = async (userId: string) => {
@@ -28,11 +29,20 @@ export const getUserProfile = async (userId: string) => {
   }
 };
 
-export const updateUserProfile = async (userId: string, updates: any) => {
+export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
   try {
+    // Map the user fields to match the database column names
+    const dbUpdates: Record<string, any> = {};
+    
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.specialty) dbUpdates.specialty = updates.specialty;
+    if (updates.licenseNumber) dbUpdates.license_number = updates.licenseNumber;
+    if (updates.profileImage) dbUpdates.profile_image = updates.profileImage;
+    if (updates.walletAddress) dbUpdates.wallet_address = updates.walletAddress;
+    
     const { data, error } = await supabase
       .from('users')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', userId)
       .select()
       .single();
@@ -85,7 +95,7 @@ export const getPatientById = async (id: string) => {
   }
 };
 
-export const createPatient = async (patientData: any) => {
+export const createPatient = async (patientData: Partial<Patient>) => {
   try {
     const { data, error } = await supabase
       .from('patients')
@@ -102,7 +112,7 @@ export const createPatient = async (patientData: any) => {
   }
 };
 
-export const updatePatient = async (id: string, patientData: any) => {
+export const updatePatient = async (id: string, patientData: Partial<Patient>) => {
   try {
     const { data, error } = await supabase
       .from('patients')
