@@ -39,7 +39,7 @@ const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Logout error:', error);
     }
   };
 
