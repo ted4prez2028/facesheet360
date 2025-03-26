@@ -1,6 +1,14 @@
 
-schema_version: 20230426
 name: check-upcoming-appointments
-version: 0.1.0
-title: Check Upcoming Appointments
-description: Sends notifications for appointments starting soon
+version: 1.0
+description: Checks for upcoming appointments and medications to send notifications
+schemas:
+  - public
+  - storage
+  - auth
+entrypoint: index.ts
+
+# Run every 5 minutes
+schedule:
+  cron: '*/5 * * * *'
+  run_on_startup: true

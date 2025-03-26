@@ -1,169 +1,162 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Define CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+interface Appointment {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  appointment_date: string;
+  status: string;
+  notes?: string;
 }
 
-// Create a Supabase client
-const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://tuembzleutkexrmrzxkg.supabase.co'
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-const supabase = createClient(supabaseUrl, supabaseKey)
+interface Prescription {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date?: string;
+  status: string;
+}
 
-// Handle CORS preflight requests
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
-  
+interface Notification {
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  event_id?: string;
+  event_time?: string;
+}
+
+serve(async (req) => {
   try {
-    console.log('Checking for upcoming appointments...')
+    // Create a Supabase client with the service role key
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     
-    // Get current date/time
-    const now = new Date()
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Calculate time 20 minutes from now
-    const twentyMinutesFromNow = new Date(now.getTime() + 20 * 60 * 1000)
+    // Get current time and time 20 minutes from now
+    const now = new Date();
+    const twentyMinutesFromNow = new Date(now.getTime() + 20 * 60 * 1000);
     
-    // Query for appointments that start within the next 20 minutes
-    const { data: appointments, error: appointmentsError } = await supabase
+    // Format dates for PostgreSQL comparison
+    const formattedNow = now.toISOString();
+    const formattedTwentyMinutesFromNow = twentyMinutesFromNow.toISOString();
+    
+    // Check for upcoming appointments within the next 20 minutes
+    const { data: upcomingAppointments, error: appointmentsError } = await supabase
       .from('appointments')
-      .select(`
-        *,
-        patients:patient_id (first_name, last_name),
-        provider:provider_id (id, name, email)
-      `)
-      .gte('appointment_date', now.toISOString())
-      .lte('appointment_date', twentyMinutesFromNow.toISOString())
+      .select('*')
+      .gte('appointment_date', formattedNow)
+      .lt('appointment_date', formattedTwentyMinutesFromNow)
+      .eq('status', 'scheduled');
     
     if (appointmentsError) {
-      throw appointmentsError
+      throw appointmentsError;
     }
     
-    console.log(`Found ${appointments?.length || 0} upcoming appointments`)
-    
-    // For each appointment, create a notification
-    const notificationsToInsert = []
-    
-    if (appointments && appointments.length > 0) {
-      for (const appointment of appointments) {
-        const patientName = appointment.patients 
-          ? `${appointment.patients.first_name} ${appointment.patients.last_name}`
-          : "a patient"
-          
-        const minutesUntil = Math.floor(
-          (new Date(appointment.appointment_date).getTime() - now.getTime()) / 60000
-        )
-        
-        // Create notification for provider
-        notificationsToInsert.push({
-          user_id: appointment.provider_id,
-          title: `Upcoming Appointment`,
-          message: `Appointment with ${patientName} in ${minutesUntil} minutes`,
-          type: "appointment",
-          read: false,
-          event_id: appointment.id,
-          event_time: appointment.appointment_date
-        })
-      }
-    }
-    
-    // Also check for medications due in the next hour
-    const { data: medications, error: medsError } = await supabase
-      .from('prescriptions')
-      .select(`
-        *,
-        patients:patient_id (first_name, last_name),
-        provider:provider_id (id, name, email)
-      `)
-      .eq('status', 'prescribed')
-      .lte('start_date', now.toISOString())
-      .or(`end_date.is.null,end_date.gt.${now.toISOString()}`)
-    
-    if (medsError) {
-      throw medsError
-    }
-    
-    console.log(`Found ${medications?.length || 0} active medications`)
-    
-    // Get current hour to check if it's medication time
-    const currentHour = now.getHours()
-    let timeOfDay = ""
-    let shouldNotify = false
-    
-    // Morning medications (8-10 AM)
-    if (currentHour >= 8 && currentHour <= 10) {
-      shouldNotify = true
-      timeOfDay = "morning"
-    }
-    // Afternoon medications (12-2 PM)
-    else if (currentHour >= 12 && currentHour <= 14) {
-      shouldNotify = true
-      timeOfDay = "afternoon"
-    }
-    // Evening medications (6-8 PM)
-    else if (currentHour >= 18 && currentHour <= 20) {
-      shouldNotify = true
-      timeOfDay = "evening"
-    }
-    
-    if (shouldNotify && medications && medications.length > 0) {
-      for (const med of medications) {
-        const patientName = med.patients 
-          ? `${med.patients.first_name} ${med.patients.last_name}`
-          : "your patient"
-        
-        notificationsToInsert.push({
-          user_id: med.provider_id,
-          title: `${timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)} Medication Reminder`,
-          message: `${med.medication_name} (${med.dosage}) is due for ${patientName}`,
-          type: "medication",
-          read: false,
-          event_id: med.id,
-          event_time: now.toISOString()
-        })
-      }
-    }
-    
-    // Insert all notifications
-    if (notificationsToInsert.length > 0) {
-      const { error: insertError } = await supabase
+    // Process each upcoming appointment
+    for (const appointment of (upcomingAppointments || [])) {
+      // Get patient details
+      const { data: patientData } = await supabase
+        .from('patients')
+        .select('first_name, last_name')
+        .eq('id', appointment.patient_id)
+        .single();
+      
+      if (!patientData) continue;
+      
+      // Create notification for the provider
+      const notification: Notification = {
+        user_id: appointment.provider_id,
+        title: 'Upcoming Appointment',
+        message: `You have an appointment with ${patientData.first_name} ${patientData.last_name} in less than 20 minutes`,
+        type: 'appointment',
+        read: false,
+        event_id: appointment.id,
+        event_time: appointment.appointment_date
+      };
+      
+      // Insert notification into the database
+      const { error: notificationError } = await supabase
         .from('notifications')
-        .insert(notificationsToInsert)
+        .insert(notification);
       
-      if (insertError) {
-        throw insertError
+      if (notificationError) {
+        console.error('Error creating appointment notification:', notificationError);
       }
-      
-      console.log(`Successfully inserted ${notificationsToInsert.length} notifications`)
-    } else {
-      console.log('No notifications to insert')
     }
     
-    // Return success response
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        appointments_checked: appointments?.length || 0,
-        medications_checked: medications?.length || 0,
-        notifications_created: notificationsToInsert.length
-      }),
-      {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status: 200,
-      }
-    )
-  } catch (error) {
-    console.error('Error in check-upcoming-appointments:', error)
+    // Check for medications that need to be administered
+    const { data: activePrescriptions, error: prescriptionsError } = await supabase
+      .from('prescriptions')
+      .select('*')
+      .eq('status', 'prescribed');
     
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status: 500,
+    if (prescriptionsError) {
+      throw prescriptionsError;
+    }
+    
+    // Process active prescriptions
+    for (const prescription of (activePrescriptions || [])) {
+      // Simple handling for "every X hours" frequency
+      if (prescription.frequency && prescription.frequency.includes('hours')) {
+        // Get patient details
+        const { data: patientData } = await supabase
+          .from('patients')
+          .select('first_name, last_name')
+          .eq('id', prescription.patient_id)
+          .single();
+        
+        if (!patientData) continue;
+        
+        // Create notification for medication reminder
+        const notification: Notification = {
+          user_id: prescription.provider_id,
+          title: 'Medication Reminder',
+          message: `Time to administer ${prescription.medication_name} (${prescription.dosage}) to ${patientData.first_name} ${patientData.last_name}`,
+          type: 'medication',
+          read: false,
+          event_id: prescription.id
+        };
+        
+        // Insert notification into the database
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert(notification);
+        
+        if (notificationError) {
+          console.error('Error creating medication notification:', notificationError);
+        }
       }
-    )
+    }
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      processed: {
+        appointments: upcomingAppointments?.length || 0,
+        prescriptions: activePrescriptions?.length || 0
+      }
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200
+    });
+    
+  } catch (error) {
+    console.error('Error in check-upcoming-appointments function:', error);
+    
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500
+    });
   }
-})
+});

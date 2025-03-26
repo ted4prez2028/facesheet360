@@ -3,16 +3,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { 
-  Bell, 
-  LogOut, 
   MessageSquare, 
   Settings, 
   User,
   ChevronDown,
   DollarSign,
-  Pill
+  Pill,
+  LogOut
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -25,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCommunication } from '@/context/communication/CommunicationContext';
-import { Badge } from '@/components/ui/badge';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 interface TopNavProps {
   toggleSidebar?: () => void;
@@ -33,7 +31,6 @@ interface TopNavProps {
 
 const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
-  const { toast } = useToast();
   const { toggleContacts } = useCommunication();
   const navigate = useNavigate();
 
@@ -41,16 +38,8 @@ const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
     try {
       await logout();
       navigate('/login');
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
     } catch (error) {
-      toast({
-        title: "Error logging out",
-        description: "There was an error logging you out. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error logging out:', error);
     }
   };
 
@@ -80,15 +69,8 @@ const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
       </div>
       
       <div className="flex items-center space-x-2">
-        <Button 
-          variant="outline" 
-          size="icon"
-          className="relative"
-          onClick={() => {/* Notification click handler */}}
-        >
-          <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-health-600">2</Badge>
-        </Button>
+        {/* Notification Center */}
+        <NotificationCenter />
 
         <Button 
           variant="outline" 

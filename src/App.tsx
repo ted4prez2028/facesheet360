@@ -20,8 +20,6 @@ import PatientProfile from "./pages/PatientProfile";
 import ContactsList from "./components/communication/ContactsList";
 import ChatWindows from "./components/communication/ChatWindows";
 import CallDialog from "./components/communication/CallDialog";
-import NotificationSound from "./components/notifications/NotificationSound";
-import MedicationReminders from "./components/notifications/MedicationReminders";
 import Index from "./pages/Index";
 import PharmacistDashboard from "./pages/PharmacistDashboard";
 
@@ -65,8 +63,6 @@ function App() {
               <ContactsList />
               <ChatWindows />
               <CallDialog />
-              <NotificationSound />
-              <MedicationReminders />
             </CommunicationProvider>
           </AuthProvider>
         </BrowserRouter>

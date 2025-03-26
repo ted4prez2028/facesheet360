@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
-import TopNav from "./TopNav"; // Fixed import
+import TopNav from "./TopNav";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import NotificationSound from "@/components/notifications/NotificationSound";
 import MedicationReminders from "@/components/notifications/MedicationReminders";

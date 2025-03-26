@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { Notification } from '@/lib/api/notificationApi';
 
 const NotificationSound = () => {
   const { user } = useAuth();
@@ -24,10 +25,12 @@ const NotificationSound = () => {
         table: 'notifications',
         filter: `user_id=eq.${user.id}`
       }, (payload: any) => {
-        const notification = payload.new;
+        const notification = payload.new as Notification;
         
         // Only show notifications meant for this user
         if (notification.user_id === user.id) {
+          console.log('New notification received:', notification);
+          
           // Play notification sound
           if (audioRef.current) {
             audioRef.current.play().catch(err => 
@@ -39,6 +42,9 @@ const NotificationSound = () => {
           toast({
             title: notification.title,
             description: notification.message,
+            variant: notification.type === 'system' ? 'default' : 
+                    notification.type === 'medication' ? 'info' : 
+                    notification.type === 'appointment' ? 'success' : 'default',
           });
         }
       })
