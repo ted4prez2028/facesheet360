@@ -90,9 +90,16 @@ export const usePatientForm = (onSuccess: () => void) => {
       onSuccess();
       return true;
     } catch (error: any) {
-      toast.error("Error Adding Patient", {
-        description: error.message || "Failed to add patient.",
-      });
+      // Handle the database permission error specifically
+      if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
+        toast.error("Database Permission Error", {
+          description: "Please ensure you're logged in with the correct credentials before adding a patient.",
+        });
+      } else {
+        toast.error("Error Adding Patient", {
+          description: error?.message || "Failed to add patient.",
+        });
+      }
       return false;
     } finally {
       setFormState((prev) => ({ ...prev, isLoading: false }));

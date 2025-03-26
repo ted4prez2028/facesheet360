@@ -10,10 +10,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import PatientFormFields from "./PatientFormFields";
 import PatientFacialCapture from "./PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
+import { useAuth } from "@/context/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AddPatientDrawerProps {
   open: boolean;
@@ -26,6 +28,8 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   onOpenChange,
   onPatientAdded,
 }) => {
+  const { isAuthenticated } = useAuth();
+  
   const {
     formState,
     updateField,
@@ -51,6 +55,18 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
             Fill in the patient details below. Fields marked with * are required.
           </DrawerDescription>
         </DrawerHeader>
+        
+        {!isAuthenticated && (
+          <div className="px-4 mb-4">
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                You must be logged in to add patients. Please log in with your account credentials.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="px-4">
           <PatientFormFields
             formData={formState}
@@ -66,7 +82,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
             <Button 
               type="submit" 
               className="w-full sm:w-auto flex items-center" 
-              disabled={formState.isLoading}
+              disabled={formState.isLoading || !isAuthenticated}
             >
               <Check className="mr-2 h-4 w-4" />
               {formState.isLoading ? "Adding Patient..." : "Submit Patient"}

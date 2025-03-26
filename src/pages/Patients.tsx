@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,9 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  AlertTriangle,
 } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
 
 const Patients = () => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
@@ -41,6 +42,7 @@ const Patients = () => {
   
   const { data: patients = [], isLoading, error } = usePatients();
   const deletePatientMutation = useDeletePatient();
+  const { isAuthenticated } = useAuth();
 
   const handleIdentifyPatient = (patientId: string) => {
     if (patientId) {
@@ -76,10 +78,20 @@ const Patients = () => {
           </p>
         </div>
         
+        {!isAuthenticated && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              You need to be logged in to view and manage patients. Please log in with your credentials.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex flex-col md:flex-row gap-4 justify-between">
           <Button
             onClick={() => setIsAddPatientOpen(true)}
             className="flex items-center gap-2"
+            disabled={!isAuthenticated}
           >
             <UserPlus size={16} />
             <span>Add New Patient</span>
@@ -90,6 +102,7 @@ const Patients = () => {
               variant="outline"
               onClick={() => setIsFaceIdDialogOpen(true)}
               className="flex items-center gap-2"
+              disabled={!isAuthenticated}
             >
               <Scan size={16} />
               <span>Identify by Face</span>

@@ -52,6 +52,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import PatientFormFields from "@/components/patients/PatientFormFields";
 import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
+import { Alert, AlertTriangle, AlertDescription } from "@/components/ui/alert";
 
 interface Patient {
   id: string;
@@ -603,6 +604,17 @@ const Charting = () => {
             </SheetDescription>
           </SheetHeader>
           
+          {!user && (
+            <div className="mb-4">
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  You must be logged in to add patients. Please log in with your account credentials.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmitPatient} className="space-y-6">
             <PatientFormFields
               formData={formState}
@@ -618,7 +630,7 @@ const Charting = () => {
               <Button 
                 type="submit" 
                 className="w-full sm:w-auto flex items-center bg-health-600 hover:bg-health-700" 
-                disabled={formState.isLoading}
+                disabled={formState.isLoading || !user}
               >
                 {formState.isLoading ? "Adding Patient..." : "Submit Patient"}
               </Button>
