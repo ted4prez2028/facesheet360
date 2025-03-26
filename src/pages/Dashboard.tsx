@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +28,8 @@ import {
 } from "recharts";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/AuthContext";
 
-// Mock data
 const patientStatistics = [
   { name: "Mon", newPatients: 4, activePatients: 22, avg: 18 },
   { name: "Tue", newPatients: 3, activePatients: 25, avg: 19 },
@@ -75,9 +74,11 @@ const Dashboard = () => {
   const [timeframe, setTimeframe] = useState("week");
   const { toast } = useToast();
   const { data: dashboardData, isLoading, error } = useDashboardData();
+  const { user } = useAuth();
+  
+  const firstName = user?.name ? user.name.split(' ')[0] : "Doctor";
 
   useEffect(() => {
-    // Simulate loading data
     const timer = setTimeout(() => {
       toast({
         title: "Dashboard updated",
@@ -94,7 +95,7 @@ const Dashboard = () => {
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, Dr. Smith. Here's what's happening today.
+            Welcome back, {firstName}. Here's what's happening today.
           </p>
         </div>
         
