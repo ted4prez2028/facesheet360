@@ -41,6 +41,11 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
     console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
+  
+  // Create a handler that doesn't take parameters to match the expected type
+  const handleSavePatient = () => {
+    submitForm();
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -67,7 +72,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
           <PatientFormFields
             formData={formState}
             onChange={updateField}
-            onSave={user ? handleSubmitPatient : undefined}
+            onSave={user ? handleSavePatient : undefined}
             isLoading={formState.isLoading}
           />
           

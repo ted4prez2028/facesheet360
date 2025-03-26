@@ -46,6 +46,11 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
     console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
+  
+  // Create a handler that doesn't take parameters to match the expected type
+  const handleSavePatient = () => {
+    submitForm();
+  };
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -72,7 +77,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
           <PatientFormFields
             formData={formState}
             onChange={updateField}
-            onSave={isAuthenticated ? handleSubmit : undefined}
+            onSave={isAuthenticated ? handleSavePatient : undefined}
             isLoading={formState.isLoading}
           />
           
