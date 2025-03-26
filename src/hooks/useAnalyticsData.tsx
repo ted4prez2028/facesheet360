@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -41,8 +40,8 @@ interface AnalyticsData {
   error: Error | null;
 }
 
-// Define an interface for the Supabase RPC response
-interface OverviewDataResponse {
+// Define an interface for the individual item in the Supabase RPC response
+interface OverviewDataResponseItem {
   totalpatients: number;
   appointments: number;
   chartingrate: number;
@@ -131,12 +130,12 @@ export function useAnalyticsData() {
           discharge: item.discharge
         })) : [];
         
-        // Format overview data - overviewData is a single object or might be the first element of an array
+        // Format overview data - overviewData is an array, so we need to handle it correctly
         let formattedOverviewData: OverviewData;
         
         if (Array.isArray(overviewData) && overviewData.length > 0) {
           // If it's an array, take the first item
-          const item = overviewData[0] as OverviewDataResponse;
+          const item = overviewData[0] as OverviewDataResponseItem;
           formattedOverviewData = {
             totalPatients: item.totalpatients || 0,
             appointments: item.appointments || 0,
@@ -148,8 +147,8 @@ export function useAnalyticsData() {
             careCoinsGrowth: item.carecoinsgrowth || 0
           };
         } else if (overviewData) {
-          // If it's a single object
-          const item = overviewData as OverviewDataResponse;
+          // If it's a single object (this case shouldn't happen based on the error, but keeping for safety)
+          const item = overviewData as unknown as OverviewDataResponseItem;
           formattedOverviewData = {
             totalPatients: item.totalpatients || 0,
             appointments: item.appointments || 0,
