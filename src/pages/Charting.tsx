@@ -453,7 +453,7 @@ const Charting = () => {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setNoteType("Consultation")}>
                                       Consultation
-                                    </DropdownDropdownMenuItem>
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setNoteType("Procedure Note")}>
                                       Procedure Note
                                     </DropdownMenuItem>
