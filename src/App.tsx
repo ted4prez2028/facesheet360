@@ -22,11 +22,13 @@ import ChatWindows from "./components/communication/ChatWindows";
 import CallDialog from "./components/communication/CallDialog";
 import NotificationSound from "./components/notifications/NotificationSound";
 
+// Configure React Query client with optimized settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 60000, // 1 minute
     },
   },
 });

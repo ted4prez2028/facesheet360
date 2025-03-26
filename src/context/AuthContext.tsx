@@ -1,6 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
@@ -25,8 +24,8 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<void>;
-  logout: () => void;
-  updateUserProfile: (userData: Partial<User>) => void;
+  logout: () => Promise<void>;
+  updateUserProfile: (userData: Partial<User>) => Promise<void>;
   updateCurrentUser?: (userData: Partial<User>) => void;
 };
 
@@ -37,8 +36,8 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => {},
   signUp: async () => {},
-  logout: () => {},
-  updateUserProfile: () => {},
+  logout: async () => {},
+  updateUserProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -47,10 +46,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
-  const updateUserState = async (currentSession: Session | null) => {
+  const updateUserState = useCallback(async (currentSession: Session | null) => {
     if (!currentSession?.user) {
       setUser(null);
       return;
@@ -81,17 +79,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    // First set up auth state listener
+    // First set up auth state listener before checking for existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
         setSession(currentSession);
         
         if (currentSession?.user) {
-          // Use setTimeout to prevent deadlocks
+          // Use setTimeout to prevent deadlocks with Supabase client
           setTimeout(() => updateUserState(currentSession), 0);
         } else {
           setUser(null);
@@ -102,22 +100,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log("Got existing session:", !!currentSession);
-      setSession(currentSession);
-      
-      if (currentSession?.user) {
-        updateUserState(currentSession)
-          .finally(() => setIsLoading(false));
-      } else {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log("Got existing session:", !!currentSession);
+        setSession(currentSession);
+        
+        if (currentSession?.user) {
+          await updateUserState(currentSession);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
         setIsLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [updateUserState]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -131,8 +135,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       
       console.log("Login successful, session:", !!data.session);
-      // The session will be updated via onAuthStateChange
       sonnerToast.success('Login successful');
+      
+      // The auth state change event will handle updating the session and user
+      return Promise.resolve();
       
     } catch (error: any) {
       console.error('Login error:', error);
@@ -141,7 +147,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
-      throw error;
+      return Promise.reject(error);
     } finally {
       setIsLoading(false);
     }
@@ -167,6 +173,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Registration successful, session:", !!data.session);
       sonnerToast.success('Registration successful');
       
+      // The auth state change event will handle updating the session and user
+      return Promise.resolve();
+      
     } catch (error: any) {
       console.error('Registration error:', error);
       toast({
@@ -174,7 +183,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
-      throw error;
+      return Promise.reject(error);
     } finally {
       setIsLoading(false);
     }
@@ -220,6 +229,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         
         sonnerToast.success('Profile updated successfully');
+        return Promise.resolve();
       } catch (error) {
         console.error('Update profile error:', error);
         toast({
@@ -227,8 +237,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: "Failed to update profile. Please try again.",
           variant: "destructive",
         });
+        return Promise.reject(error);
       }
     }
+    return Promise.reject(new Error("User not authenticated"));
   };
 
   const updateCurrentUser = (userData: Partial<User>) => {

@@ -11,9 +11,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     storage: localStorage,
     flowType: 'pkce',
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Set a longer session expiry time
+    storageKey: 'healthtrack-auth-token',
   }
 });
+
+// Debug-friendly interceptor for auth state changes (development only)
+if (process.env.NODE_ENV === 'development') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log(`Supabase Auth Event: ${event}`, session ? 'Session exists' : 'No session');
+  });
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
