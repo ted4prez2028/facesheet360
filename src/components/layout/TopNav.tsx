@@ -53,12 +53,6 @@ const TopNav = () => {
   }, [initialNotifications]);
 
   useEffect(() => {
-    // Fix: Check if window.supabase exists before attempting to use it
-    if (typeof window === 'undefined' || !window.supabase) {
-      console.warn('Supabase client not available on window object');
-      return;
-    }
-
     const handleRealtimeNotification = (payload: any) => {
       if (payload.new && payload.new.type === 'broadcast') {
         const notification = payload.new as unknown as NotificationItem;

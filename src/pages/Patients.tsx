@@ -18,10 +18,7 @@ import { AddPatientDrawer } from "@/components/patients/AddPatientDrawer";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import {
-  getPatients,
-  deletePatient,
-} from "@/lib/supabaseApi";
+import { getPatients, deletePatient } from "@/lib/supabaseApi";
 import { Patient } from "@/types";
 import {
   DropdownMenu,
@@ -54,14 +51,24 @@ const Patients = () => {
     setError(null);
     try {
       const data = await getPatients();
-      setPatients(data);
+      // If data is returned successfully, use it
+      setPatients(data || []);
     } catch (error: any) {
-      setError(error.message || "Failed to fetch patients");
+      // Handle specific Supabase errors
+      if (error?.message?.includes('infinite recursion')) {
+        setError("Database permission error. Please try again later or contact support.");
+        console.error("RLS Policy error:", error);
+      } else {
+        setError(error?.message || "Failed to fetch patients");
+      }
+      
       toast({
         title: "Error",
         description: "Failed to fetch patients. Please try again.",
         variant: "destructive",
       });
+      // Ensure patients is at least an empty array in case of error
+      setPatients([]);
     } finally {
       setIsLoading(false);
     }
@@ -93,8 +100,8 @@ const Patients = () => {
   const filteredPatients = patients.filter((patient) => {
     const searchStr = searchQuery.toLowerCase();
     return (
-      patient.first_name.toLowerCase().includes(searchStr) ||
-      patient.last_name.toLowerCase().includes(searchStr) ||
+      patient.first_name?.toLowerCase().includes(searchStr) ||
+      patient.last_name?.toLowerCase().includes(searchStr) ||
       (patient.email && patient.email.toLowerCase().includes(searchStr)) ||
       (patient.phone && patient.phone.toLowerCase().includes(searchStr)) ||
       (patient.medical_record_number &&

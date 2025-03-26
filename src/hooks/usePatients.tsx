@@ -8,12 +8,19 @@ import {
   deletePatient as deletePatientApi,
 } from "@/lib/supabaseApi";
 import { Patient } from "@/types";
+import { toast } from "sonner";
 
 const patientsQueryKey = "patients";
 
 // Fetch all patients
 const fetchPatients = async () => {
-  return await getPatientsApi();
+  try {
+    return await getPatientsApi();
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    // Return empty array instead of throwing to prevent UI crashes
+    return [];
+  }
 };
 
 export const usePatients = () => {
@@ -25,7 +32,13 @@ export const usePatients = () => {
 
 // Fetch a single patient by ID
 const fetchPatient = async (id: string) => {
-  return await getPatientApi(id);
+  try {
+    return await getPatientApi(id);
+  } catch (error) {
+    console.error(`Error fetching patient with ID ${id}:`, error);
+    toast(`Error fetching patient: ${(error as any)?.message || 'Unknown error'}`);
+    throw error;
+  }
 };
 
 export const usePatient = (id: string) => {
