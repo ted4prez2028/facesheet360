@@ -1,0 +1,6 @@
+
+schema_version: 20230426
+name: check-upcoming-appointments
+version: 0.1.0
+title: Check Upcoming Appointments
+description: Sends notifications for appointments starting soon
