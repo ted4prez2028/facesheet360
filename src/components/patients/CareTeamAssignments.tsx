@@ -86,33 +86,14 @@ export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patien
   const fetchCareTeam = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('care_team_assignments')
-        .select(`
-          id,
-          staff_id,
-          role,
-          assigned_at,
-          users:staff_id (
-            name,
-            email
-          )
-        `)
-        .eq('patient_id', patientId)
-        .eq('active', true);
+      
+      const { data, error } = await supabase.functions.invoke('get-care-team', {
+        body: { patientId }
+      });
 
       if (error) throw error;
 
-      const formattedTeam = data.map(item => ({
-        id: item.id,
-        staff_id: item.staff_id,
-        role: item.role,
-        assigned_at: item.assigned_at,
-        name: item.users?.name || 'Unknown',
-        email: item.users?.email || '',
-      }));
-
-      setCareTeam(formattedTeam);
+      setCareTeam(data || []);
     } catch (error) {
       console.error('Error fetching care team:', error);
       toast.error('Failed to load care team information');

@@ -78,33 +78,12 @@ export const UserRolesManager = () => {
     try {
       setIsLoading(true);
       
-      // Get all users
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, name, email');
+      // Use Edge Function to get users with roles
+      const { data, error } = await supabase.functions.invoke('get-users-with-roles');
         
-      if (usersError) throw usersError;
+      if (error) throw error;
       
-      // Get all roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-        
-      if (rolesError) throw rolesError;
-      
-      // Combine the data
-      const usersWithRoles = usersData.map(user => {
-        const userRoles = rolesData
-          .filter(role => role.user_id === user.id)
-          .map(role => role.role as HealthcareRole);
-          
-        return {
-          ...user,
-          roles: userRoles
-        };
-      });
-      
-      setUsers(usersWithRoles);
+      setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');

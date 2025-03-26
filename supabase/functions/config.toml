@@ -1,2 +1,27 @@
 
 project_id = "tuembzleutkexrmrzxkg"
+handle_routes = "ASSETS"
+
+[functions.get-patient-by-id]
+verify_jwt = false
+
+[functions.assign-user-role]
+verify_jwt = false
+
+[functions.get-user-roles]
+verify_jwt = false
+
+[functions.check-patient-assignment]
+verify_jwt = false
+
+[functions.assign-to-patient]
+verify_jwt = false
+
+[functions.remove-from-patient]
+verify_jwt = false
+
+[functions.get-care-team]
+verify_jwt = false
+
+[functions.get-users-with-roles]
+verify_jwt = false

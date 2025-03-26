@@ -42,9 +42,7 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
       
       {error && (
         <Alert variant={
-          isPatientNotFoundError ? "warning" : 
-          isPermissionError ? "warning" : 
-          "destructive"
+          isPatientNotFoundError || isPermissionError ? "default" : "destructive"
         }>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>

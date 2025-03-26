@@ -24,18 +24,18 @@ export const useRolePermissions = () => {
       try {
         setIsLoading(true);
         setError(null);
-
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
+        
+        // Use the Edge Function to fetch user roles
+        const { data, error } = await supabase.functions.invoke('get-user-roles', {
+          body: { userId: user.id }
+        });
 
         if (error) {
           throw error;
         }
 
         // Extract roles from the data
-        const roles = data?.map(item => item.role as HealthcareRole) || [];
+        const roles = data?.roles || [];
         setUserRoles(roles);
       } catch (err) {
         console.error('Error fetching user roles:', err);
@@ -49,30 +49,30 @@ export const useRolePermissions = () => {
   }, [user?.id]);
 
   // Check if user has a specific role
-  const hasRole = useCallback((role: HealthcareRole) => {
+  const hasRole = useCallback((role: HealthcareRole): boolean => {
     return userRoles.includes(role);
   }, [userRoles]);
 
   // Check if user has any of the specified roles
-  const hasAnyRole = useCallback((roles: HealthcareRole[]) => {
+  const hasAnyRole = useCallback((roles: HealthcareRole[]): boolean => {
     return roles.some(role => userRoles.includes(role));
   }, [userRoles]);
 
   // Check if user is assigned to a patient
-  const isAssignedToPatient = useCallback(async (patientId: string) => {
+  const isAssignedToPatient = useCallback(async (patientId: string): Promise<boolean> => {
     if (!user?.id || !patientId) return false;
 
     try {
-      const { data, error } = await supabase
-        .from('care_team_assignments')
-        .select('id')
-        .eq('staff_id', user.id)
-        .eq('patient_id', patientId)
-        .eq('active', true)
-        .maybeSingle();
+      // Use Edge Function to check patient assignment
+      const { data, error } = await supabase.functions.invoke('check-patient-assignment', {
+        body: { 
+          staffId: user.id,
+          patientId: patientId
+        }
+      });
 
       if (error) throw error;
-      return !!data;
+      return !!data?.isAssigned;
     } catch (err) {
       console.error('Error checking patient assignment:', err);
       return false;
@@ -97,16 +97,15 @@ export const useRolePermissions = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('care_team_assignments')
-        .insert({
-          patient_id: patientId,
-          staff_id: staffId,
+      // Use Edge Function to assign a staff to a patient
+      const { data, error } = await supabase.functions.invoke('assign-to-patient', {
+        body: {
+          staffId: staffId,
+          patientId: patientId,
           role: role,
-          assigned_by: user.id
-        })
-        .select()
-        .single();
+          assignedBy: user.id
+        }
+      });
 
       if (error) throw error;
       
@@ -133,11 +132,10 @@ export const useRolePermissions = () => {
     }
 
     try {
-      // Instead of deleting, we set active to false to maintain history
-      const { error } = await supabase
-        .from('care_team_assignments')
-        .update({ active: false })
-        .eq('id', assignmentId);
+      // Use Edge Function to remove staff from a patient
+      const { error } = await supabase.functions.invoke('remove-from-patient', {
+        body: { assignmentId }
+      });
 
       if (error) throw error;
       
