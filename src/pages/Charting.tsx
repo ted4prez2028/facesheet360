@@ -39,7 +39,8 @@ import {
   Activity,
   Pill,
   TestTube,
-  Image
+  Image,
+  AlertTriangle
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -52,7 +53,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import PatientFormFields from "@/components/patients/PatientFormFields";
 import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
-import { Alert, AlertTriangle, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Patient {
   id: string;
@@ -452,7 +453,7 @@ const Charting = () => {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setNoteType("Consultation")}>
                                       Consultation
-                                    </DropdownMenuItem>
+                                    </DropdownDropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setNoteType("Procedure Note")}>
                                       Procedure Note
                                     </DropdownMenuItem>
