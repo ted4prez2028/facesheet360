@@ -14,6 +14,11 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useUpdatePrescriptionStatus } from "@/hooks/usePrescriptions";
 import { useAuth } from "@/context/AuthContext";
 
+interface PrescriptionWithRelations extends Prescription {
+  patients: { first_name: string; last_name: string } | null;
+  providers: { name: string } | null;
+}
+
 const PharmacistDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -34,10 +39,7 @@ const PharmacistDashboard = () => {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as (Prescription & { 
-        patients: { first_name: string; last_name: string } | null;
-        providers: { name: string } | null;
-      })[];
+      return data as unknown as PrescriptionWithRelations[];
     },
     enabled: !!user?.id
   });

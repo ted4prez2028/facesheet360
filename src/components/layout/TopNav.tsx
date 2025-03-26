@@ -32,14 +32,14 @@ interface TopNavProps {
 }
 
 const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const { toggleContacts } = useCommunication();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await logout();
       navigate('/login');
       toast({
         title: "Logged out successfully",
@@ -102,7 +102,7 @@ const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="ml-2 pl-2 pr-1 py-1 h-9">
               <Avatar className="h-6 w-6 mr-2">
-                <AvatarImage src={user?.profile_image} />
+                <AvatarImage src={user?.profileImage} />
                 <AvatarFallback className="bg-health-600 text-white text-xs">
                   {userInitials}
                 </AvatarFallback>
