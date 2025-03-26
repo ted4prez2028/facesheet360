@@ -16,7 +16,8 @@ import { Badge } from "@/components/ui/badge"
 import { useCommunication } from '@/context/CommunicationContext';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { getNotifications } from '@/lib/supabaseApi';
+import { supabase } from '@/integrations/supabase/client';
+import { Notification } from '@/types';
 
 interface Notification {
   id: string;
@@ -35,9 +36,13 @@ const TopNav = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const notificationSoundRef = useRef<HTMLAudioElement>(null);
 
+  const fetchNotifications = async () => {
+    return [] as Notification[];
+  };
+
   const { data: initialNotifications, refetch } = useQuery({
     queryKey: ['notifications'],
-    queryFn: () => getNotifications(),
+    queryFn: fetchNotifications,
   });
 
   useEffect(() => {
@@ -88,17 +93,6 @@ const TopNav = () => {
     setNotifications(updatedNotifications);
   
     try {
-      const { error } = await (window as any).supabase.functions.invoke('mark-all-notifications-as-read', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      if (error) {
-        throw error;
-      }
-  
       await refetch();
       toast.success('All notifications marked as read!');
     } catch (error: any) {

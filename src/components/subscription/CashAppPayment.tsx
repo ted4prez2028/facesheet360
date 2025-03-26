@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Clipboard, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react'; // Fixed import to use named export
 
 interface CashAppPaymentProps {
   amount: number;
@@ -72,7 +72,7 @@ const CashAppPayment: React.FC<CashAppPaymentProps> = ({
       <CardContent className="space-y-4">
         <div className="flex justify-center">
           <div className="p-3 bg-white rounded-lg">
-            <QRCode value={qrValue} size={200} />
+            <QRCodeSVG value={qrValue} size={200} />
           </div>
         </div>
         

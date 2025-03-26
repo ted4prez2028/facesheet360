@@ -426,16 +426,13 @@ export const createPatient = async (patient: Partial<Patient>) => {
   return addPatient(patient);
 };
 
-// Get notifications
+// Get notifications - temporarily mocked since the table doesn't exist
 export const getNotifications = async () => {
   try {
-    const { data, error } = await supabase
-      .from("notifications")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    // Since the notifications table doesn't exist in the database yet,
+    // we'll return an empty array for now
+    console.log("Fetching notifications (mock)");
+    return [];
   } catch (error) {
     console.error("Error fetching notifications:", error);
     return [];

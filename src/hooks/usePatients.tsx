@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createPatient as createPatientApi,
-  getPatient as getPatientApi,
+  getPatientById as getPatientApi,
   getPatients as getPatientsApi,
   updatePatient as updatePatientApi,
   deletePatient as deletePatientApi,
