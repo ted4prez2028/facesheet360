@@ -1,13 +1,8 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
-import { 
-  Alert, 
-  AlertDescription, 
-  AlertTitle 
-} from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { AlertCircle, AlertTriangle, RefreshCcw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface AuthErrorAlertProps {
   isAuthenticated: boolean;
@@ -15,77 +10,75 @@ interface AuthErrorAlertProps {
   refetch: () => void;
 }
 
-const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({ 
-  isAuthenticated, 
-  error, 
-  refetch 
-}) => {
-  if (isAuthenticated && !error) return null;
+const AuthErrorAlert = ({ isAuthenticated, error, refetch }: AuthErrorAlertProps) => {
+  if (!error && isAuthenticated) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Authentication Required</AlertTitle>
+        <AlertDescription>
+          <p className="mb-2">You need to be logged in to view this content.</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => window.location.href = '/login'}
+            className="mt-2"
+          >
+            Go to Login
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Check for specific error messages
+  const errorMessage = error?.message || '';
+  const isPermissionError = errorMessage.includes('permission') || 
+                           errorMessage.includes('access') || 
+                           errorMessage.includes('not allowed');
+
+  const isServerError = errorMessage.includes('500') || 
+                       errorMessage.includes('server') || 
+                       errorMessage.includes('failed');
+                       
+  const isAuthError = errorMessage.includes('auth') || 
+                     errorMessage.includes('token') || 
+                     errorMessage.includes('login');
+
+  let variant: "default" | "destructive" = "destructive";
+  let title = "An error occurred";
+  let icon = <AlertCircle className="h-4 w-4" />;
   
-  const isPatientNotFoundError = error?.message?.includes("Patient not found") || error?.message?.includes("not found");
-  const isPermissionError = error?.message?.includes("permission") || error?.message?.includes("access");
-  
+  if (isPermissionError) {
+    title = "Access Denied";
+    icon = <AlertTriangle className="h-4 w-4" />;
+  } else if (isServerError) {
+    title = "Server Error";
+  } else if (isAuthError) {
+    title = "Authentication Error";
+  }
+
   return (
-    <div className="space-y-4">
-      {!isAuthenticated && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Authentication Required</AlertTitle>
-          <AlertDescription className="flex flex-wrap items-center gap-2">
-            You need to be logged in to view and manage patients. 
-            <Link to="/login" className="font-medium underline">
-              Log in with your credentials
-            </Link>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {error && (
-        <Alert variant={
-          isPatientNotFoundError || isPermissionError ? "default" : "destructive"
-        }>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>
-            {isPatientNotFoundError 
-              ? "Patient Not Found" 
-              : isPermissionError 
-                ? "Permission Denied"
-                : "Error Loading Patient Data"
-            }
-          </AlertTitle>
-          <AlertDescription className="flex flex-col space-y-2">
-            <div>
-              {isPatientNotFoundError 
-                ? "The requested patient could not be found. It may have been deleted or you may not have permission to view it."
-                : isPermissionError
-                  ? "You don't have permission to view this patient. Please contact your administrator if you believe this is an error."
-                  : error instanceof Error 
-                    ? error.message 
-                    : "Unable to load patient data. Please try again later."}
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => refetch()}
-                size="sm"
-                className="mt-1"
-              >
-                Try Again
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                asChild
-                size="sm"
-                className="mt-1"
-              >
-                <Link to="/patients">Back to Patients</Link>
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
+    <Alert variant={variant} className="mb-6">
+      {icon}
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>
+        <p className="mb-2">{errorMessage}</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refetch} 
+          className="mt-2"
+        >
+          <RefreshCcw className="mr-2 h-3 w-3" />
+          Try Again
+        </Button>
+      </AlertDescription>
+    </Alert>
   );
 };
 
