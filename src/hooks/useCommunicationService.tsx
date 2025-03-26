@@ -31,12 +31,13 @@ export function useCommunicationService() {
         id: dbUser.id,
         name: dbUser.name,
         email: dbUser.email,
-        role: dbUser.role as User['role'], // Cast to our defined role types
+        role: dbUser.role, // Now accepting any string role
         specialty: dbUser.specialty,
         licenseNumber: dbUser.license_number,
         profileImage: dbUser.profile_image,
-        careCoinsBalance: dbUser.care_coins_balance,
-        online_status: dbUser.online_status
+        careCoinsBalance: dbUser.care_coins_balance || 0,
+        online_status: dbUser.online_status,
+        organization: dbUser.organization
       })) || [];
       
       setOnlineUsers(typedUsers);

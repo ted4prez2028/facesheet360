@@ -11,6 +11,7 @@ export type User = {
   profileImage?: string;
   careCoinsBalance: number;
   online_status?: boolean;
+  organization?: string; // Add organization field
 };
 
 export type AuthContextType = {

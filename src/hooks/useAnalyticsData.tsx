@@ -119,8 +119,8 @@ export function useAnalyticsData() {
           discharge: item.discharge
         })) : [];
         
-        // Format overview data
-        const transformedOverviewData = {
+        // Format overview data - overviewData is a single object, not an array
+        const transformedOverviewData = overviewData ? {
           totalPatients: overviewData.totalpatients,
           appointments: overviewData.appointments,
           chartingRate: overviewData.chartingrate,
@@ -129,6 +129,15 @@ export function useAnalyticsData() {
           appointmentsGrowth: overviewData.appointmentsgrowth,
           chartingRateGrowth: overviewData.chartingrategrowth,
           careCoinsGrowth: overviewData.carecoinsgrowth
+        } : {
+          totalPatients: 0,
+          appointments: 0,
+          chartingRate: 0,
+          careCoinsGenerated: 0,
+          patientsGrowth: 0,
+          appointmentsGrowth: 0,
+          chartingRateGrowth: 0,
+          careCoinsGrowth: 0
         };
         
         setAnalyticsData({

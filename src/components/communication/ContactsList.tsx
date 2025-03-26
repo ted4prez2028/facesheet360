@@ -12,14 +12,18 @@ import {
   MessageSquare, 
   Video, 
   PhoneCall,
-  Circle
+  Circle,
+  Building
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Input } from '@/components/ui/input';
 import { User } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ContactsList = () => {
+  const { user } = useAuth();
   const { 
     contacts,
     toggleContacts,
@@ -28,11 +32,33 @@ const ContactsList = () => {
   } = useCommunication();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [organizationFilter, setOrganizationFilter] = useState<string>('all');
   
-  const filteredUsers = contacts.onlineUsers.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique organizations from users
+  const organizations = ['all', ...new Set(
+    contacts.onlineUsers
+      .map(user => user.organization || 'No Organization')
+      .filter(Boolean)
+  )];
+  
+  const filteredUsers = contacts.onlineUsers.filter(contact => {
+    const matchesSearch = 
+      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.role.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesOrganization = 
+      organizationFilter === 'all' || 
+      contact.organization === organizationFilter ||
+      (organizationFilter === 'No Organization' && !contact.organization);
+    
+    // If user has an organization, only show contacts in the same organization
+    const sameOrganization = 
+      !user?.organization || 
+      user.organization === contact.organization || 
+      organizationFilter !== 'all';
+    
+    return matchesSearch && matchesOrganization && sameOrganization;
+  });
   
   return (
     <>
@@ -52,14 +78,35 @@ const ContactsList = () => {
           </SheetHeader>
           
           <div className="mt-6 space-y-4">
-            <Input
-              placeholder="Search contacts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
+            <div className="space-y-2">
+              <Input
+                placeholder="Search contacts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+              
+              <Select 
+                value={organizationFilter} 
+                onValueChange={setOrganizationFilter}
+              >
+                <SelectTrigger className="w-full">
+                  <div className="flex items-center">
+                    <Building className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Filter by organization" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map(org => (
+                    <SelectItem key={org} value={org}>
+                      {org === 'all' ? 'All Organizations' : org}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
-            <div className="h-[calc(100vh-180px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-240px)] overflow-y-auto pr-2">
               {filteredUsers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <Users className="h-8 w-8 mb-2" />
@@ -110,7 +157,7 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
     <div className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
       <div className="flex items-center space-x-3 relative">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={user.profile_image} />
+          <AvatarImage src={user.profileImage} />
           <AvatarFallback className="bg-health-600 text-white">
             {userInitials}
           </AvatarFallback>
@@ -120,7 +167,12 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
         )}
         <div>
           <p className="font-medium text-sm">{user.name}</p>
-          <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+          <div className="flex flex-col">
+            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+            {user.organization && (
+              <p className="text-xs text-muted-foreground">{user.organization}</p>
+            )}
+          </div>
         </div>
       </div>
       
