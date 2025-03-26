@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,14 +95,17 @@ export default function PatientProfile() {
     );
   }
 
+  // Format the patient name from first_name and last_name properties
+  const patientName = patient ? `${patient.first_name} ${patient.last_name}` : "";
+
   return (
     <DashboardLayout>
       <div className="container py-6 space-y-8">
         <div>
           <div className="flex justify-between">
-            <h1 className="text-3xl font-bold tracking-tight">{patient?.name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{patientName}</h1>
             <Badge variant="secondary">
-              {patient?.insuranceProvider}
+              {patient?.insurance_provider}
             </Badge>
           </div>
           <p className="text-muted-foreground">
@@ -122,7 +126,7 @@ export default function PatientProfile() {
 
               <div className="flex flex-col rounded-lg border p-3">
                 <dt className="text-sm font-medium text-muted-foreground">Date of Birth</dt>
-                <dd className="mt-1 text-lg font-semibold">{patient.dateOfBirth}</dd>
+                <dd className="mt-1 text-lg font-semibold">{patient.date_of_birth}</dd>
               </div>
 
               <div className="flex flex-col rounded-lg border p-3">
@@ -140,7 +144,7 @@ export default function PatientProfile() {
 
               <div className="flex flex-col rounded-lg border p-3">
                 <dt className="text-sm font-medium text-muted-foreground">Contact Number</dt>
-                <dd className="mt-1 text-lg font-semibold">{patient.contactNumber}</dd>
+                <dd className="mt-1 text-lg font-semibold">{patient.phone}</dd>
               </div>
 
               <div className="flex flex-col rounded-lg border p-3">

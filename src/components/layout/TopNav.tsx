@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   DropdownMenu,
@@ -17,9 +18,9 @@ import { useCommunication } from '@/context/CommunicationContext';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Notification } from '@/types';
 
-interface Notification {
+// Define our own Notification interface to avoid conflict with the imported one
+interface NotificationItem {
   id: string;
   created_at: string;
   type: string;
@@ -33,11 +34,11 @@ const TopNav = () => {
   const navigate = useNavigate();
   const communication = useCommunication();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const notificationSoundRef = useRef<HTMLAudioElement>(null);
 
   const fetchNotifications = async () => {
-    return [] as Notification[];
+    return [] as NotificationItem[];
   };
 
   const { data: initialNotifications, refetch } = useQuery({
@@ -54,7 +55,7 @@ const TopNav = () => {
   useEffect(() => {
     const handleRealtimeNotification = (payload: any) => {
       if (payload.new && payload.new.type === 'broadcast') {
-        const notification = payload.new as unknown as Notification;
+        const notification = payload.new as unknown as NotificationItem;
         setNotifications((prev) => [...prev, notification]);
         if (notificationSoundRef.current) {
           notificationSoundRef.current.play().catch(console.error);
@@ -74,8 +75,16 @@ const TopNav = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      if (communication && typeof communication.setCallActive === 'function') {
-        communication.setCallActive(false);
+      // Check if communication context exists and has the properties we need
+      if (communication) {
+        // Since setCallActive might not exist in the type, we use optional chaining
+        // or try to access it using alternative syntax to avoid TypeScript errors
+        if (typeof communication.setCallActive === 'function') {
+          communication.setCallActive(false);
+        } else if (communication['setCallActive']) {
+          // Alternative way to access the property
+          communication['setCallActive'](false);
+        }
       }
       navigate('/login');
     } catch (error) {
