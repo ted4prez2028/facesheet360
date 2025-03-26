@@ -17,11 +17,12 @@ const NotificationSound = () => {
     }
     
     // Create a channel to listen for notifications
-    const channel = supabase.channel('notifications')
+    const channel = supabase.channel('notification-sound')
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
-        table: 'notifications' 
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`
       }, (payload: any) => {
         const notification = payload.new;
         
@@ -42,33 +43,9 @@ const NotificationSound = () => {
         }
       })
       .subscribe();
-      
-    // Also listen for broadcast messages via the realtime API
-    const broadcastChannel = supabase.channel('broadcast')
-      .on('broadcast', { event: 'notification' }, (payload: any) => {
-        const { title, description, recipient_id } = payload.payload || payload;
-        
-        // Only show notifications meant for this user
-        if (recipient_id === user.id) {
-          // Play notification sound
-          if (audioRef.current) {
-            audioRef.current.play().catch(err => 
-              console.log('Error playing notification sound:', err)
-            );
-          }
-          
-          // Show toast notification
-          toast({
-            title,
-            description,
-          });
-        }
-      })
-      .subscribe();
     
     return () => {
       supabase.removeChannel(channel);
-      supabase.removeChannel(broadcastChannel);
     };
   }, [user]);
   

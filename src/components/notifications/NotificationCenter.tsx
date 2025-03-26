@@ -8,6 +8,7 @@ import { getNotifications, markNotificationAsRead, type Notification } from '@/l
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 const NotificationCenter = () => {
   const { user } = useAuth();

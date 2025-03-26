@@ -6,6 +6,8 @@ import TopNav from "./TopNav"; // Fixed import
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import NotificationSound from "@/components/notifications/NotificationSound";
+import MedicationReminders from "@/components/notifications/MedicationReminders";
 import { Helmet } from "react-helmet";
 
 interface DashboardLayoutProps {
@@ -59,6 +61,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </main>
         </div>
       </div>
+      {/* These components handle notifications */}
+      <NotificationSound />
+      <MedicationReminders />
     </SidebarProvider>
   );
 };
