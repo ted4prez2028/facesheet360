@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
@@ -20,6 +21,7 @@ interface CommunicationContextType {
   answerCall: () => void;
   endCall: () => void;
   addMessageToChat: (senderId: string, content: string) => void;
+  setCallActive?: (active: boolean) => void; // Added this property as optional
 }
 
 const CommunicationContext = createContext<CommunicationContextType | undefined>(undefined);

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   DropdownMenu,
@@ -76,10 +77,9 @@ const TopNav = () => {
       await logout();
       // Check if communication context exists and has the properties we need
       if (communication) {
-        // Correctly handle the communication context
-        communication.setCallActive?.(false);
-        // Or use a type assertion if needed
-        // (communication as any).setCallActive?.(false);
+        // We need to use type assertion here since TypeScript doesn't recognize setCallActive
+        // even with optional chaining
+        (communication as any).setCallActive?.(false);
       }
       navigate('/login');
     } catch (error) {
