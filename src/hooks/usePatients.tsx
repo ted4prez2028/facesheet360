@@ -67,7 +67,7 @@ export const useUpdatePatient = () => {
 
   return useMutation({
     mutationFn: (params: { id: string; data: Partial<Patient> }) => 
-      updatePatient(params.id, params.data),
+      updatePatientApi(params.id, params.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
@@ -87,17 +87,8 @@ export const useDeletePatient = () => {
 };
 
 const updatePatient = async (id: string, data: Partial<Patient>) => {
-  // Make a copy of the data to remove non-existent properties
-  const updateData = { ...data };
-  
-  // Remove properties that don't exist in the Patient type
-  // @ts-ignore - We're checking for properties that might not exist
-  if ('condition' in updateData) delete updateData.condition;
-  // @ts-ignore - We're checking for properties that might not exist
-  if ('status' in updateData) delete updateData.status;
-  
   try {
-    return await updatePatientApi(id, updateData);
+    return await updatePatientApi(id, data);
   } catch (error) {
     console.error("Error updating patient:", error);
     throw error;
