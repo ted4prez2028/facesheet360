@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useState,
@@ -68,12 +69,16 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
         name: "Dr. Emily Carter",
         email: "emily.carter@example.com",
         role: "doctor",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       {
         id: "3",
         name: "Nurse David Lee",
         email: "david.lee@example.com",
         role: "nurse",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
     ];
 

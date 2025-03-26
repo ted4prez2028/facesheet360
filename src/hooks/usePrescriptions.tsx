@@ -121,3 +121,49 @@ export const useAdministerPrescription = () => {
     },
   });
 };
+
+// Add the missing useUpdatePrescriptionStatus hook
+export const useUpdatePrescriptionStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, status, administeredBy }: { id: string; status: Prescription["status"]; administeredBy?: string }) => {
+      try {
+        const updateData: any = { status };
+        
+        if (administeredBy) {
+          updateData.administered_by = administeredBy;
+          updateData.administered_at = new Date().toISOString();
+        }
+        
+        const { data, error } = await supabase
+          .from("prescriptions")
+          .update(updateData)
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data as Prescription;
+      } catch (error) {
+        console.error("Error updating prescription status:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["prescriptions", data.patient_id] });
+      
+      const statusMessages = {
+        prescribed: "Prescription status updated",
+        administered: "Medication marked as administered",
+        cancelled: "Prescription cancelled"
+      };
+      
+      toast.success(statusMessages[data.status]);
+    },
+    onError: (error) => {
+      toast.error(`Failed to update prescription: ${(error as Error).message}`);
+    },
+  });
+};

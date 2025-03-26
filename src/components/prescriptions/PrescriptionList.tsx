@@ -16,7 +16,8 @@ import {
 import { 
   Prescription, 
   usePrescriptions, 
-  useUpdatePrescriptionStatus 
+  useUpdatePrescriptionStatus,
+  useAdministerPrescription
 } from "@/hooks/usePrescriptions";
 
 interface PrescriptionListProps {
@@ -28,6 +29,7 @@ export const PrescriptionList = ({ patientId, onAddNew }: PrescriptionListProps)
   const { user } = useAuth();
   const { data: prescriptions = [], isLoading } = usePrescriptions(patientId);
   const { mutate: updateStatus } = useUpdatePrescriptionStatus();
+  const { mutate: administerMedication } = useAdministerPrescription();
   
   const isDoctor = user?.role === "doctor";
   const isNurse = user?.role === "nurse";
@@ -36,7 +38,7 @@ export const PrescriptionList = ({ patientId, onAddNew }: PrescriptionListProps)
     switch (status) {
       case "prescribed":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "active":
+      case "administered":
         return "bg-green-100 text-green-800 border-green-200";
       case "completed":
         return "bg-blue-100 text-blue-800 border-blue-200";
@@ -50,15 +52,11 @@ export const PrescriptionList = ({ patientId, onAddNew }: PrescriptionListProps)
   const handleAdminister = (prescription: Prescription) => {
     if (!user?.id) return;
     
-    updateStatus({ 
-      id: prescription.id, 
-      status: "active", 
-      administeredBy: user.id 
-    });
+    administerMedication(prescription.id);
   };
   
   const handleComplete = (prescription: Prescription) => {
-    updateStatus({ id: prescription.id, status: "completed" });
+    updateStatus({ id: prescription.id, status: "administered" });
   };
   
   const handleCancel = (prescription: Prescription) => {
@@ -158,7 +156,7 @@ export const PrescriptionList = ({ patientId, onAddNew }: PrescriptionListProps)
                         </Button>
                       )}
                       
-                      {prescription.status === "active" && (isDoctor || isNurse) && (
+                      {prescription.status === "prescribed" && (isDoctor || isNurse) && (
                         <Button 
                           onClick={() => handleComplete(prescription)}
                           size="sm"
@@ -169,7 +167,7 @@ export const PrescriptionList = ({ patientId, onAddNew }: PrescriptionListProps)
                         </Button>
                       )}
                       
-                      {(prescription.status === "prescribed" || prescription.status === "active") && 
+                      {(prescription.status === "prescribed") && 
                         (isDoctor || isNurse) && (
                         <Button 
                           onClick={() => handleCancel(prescription)}
