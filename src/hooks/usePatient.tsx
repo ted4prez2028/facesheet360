@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { getPatientById } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,6 +18,7 @@ export const usePatient = (patientId: string) => {
 
       try {
         setIsLoading(true);
+        setError(null);
         
         // Verify authentication first
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -29,31 +29,54 @@ export const usePatient = (patientId: string) => {
           throw new Error("Authentication required. Please log in to view patient details.");
         }
         
-        // Directly query the patients table with RLS
-        const { data, error: patientError } = await supabase
-          .from('patients')
-          .select('*')
-          .eq('id', patientId)
-          .single();
+        console.log("Attempting to fetch patient with ID:", patientId);
         
-        if (patientError) {
-          console.error("Error fetching patient with direct query:", patientError);
+        // Try direct Edge Function approach first
+        try {
+          const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke('get-patient-by-id', {
+            body: { patientId }
+          });
           
-          // Fallback to standard API
-          console.log("Attempting fallback to standard API");
-          const fallbackData = await getPatientById(patientId);
-          
-          if (fallbackData) {
-            setPatient(fallbackData);
-            setError(null);
-            return;
-          } else {
-            throw new Error("Patient not found");
+          if (edgeFunctionError) {
+            console.error("Edge function error:", edgeFunctionError);
+            throw new Error(`Failed to fetch patient via edge function: ${edgeFunctionError.message}`);
           }
+          
+          if (edgeFunctionData) {
+            console.log("Successfully retrieved patient data via edge function");
+            setPatient(edgeFunctionData);
+            return;
+          }
+        } catch (edgeFuncErr) {
+          console.error("Error using edge function:", edgeFuncErr);
+          // Continue to fallback methods
         }
         
-        setPatient(data);
-        setError(null);
+        // Fallback to direct query
+        try {
+          const { data: directData, error: directError } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('id', patientId)
+            .maybeSingle();
+          
+          if (directError) {
+            console.error("Error with direct query:", directError);
+            throw directError;
+          }
+          
+          if (directData) {
+            console.log("Successfully retrieved patient with direct query");
+            setPatient(directData);
+            return;
+          }
+        } catch (directErr) {
+          console.error("Direct query fallback failed:", directErr);
+          // Continue to next fallback
+        }
+        
+        // If we get here, no data was found
+        throw new Error("Patient not found");
       } catch (err) {
         console.error("Error fetching patient:", err);
         setError(err instanceof Error ? err : new Error("Failed to fetch patient"));

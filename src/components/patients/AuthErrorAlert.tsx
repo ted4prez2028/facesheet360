@@ -22,8 +22,10 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
 }) => {
   if (isAuthenticated && !error) return null;
   
+  const isPatientNotFoundError = error?.message?.includes("Patient not found") || error?.message?.includes("not found");
+  
   return (
-    <>
+    <div className="space-y-4">
       {!isAuthenticated && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
@@ -38,16 +40,20 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
       )}
       
       {error && (
-        <Alert variant="destructive">
+        <Alert variant={isPatientNotFoundError ? "warning" : "destructive"}>
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error Loading Patient Data</AlertTitle>
+          <AlertTitle>
+            {isPatientNotFoundError ? "Patient Not Found" : "Error Loading Patient Data"}
+          </AlertTitle>
           <AlertDescription className="flex flex-col space-y-2">
             <div>
-              {error instanceof Error 
-                ? error.message 
-                : "Unable to load patient data. Please try again later."}
+              {isPatientNotFoundError 
+                ? "The requested patient could not be found. It may have been deleted or you may not have permission to view it."
+                : error instanceof Error 
+                  ? error.message 
+                  : "Unable to load patient data. Please try again later."}
             </div>
-            <div>
+            <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => refetch()}
@@ -56,11 +62,20 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
               >
                 Try Again
               </Button>
+              
+              <Button 
+                variant="outline" 
+                asChild
+                size="sm"
+                className="mt-1"
+              >
+                <Link to="/patients">Back to Patients</Link>
+              </Button>
             </div>
           </AlertDescription>
         </Alert>
       )}
-    </>
+    </div>
   );
 };
 

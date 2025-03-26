@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client
+    // Create a Supabase client with admin privileges
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -28,8 +28,15 @@ serve(async (req) => {
     // Get the session to verify the user is authenticated
     const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
     
-    if (authError || !session) {
+    if (authError) {
       console.error("Authentication error:", authError);
+      return new Response(
+        JSON.stringify({ error: "Authentication error", details: authError.message }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (!session) {
       return new Response(
         JSON.stringify({ error: "Authentication required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -48,10 +55,12 @@ serve(async (req) => {
     
     console.log(`Fetching patient with ID: ${patientId}`);
     
-    // Use the RPC function to bypass RLS
-    const { data, error } = await supabaseClient.rpc('get_patient_by_id', {
-      p_patient_id: patientId
-    });
+    // Direct query with admin rights to bypass RLS
+    const { data, error } = await supabaseClient
+      .from('patients')
+      .select('*')
+      .eq('id', patientId)
+      .maybeSingle();
     
     if (error) {
       console.error("Error fetching patient:", error);
