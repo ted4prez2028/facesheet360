@@ -1,436 +1,50 @@
-import { supabase } from "@/integrations/supabase/client";
-import { Patient, ChartRecord, Appointment, User } from "@/types";
 
-// Patient functions
-export const getPatients = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .order("last_name", { ascending: true });
+// This file is kept for backward compatibility
+// Import new API modules and re-export them
+import * as patientApi from './api/patientApi';
+import * as chartApi from './api/chartApi';
+import * as appointmentApi from './api/appointmentApi';
+import * as userApi from './api/userApi';
+import * as careCoinsApi from './api/careCoinsApi';
+import * as notificationApi from './api/notificationApi';
 
-    if (error) throw error;
-    return data as Patient[];
-  } catch (error) {
-    console.error("Error fetching patients:", error);
-    throw error;
-  }
-};
+// Re-export all functions from the new modules
+export const {
+  getPatients,
+  getPatientById,
+  addPatient,
+  updatePatient,
+  deletePatient,
+  getPatientByFacialData,
+  storeFacialData,
+  getPatient,
+  createPatient
+} = patientApi;
 
-export const getPatientById = async (id: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .eq("id", id)
-      .single();
+export const {
+  getPatientCharts,
+  addChartRecord,
+  updateChartRecord
+} = chartApi;
 
-    if (error) throw error;
-    return data as Patient;
-  } catch (error) {
-    console.error(`Error fetching patient with ID ${id}:`, error);
-    throw error;
-  }
-};
+export const {
+  getPatientAppointments,
+  addAppointment,
+  updateAppointment
+} = appointmentApi;
 
-export const getPatientCharts = async (patientId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("chart_records")
-      .select("*")
-      .eq("patient_id", patientId)
-      .order("record_date", { ascending: false });
+export const {
+  getUsers,
+  getUserById,
+  getUserProfile,
+  updateUser
+} = userApi;
 
-    if (error) throw error;
-    return data as ChartRecord[];
-  } catch (error) {
-    console.error(`Error fetching charts for patient ${patientId}:`, error);
-    throw error;
-  }
-};
+export const {
+  transferCareCoins,
+  getCareCoinsBalance
+} = careCoinsApi;
 
-export const getPatientAppointments = async (patientId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("patient_id", patientId)
-      .order("appointment_date", { ascending: true });
-
-    if (error) throw error;
-    return data as Appointment[];
-  } catch (error) {
-    console.error(`Error fetching appointments for patient ${patientId}:`, error);
-    throw error;
-  }
-};
-
-export const addPatient = async (patient: Partial<Patient>) => {
-  try {
-    if (!patient.first_name || !patient.last_name || !patient.date_of_birth || !patient.gender) {
-      throw new Error("Missing required patient fields");
-    }
-    
-    const { data, error } = await supabase
-      .from("patients")
-      .insert({
-        first_name: patient.first_name,
-        last_name: patient.last_name,
-        date_of_birth: patient.date_of_birth,
-        gender: patient.gender,
-        email: patient.email,
-        phone: patient.phone,
-        address: patient.address,
-        medical_record_number: patient.medical_record_number,
-        insurance_provider: patient.insurance_provider,
-        policy_number: patient.policy_number,
-        facial_data: patient.facial_data
-      })
-      .select()
-      .single();
-
-    if (error) {
-      if (error.code === '42P17') {
-        console.error("RLS policy error adding patient:", error);
-        throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
-      }
-      throw error;
-    }
-    return data as Patient;
-  } catch (error) {
-    console.error("Error adding patient:", error);
-    throw error;
-  }
-};
-
-export const updatePatient = async (id: string, data: Partial<Patient>) => {
-  const { date_of_birth, ...rest } = data;
-  
-  const updateData: any = { ...rest };
-  if (date_of_birth) {
-    updateData.date_of_birth = date_of_birth;
-  }
-  
-  const { data: updatedPatient, error } = await supabase
-    .from('patients')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return updatedPatient;
-};
-
-export const deletePatient = async (id: string) => {
-  try {
-    const { error } = await supabase.from("patients").delete().eq("id", id);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error(`Error deleting patient with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-// Chart record functions
-export const addChartRecord = async (record: Partial<ChartRecord>) => {
-  try {
-    if (!record.patient_id || !record.provider_id || !record.record_type) {
-      throw new Error("Missing required chart record fields");
-    }
-    
-    const { data, error } = await supabase
-      .from("chart_records")
-      .insert({
-        patient_id: record.patient_id,
-        provider_id: record.provider_id,
-        record_type: record.record_type,
-        record_date: record.record_date || new Date().toISOString(),
-        diagnosis: record.diagnosis,
-        notes: record.notes,
-        vital_signs: record.vital_signs,
-        medications: record.medications
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as ChartRecord;
-  } catch (error) {
-    console.error("Error adding chart record:", error);
-    throw error;
-  }
-};
-
-export const updateChartRecord = async (id: string, data: Partial<ChartRecord>) => {
-  const { patient_id, provider_id, record_type, ...rest } = data;
-  
-  const updateData: any = { ...rest };
-  if (patient_id) {
-    updateData.patient_id = patient_id;
-  }
-  if (provider_id) {
-    updateData.provider_id = provider_id;
-  }
-  if (record_type) {
-    updateData.record_type = record_type;
-  }
-  
-  const { data: updatedRecord, error } = await supabase
-    .from('chart_records')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return updatedRecord;
-};
-
-// Appointment functions
-export const addAppointment = async (appointment: Partial<Appointment>) => {
-  try {
-    if (!appointment.patient_id || !appointment.provider_id || !appointment.appointment_date || !appointment.status) {
-      throw new Error("Missing required appointment fields");
-    }
-    
-    const { data, error } = await supabase
-      .from("appointments")
-      .insert({
-        patient_id: appointment.patient_id,
-        provider_id: appointment.provider_id,
-        appointment_date: appointment.appointment_date,
-        status: appointment.status,
-        notes: appointment.notes
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Appointment;
-  } catch (error) {
-    console.error("Error adding appointment:", error);
-    throw error;
-  }
-};
-
-export const updateAppointment = async (id: string, data: Partial<Appointment>) => {
-  const { appointment_date, patient_id, provider_id, status, ...rest } = data;
-  
-  const updateData: any = { ...rest };
-  if (appointment_date) {
-    updateData.appointment_date = appointment_date;
-  }
-  if (patient_id) {
-    updateData.patient_id = patient_id;
-  }
-  if (provider_id) {
-    updateData.provider_id = provider_id;
-  }
-  if (status) {
-    updateData.status = status;
-  }
-  
-  const { data: updatedAppointment, error } = await supabase
-    .from('appointments')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return updatedAppointment;
-};
-
-// Patient Identification by Facial Data
-export const getPatientByFacialData = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .not("facial_data", "is", null);
-
-    if (error) throw error;
-    
-    return data as Patient[];
-  } catch (error) {
-    console.error("Error fetching patients with facial data:", error);
-    throw error;
-  }
-};
-
-export const storeFacialData = async (patientId: string, facialData: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("patients")
-      .update({ facial_data: facialData })
-      .eq("id", patientId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Patient;
-  } catch (error) {
-    console.error("Error storing facial data:", error);
-    throw error;
-  }
-};
-
-// Healthcare User functions
-export const getUsers = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .order("name", { ascending: true });
-
-    if (error) throw error;
-    return data as User[];
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
-  }
-};
-
-export const getUserById = async (id: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data as User;
-  } catch (error) {
-    console.error(`Error fetching user with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const getUserProfile = async (id: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data as User;
-  } catch (error) {
-    console.error(`Error fetching user profile with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const updateUser = async (id: string, updates: Partial<User>) => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as User;
-  } catch (error) {
-    console.error(`Error updating user with ID ${id}:`, error);
-    throw error;
-  }
-};
-
-// CareCoin transactions
-export const transferCareCoins = async (fromUserId: string, toUserId: string, amount: number) => {
-  try {
-    const { data: sender, error: senderError } = await supabase
-      .from("users")
-      .select("care_coins_balance")
-      .eq("id", fromUserId)
-      .single();
-
-    if (senderError) throw senderError;
-    if (!sender || sender.care_coins_balance < amount) {
-      throw new Error("Insufficient balance");
-    }
-
-    const { data: recipient, error: recipientError } = await supabase
-      .from("users")
-      .select("care_coins_balance")
-      .eq("id", toUserId)
-      .single();
-
-    if (recipientError) throw recipientError;
-    if (!recipient) {
-      throw new Error("Recipient not found");
-    }
-
-    const { error: updateSenderError } = await supabase
-      .from("users")
-      .update({ care_coins_balance: sender.care_coins_balance - amount })
-      .eq("id", fromUserId);
-
-    if (updateSenderError) throw updateSenderError;
-
-    const { error: updateRecipientError } = await supabase
-      .from("users")
-      .update({ care_coins_balance: recipient.care_coins_balance + amount })
-      .eq("id", toUserId);
-
-    if (updateRecipientError) throw updateRecipientError;
-
-    const { error: transactionError } = await supabase
-      .from("care_coins_transactions")
-      .insert({
-        from_user_id: fromUserId,
-        to_user_id: toUserId,
-        amount,
-        transaction_type: "transfer",
-        description: "User transfer"
-      });
-
-    if (transactionError) throw transactionError;
-
-    return true;
-  } catch (error) {
-    console.error("Error transferring CareCoins:", error);
-    throw error;
-  }
-};
-
-export const getCareCoinsBalance = async (userId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("care_coins_balance")
-      .eq("id", userId)
-      .single();
-
-    if (error) throw error;
-    return data.care_coins_balance || 0;
-  } catch (error) {
-    console.error("Error fetching care coins balance:", error);
-    throw error;
-  }
-};
-
-export const createPatient = async (patient: Partial<Patient>) => {
-  return addPatient(patient);
-};
-
-export const getNotifications = async () => {
-  try {
-    console.log("Fetching notifications (mock)");
-    return [];
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    return [];
-  }
-};
-
-export const getPatient = async (id: string) => {
-  return getPatientById(id);
-};
+export const {
+  getNotifications
+} = notificationApi;
