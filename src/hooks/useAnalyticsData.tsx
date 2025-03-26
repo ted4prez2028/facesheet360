@@ -121,14 +121,14 @@ export function useAnalyticsData() {
         
         // Format overview data - overviewData is a single object, not an array
         const transformedOverviewData = overviewData ? {
-          totalPatients: overviewData.totalpatients,
-          appointments: overviewData.appointments,
-          chartingRate: overviewData.chartingrate,
-          careCoinsGenerated: overviewData.carecoinsgenerated,
-          patientsGrowth: overviewData.patientsgrowth,
-          appointmentsGrowth: overviewData.appointmentsgrowth,
-          chartingRateGrowth: overviewData.chartingrategrowth,
-          careCoinsGrowth: overviewData.carecoinsgrowth
+          totalPatients: overviewData.totalpatients || 0,
+          appointments: overviewData.appointments || 0,
+          chartingRate: overviewData.chartingrate || 0,
+          careCoinsGenerated: overviewData.carecoinsgenerated || 0,
+          patientsGrowth: overviewData.patientsgrowth || 0,
+          appointmentsGrowth: overviewData.appointmentsgrowth || 0,
+          chartingRateGrowth: overviewData.chartingrategrowth || 0,
+          careCoinsGrowth: overviewData.carecoinsgrowth || 0
         } : {
           totalPatients: 0,
           appointments: 0,

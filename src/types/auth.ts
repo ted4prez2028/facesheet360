@@ -12,6 +12,8 @@ export type User = {
   careCoinsBalance: number;
   online_status?: boolean;
   organization?: string; // Add organization field
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type AuthContextType = {

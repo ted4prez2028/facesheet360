@@ -1,4 +1,3 @@
-
 export interface Patient {
   id: string;
   first_name: string;
@@ -59,7 +58,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "doctor" | "nurse" | "staff";
+  role: string;
   specialty?: string;
   license_number?: string;
   profile_image?: string;
@@ -68,6 +67,7 @@ export interface User {
   updated_at: string;
   online_status?: boolean;
   last_seen?: string;
+  organization?: string;
 }
 
 export interface Message {

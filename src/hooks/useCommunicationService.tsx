@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,13 +31,15 @@ export function useCommunicationService() {
         id: dbUser.id,
         name: dbUser.name,
         email: dbUser.email,
-        role: dbUser.role, // Now accepting any string role
+        role: dbUser.role,
         specialty: dbUser.specialty,
-        licenseNumber: dbUser.license_number,
-        profileImage: dbUser.profile_image,
-        careCoinsBalance: dbUser.care_coins_balance || 0,
+        license_number: dbUser.license_number,
+        profile_image: dbUser.profile_image,
+        care_coins_balance: dbUser.care_coins_balance || 0,
         online_status: dbUser.online_status,
-        organization: dbUser.organization
+        organization: dbUser.organization,
+        created_at: dbUser.created_at,
+        updated_at: dbUser.updated_at
       })) || [];
       
       setOnlineUsers(typedUsers);
