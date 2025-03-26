@@ -28,6 +28,35 @@ export const getPatientsDirect = async () => {
   }
 };
 
+export const getPatientByIdDirect = async (patientId: string) => {
+  try {
+    // First verify authentication
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required");
+    }
+    
+    // Use RPC for direct SQL execution with the patient ID
+    const { data, error } = await supabase.rpc('get_patient_by_id', {
+      p_patient_id: patientId
+    });
+    
+    if (error) {
+      console.error("Direct patient fetch error:", error);
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error("Patient not found");
+    }
+    
+    return data as Patient;
+  } catch (error) {
+    console.error(`Error in direct patient fetch for ID ${patientId}:`, error);
+    throw error;
+  }
+};
+
 export const addPatientDirect = async (patient: Partial<Patient>) => {
   try {
     // First verify authentication
