@@ -85,21 +85,24 @@ export const addPatient = async (patient: Partial<Patient>) => {
   }
 };
 
-export const updatePatient = async (id: string, updates: Partial<Patient>) => {
-  try {
-    const { data, error } = await supabase
-      .from("patients")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Patient;
-  } catch (error) {
-    console.error(`Error updating patient with ID ${id}:`, error);
-    throw error;
+export const updatePatient = async (id: string, data: Partial<Patient>) => {
+  const { date_of_birth, ...rest } = data;
+  
+  // Only include date_of_birth in the update if it's provided
+  const updateData: any = { ...rest };
+  if (date_of_birth) {
+    updateData.date_of_birth = date_of_birth;
   }
+  
+  const { data: updatedPatient, error } = await supabase
+    .from('patients')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updatedPatient;
 };
 
 export const deletePatient = async (id: string) => {
@@ -135,21 +138,30 @@ export const addChartRecord = async (record: Partial<ChartRecord>) => {
   }
 };
 
-export const updateChartRecord = async (id: string, updates: Partial<ChartRecord>) => {
-  try {
-    const { data, error } = await supabase
-      .from("chart_records")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as ChartRecord;
-  } catch (error) {
-    console.error(`Error updating chart record with ID ${id}:`, error);
-    throw error;
+export const updateChartRecord = async (id: string, data: Partial<ChartRecord>) => {
+  const { patient_id, provider_id, record_type, ...rest } = data;
+  
+  // Only include required fields in the update if they're provided
+  const updateData: any = { ...rest };
+  if (patient_id) {
+    updateData.patient_id = patient_id;
   }
+  if (provider_id) {
+    updateData.provider_id = provider_id;
+  }
+  if (record_type) {
+    updateData.record_type = record_type;
+  }
+  
+  const { data: updatedRecord, error } = await supabase
+    .from('chart_records')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updatedRecord;
 };
 
 // Appointment functions
@@ -173,21 +185,33 @@ export const addAppointment = async (appointment: Partial<Appointment>) => {
   }
 };
 
-export const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
-  try {
-    const { data, error } = await supabase
-      .from("appointments")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Appointment;
-  } catch (error) {
-    console.error(`Error updating appointment with ID ${id}:`, error);
-    throw error;
+export const updateAppointment = async (id: string, data: Partial<Appointment>) => {
+  const { appointment_date, patient_id, provider_id, status, ...rest } = data;
+  
+  // Only include required fields in the update if they're provided
+  const updateData: any = { ...rest };
+  if (appointment_date) {
+    updateData.appointment_date = appointment_date;
   }
+  if (patient_id) {
+    updateData.patient_id = patient_id;
+  }
+  if (provider_id) {
+    updateData.provider_id = provider_id;
+  }
+  if (status) {
+    updateData.status = status;
+  }
+  
+  const { data: updatedAppointment, error } = await supabase
+    .from('appointments')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updatedAppointment;
 };
 
 // Patient Identification by Facial Data

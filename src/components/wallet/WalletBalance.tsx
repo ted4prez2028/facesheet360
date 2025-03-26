@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Coins } from 'lucide-react';
 
-const WalletBalance = () => {
+export const WalletBalance = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 

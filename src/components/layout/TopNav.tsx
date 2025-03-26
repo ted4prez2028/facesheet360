@@ -1,9 +1,4 @@
-
-import { useEffect, useState } from "react";
-import { Bell, Search } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect, useRef } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,198 +6,218 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
-import { Notification } from "@/types";
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { Bell, Home, Users, Calendar, BarChart, Settings } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
+import { useCommunication } from '@/context/CommunicationContext';
+import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { getNotifications } from '@/lib/supabaseApi';
 
-export function TopNav() {
+interface Notification {
+  id: string;
+  created_at: string;
+  type: string;
+  message: string;
+  read: boolean;
+  user_id: string;
+}
+
+const TopNav = () => {
   const { user, logout } = useAuth();
-  const [notificationCount, setNotificationCount] = useState(0);
+  const navigate = useNavigate();
+  const { setCallActive } = useCommunication();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  
-  useEffect(() => {
-    // Load notifications from database or storage
-    const loadNotifications = async () => {
-      // Simulated notifications for demo purposes
-      // In a real app, these would come from Supabase
-      const demoNotifications: Notification[] = [
-        {
-          id: "1",
-          user_id: user?.id || "",
-          title: "New patient assigned",
-          description: "Patient John Doe has been assigned to you",
-          time: "10 minutes ago",
-          read: false,
-          type: "info"
-        },
-        {
-          id: "2",
-          user_id: user?.id || "",
-          title: "Medication alert",
-          description: "Patient Mary Smith's prescription is expiring soon",
-          time: "1 hour ago",
-          read: false,
-          type: "warning"
-        },
-        {
-          id: "3",
-          user_id: user?.id || "",
-          title: "Appointment reminder",
-          description: "You have a follow-up with Robert Johnson at 3:00 PM",
-          time: "2 hours ago",
-          read: false,
-          type: "info"
-        },
-      ];
-      
-      setNotifications(demoNotifications);
-      setNotificationCount(demoNotifications.filter(n => !n.read).length);
-    };
-    
-    loadNotifications();
-    
-    // Listen for real-time notifications
-    const channel = supabase.channel('notification-updates')
-      .on('broadcast', { event: 'new-notification' }, payload => {
-        const newNotification = payload as Notification;
-        if (newNotification.user_id === user?.id) {
-          setNotifications(prev => [newNotification, ...prev]);
-          setNotificationCount(prev => prev + 1);
-          
-          // Play notification sound
-          const audio = new Audio('/notification.mp3');
-          audio.play().catch(err => console.log('Error playing notification sound:', err));
-        }
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-  
-  const userInitials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-    : "?";
+  const notificationSoundRef = useRef<HTMLAudioElement>(null);
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
-    setNotificationCount(0);
-  };
+  const { data: initialNotifications, refetch } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => getNotifications(),
+  });
+
+  useEffect(() => {
+    if (initialNotifications) {
+      setNotifications(initialNotifications);
+    }
+  }, [initialNotifications]);
+
+  useEffect(() => {
+    const handleRealtimeNotification = (payload: any) => {
+      if (payload.new && payload.new.type === 'broadcast') {
+        // Use type assertion to fix the type conversion error
+        const notification = payload.new as unknown as Notification;
+        setNotifications((prev) => [...prev, notification]);
+        if (notificationSoundRef.current) {
+          notificationSoundRef.current.play().catch(console.error);
+        }
+      }
+    };
+
+    // Assuming you have a Supabase client set up elsewhere
+    const channel = (window as any).supabase.channel('public:notifications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, handleRealtimeNotification)
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await logout();
+      setCallActive(false);
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error('Logout failed. Please try again.');
+    }
   };
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const markAllAsRead = async () => {
+    // Optimistically update the local state
+    const updatedNotifications = notifications.map(notification => ({ ...notification, read: true }));
+    setNotifications(updatedNotifications);
+  
+    // Call the Supabase function to mark all notifications as read
+    try {
+      const { error } = await (window as any).supabase.functions.invoke('mark-all-notifications-as-read', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (error) {
+        throw error;
+      }
+  
+      // If the function call was successful, refetch the notifications to update the state
+      await refetch();
+      toast.success('All notifications marked as read!');
+    } catch (error: any) {
+      console.error('Error marking notifications as read:', error);
+      toast.error(error.message || 'Failed to mark notifications as read.');
+  
+      // If there was an error, revert the local state
+      setNotifications(notifications);
+    }
+  };
+
+  const unreadCount = notifications?.filter(notification => !notification.read).length;
+
   return (
-    <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur">
-      <div className="container flex h-16 items-center px-4 sm:px-6">
-        <div className="hidden md:flex md:flex-1">
-          <form className="w-full max-w-sm">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search patients, records..."
-                className="pl-8 bg-background"
-              />
-            </div>
-          </form>
-        </div>
-        
-        <div className="flex items-center gap-2 ml-auto">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                {notificationCount > 0 && (
-                  <Badge 
-                    className={cn(
-                      "absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center",
-                      "bg-health-600 text-white text-xs"
-                    )}
-                  >
-                    {notificationCount}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="flex items-center justify-between p-4 border-b">
-                <h3 className="font-medium">Notifications</h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={markAllAsRead}
-                >
-                  Mark all as read
-                </Button>
-              </div>
-              <div className="max-h-80 overflow-auto">
-                {notifications.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No notifications
-                  </div>
-                ) : (
-                  notifications.map((notification) => (
-                    <div 
-                      key={notification.id} 
-                      className={cn(
-                        "p-4 border-b last:border-0 transition-colors",
-                        !notification.read && "bg-accent"
-                      )}
-                    >
-                      <div className="flex justify-between gap-2">
-                        <h4 className="text-sm font-medium">{notification.title}</h4>
-                        <span className="text-xs text-muted-foreground">{notification.time}</span>
-                      </div>
-                      <p className="text-sm mt-1">{notification.description}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-          
+    <div className="border-b">
+      <div className="container flex h-16 items-center justify-between">
+        <Link to="/dashboard" className="font-bold text-xl">CareConnect</Link>
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" asChild>
+            <Link to="/dashboard">
+              <Home className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/patients">
+              <Users className="mr-2 h-4 w-4" />
+              <span>Patients</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/appointments">
+              <Calendar className="mr-2 h-4 w-4" />
+              <span>Appointments</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/analytics">
+              <BarChart className="mr-2 h-4 w-4" />
+              <span>Analytics</span>
+            </Link>
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profile_image || "/placeholder.svg"} alt="User" />
-                  <AvatarFallback className="bg-health-600 text-white">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
+              <Button variant="ghost" className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="absolute -top-1 -right-1 rounded-full px-2 py-0.5 text-xs"
+                  >
+                    {unreadCount}
+                  </Badge>
+                )}
+                <span className="sr-only">Toggle notifications</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="flex flex-col gap-1">
-                <span>{user?.name || "User"}</span>
-                <span className="text-xs font-normal text-muted-foreground capitalize">
-                  {user?.role === "doctor" ? "Physician" : user?.role}
-                </span>
-              </DropdownMenuLabel>
+            <DropdownMenuContent className="w-80" align="end" forceMount>
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Account settings</DropdownMenuItem>
-              <DropdownMenuItem>CareCoins wallet</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+              {notifications?.length === 0 ? (
+                <DropdownMenuItem className="cursor-default">
+                  No notifications
+                </DropdownMenuItem>
+              ) : (
+                <>
+                  {notifications?.map((notification) => (
+                    <DropdownMenuItem key={notification.id} className="break-words">
+                      <div className="flex justify-between">
+                        <div className="truncate">{notification.message}</div>
+                        {!notification.read && (
+                          <Badge className="ml-2">New</Badge>
+                        )}
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={markAllAsRead}>
+                    Mark all as read
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={user.profileImage}
+                      alt={user.name || 'User'}
+                    />
+                    <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
-    </header>
+      <audio ref={notificationSoundRef} src="/sounds/notification.mp3" preload="auto" />
+    </div>
   );
-}
+};
+
+export default TopNav;
