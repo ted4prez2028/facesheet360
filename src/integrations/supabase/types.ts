@@ -207,6 +207,135 @@ export type Database = {
           },
         ]
       }
+      imaging_records: {
+        Row: {
+          body_area: string
+          date_performed: string
+          findings: string | null
+          id: string
+          image_url: string | null
+          imaging_type: string
+          notes: string | null
+          patient_id: string
+        }
+        Insert: {
+          body_area: string
+          date_performed?: string
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          imaging_type: string
+          notes?: string | null
+          patient_id: string
+        }
+        Update: {
+          body_area?: string
+          date_performed?: string
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          imaging_type?: string
+          notes?: string | null
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_results: {
+        Row: {
+          date_performed: string
+          flagged: boolean | null
+          id: string
+          normal_range: string | null
+          notes: string | null
+          patient_id: string
+          test_name: string
+          test_result: string
+          units: string | null
+        }
+        Insert: {
+          date_performed?: string
+          flagged?: boolean | null
+          id?: string
+          normal_range?: string | null
+          notes?: string | null
+          patient_id: string
+          test_name: string
+          test_result: string
+          units?: string | null
+        }
+        Update: {
+          date_performed?: string
+          flagged?: boolean | null
+          id?: string
+          normal_range?: string | null
+          notes?: string | null
+          patient_id?: string
+          test_name?: string
+          test_result?: string
+          units?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_results_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medications: {
+        Row: {
+          dosage: string
+          duration: string | null
+          frequency: string
+          id: string
+          instructions: string | null
+          medication_name: string
+          patient_id: string
+          prescribed_date: string
+          status: string
+        }
+        Insert: {
+          dosage: string
+          duration?: string | null
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medication_name: string
+          patient_id: string
+          prescribed_date?: string
+          status?: string
+        }
+        Update: {
+          dosage?: string
+          duration?: string | null
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medication_name?: string
+          patient_id?: string
+          prescribed_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
@@ -369,6 +498,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      vital_signs: {
+        Row: {
+          blood_pressure: string | null
+          date_recorded: string
+          heart_rate: number | null
+          height: number | null
+          id: string
+          notes: string | null
+          oxygen_saturation: number | null
+          patient_id: string
+          respiratory_rate: number | null
+          temperature: number | null
+          weight: number | null
+        }
+        Insert: {
+          blood_pressure?: string | null
+          date_recorded?: string
+          heart_rate?: number | null
+          height?: number | null
+          id?: string
+          notes?: string | null
+          oxygen_saturation?: number | null
+          patient_id: string
+          respiratory_rate?: number | null
+          temperature?: number | null
+          weight?: number | null
+        }
+        Update: {
+          blood_pressure?: string | null
+          date_recorded?: string
+          heart_rate?: number | null
+          height?: number | null
+          id?: string
+          notes?: string | null
+          oxygen_saturation?: number | null
+          patient_id?: string
+          respiratory_rate?: number | null
+          temperature?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vital_signs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
