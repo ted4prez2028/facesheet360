@@ -58,7 +58,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const userData = await getUserProfile(currentSession.user.id);
       if (userData) {
-        // Transform to match our User type
         setUser({
           id: userData.id,
           name: userData.name,
@@ -70,7 +69,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           careCoinsBalance: userData.care_coins_balance || 0
         });
       } else {
-        // If no user data yet (might happen during initial sign up before trigger completes)
         setUser({
           id: currentSession.user.id,
           name: currentSession.user.email || '',
@@ -85,13 +83,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          // Use setTimeout to avoid potential deadlocks with Supabase auth state changes
           setTimeout(() => updateUserState(currentSession), 0);
         } else {
           setUser(null);
@@ -101,7 +97,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       
@@ -130,7 +125,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       
       sonnerToast.success('Login successful');
-      navigate('/dashboard');
       
     } catch (error: any) {
       console.error('Login error:', error);
@@ -139,6 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +143,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       
-      // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -163,7 +157,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       
       sonnerToast.success('Registration successful');
-      navigate('/dashboard');
       
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -172,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -183,7 +177,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
       setSession(null);
       sonnerToast.success('Logged out successfully');
-      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
       toast({
@@ -197,7 +190,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateUserProfile = async (userData: Partial<User>) => {
     if (user) {
       try {
-        // Convert from our UI model to database model
         const dbUpdate = {
           name: userData.name,
           specialty: userData.specialty,
@@ -213,7 +205,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
         if (error) throw error;
         
-        // Update the local user state
         setUser({
           ...user,
           ...userData

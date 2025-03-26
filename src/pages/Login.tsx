@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,15 +21,16 @@ const Login = () => {
     role: "doctor",
   });
   const { toast } = useToast();
-  const { login, signUp, isAuthenticated } = useAuth();
+  const { login, signUp, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - this handles initial load
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
+    if (!isLoading && isAuthenticated) {
+      console.log("User is authenticated, redirecting to dashboard");
+      navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,8 +48,8 @@ const Login = () => {
     
     try {
       await login(loginData.email, loginData.password);
-      // After successful login, navigate to dashboard
-      // (AuthContext will update isAuthenticated which triggers the useEffect above)
+      // After successful login, we'll navigate in the useEffect when isAuthenticated changes
+      console.log("Login successful, waiting for auth state to update");
     } catch (error) {
       console.error("Login error:", error);
     } finally {
@@ -88,6 +90,7 @@ const Login = () => {
         role: "doctor",
       });
       
+      console.log("Registration successful, waiting for auth state to update");
       // Navigation will happen via useEffect when isAuthenticated changes
     } catch (error) {
       console.error("Registration error:", error);
@@ -95,6 +98,20 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
+
+  // If still loading auth state, show loading indicator
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-health-600" />
+      </div>
+    );
+  }
+
+  // If already authenticated, don't render the login form at all
+  if (isAuthenticated) {
+    return null; // This will be replaced by the redirect in useEffect
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-health-50 to-health-100 p-4">
