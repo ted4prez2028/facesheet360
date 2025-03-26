@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +35,7 @@ export function useCommunicationService() {
         license_number: dbUser.license_number,
         profile_image: dbUser.profile_image,
         care_coins_balance: dbUser.care_coins_balance || 0,
+        careCoinsBalance: dbUser.care_coins_balance || 0,
         online_status: dbUser.online_status,
         organization: dbUser.organization,
         created_at: dbUser.created_at,

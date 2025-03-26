@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Input } from '@/components/ui/input';
-import { User } from '@/types/auth';
+import { User } from '@/types/index';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -157,7 +157,7 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
     <div className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
       <div className="flex items-center space-x-3 relative">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={user.profileImage} />
+          <AvatarImage src={user.profile_image} />
           <AvatarFallback className="bg-health-600 text-white">
             {userInitials}
           </AvatarFallback>

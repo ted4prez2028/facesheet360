@@ -63,6 +63,7 @@ export interface User {
   license_number?: string;
   profile_image?: string;
   care_coins_balance?: number;
+  careCoinsBalance?: number;
   created_at: string;
   updated_at: string;
   online_status?: boolean;
