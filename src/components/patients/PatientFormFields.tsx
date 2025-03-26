@@ -1,8 +1,9 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -27,11 +28,15 @@ export interface PatientFormData {
 interface PatientFormFieldsProps {
   formData: PatientFormData;
   onChange: (field: keyof PatientFormData, value: string) => void;
+  onSave?: () => void;
+  isLoading?: boolean;
 }
 
 const PatientFormFields: React.FC<PatientFormFieldsProps> = ({
   formData,
   onChange,
+  onSave,
+  isLoading = false,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
@@ -138,6 +143,19 @@ const PatientFormFields: React.FC<PatientFormFieldsProps> = ({
           className="resize-none"
         />
       </div>
+      {onSave && (
+        <div className="col-span-1 md:col-span-2 mt-4">
+          <Button 
+            type="button" 
+            onClick={onSave} 
+            className="w-full bg-health-600 hover:bg-health-700"
+            disabled={isLoading}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {isLoading ? "Saving Patient..." : "Save Patient"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
