@@ -49,44 +49,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const updateUserState = async (currentSession: Session | null) => {
+    if (!currentSession?.user) {
+      setUser(null);
+      return;
+    }
+    
+    try {
+      const userData = await getUserProfile(currentSession.user.id);
+      if (userData) {
+        // Transform to match our User type
+        setUser({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role as any,
+          specialty: userData.specialty || undefined,
+          licenseNumber: userData.license_number || undefined,
+          profileImage: userData.profile_image || undefined,
+          careCoinsBalance: userData.care_coins_balance || 0
+        });
+      } else {
+        // If no user data yet (might happen during initial sign up before trigger completes)
+        setUser({
+          id: currentSession.user.id,
+          name: currentSession.user.email || '',
+          email: currentSession.user.email || '',
+          role: 'doctor',
+          careCoinsBalance: 0
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          try {
-            // Get user profile data from our users table
-            // We use setTimeout to avoid potential deadlocks with Supabase auth state changes
-            setTimeout(async () => {
-              const userData = await getUserProfile(currentSession.user.id);
-              if (userData) {
-                // Transform to match our User type
-                setUser({
-                  id: userData.id,
-                  name: userData.name,
-                  email: userData.email,
-                  role: userData.role as any,
-                  specialty: userData.specialty,
-                  licenseNumber: userData.license_number,
-                  profileImage: userData.profile_image,
-                  careCoinsBalance: userData.care_coins_balance
-                });
-              } else {
-                // If no user data yet (might happen during initial sign up before trigger completes)
-                setUser({
-                  id: currentSession.user.id,
-                  name: currentSession.user.email || '',
-                  email: currentSession.user.email || '',
-                  role: 'doctor',
-                  careCoinsBalance: 0
-                });
-              }
-            }, 0);
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-          }
+          // Use setTimeout to avoid potential deadlocks with Supabase auth state changes
+          setTimeout(() => updateUserState(currentSession), 0);
         } else {
           setUser(null);
         }
@@ -100,27 +106,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(currentSession);
       
       if (currentSession?.user) {
-        getUserProfile(currentSession.user.id)
-          .then(userData => {
-            if (userData) {
-              // Transform to match our User type
-              setUser({
-                id: userData.id,
-                name: userData.name,
-                email: userData.email,
-                role: userData.role as any,
-                specialty: userData.specialty,
-                licenseNumber: userData.license_number,
-                profileImage: userData.profile_image,
-                careCoinsBalance: userData.care_coins_balance
-              });
-            }
-            setIsLoading(false);
-          })
-          .catch(error => {
-            console.error("Error fetching user data:", error);
-            setIsLoading(false);
-          });
+        updateUserState(currentSession)
+          .finally(() => setIsLoading(false));
       } else {
         setIsLoading(false);
       }
@@ -218,14 +205,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           profile_image: userData.profileImage,
         };
         
-        const updatedUser = await supabase
+        const { data, error } = await supabase
           .from('users')
           .update(dbUpdate)
           .eq('id', user.id)
-          .select()
-          .single();
+          .select();
           
-        if (updatedUser.error) throw updatedUser.error;
+        if (error) throw error;
         
         // Update the local user state
         setUser({

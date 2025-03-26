@@ -1,16 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { storeFacialData } from './supabaseApi';
 
 export const registerFacialData = async (patientId: string, facialData: string) => {
   try {
-    const { data, error } = await supabase.functions.invoke('facial-recognition', {
-      body: { action: 'register', patientId, facialData }
-    });
+    // Store the facial data in Supabase
+    const patient = await storeFacialData(patientId, facialData);
     
-    if (error) throw error;
+    if (!patient) {
+      throw new Error('Failed to store facial data');
+    }
     
-    return data.patient;
+    return patient;
   } catch (error) {
     console.error('Error registering facial data:', error);
     toast.error('Failed to register facial data');

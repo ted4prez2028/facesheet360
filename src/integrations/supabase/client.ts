@@ -10,7 +10,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     autoRefreshToken: true,
     storage: localStorage,
-    redirectTo: 'http://104.238.130.223:8080/'
+    flowType: 'pkce',
+    detectSessionInUrl: true
   }
 });
 

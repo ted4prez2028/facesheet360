@@ -15,6 +15,14 @@ export interface PatientType {
   insurance_provider?: string;
   policy_number?: string;
   facial_data?: string;
+  // Legacy MongoDB compatibility fields
+  _id?: string; 
+  name?: string;
+  age?: number;
+  condition?: string;
+  status?: 'Active' | 'Stable' | 'Critical';
+  lastVisit?: string;
+  assignedDoctor?: string;
 }
 
 export const usePatients = (filters = {}) => {
@@ -25,8 +33,39 @@ export const usePatients = (filters = {}) => {
     queryFn: () => getPatients(filters),
   });
   
+  // Adapt Supabase data to expected format
+  const adaptedPatients = (data || []).map((patient: any): PatientType => {
+    // Create a compatible object that includes both old and new fields
+    return {
+      ...patient,
+      _id: patient.id, // For backward compatibility
+      name: `${patient.first_name} ${patient.last_name}`, // For backward compatibility
+      age: patient.date_of_birth ? calculateAge(patient.date_of_birth) : undefined,
+      // Default values for backward compatibility
+      condition: 'General checkup',
+      status: 'Active',
+      lastVisit: new Date().toISOString(),
+      assignedDoctor: 'Unassigned'
+    };
+  });
+  
   const createPatientMutation = useMutation({
-    mutationFn: (newPatient: Omit<PatientType, 'id'>) => createPatient(newPatient),
+    mutationFn: (newPatient: Omit<PatientType, 'id'>) => {
+      // Adapt the patient data structure for Supabase
+      const supabasePatient = {
+        first_name: newPatient.first_name || (newPatient.name ? newPatient.name.split(' ')[0] : ''),
+        last_name: newPatient.last_name || (newPatient.name ? newPatient.name.split(' ').slice(1).join(' ') : ''),
+        date_of_birth: newPatient.date_of_birth || new Date(Date.now() - (newPatient.age || 30) * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        gender: newPatient.gender,
+        phone: newPatient.phone,
+        email: newPatient.email,
+        medical_record_number: newPatient.medical_record_number,
+        insurance_provider: newPatient.insurance_provider,
+        policy_number: newPatient.policy_number
+      };
+      
+      return createPatient(supabasePatient);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       toast.success('Patient added successfully');
@@ -38,8 +77,32 @@ export const usePatients = (filters = {}) => {
   });
   
   const updatePatientMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<PatientType> }) => 
-      updatePatient(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<PatientType> }) => {
+      // Adapt the patient data structure for Supabase
+      const supabasePatient: any = {};
+      
+      if (data.first_name || data.name) {
+        supabasePatient.first_name = data.first_name || (data.name ? data.name.split(' ')[0] : undefined);
+      }
+      
+      if (data.last_name || data.name) {
+        supabasePatient.last_name = data.last_name || (data.name ? data.name.split(' ').slice(1).join(' ') : undefined);
+      }
+      
+      if (data.date_of_birth || data.age) {
+        supabasePatient.date_of_birth = data.date_of_birth || 
+          (data.age ? new Date(Date.now() - data.age * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined);
+      }
+      
+      if (data.gender) supabasePatient.gender = data.gender;
+      if (data.phone) supabasePatient.phone = data.phone;
+      if (data.email) supabasePatient.email = data.email;
+      if (data.medical_record_number) supabasePatient.medical_record_number = data.medical_record_number;
+      if (data.insurance_provider) supabasePatient.insurance_provider = data.insurance_provider;
+      if (data.policy_number) supabasePatient.policy_number = data.policy_number;
+      
+      return updatePatient(id, supabasePatient);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       toast.success('Patient updated successfully');
@@ -49,9 +112,21 @@ export const usePatients = (filters = {}) => {
       toast.error('Failed to update patient');
     }
   });
+
+  // Helper function to calculate age from date of birth
+  function calculateAge(dateOfBirth: string) {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  }
   
   return {
-    patients: data as PatientType[] || [],
+    patients: adaptedPatients as PatientType[],
     isLoading,
     error,
     refetch,

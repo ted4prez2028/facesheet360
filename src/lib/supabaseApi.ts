@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -9,14 +8,20 @@ export const getUserProfile = async (userId: string) => {
       .from('users')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
       
     if (error) throw error;
+    
+    if (!data) {
+      console.log("No user profile found for ID:", userId);
+      return null;
+    }
+    
     return data;
   } catch (error) {
     console.error("Error fetching user profile:", error);
     toast.error("Error fetching user profile");
-    throw error;
+    return null;
   }
 };
 
@@ -202,14 +207,15 @@ export const getCareCoinsBalance = async (userId: string) => {
       .from('users')
       .select('care_coins_balance')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
       
     if (error) throw error;
-    return data.care_coins_balance;
+    
+    return data?.care_coins_balance || 0;
   } catch (error) {
     console.error("Error fetching CareCoins balance:", error);
     toast.error("Error fetching CareCoins balance");
-    throw error;
+    return 0;
   }
 };
 
@@ -268,7 +274,7 @@ export const storeFacialData = async (patientId: string, facialData: string) => 
   } catch (error) {
     console.error("Error storing facial data:", error);
     toast.error("Error storing facial data");
-    throw error;
+    return null;
   }
 };
 
