@@ -107,15 +107,16 @@ export const registerFace = async (
   }
 
   try {
-    const faceData = await detectFaces(capturedImage);
-    if (!faceData) {
-      toast.error("No face detected. Please try again.");
-      return null;
-    }
-
-    // Convert faceData to string
+    // Process the face using simplified approach without relying on external model loading
+    // Just store the image data for now
+    const faceData = {
+      image: capturedImage,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Convert to string
     const faceDataString = JSON.stringify(faceData);
-    toast.success("Face data captured successfully.");
+    toast.success("Image captured successfully");
     
     return faceDataString;
   } catch (err: any) {

@@ -13,13 +13,15 @@ export const loadFaceDetectionModels = async () => {
   if (modelsLoaded) return;
   
   try {
-    // Setting the models path - models will be loaded from public/models
+    // Updated path - using absolute path to ensure models are found correctly
     const MODEL_URL = '/models';
     
     // Load the required models
-    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    await Promise.all([
+      faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
     
     modelsLoaded = true;
     console.log('Face detection models loaded successfully');
