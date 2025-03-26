@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCommunication } from '@/context/communication/CommunicationContext';
 import { Input } from '@/components/ui/input';
-import { User } from '@/types';
+import { User } from '@/types/auth';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
