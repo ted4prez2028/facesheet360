@@ -82,7 +82,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
           <DrawerFooter className="flex flex-col sm:flex-row gap-3 mt-6">
             <Button 
               type="submit" 
-              className="w-full sm:w-auto flex items-center" 
+              className="w-full sm:w-auto flex items-center bg-health-600 hover:bg-health-700" 
               disabled={formState.isLoading || !isAuthenticated}
             >
               <Check className="mr-2 h-4 w-4" />
