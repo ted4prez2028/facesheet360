@@ -16,6 +16,7 @@ import PatientFacialCapture from "./PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
 import { useAuth } from "@/context/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface AddPatientDrawerProps {
   open: boolean;
@@ -43,12 +44,27 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isAuthenticated) {
+      toast.error("Authentication Required", {
+        description: "You must be logged in to add patients."
+      });
+      return;
+    }
+    
     console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
   
   // Create a handler that doesn't take parameters to match the expected type
   const handleSavePatient = () => {
+    if (!isAuthenticated) {
+      toast.error("Authentication Required", {
+        description: "You must be logged in to add patients."
+      });
+      return;
+    }
+    
     submitForm();
   };
 

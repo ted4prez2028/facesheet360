@@ -38,12 +38,31 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
 
   const handleSubmitPatient = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "You must be logged in to add patients."
+      });
+      return;
+    }
+    
     console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
   
   // Create a handler that doesn't take parameters to match the expected type
   const handleSavePatient = () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "You must be logged in to add patients."
+      });
+      return;
+    }
+    
     submitForm();
   };
 

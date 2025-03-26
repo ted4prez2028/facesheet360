@@ -40,6 +40,12 @@ export const addPatient = async (patient: Partial<Patient>) => {
       throw new Error("Missing required patient fields");
     }
     
+    // Check that the auth session exists first
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      throw new Error("Authentication required. Please log in to add patients.");
+    }
+    
     const { data, error } = await supabase
       .from("patients")
       .insert({
