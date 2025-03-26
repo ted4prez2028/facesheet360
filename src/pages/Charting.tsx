@@ -266,376 +266,378 @@ const Charting = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
-        <div className="w-full md:w-80 flex flex-col">
-          <Card className="shadow-sm flex-1 flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Patients</CardTitle>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search patients..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="px-1.5 py-0 flex-1 overflow-hidden">
-              <ScrollArea className="h-full pr-3">
-                {isLoadingPatients ? (
-                  <div className="space-y-2 p-2">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center p-3 rounded-md animate-pulse">
-                        <div className="h-9 w-9 rounded-full bg-gray-200 mr-3"></div>
-                        <div className="space-y-2 flex-1">
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {filteredPatients && filteredPatients.length > 0 ? (
-                      filteredPatients.map((patient) => (
-                        <button
-                          key={patient.id}
-                          className={`w-full flex items-center p-3 rounded-md text-left hover:bg-muted transition-colors ${
-                            selectedPatient === patient.id ? "bg-muted" : ""
-                          }`}
-                          onClick={() => setSelectedPatient(patient.id)}
-                        >
-                          <Avatar className="h-9 w-9 mr-3">
-                            <AvatarImage src={patient.imgUrl || ""} alt={patient.name} />
-                            <AvatarFallback className="text-xs">
-                              {patient.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{patient.name}</div>
-                            <div className="text-xs text-muted-foreground flex gap-2 items-center mt-0.5">
-                              <span>{patient.id.substring(0, 8)}</span>
-                              <span>•</span>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs py-0 h-5 ${getStatusColor(patient.status)}`}
-                              >
-                                {patient.status}
-                              </Badge>
-                            </div>
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        No patients found
-                      </div>
-                    )}
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-            <CardFooter className="border-t p-3">
-              <Button 
-                className="w-full gap-2 bg-health-600 hover:bg-health-700"
-                onClick={() => setIsAddPatientOpen(true)}
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span>Add Patient</span>
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        <div className="flex-1 flex flex-col h-full">
-          {selectedPatient ? (
+    <>
+      <DashboardLayout>
+        <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
+          <div className="w-full md:w-80 flex flex-col">
             <Card className="shadow-sm flex-1 flex flex-col">
-              <CardHeader className="pb-0">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{selectedPatientData?.name}</CardTitle>
-                    <CardDescription>
-                      {selectedPatientData?.id.substring(0, 8)} • {selectedPatientData?.age} years old
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" className="gap-2" size="sm">
-                      <Calendar className="h-4 w-4" />
-                      <span>Schedule</span>
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <User className="h-4 w-4 mr-2" />
-                          <span>View Profile</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <FileText className="h-4 w-4 mr-2" />
-                          <span>Full History</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Activity className="h-4 w-4 mr-2" />
-                          <span>Vital Signs</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Patients</CardTitle>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search patients..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
               </CardHeader>
-              
-              <Tabs defaultValue="notes" className="flex-1 flex flex-col">
-                <div className="px-6">
-                  <TabsList className="my-2">
-                    <TabsTrigger value="notes" className="flex items-center gap-1">
-                      <FileText className="h-4 w-4" />
-                      <span>Notes</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="vitals" className="flex items-center gap-1">
-                      <Activity className="h-4 w-4" />
-                      <span>Vital Signs</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="meds" className="flex items-center gap-1">
-                      <Pill className="h-4 w-4" />
-                      <span>Medications</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="labs" className="flex items-center gap-1">
-                      <TestTube className="h-4 w-4" />
-                      <span>Lab Results</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="imaging" className="flex items-center gap-1">
-                      <Image className="h-4 w-4" />
-                      <span>Imaging</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+              <CardContent className="px-1.5 py-0 flex-1 overflow-hidden">
+                <ScrollArea className="h-full pr-3">
+                  {isLoadingPatients ? (
+                    <div className="space-y-2 p-2">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center p-3 rounded-md animate-pulse">
+                          <div className="h-9 w-9 rounded-full bg-gray-200 mr-3"></div>
+                          <div className="space-y-2 flex-1">
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {filteredPatients && filteredPatients.length > 0 ? (
+                        filteredPatients.map((patient) => (
+                          <button
+                            key={patient.id}
+                            className={`w-full flex items-center p-3 rounded-md text-left hover:bg-muted transition-colors ${
+                              selectedPatient === patient.id ? "bg-muted" : ""
+                            }`}
+                            onClick={() => setSelectedPatient(patient.id)}
+                          >
+                            <Avatar className="h-9 w-9 mr-3">
+                              <AvatarImage src={patient.imgUrl || ""} alt={patient.name} />
+                              <AvatarFallback className="text-xs">
+                                {patient.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{patient.name}</div>
+                              <div className="text-xs text-muted-foreground flex gap-2 items-center mt-0.5">
+                                <span>{patient.id.substring(0, 8)}</span>
+                                <span>•</span>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs py-0 h-5 ${getStatusColor(patient.status)}`}
+                                >
+                                  {patient.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          No patients found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+              <CardFooter className="border-t p-3">
+                <Button 
+                  className="w-full gap-2 bg-health-600 hover:bg-health-700"
+                  onClick={() => setIsAddPatientOpen(true)}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  <span>Add Patient</span>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          
+          <div className="flex-1 flex flex-col h-full">
+            {selectedPatient ? (
+              <Card className="shadow-sm flex-1 flex flex-col">
+                <CardHeader className="pb-0">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{selectedPatientData?.name}</CardTitle>
+                      <CardDescription>
+                        {selectedPatientData?.id.substring(0, 8)} • {selectedPatientData?.age} years old
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="gap-2" size="sm">
+                        <Calendar className="h-4 w-4" />
+                        <span>Schedule</span>
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <User className="h-4 w-4 mr-2" />
+                            <span>View Profile</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <FileText className="h-4 w-4 mr-2" />
+                            <span>Full History</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <Activity className="h-4 w-4 mr-2" />
+                            <span>Vital Signs</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </CardHeader>
                 
-                <TabsContent value="notes" className="flex-1 flex flex-col pt-0 px-0 m-0">
-                  <div className="px-6 py-3 border-b flex items-center justify-between">
-                    <h3 className="font-medium">Patient Notes</h3>
-                    <Button 
-                      className="gap-2 bg-health-600 hover:bg-health-700"
-                      size="sm"
-                      onClick={() => setIsCreatingNote(true)}
-                    >
-                      <PenTool className="h-4 w-4" />
-                      <span>New Note</span>
-                    </Button>
+                <Tabs defaultValue="notes" className="flex-1 flex flex-col">
+                  <div className="px-6">
+                    <TabsList className="my-2">
+                      <TabsTrigger value="notes" className="flex items-center gap-1">
+                        <FileText className="h-4 w-4" />
+                        <span>Notes</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="vitals" className="flex items-center gap-1">
+                        <Activity className="h-4 w-4" />
+                        <span>Vital Signs</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="meds" className="flex items-center gap-1">
+                        <Pill className="h-4 w-4" />
+                        <span>Medications</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="labs" className="flex items-center gap-1">
+                        <TestTube className="h-4 w-4" />
+                        <span>Lab Results</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="imaging" className="flex items-center gap-1">
+                        <Image className="h-4 w-4" />
+                        <span>Imaging</span>
+                      </TabsTrigger>
+                    </TabsList>
                   </div>
                   
-                  <ScrollArea className="flex-1">
-                    <div className="px-6 py-2">
-                      {isCreatingNote && (
-                        <Card className="mb-4 border-health-200 shadow-md">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-center">
-                              <CardTitle className="text-base">New Note</CardTitle>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="outline" size="sm">
-                                    {noteType}
-                                    <MoreHorizontal className="h-4 w-4 ml-2" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => setNoteType("Progress Note")}>
-                                    Progress Note
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setNoteType("Consultation")}>
-                                    Consultation
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setNoteType("Procedure Note")}>
-                                    Procedure Note
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setNoteType("Discharge Summary")}>
-                                    Discharge Summary
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <Textarea 
-                              placeholder="Enter your note here..."
-                              className="min-h-[120px]"
-                              value={noteText}
-                              onChange={(e) => setNoteText(e.target.value)}
-                            />
-                            
-                            <div className="flex items-center gap-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={handleFileUpload}
-                              >
-                                <FilePlus className="h-4 w-4 mr-2" />
-                                Attach File
-                              </Button>
-                              <input 
-                                type="file" 
-                                className="hidden" 
-                                ref={fileInputRef}
-                              />
-                            </div>
-                          </CardContent>
-                          <CardFooter className="flex justify-end gap-2 pt-0">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setIsCreatingNote(false);
-                                setNoteText("");
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              size="sm"
-                              className="bg-health-600 hover:bg-health-700"
-                              onClick={handleSaveNote}
-                            >
-                              Save Note
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      )}
-                      
-                      {isLoadingNotes ? (
-                        <div className="space-y-4">
-                          {[...Array(3)].map((_, i) => (
-                            <Card key={i} className="animate-pulse">
-                              <CardHeader className="pb-2">
-                                <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
-                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="h-16 bg-gray-200 rounded w-full"></div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : notes && notes.length > 0 ? (
-                        notes.map((note) => (
-                          <Card key={note.id} className="mb-4">
+                  <TabsContent value="notes" className="flex-1 flex flex-col pt-0 px-0 m-0">
+                    <div className="px-6 py-3 border-b flex items-center justify-between">
+                      <h3 className="font-medium">Patient Notes</h3>
+                      <Button 
+                        className="gap-2 bg-health-600 hover:bg-health-700"
+                        size="sm"
+                        onClick={() => setIsCreatingNote(true)}
+                      >
+                        <PenTool className="h-4 w-4" />
+                        <span>New Note</span>
+                      </Button>
+                    </div>
+                    
+                    <ScrollArea className="flex-1">
+                      <div className="px-6 py-2">
+                        {isCreatingNote && (
+                          <Card className="mb-4 border-health-200 shadow-md">
                             <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="text-base">{note.type}</CardTitle>
-                                  <CardDescription>
-                                    {formatDateTime(note.date)} by {note.provider}
-                                  </CardDescription>
-                                </div>
+                              <div className="flex justify-between items-center">
+                                <CardTitle className="text-base">New Note</CardTitle>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <MoreHorizontal className="h-4 w-4" />
+                                    <Button variant="outline" size="sm">
+                                      {noteType}
+                                      <MoreHorizontal className="h-4 w-4 ml-2" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem>Print</DropdownMenuItem>
-                                    <DropdownMenuItem>Share</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setNoteType("Progress Note")}>
+                                      Progress Note
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setNoteType("Consultation")}>
+                                      Consultation
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setNoteType("Procedure Note")}>
+                                      Procedure Note
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setNoteType("Discharge Summary")}>
+                                      Discharge Summary
+                                    </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
                             </CardHeader>
-                            <CardContent>
-                              <p className="text-sm">{note.content}</p>
+                            <CardContent className="space-y-4">
+                              <Textarea 
+                                placeholder="Enter your note here..."
+                                className="min-h-[120px]"
+                                value={noteText}
+                                onChange={(e) => setNoteText(e.target.value)}
+                              />
+                              
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={handleFileUpload}
+                                >
+                                  <FilePlus className="h-4 w-4 mr-2" />
+                                  Attach File
+                                </Button>
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  ref={fileInputRef}
+                                />
+                              </div>
                             </CardContent>
+                            <CardFooter className="flex justify-end gap-2 pt-0">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setIsCreatingNote(false);
+                                  setNoteText("");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button 
+                                size="sm"
+                                className="bg-health-600 hover:bg-health-700"
+                                onClick={handleSaveNote}
+                              >
+                                Save Note
+                              </Button>
+                            </CardFooter>
                           </Card>
-                        ))
-                      ) : !isCreatingNote && (
-                        <div className="text-center py-10 text-muted-foreground">
-                          <FileText className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                          <p>No notes found for this patient</p>
-                          <p className="text-sm mt-1">Create a new note to get started</p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-                
-                <TabsContent value="vitals" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-                  <VitalSignsPanel patientId={selectedPatient} />
-                </TabsContent>
-                
-                <TabsContent value="meds" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-                  <MedicationsPanel patientId={selectedPatient} />
-                </TabsContent>
-                
-                <TabsContent value="labs" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-                  <LabResultsPanel patientId={selectedPatient} />
-                </TabsContent>
-                
-                <TabsContent value="imaging" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
-                  <ImagingPanel patientId={selectedPatient} />
-                </TabsContent>
-              </Tabs>
-            </Card>
-          ) : (
-            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed">
-              <div className="text-center">
-                <h3 className="text-lg font-medium mb-2">Select a Patient</h3>
-                <p className="text-muted-foreground">
-                  Choose a patient from the list to start charting
-                </p>
+                        )}
+                        
+                        {isLoadingNotes ? (
+                          <div className="space-y-4">
+                            {[...Array(3)].map((_, i) => (
+                              <Card key={i} className="animate-pulse">
+                                <CardHeader className="pb-2">
+                                  <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+                                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="h-16 bg-gray-200 rounded w-full"></div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : notes && notes.length > 0 ? (
+                          notes.map((note) => (
+                            <Card key={note.id} className="mb-4">
+                              <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <CardTitle className="text-base">{note.type}</CardTitle>
+                                    <CardDescription>
+                                      {formatDateTime(note.date)} by {note.provider}
+                                    </CardDescription>
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                                      <DropdownMenuItem>Print</DropdownMenuItem>
+                                      <DropdownMenuItem>Share</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm">{note.content}</p>
+                              </CardContent>
+                            </Card>
+                          ))
+                        ) : !isCreatingNote && (
+                          <div className="text-center py-10 text-muted-foreground">
+                            <FileText className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                            <p>No notes found for this patient</p>
+                            <p className="text-sm mt-1">Create a new note to get started</p>
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+                  
+                  <TabsContent value="vitals" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
+                    <VitalSignsPanel patientId={selectedPatient} />
+                  </TabsContent>
+                  
+                  <TabsContent value="meds" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
+                    <MedicationsPanel patientId={selectedPatient} />
+                  </TabsContent>
+                  
+                  <TabsContent value="labs" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
+                    <LabResultsPanel patientId={selectedPatient} />
+                  </TabsContent>
+                  
+                  <TabsContent value="imaging" className="flex-1 flex flex-col m-0 px-6 py-3 overflow-hidden">
+                    <ImagingPanel patientId={selectedPatient} />
+                  </TabsContent>
+                </Tabs>
+              </Card>
+            ) : (
+              <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed">
+                <div className="text-center">
+                  <h3 className="text-lg font-medium mb-2">Select a Patient</h3>
+                  <p className="text-muted-foreground">
+                    Choose a patient from the list to start charting
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
 
-    <Sheet open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
-      <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto">
-        <SheetHeader className="mb-4">
-          <SheetTitle>Add New Patient</SheetTitle>
-          <SheetDescription>
-            Fill in the patient details below. Fields marked with * are required.
-          </SheetDescription>
-        </SheetHeader>
-        
-        <form onSubmit={handleSubmitPatient} className="space-y-6">
-          <PatientFormFields
-            formData={formState}
-            onChange={updateField}
-          />
+      <Sheet open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
+        <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Add New Patient</SheetTitle>
+            <SheetDescription>
+              Fill in the patient details below. Fields marked with * are required.
+            </SheetDescription>
+          </SheetHeader>
           
-          <PatientFacialCapture
-            facialData={formState.facialData}
-            onCapture={handleFacialDataCapture}
-          />
-          
-          <SheetFooter className="flex flex-col sm:flex-row gap-3 mt-6">
-            <Button 
-              type="submit" 
-              className="w-full sm:w-auto flex items-center bg-health-600 hover:bg-health-700" 
-              disabled={formState.isLoading}
-            >
-              {formState.isLoading ? "Adding Patient..." : "Submit Patient"}
-            </Button>
-            <Button 
-              type="button"
-              variant="outline" 
-              onClick={() => {
-                resetForm();
-                setIsAddPatientOpen(false);
-              }} 
-              className="w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-          </SheetFooter>
-        </form>
-      </SheetContent>
-    </Sheet>
+          <form onSubmit={handleSubmitPatient} className="space-y-6">
+            <PatientFormFields
+              formData={formState}
+              onChange={updateField}
+            />
+            
+            <PatientFacialCapture
+              facialData={formState.facialData}
+              onCapture={handleFacialDataCapture}
+            />
+            
+            <SheetFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+              <Button 
+                type="submit" 
+                className="w-full sm:w-auto flex items-center bg-health-600 hover:bg-health-700" 
+                disabled={formState.isLoading}
+              >
+                {formState.isLoading ? "Adding Patient..." : "Submit Patient"}
+              </Button>
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => {
+                  resetForm();
+                  setIsAddPatientOpen(false);
+                }} 
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };
 
