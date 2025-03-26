@@ -30,6 +30,7 @@ interface CommunicationContextType {
   rejectCall: () => void;
   endCall: () => void;
   setCallStatus: (status: Call["status"]) => void;
+  setIsCallActive: (active: boolean) => void;
 }
 
 const CommunicationContext = createContext<CommunicationContextType | undefined>(
@@ -63,7 +64,7 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
 
   useEffect(() => {
     // Mock online users - replace with actual data fetching
-    const mockOnlineUsers = [
+    const mockOnlineUsers: User[] = [
       {
         id: "2",
         name: "Dr. Emily Carter",
@@ -253,6 +254,7 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
     rejectCall,
     endCall,
     setCallStatus,
+    setIsCallActive,
   };
 
   return (

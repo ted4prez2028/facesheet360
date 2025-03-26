@@ -22,17 +22,15 @@ import { Input } from '@/components/ui/input';
 
 const ContactsList = () => {
   const { 
-    onlineUsers, 
-    allUsers,
-    isContactsOpen, 
+    contacts,
     toggleContacts,
-    startChat,
+    openChatWindow,
     startCall
   } = useCommunication();
   
   const [searchTerm, setSearchTerm] = React.useState('');
   
-  const filteredUsers = allUsers.filter(user => 
+  const filteredUsers = contacts.onlineUsers.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -48,7 +46,7 @@ const ContactsList = () => {
         <Users className="h-6 w-6" />
       </Button>
       
-      <Sheet open={isContactsOpen} onOpenChange={toggleContacts}>
+      <Sheet open={contacts.isOpen} onOpenChange={toggleContacts}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>Healthcare Team</SheetTitle>
@@ -71,13 +69,13 @@ const ContactsList = () => {
               ) : (
                 <div className="space-y-2">
                   {filteredUsers.map((user) => {
-                    const isOnline = onlineUsers.some(onlineUser => onlineUser.id === user.id);
+                    const isOnline = true; // All users in contacts.onlineUsers are online
                     return (
                       <ContactCard 
                         key={user.id} 
                         user={user}
                         isOnline={isOnline}
-                        onChat={() => startChat(user.id, user.name)}
+                        onChat={() => openChatWindow(user.id, user.name)}
                         onVideoCall={() => startCall(user.id, user.name, true)}
                         onAudioCall={() => startCall(user.id, user.name, false)}
                       />

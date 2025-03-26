@@ -7,7 +7,7 @@ import { useCommunication } from '@/context/CommunicationContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const CallDialog = () => {
-  const { currentCall, endCall } = useCommunication();
+  const { activeCall, endCall } = useCommunication();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
@@ -16,7 +16,7 @@ const CallDialog = () => {
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   
-  const isDialogOpen = currentCall !== null && currentCall.status === 'ongoing';
+  const isDialogOpen = activeCall !== null && activeCall.status === 'ongoing';
   
   // Set up video streams when call is ongoing
   useEffect(() => {
@@ -30,7 +30,7 @@ const CallDialog = () => {
       // Get local media stream
       navigator.mediaDevices
         .getUserMedia({ 
-          video: currentCall?.isVideoCall, 
+          video: activeCall?.isVideoCall, 
           audio: true 
         })
         .then(stream => {
@@ -40,7 +40,7 @@ const CallDialog = () => {
         })
         .catch(err => console.error('Error accessing media devices:', err));
     }
-  }, [isDialogOpen, currentCall]);
+  }, [isDialogOpen, activeCall]);
   
   // Call duration timer
   useEffect(() => {
@@ -94,11 +94,11 @@ const CallDialog = () => {
     }
   };
   
-  if (!currentCall) return null;
+  if (!activeCall) return null;
   
-  const remoteUserName = currentCall.callerId === currentCall.receiverId 
-    ? currentCall.callerName 
-    : currentCall.receiverName;
+  const remoteUserName = activeCall.callerId === activeCall.receiverId 
+    ? activeCall.callerName 
+    : activeCall.receiverName;
   
   const remoteUserInitials = remoteUserName
     ? remoteUserName.split(" ").map(n => n[0]).join("")
@@ -108,7 +108,7 @@ const CallDialog = () => {
     <Dialog open={isDialogOpen} onOpenChange={() => endCall()}>
       <DialogContent className="sm:max-w-lg p-0 gap-0">
         <div className="relative bg-black rounded-t-lg overflow-hidden h-[400px] flex items-center justify-center">
-          {currentCall.isVideoCall ? (
+          {activeCall.isVideoCall ? (
             <>
               {/* Remote video (large) */}
               <video
@@ -167,7 +167,7 @@ const CallDialog = () => {
           </Button>
           
           {/* Video toggle (only for video calls) */}
-          {currentCall.isVideoCall && (
+          {activeCall.isVideoCall && (
             <Button 
               variant="outline" 
               size="icon" 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   DropdownMenu,
@@ -82,8 +81,8 @@ const TopNav = () => {
     try {
       await logout();
       // Check if communication context exists and has the properties we need
-      if (communication && typeof communication.setCallActive === 'function') {
-        communication.setCallActive(false);
+      if (communication && typeof communication.setIsCallActive === 'function') {
+        communication.setIsCallActive(false);
       }
       navigate('/login');
     } catch (error) {

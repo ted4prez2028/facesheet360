@@ -24,7 +24,7 @@ const ChatWindows = () => {
 
 const ChatWindow = ({ window }: { window: any }) => {
   const { user } = useAuth();
-  const { minimizeChat, closeChat, sendMessage, startCall } = useCommunication();
+  const { minimizeChatWindow, closeChatWindow, sendMessage, startCall } = useCommunication();
   const [message, setMessage] = React.useState('');
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   
@@ -52,7 +52,7 @@ const ChatWindow = ({ window }: { window: any }) => {
     return (
       <Button
         className="flex items-center gap-2 mb-4 rounded-full h-12 shadow-md"
-        onClick={() => minimizeChat(window.userId)}
+        onClick={() => minimizeChatWindow(window.userId)}
       >
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-primary text-primary-foreground">
@@ -97,7 +97,7 @@ const ChatWindow = ({ window }: { window: any }) => {
             variant="ghost" 
             size="icon" 
             className="h-6 w-6 text-white hover:bg-health-700"
-            onClick={() => minimizeChat(window.userId)}
+            onClick={() => minimizeChatWindow(window.userId)}
           >
             <Minimize2 className="h-3 w-3" />
           </Button>
@@ -105,7 +105,7 @@ const ChatWindow = ({ window }: { window: any }) => {
             variant="ghost" 
             size="icon" 
             className="h-6 w-6 text-white hover:bg-health-700"
-            onClick={() => closeChat(window.userId)}
+            onClick={() => closeChatWindow(window.userId)}
           >
             <X className="h-3 w-3" />
           </Button>
