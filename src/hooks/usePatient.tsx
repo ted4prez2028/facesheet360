@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { getPatientById } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { getPatientByIdDirect } from '@/lib/api/directPatientsApi';
+import { toast } from 'sonner';
 
 export const usePatient = (patientId: string) => {
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -29,28 +29,37 @@ export const usePatient = (patientId: string) => {
           throw new Error("Authentication required. Please log in to view patient details.");
         }
         
-        // Try to use the direct method first to bypass RLS
-        try {
-          console.log("Attempting to fetch patient with direct method");
-          const directData = await getPatientByIdDirect(patientId);
+        // Directly query the patients table with RLS
+        const { data, error: patientError } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('id', patientId)
+          .single();
+        
+        if (patientError) {
+          console.error("Error fetching patient with direct query:", patientError);
           
-          if (directData) {
-            setPatient(directData);
+          // Fallback to standard API
+          console.log("Attempting fallback to standard API");
+          const fallbackData = await getPatientById(patientId);
+          
+          if (fallbackData) {
+            setPatient(fallbackData);
             setError(null);
             return;
+          } else {
+            throw new Error("Patient not found");
           }
-        } catch (directErr) {
-          console.warn("Falling back to standard API for patient fetch:", directErr);
-          // Fall back to the standard method
         }
         
-        // Standard method as fallback
-        const data = await getPatientById(patientId);
         setPatient(data);
         setError(null);
       } catch (err) {
         console.error("Error fetching patient:", err);
         setError(err instanceof Error ? err : new Error("Failed to fetch patient"));
+        
+        // Display a user-friendly error message
+        toast.error("Unable to load patient data. Please try again later.");
       } finally {
         setIsLoading(false);
       }

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Patient } from "@/types";
 
@@ -41,22 +40,31 @@ export const getPatients = async () => {
   }
 };
 
-export const getPatientById = async (id: string) => {
+export const getPatientById = async (id: string): Promise<Patient | null> => {
   try {
-    // Check for valid session first
-    await ensureAuthenticated();
+    // Verify authentication first
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      console.error("Authentication required for getPatientById");
+      return null;
+    }
     
+    // Try the direct query first
     const { data, error } = await supabase
-      .from("patients")
-      .select("*")
-      .eq("id", id)
+      .from('patients')
+      .select('*')
+      .eq('id', id)
       .single();
-
-    if (error) throw error;
+    
+    if (error) {
+      console.error("Error in getPatientById:", error);
+      return null;
+    }
+    
     return data as Patient;
   } catch (error) {
     console.error(`Error fetching patient with ID ${id}:`, error);
-    throw error;
+    return null;
   }
 };
 

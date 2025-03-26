@@ -40,12 +40,12 @@ const AuthErrorAlert: React.FC<AuthErrorAlertProps> = ({
       {error && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Database Permission Error</AlertTitle>
+          <AlertTitle>Error Loading Patient Data</AlertTitle>
           <AlertDescription className="flex flex-col space-y-2">
             <div>
               {error instanceof Error 
                 ? error.message 
-                : "Database permission error. Please ensure you're logged in with the correct credentials."}
+                : "Unable to load patient data. Please try again later."}
             </div>
             <div>
               <Button 

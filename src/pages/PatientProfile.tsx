@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,20 +30,20 @@ import CarePlanForm from '@/components/care-plan/CarePlanForm';
 import PrescriptionList from '@/components/prescriptions/PrescriptionList';
 import PrescriptionForm from '@/components/prescriptions/PrescriptionForm';
 import { useAuth } from '@/context/AuthContext';
+import AuthErrorAlert from '@/components/patients/AuthErrorAlert';
 
 export default function PatientProfile() {
   const { patientId } = useParams<{ patientId: string }>();
   const { patient, isLoading, error } = usePatient(patientId || "");
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isCarePlanFormOpen, setIsCarePlanFormOpen] = useState(false);
   const [isPrescriptionFormOpen, setIsPrescriptionFormOpen] = useState(false);
 
-  useEffect(() => {
-    if (error) {
-      console.error("Error fetching patient:", error);
-    }
-  }, [error]);
+  const refetchPatient = useCallback(() => {
+    // This will trigger the useEffect in usePatient to run again
+    window.location.reload();
+  }, []);
 
   if (isLoading) {
     return (
@@ -95,11 +94,23 @@ export default function PatientProfile() {
     );
   }
 
-  if (error) {
+  // Show auth error or data error
+  if (!isAuthenticated || error) {
     return (
       <DashboardLayout>
         <div className="container py-6 space-y-8">
-          <div className="text-red-500">Error: {error.message}</div>
+          <AuthErrorAlert 
+            isAuthenticated={isAuthenticated} 
+            error={error} 
+            refetch={refetchPatient} 
+          />
+          
+          {/* Show back button if there's an error */}
+          {error && (
+            <Button variant="outline" asChild>
+              <Link to="/patients">Back to Patients</Link>
+            </Button>
+          )}
         </div>
       </DashboardLayout>
     );
