@@ -53,44 +53,48 @@ export const useRolePermissions = () => {
         if (error) {
           console.error("Edge function error:", error);
           
-          // Fall back to direct query as a backup method using custom query rather than typed client
+          // Fall back to direct query as a backup method
           try {
             console.log("Falling back to direct query for user roles");
-            const { data: directData, error: directError } = await supabase
-              .rpc('get_user_roles', { user_id: user.id });
             
-            if (directError) {
-              console.error("RPC error:", directError);
-              // Try raw SQL query as last fallback
-              const { data: rawData, error: rawError } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', user.id)
-                .single();
-                
-              if (rawError) {
-                throw rawError;
-              }
+            // First try user_roles table
+            const { data: userRolesData, error: userRolesError } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', user.id);
               
-              // If user has a role in the users table, use that
-              if (rawData?.role) {
-                setUserRoles([rawData.role as HealthcareRole]);
-                return;
-              }
-              
-              throw new Error("Could not retrieve user roles");
-            }
-            
-            // Process RPC data
-            if (directData && Array.isArray(directData)) {
-              const roles = directData.map(row => row.role as HealthcareRole);
+            if (!userRolesError && userRolesData && userRolesData.length > 0) {
+              // Extract the roles from the results
+              const roles = userRolesData.map(row => row.role as HealthcareRole);
               setUserRoles(roles);
+              setIsLoading(false);
               return;
             }
+            
+            // If that fails, try users table
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('role')
+              .eq('id', user.id)
+              .single();
+                
+            if (userError) {
+              throw userError;
+            }
+            
+            // If user has a role in the users table, use that
+            if (userData?.role) {
+              setUserRoles([userData.role as HealthcareRole]);
+              setIsLoading(false);
+              return;
+            }
+            
+            throw new Error("Could not retrieve user roles");
           } catch (directErr) {
             console.error("Direct query fallback failed:", directErr);
             // If user is logged in but we can't retrieve roles, default to basic role
             setUserRoles(['doctor']); // Assume doctor role as fallback
+            setIsLoading(false);
             return;
           }
         }
@@ -151,23 +155,26 @@ export const useRolePermissions = () => {
       if (error) {
         console.error("Edge function error:", error);
         
-        // Fall back to RPC function if available
+        // Fall back to direct query
         try {
-          console.log("Falling back to RPC for patient assignment");
-          const { data: rpcData, error: rpcError } = await supabase
-            .rpc('check_patient_assignment', {
-              staff_id: user.id,
-              patient_id: patientId
-            });
+          console.log("Falling back to direct query for patient assignment");
           
-          if (rpcError) {
-            console.error("RPC error:", rpcError);
+          const { data: assignmentData, error: assignmentError } = await supabase
+            .from('care_team_assignments')
+            .select('id')
+            .eq('staff_id', user.id)
+            .eq('patient_id', patientId)
+            .eq('active', true)
+            .maybeSingle();
+          
+          if (assignmentError) {
+            console.error("Direct query error:", assignmentError);
             return false;
           }
           
-          return !!rpcData;
-        } catch (rpcErr) {
-          console.error("RPC fallback failed:", rpcErr);
+          return !!assignmentData;
+        } catch (directErr) {
+          console.error("Direct query fallback failed:", directErr);
           return false;
         }
       }
@@ -203,44 +210,83 @@ export const useRolePermissions = () => {
         throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
       }
       
-      // Use edge function if available
-      try {
-        const { data: funcData, error: funcError } = await supabase.functions.invoke('assign-to-patient', {
-          body: { 
-            staffId,
-            patientId,
-            role,
-            assignedBy: user.id
-          }
-        });
-        
-        if (funcError) {
-          console.error("Edge function error:", funcError);
-          // Continue to fallback
-        } else if (funcData) {
-          toast.success(`Staff member assigned to patient successfully`);
-          return funcData;
+      // Use edge function
+      const { data: funcData, error: funcError } = await supabase.functions.invoke('assign-to-patient', {
+        body: { 
+          staffId,
+          patientId,
+          role,
+          assignedBy: user.id
         }
-      } catch (funcErr) {
-        console.error("Error using edge function:", funcErr);
-        // Continue to fallback
-      }
-      
-      // Direct insert as fallback using custom query
-      const { data, error } = await supabase.rpc('assign_to_patient', {
-        p_staff_id: staffId,
-        p_patient_id: patientId,
-        p_role: role,
-        p_assigned_by: user.id
       });
       
-      if (error) {
-        console.error("RPC error:", error);
-        throw error;
+      if (funcError) {
+        console.error("Edge function error:", funcError);
+        
+        // Fall back to direct insert
+        try {
+          console.log("Falling back to direct query for assigning to patient");
+          
+          // Check if assignment already exists
+          const { data: existingAssignment, error: checkError } = await supabase
+            .from('care_team_assignments')
+            .select('id')
+            .eq('staff_id', staffId)
+            .eq('patient_id', patientId)
+            .eq('role', role)
+            .maybeSingle();
+            
+          if (checkError) {
+            throw checkError;
+          }
+          
+          let result;
+          
+          // If assignment exists, update it
+          if (existingAssignment) {
+            const { data: updatedData, error: updateError } = await supabase
+              .from('care_team_assignments')
+              .update({ active: true })
+              .eq('id', existingAssignment.id)
+              .select()
+              .single();
+              
+            if (updateError) {
+              throw updateError;
+            }
+            
+            result = updatedData;
+          } else {
+            // Create new assignment
+            const { data: newAssignment, error: insertError } = await supabase
+              .from('care_team_assignments')
+              .insert({
+                staff_id: staffId,
+                patient_id: patientId,
+                role: role,
+                assigned_by: user.id,
+                active: true
+              })
+              .select()
+              .single();
+              
+            if (insertError) {
+              throw insertError;
+            }
+            
+            result = newAssignment;
+          }
+          
+          toast.success(`Staff member assigned to patient successfully`);
+          return result;
+        } catch (directErr) {
+          console.error("Direct insert fallback failed:", directErr);
+          throw directErr;
+        }
       }
       
       toast.success(`Staff member assigned to patient successfully`);
-      return data;
+      return funcData;
     } catch (err) {
       console.error('Error assigning staff to patient:', err);
       toast.error('Failed to assign staff to patient');
@@ -268,32 +314,34 @@ export const useRolePermissions = () => {
         throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
       }
       
-      // Use edge function if available
-      try {
-        const { data: funcData, error: funcError } = await supabase.functions.invoke('remove-from-patient', {
-          body: { assignmentId }
-        });
-        
-        if (funcError) {
-          console.error("Edge function error:", funcError);
-          // Continue to fallback
-        } else {
-          toast.success('Staff member removed from care team');
-          return true;
-        }
-      } catch (funcErr) {
-        console.error("Error using edge function:", funcErr);
-        // Continue to fallback
-      }
-      
-      // Direct delete as fallback using RPC
-      const { data, error } = await supabase.rpc('remove_from_patient', {
-        p_assignment_id: assignmentId
+      // Use edge function
+      const { data: funcData, error: funcError } = await supabase.functions.invoke('remove-from-patient', {
+        body: { assignmentId }
       });
       
-      if (error) {
-        console.error("RPC error:", error);
-        throw error;
+      if (funcError) {
+        console.error("Edge function error:", funcError);
+        
+        // Fall back to direct delete
+        try {
+          console.log("Falling back to direct query for removing from patient");
+          
+          const { data, error } = await supabase
+            .from('care_team_assignments')
+            .update({ active: false })
+            .eq('id', assignmentId)
+            .select();
+          
+          if (error) {
+            throw error;
+          }
+          
+          toast.success('Staff member removed from care team');
+          return true;
+        } catch (directErr) {
+          console.error("Direct delete fallback failed:", directErr);
+          throw directErr;
+        }
       }
       
       toast.success('Staff member removed from care team');
@@ -316,4 +364,3 @@ export const useRolePermissions = () => {
     error
   };
 };
-
