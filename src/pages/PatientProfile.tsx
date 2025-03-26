@@ -17,18 +17,28 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, FileText, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { usePatient } from '@/hooks/usePatient';
 import { Skeleton } from '@/components/ui/skeleton';
+import CarePlanList from '@/components/care-plan/CarePlanList';
+import CarePlanForm from '@/components/care-plan/CarePlanForm';
+import PrescriptionList from '@/components/prescriptions/PrescriptionList';
+import PrescriptionForm from '@/components/prescriptions/PrescriptionForm';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PatientProfile() {
   const { patientId } = useParams<{ patientId: string }>();
   const { patient, isLoading, error } = usePatient(patientId || "");
+  const { user } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isCarePlanFormOpen, setIsCarePlanFormOpen] = useState(false);
+  const [isPrescriptionFormOpen, setIsPrescriptionFormOpen] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -155,46 +165,90 @@ export default function PatientProfile() {
           </div>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Appointments</CardTitle>
-            <CardDescription>Schedule and manage appointments</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="relative">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
+        {patient && (
+          <Tabs defaultValue="care-plan" className="w-full">
+            <TabsList className="grid grid-cols-3 w-full md:w-auto">
+              <TabsTrigger value="care-plan">Care Plans</TabsTrigger>
+              <TabsTrigger value="medications">Medications</TabsTrigger>
+              <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="care-plan" className="py-4">
+              <Dialog open={isCarePlanFormOpen} onOpenChange={setIsCarePlanFormOpen}>
+                <DialogContent className="max-w-3xl">
+                  <CarePlanForm 
+                    patientId={patient.id} 
+                    onClose={() => setIsCarePlanFormOpen(false)}
                   />
-                </PopoverContent>
-              </Popover>
-            </div>
+                </DialogContent>
+              </Dialog>
+              
+              <CarePlanList 
+                patient={patient} 
+                onAddNew={() => setIsCarePlanFormOpen(true)}
+              />
+            </TabsContent>
+            
+            <TabsContent value="medications" className="py-4">
+              <Dialog open={isPrescriptionFormOpen} onOpenChange={setIsPrescriptionFormOpen}>
+                <DialogContent className="max-w-3xl">
+                  <PrescriptionForm 
+                    patientId={patient.id} 
+                    onClose={() => setIsPrescriptionFormOpen(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+              
+              <PrescriptionList 
+                patientId={patient.id} 
+                onAddNew={() => setIsPrescriptionFormOpen(true)}
+              />
+            </TabsContent>
+            
+            <TabsContent value="appointments" className="py-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Appointments</CardTitle>
+                  <CardDescription>Schedule and manage appointments</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                  <div className="relative">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[280px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
-            <div>
-              <Label htmlFor="note">Note</Label>
-              <Textarea id="note" placeholder="Appointment notes..." />
-            </div>
-          </CardContent>
-        </Card>
+                  <div>
+                    <Label htmlFor="note">Note</Label>
+                    <Textarea id="note" placeholder="Appointment notes..." />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
 
         {/* Display Vital Signs */}
         {/* @ts-ignore - Checking for possibly non-existent property */}

@@ -1,0 +1,4 @@
+
+project_id = "tuembzleutkexrmrzxkg"
+[functions.generate-care-plan]
+verify_jwt = true
