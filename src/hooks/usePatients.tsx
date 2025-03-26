@@ -18,6 +18,7 @@ const fetchPatients = async () => {
     return await getPatientsApi();
   } catch (error) {
     console.error("Error fetching patients:", error);
+    toast.error("Error loading patients: " + ((error as any)?.message || "Unknown error"));
     // Return empty array instead of throwing to prevent UI crashes
     return [];
   }
@@ -27,6 +28,8 @@ export const usePatients = () => {
   return useQuery({
     queryKey: [patientsQueryKey],
     queryFn: fetchPatients,
+    retry: 1,
+    retryDelay: 1000,
   });
 };
 
@@ -36,7 +39,7 @@ const fetchPatient = async (id: string) => {
     return await getPatientApi(id);
   } catch (error) {
     console.error(`Error fetching patient with ID ${id}:`, error);
-    toast(`Error fetching patient: ${(error as any)?.message || 'Unknown error'}`);
+    toast.error(`Error fetching patient: ${(error as any)?.message || 'Unknown error'}`);
     throw error;
   }
 };
@@ -46,6 +49,8 @@ export const usePatient = (id: string) => {
     queryKey: [patientsQueryKey, id],
     queryFn: () => fetchPatient(id),
     enabled: !!id, // Only run the query if the patient ID is available
+    retry: 1,
+    retryDelay: 1000,
   });
 };
 
@@ -58,6 +63,9 @@ export const useCreatePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
+    onError: (error) => {
+      toast.error(`Error creating patient: ${(error as any)?.message || 'Unknown error'}`);
+    }
   });
 };
 
@@ -71,6 +79,9 @@ export const useUpdatePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
+    onError: (error) => {
+      toast.error(`Error updating patient: ${(error as any)?.message || 'Unknown error'}`);
+    }
   });
 };
 
@@ -83,6 +94,9 @@ export const useDeletePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
     },
+    onError: (error) => {
+      toast.error(`Error deleting patient: ${(error as any)?.message || 'Unknown error'}`);
+    }
   });
 };
 

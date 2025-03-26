@@ -13,7 +13,8 @@ import {
   Users,
   MessageSquare, 
   Video, 
-  PhoneCall 
+  PhoneCall,
+  Circle
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCommunication } from '@/context/CommunicationContext';
@@ -22,6 +23,7 @@ import { Input } from '@/components/ui/input';
 const ContactsList = () => {
   const { 
     onlineUsers, 
+    allUsers,
     isContactsOpen, 
     toggleContacts,
     startChat,
@@ -30,7 +32,7 @@ const ContactsList = () => {
   
   const [searchTerm, setSearchTerm] = React.useState('');
   
-  const filteredUsers = onlineUsers.filter(user => 
+  const filteredUsers = allUsers.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -68,15 +70,19 @@ const ContactsList = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {filteredUsers.map((user) => (
-                    <ContactCard 
-                      key={user.id} 
-                      user={user} 
-                      onChat={() => startChat(user.id, user.name)}
-                      onVideoCall={() => startCall(user.id, user.name, true)}
-                      onAudioCall={() => startCall(user.id, user.name, false)}
-                    />
-                  ))}
+                  {filteredUsers.map((user) => {
+                    const isOnline = onlineUsers.some(onlineUser => onlineUser.id === user.id);
+                    return (
+                      <ContactCard 
+                        key={user.id} 
+                        user={user}
+                        isOnline={isOnline}
+                        onChat={() => startChat(user.id, user.name)}
+                        onVideoCall={() => startCall(user.id, user.name, true)}
+                        onAudioCall={() => startCall(user.id, user.name, false)}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -89,12 +95,13 @@ const ContactsList = () => {
 
 interface ContactCardProps {
   user: User;
+  isOnline: boolean;
   onChat: () => void;
   onVideoCall: () => void;
   onAudioCall: () => void;
 }
 
-const ContactCard = ({ user, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
+const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
   const userInitials = user.name
     ? user.name
         .split(" ")
@@ -104,13 +111,16 @@ const ContactCard = ({ user, onChat, onVideoCall, onAudioCall }: ContactCardProp
     
   return (
     <div className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3 relative">
         <Avatar className="h-10 w-10">
           <AvatarImage src={user.profile_image} />
           <AvatarFallback className="bg-health-600 text-white">
             {userInitials}
           </AvatarFallback>
         </Avatar>
+        {isOnline && (
+          <Circle className="absolute bottom-0 right-0 h-3 w-3 fill-green-500 text-green-500 translate-x-1/4 translate-y-1/4" />
+        )}
         <div>
           <p className="font-medium text-sm">{user.name}</p>
           <p className="text-xs text-muted-foreground capitalize">{user.role}</p>

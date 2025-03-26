@@ -27,6 +27,8 @@ import {
   BarChart, 
   Bar 
 } from "recharts";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Mock data
 const patientStatistics = [
@@ -70,9 +72,9 @@ const pendingTasks = [
 ];
 
 const Dashboard = () => {
-  const [careCoins, setCareCoins] = useState(245);
   const [timeframe, setTimeframe] = useState("week");
   const { toast } = useToast();
+  const { data: dashboardData, isLoading, error } = useDashboardData();
 
   useEffect(() => {
     // Simulate loading data
@@ -103,10 +105,16 @@ const Dashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">28</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +2 from yesterday
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{dashboardData?.activePatients || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Updated just now
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           
@@ -116,10 +124,16 @@ const Dashboard = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                2 in the next hour
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{dashboardData?.todayAppointments || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    For today
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           
@@ -129,10 +143,16 @@ const Dashboard = () => {
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                4 high priority
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{dashboardData?.pendingTasks || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Needs attention
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
           
@@ -142,10 +162,16 @@ const Dashboard = () => {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{careCoins}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                +45 this week
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">{dashboardData?.careCoinsEarned || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Total balance
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

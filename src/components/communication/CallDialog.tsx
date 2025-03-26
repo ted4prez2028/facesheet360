@@ -1,21 +1,33 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MicOff, VideoOff, PhoneCall } from 'lucide-react';
+import { MicOff, Mic, VideoOff, Video, PhoneOff, Volume2, Volume } from 'lucide-react';
 import { useCommunication } from '@/context/CommunicationContext';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const CallDialog = () => {
   const { currentCall, endCall } = useCommunication();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   
+  const [micMuted, setMicMuted] = useState(false);
+  const [videoOff, setVideoOff] = useState(false);
+  const [speakerMuted, setSpeakerMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  
   const isDialogOpen = currentCall !== null && currentCall.status === 'ongoing';
   
   // Set up video streams when call is ongoing
   useEffect(() => {
     if (isDialogOpen) {
-      // Get local media stream (this would come from CommunicationContext in a real implementation)
+      // Reset states when call starts
+      setMicMuted(false);
+      setVideoOff(false);
+      setSpeakerMuted(false);
+      setCallDuration(0);
+      
+      // Get local media stream
       navigator.mediaDevices
         .getUserMedia({ 
           video: currentCall?.isVideoCall, 
@@ -27,12 +39,70 @@ const CallDialog = () => {
           }
         })
         .catch(err => console.error('Error accessing media devices:', err));
-      
-      // Remote stream would be handled by WebRTC connection
     }
   }, [isDialogOpen, currentCall]);
   
+  // Call duration timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isDialogOpen) {
+      timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isDialogOpen]);
+  
+  // Format call duration
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Toggle microphone
+  const toggleMic = () => {
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      stream.getAudioTracks().forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setMicMuted(!micMuted);
+    }
+  };
+  
+  // Toggle video
+  const toggleVideo = () => {
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      stream.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setVideoOff(!videoOff);
+    }
+  };
+  
+  // Toggle speaker
+  const toggleSpeaker = () => {
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.muted = !remoteVideoRef.current.muted;
+      setSpeakerMuted(!speakerMuted);
+    }
+  };
+  
   if (!currentCall) return null;
+  
+  const remoteUserName = currentCall.callerId === currentCall.receiverId 
+    ? currentCall.callerName 
+    : currentCall.receiverName;
+  
+  const remoteUserInitials = remoteUserName
+    ? remoteUserName.split(" ").map(n => n[0]).join("")
+    : "?";
   
   return (
     <Dialog open={isDialogOpen} onOpenChange={() => endCall()}>
@@ -49,50 +119,83 @@ const CallDialog = () => {
                 className="w-full h-full object-cover"
               />
               
+              {/* Call duration */}
+              <div className="absolute top-4 left-4 bg-black/50 px-2 py-1 rounded-md text-white text-sm">
+                {formatDuration(callDuration)}
+              </div>
+              
               {/* Local video (small overlay) */}
-              <div className="absolute bottom-4 right-4 w-1/4 border-2 border-white rounded-lg overflow-hidden shadow-lg">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
+              <div className={`absolute bottom-4 right-4 w-1/4 border-2 border-white rounded-lg overflow-hidden shadow-lg ${videoOff ? 'bg-gray-800' : ''}`}>
+                {videoOff ? (
+                  <div className="w-full h-full aspect-video flex items-center justify-center text-white">
+                    <Video className="h-8 w-8 opacity-50" />
+                  </div>
+                ) : (
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </>
           ) : (
             <div className="text-white flex flex-col items-center justify-center">
-              <div className="w-24 h-24 rounded-full bg-health-600 flex items-center justify-center mb-4">
-                <span className="text-3xl">
-                  {currentCall.callerName.charAt(0)}
-                </span>
-              </div>
-              <h3 className="text-xl font-medium">
-                {currentCall.callerId === currentCall.receiverId 
-                  ? currentCall.callerName 
-                  : currentCall.receiverName}
-              </h3>
+              <Avatar className="w-24 h-24 mb-4">
+                <AvatarFallback className="bg-health-600 text-white text-3xl">
+                  {remoteUserInitials}
+                </AvatarFallback>
+              </Avatar>
+              <h3 className="text-xl font-medium">{remoteUserName}</h3>
               <p className="text-gray-400">Voice call</p>
+              <p className="mt-4 text-gray-300">{formatDuration(callDuration)}</p>
             </div>
           )}
         </div>
         
-        <div className="flex items-center justify-center gap-4 p-4">
-          <Button variant="outline" size="icon" className="rounded-full h-12 w-12">
-            <MicOff className="h-5 w-5" />
+        <div className="flex items-center justify-center gap-4 p-4 bg-gray-100">
+          {/* Microphone toggle */}
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className={`rounded-full h-12 w-12 ${micMuted ? 'bg-red-100' : ''}`}
+            onClick={toggleMic}
+          >
+            {micMuted ? <MicOff className="h-5 w-5 text-red-500" /> : <Mic className="h-5 w-5" />}
           </Button>
+          
+          {/* Video toggle (only for video calls) */}
           {currentCall.isVideoCall && (
-            <Button variant="outline" size="icon" className="rounded-full h-12 w-12">
-              <VideoOff className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className={`rounded-full h-12 w-12 ${videoOff ? 'bg-red-100' : ''}`}
+              onClick={toggleVideo}
+            >
+              {videoOff ? <VideoOff className="h-5 w-5 text-red-500" /> : <Video className="h-5 w-5" />}
             </Button>
           )}
+          
+          {/* Speaker toggle */}
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className={`rounded-full h-12 w-12 ${speakerMuted ? 'bg-red-100' : ''}`}
+            onClick={toggleSpeaker}
+          >
+            {speakerMuted ? <Volume className="h-5 w-5 text-red-500" /> : <Volume2 className="h-5 w-5" />}
+          </Button>
+          
+          {/* End call */}
           <Button 
             variant="destructive" 
             size="icon" 
             className="rounded-full h-12 w-12"
             onClick={endCall}
           >
-            <PhoneCall className="h-5 w-5" />
+            <PhoneOff className="h-5 w-5" />
           </Button>
         </div>
       </DialogContent>

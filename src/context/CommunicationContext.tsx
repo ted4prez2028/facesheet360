@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import { User, Message, Call, ChatWindow } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 
 interface CommunicationContextType {
   onlineUsers: User[];
+  allUsers: User[];
   chatWindows: ChatWindow[];
   currentCall: Call | null;
   isContactsOpen: boolean;
@@ -21,7 +22,7 @@ interface CommunicationContextType {
   answerCall: () => void;
   endCall: () => void;
   addMessageToChat: (senderId: string, content: string) => void;
-  setCallActive?: (active: boolean) => void; // Added this property as optional
+  setCallActive?: (active: boolean) => void;
 }
 
 const CommunicationContext = createContext<CommunicationContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ const CommunicationContext = createContext<CommunicationContextType | undefined>
 export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [chatWindows, setChatWindows] = useState<ChatWindow[]>([]);
   const [currentCall, setCurrentCall] = useState<Call | null>(null);
   const [isContactsOpen, setIsContactsOpen] = useState(false);
@@ -44,77 +46,99 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const users = await getUsers();
         const filteredUsers = users.filter(u => u.id !== user.id);
+        setAllUsers(filteredUsers);
         setOnlineUsers(filteredUsers);
       } catch (error) {
         console.error("Error loading users:", error);
+        toast.error("Error loading users");
       }
     };
 
     loadUsers();
     
-    const channel = supabase.channel('online-users')
-      .on('presence', { event: 'sync' }, () => {
-        const presenceState = channel.presenceState();
-        console.log('Current presence state:', presenceState);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
-        loadUsers();
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
-        loadUsers();
-      });
-
-    channel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
-        await channel.track({
-          user_id: user.id,
-          online_at: new Date().toISOString(),
-          name: user.name
+    try {
+      const channel = supabase.channel('online-users')
+        .on('presence', { event: 'sync' }, () => {
+          const presenceState = channel.presenceState();
+          console.log('Current presence state:', presenceState);
+        })
+        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+          console.log('User joined:', key, newPresences);
+          loadUsers();
+        })
+        .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+          console.log('User left:', key, leftPresences);
+          loadUsers();
         });
-      }
-    });
 
-    const messageChannel = supabase.channel('private-messages')
-      .on('broadcast', { event: 'message' }, payload => {
-        const { sender_id, content, sender_name } = payload;
-        
-        if (!chatWindows.some(window => window.userId === sender_id)) {
-          startChat(sender_id, sender_name);
+      channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          try {
+            await channel.track({
+              user_id: user.id,
+              online_at: new Date().toISOString(),
+              name: user.name
+            });
+          } catch (error) {
+            console.error("Error tracking user presence:", error);
+          }
         }
-        
-        addMessageToChat(sender_id, content);
-        
-        playNotificationSound();
-      })
-      .on('broadcast', { event: 'call-request' }, payload => {
-        const { caller_id, caller_name, is_video } = payload;
-        handleIncomingCall(caller_id, caller_name, is_video);
-      })
-      .on('broadcast', { event: 'call-answer' }, payload => {
-        const { user_id } = payload;
-        handleCallAnswered(user_id);
-      })
-      .on('broadcast', { event: 'call-end' }, payload => {
-        const { user_id } = payload;
-        handleCallEnded(user_id);
       });
-      
-    messageChannel.subscribe();
 
-    channelRef.current = {
-      presence: channel,
-      messages: messageChannel
-    };
+      const messageChannel = supabase.channel('private-messages')
+        .on('broadcast', { event: 'message' }, payload => {
+          const { sender_id, content, sender_name } = payload;
+          
+          if (!chatWindows.some(window => window.userId === sender_id)) {
+            startChat(sender_id, sender_name);
+          }
+          
+          addMessageToChat(sender_id, content);
+          
+          playNotificationSound();
+        })
+        .on('broadcast', { event: 'call-request' }, payload => {
+          const { caller_id, caller_name, is_video } = payload;
+          handleIncomingCall(caller_id, caller_name, is_video);
+        })
+        .on('broadcast', { event: 'call-answer' }, payload => {
+          const { user_id } = payload;
+          handleCallAnswered(user_id);
+        })
+        .on('broadcast', { event: 'call-end' }, payload => {
+          const { user_id } = payload;
+          handleCallEnded(user_id);
+        })
+        .on('broadcast', { event: 'ice-candidate' }, payload => {
+          const { candidate, user_id } = payload;
+          handleIceCandidate(user_id, candidate);
+        });
+        
+      messageChannel.subscribe();
+
+      channelRef.current = {
+        presence: channel,
+        messages: messageChannel
+      };
+    } catch (error) {
+      console.error("Error setting up Supabase channels:", error);
+    }
 
     return () => {
       if (channelRef.current?.presence) {
-        channelRef.current.presence.untrack();
-        supabase.removeChannel(channelRef.current.presence);
+        try {
+          channelRef.current.presence.untrack();
+          supabase.removeChannel(channelRef.current.presence);
+        } catch (error) {
+          console.error("Error removing presence channel:", error);
+        }
       }
       if (channelRef.current?.messages) {
-        supabase.removeChannel(channelRef.current.messages);
+        try {
+          supabase.removeChannel(channelRef.current.messages);
+        } catch (error) {
+          console.error("Error removing message channel:", error);
+        }
       }
       
       Object.values(peerConnections.current).forEach(connection => {
@@ -126,6 +150,13 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
   }, [user]);
+
+  const handleIceCandidate = (userId: string, candidate: RTCIceCandidate) => {
+    if (peerConnections.current[userId]) {
+      peerConnections.current[userId].addIceCandidate(new RTCIceCandidate(candidate))
+        .catch(err => console.error("Error adding ice candidate:", err));
+    }
+  };
 
   const playNotificationSound = () => {
     const audio = new Audio('/notification.mp3');
@@ -197,21 +228,28 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       })
     );
     
-    channelRef.current?.messages.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: {
-        sender_id: user.id,
-        recipient_id: userId,
-        content,
-        sender_name: user.name,
-        timestamp: new Date().toISOString()
+    try {
+      if (channelRef.current?.messages) {
+        channelRef.current.messages.send({
+          type: 'broadcast',
+          event: 'message',
+          payload: {
+            sender_id: user.id,
+            recipient_id: userId,
+            content,
+            sender_name: user.name,
+            timestamp: new Date().toISOString()
+          }
+        });
       }
-    });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Error sending message");
+    }
   };
 
   const addMessageToChat = (senderId: string, content: string) => {
-    const sender = onlineUsers.find(u => u.id === senderId);
+    const sender = allUsers.find(u => u.id === senderId);
     
     if (!chatWindows.some(window => window.userId === senderId) && sender) {
       setChatWindows(prev => [
@@ -268,15 +306,24 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
         status: 'ringing'
       });
       
-      channelRef.current?.messages.send({
-        type: 'broadcast',
-        event: 'call-request',
-        payload: {
-          caller_id: user.id,
-          caller_name: user.name,
-          is_video: isVideo
+      try {
+        if (channelRef.current?.messages) {
+          channelRef.current.messages.send({
+            type: 'broadcast',
+            event: 'call-request',
+            payload: {
+              caller_id: user.id,
+              caller_name: user.name,
+              is_video: isVideo
+            }
+          });
         }
-      });
+      } catch (error) {
+        console.error("Error sending call request:", error);
+        toast.error("Error initiating call");
+        endCall();
+        return;
+      }
       
       initializeWebRTC(userId);
       
@@ -354,13 +401,22 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
       
       setCurrentCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
       
-      channelRef.current?.messages.send({
-        type: 'broadcast',
-        event: 'call-answer',
-        payload: {
-          user_id: currentCall.callerId
+      try {
+        if (channelRef.current?.messages) {
+          channelRef.current.messages.send({
+            type: 'broadcast',
+            event: 'call-answer',
+            payload: {
+              user_id: currentCall.callerId
+            }
+          });
         }
-      });
+      } catch (error) {
+        console.error("Error sending call answer:", error);
+        toast.error("Error answering call");
+        endCall();
+        return;
+      }
       
       initializeWebRTC(currentCall.callerId);
       
@@ -382,51 +438,86 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const initializeWebRTC = (remotePeerId: string) => {
-    const peerConnection = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    });
-    
-    if (localStream.current) {
-      localStream.current.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStream.current!);
+    try {
+      const peerConnection = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
       });
-    }
-    
-    peerConnection.onicecandidate = event => {
-      if (event.candidate) {
-        channelRef.current?.messages.send({
-          type: 'broadcast',
-          event: 'ice-candidate',
-          payload: {
-            candidate: event.candidate,
-            user_id: remotePeerId
-          }
+      
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(track => {
+          peerConnection.addTrack(track, localStream.current!);
         });
       }
-    };
-    
-    peerConnection.ontrack = event => {
-      const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
-      if (remoteVideo && event.streams[0]) {
-        remoteVideo.srcObject = event.streams[0];
-      }
-    };
-    
-    peerConnections.current[remotePeerId] = peerConnection;
+      
+      peerConnection.onicecandidate = event => {
+        if (event.candidate && channelRef.current?.messages) {
+          try {
+            channelRef.current.messages.send({
+              type: 'broadcast',
+              event: 'ice-candidate',
+              payload: {
+                candidate: event.candidate,
+                user_id: remotePeerId
+              }
+            });
+          } catch (error) {
+            console.error("Error sending ICE candidate:", error);
+          }
+        }
+      };
+      
+      peerConnection.ontrack = event => {
+        const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
+        if (remoteVideo && event.streams[0]) {
+          remoteVideo.srcObject = event.streams[0];
+        }
+      };
+      
+      peerConnection.onnegotiationneeded = async () => {
+        try {
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          
+          if (channelRef.current?.messages) {
+            channelRef.current.messages.send({
+              type: 'broadcast',
+              event: 'offer',
+              payload: {
+                offer: peerConnection.localDescription,
+                user_id: remotePeerId
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Error creating offer:", error);
+        }
+      };
+      
+      peerConnections.current[remotePeerId] = peerConnection;
+    } catch (error) {
+      console.error("Error initializing WebRTC:", error);
+      toast.error("Error establishing call connection");
+    }
   };
 
   const endCall = () => {
     if (currentCall) {
-      channelRef.current?.messages.send({
-        type: 'broadcast',
-        event: 'call-end',
-        payload: {
-          user_id: currentCall.callerId === user?.id ? currentCall.receiverId : currentCall.callerId
+      try {
+        if (channelRef.current?.messages) {
+          channelRef.current.messages.send({
+            type: 'broadcast',
+            event: 'call-end',
+            payload: {
+              user_id: currentCall.callerId === user?.id ? currentCall.receiverId : currentCall.callerId
+            }
+          });
         }
-      });
+      } catch (error) {
+        console.error("Error sending call end signal:", error);
+      }
     }
     
     setCurrentCall(null);
@@ -453,6 +544,7 @@ export const CommunicationProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const value = {
     onlineUsers,
+    allUsers,
     chatWindows,
     currentCall,
     isContactsOpen,
