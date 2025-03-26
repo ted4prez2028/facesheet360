@@ -5,22 +5,10 @@ import React, {
   useContext,
   useCallback,
 } from "react";
-import { User, Message, Call } from "@/types";
+import { User, Message, Call, ChatWindow, ContactsState } from "@/types";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
-
-interface ContactsState {
-  onlineUsers: User[];
-  isOpen: boolean;
-}
-
-interface ChatWindow {
-  userId: string;
-  userName: string;
-  minimized: boolean;
-  messages: Message[];
-}
 
 interface CommunicationContextType {
   contacts: ContactsState;
@@ -146,7 +134,7 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
     );
   };
 
-  const handleStartCall = (userId: string, userName: string, isVideo: boolean) => {
+  const startCall = useCallback((userId: string, userName: string, isVideo: boolean) => {
     if (!user) {
       toast.error("You must be logged in to start a call.");
       return;
@@ -165,46 +153,42 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
     setIsCallActive(true);
     setIsCallIncoming(false);
     
-    toast({
+    toast("Calling...", {
       description: `Calling ${userName}...`,
-      duration: 3000,
     });
-  };
+  }, [user]);
 
-  const handleAcceptCall = () => {
+  const acceptCall = useCallback(() => {
     setIsCallActive(true);
     setIsCallIncoming(false);
     setCallStatus("ongoing");
     
-    toast({
+    toast("Call Connected", {
       description: `Call connected with ${activeCall?.callerName || activeCall?.receiverName}`,
-      duration: 3000,
     });
-  };
+  }, [activeCall]);
 
-  const handleEndCall = () => {
+  const rejectCall = useCallback(() => {
     setIsCallActive(false);
     setIsCallIncoming(false);
     setActiveCall(null);
     setCallStatus("ended");
     
-    toast({
+    toast("Call Rejected", {
+      description: "Call rejected",
+    });
+  }, []);
+
+  const endCall = useCallback(() => {
+    setIsCallActive(false);
+    setIsCallIncoming(false);
+    setActiveCall(null);
+    setCallStatus("ended");
+    
+    toast("Call Ended", {
       description: `Call ended with ${activeCall?.callerName || activeCall?.receiverName}`,
-      duration: 3000,
     });
-  };
-
-  const handleRejectCall = () => {
-    setIsCallActive(false);
-    setIsCallIncoming(false);
-    setActiveCall(null);
-    setCallStatus("ended");
-    
-    toast({
-      description: `Call rejected`,
-      duration: 3000,
-    });
-  };
+  }, [activeCall]);
 
   const sendMessage = (recipientId: string, content: string) => {
     const newMessage: Message = {
