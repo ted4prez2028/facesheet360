@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import FaceCapture from "../facial-recognition/FaceCapture";
+import { Check } from "lucide-react";
 
 interface AddPatientDrawerProps {
   open: boolean;
@@ -245,12 +247,17 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
             </div>
           </div>
           
-          <DrawerFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Adding Patient..." : "Add Patient"}
+          <DrawerFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto flex items-center" 
+              disabled={isLoading}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              {isLoading ? "Adding Patient..." : "Submit Patient"}
             </Button>
             <DrawerClose asChild>
-              <Button variant="outline" onClick={resetForm}>
+              <Button variant="outline" onClick={resetForm} className="w-full sm:w-auto">
                 Cancel
               </Button>
             </DrawerClose>
