@@ -89,7 +89,13 @@ export const addPatient = async (patient: Partial<Patient>) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === '42P17') {
+        console.error("RLS policy error adding patient:", error);
+        throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      }
+      throw error;
+    }
     return data as Patient;
   } catch (error) {
     console.error("Error adding patient:", error);
@@ -100,7 +106,6 @@ export const addPatient = async (patient: Partial<Patient>) => {
 export const updatePatient = async (id: string, data: Partial<Patient>) => {
   const { date_of_birth, ...rest } = data;
   
-  // Only include date_of_birth in the update if it's provided
   const updateData: any = { ...rest };
   if (date_of_birth) {
     updateData.date_of_birth = date_of_birth;
@@ -162,7 +167,6 @@ export const addChartRecord = async (record: Partial<ChartRecord>) => {
 export const updateChartRecord = async (id: string, data: Partial<ChartRecord>) => {
   const { patient_id, provider_id, record_type, ...rest } = data;
   
-  // Only include required fields in the update if they're provided
   const updateData: any = { ...rest };
   if (patient_id) {
     updateData.patient_id = patient_id;
@@ -215,7 +219,6 @@ export const addAppointment = async (appointment: Partial<Appointment>) => {
 export const updateAppointment = async (id: string, data: Partial<Appointment>) => {
   const { appointment_date, patient_id, provider_id, status, ...rest } = data;
   
-  // Only include required fields in the update if they're provided
   const updateData: any = { ...rest };
   if (appointment_date) {
     updateData.appointment_date = appointment_date;
@@ -251,7 +254,6 @@ export const getPatientByFacialData = async () => {
 
     if (error) throw error;
     
-    // Process in frontend since we need to compare facial descriptors
     return data as Patient[];
   } catch (error) {
     console.error("Error fetching patients with facial data:", error);
@@ -344,7 +346,6 @@ export const updateUser = async (id: string, updates: Partial<User>) => {
 // CareCoin transactions
 export const transferCareCoins = async (fromUserId: string, toUserId: string, amount: number) => {
   try {
-    // Get sender's current balance
     const { data: sender, error: senderError } = await supabase
       .from("users")
       .select("care_coins_balance")
@@ -356,7 +357,6 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
       throw new Error("Insufficient balance");
     }
 
-    // Get recipient's current balance
     const { data: recipient, error: recipientError } = await supabase
       .from("users")
       .select("care_coins_balance")
@@ -368,7 +368,6 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
       throw new Error("Recipient not found");
     }
 
-    // Update sender's balance
     const { error: updateSenderError } = await supabase
       .from("users")
       .update({ care_coins_balance: sender.care_coins_balance - amount })
@@ -376,7 +375,6 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
 
     if (updateSenderError) throw updateSenderError;
 
-    // Update recipient's balance
     const { error: updateRecipientError } = await supabase
       .from("users")
       .update({ care_coins_balance: recipient.care_coins_balance + amount })
@@ -384,7 +382,6 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
 
     if (updateRecipientError) throw updateRecipientError;
 
-    // Record the transaction
     const { error: transactionError } = await supabase
       .from("care_coins_transactions")
       .insert({
@@ -404,7 +401,6 @@ export const transferCareCoins = async (fromUserId: string, toUserId: string, am
   }
 };
 
-// Add function for getting care coins balance
 export const getCareCoinsBalance = async (userId: string) => {
   try {
     const { data, error } = await supabase
@@ -421,16 +417,12 @@ export const getCareCoinsBalance = async (userId: string) => {
   }
 };
 
-// Add function for creating patients (for usePatients hook)
 export const createPatient = async (patient: Partial<Patient>) => {
   return addPatient(patient);
 };
 
-// Get notifications - temporarily mocked since the table doesn't exist
 export const getNotifications = async () => {
   try {
-    // Since the notifications table doesn't exist in the database yet,
-    // we'll return an empty array for now
     console.log("Fetching notifications (mock)");
     return [];
   } catch (error) {
@@ -439,7 +431,6 @@ export const getNotifications = async () => {
   }
 };
 
-// Add getPatient function for usePatient hook
 export const getPatient = async (id: string) => {
   return getPatientById(id);
 };
