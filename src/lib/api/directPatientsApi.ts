@@ -37,8 +37,8 @@ export const getPatientByIdDirect = async (patientId: string) => {
     }
     
     // Use RPC for direct SQL execution with the patient ID
-    const { data, error } = await supabase.rpc('get_patient_by_id', {
-      p_patient_id: patientId
+    const { data, error } = await supabase.functions.invoke('get-patient-by-id', {
+      body: { patientId }
     });
     
     if (error) {

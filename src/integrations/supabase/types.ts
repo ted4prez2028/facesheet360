@@ -759,6 +759,27 @@ export type Database = {
           value: number
         }[]
       }
+      get_patient_by_id: {
+        Args: {
+          p_patient_id: string
+        }
+        Returns: {
+          address: string | null
+          created_at: string
+          date_of_birth: string
+          email: string | null
+          facial_data: string | null
+          first_name: string
+          gender: string
+          id: string
+          insurance_provider: string | null
+          last_name: string
+          medical_record_number: string | null
+          phone: string | null
+          policy_number: string | null
+          updated_at: string
+        }
+      }
       get_patient_demographics: {
         Args: Record<PropertyKey, never>
         Returns: {

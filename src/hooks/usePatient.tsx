@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { getPatientById } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getPatientByIdDirect } from '@/lib/api/directPatientsApi';
 
 export const usePatient = (patientId: string) => {
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -28,18 +29,10 @@ export const usePatient = (patientId: string) => {
           throw new Error("Authentication required. Please log in to view patient details.");
         }
         
-        // Try to use the direct RPC method first to bypass RLS
+        // Try to use the direct method first to bypass RLS
         try {
           console.log("Attempting to fetch patient with direct method");
-          const { data: directData, error: directError } = await supabase.rpc(
-            'get_patient_by_id',
-            { p_patient_id: patientId }
-          );
-          
-          if (directError) {
-            console.warn("Direct method failed:", directError);
-            throw directError;
-          }
+          const directData = await getPatientByIdDirect(patientId);
           
           if (directData) {
             setPatient(directData);
