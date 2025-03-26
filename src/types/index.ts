@@ -1,3 +1,4 @@
+
 // User types
 export interface User {
   id: string;
@@ -88,4 +89,24 @@ export interface CareCoinsTransaction {
   reason: string;
   timestamp: string;
   walletAddress?: string;
+}
+
+// Face detection types
+export interface FaceDetection {
+  detection: {
+    box: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    score: number;
+  };
+  landmarks: any;
+  descriptor: Float32Array;
+}
+
+export interface FaceMatcher {
+  patientId: string;
+  descriptors: Float32Array[];
 }

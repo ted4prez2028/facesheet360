@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { recognizeFace } from '@/lib/mongodb';
-import { toast } from 'sonner';
+import FaceCapture from './FaceCapture';
+import { Patient } from '@/types';
 
 const FaceIdentificationDialog = ({ 
   isOpen, 
@@ -14,42 +13,27 @@ const FaceIdentificationDialog = ({
   onClose: () => void, 
   onIdentificationSuccess: (patientId: string) => void 
 }) => {
-  const [faceData, setFaceData] = useState<string | null>(null);
-
-  const handleFaceRecognition = async () => {
-    if (!faceData) {
-      toast.error('No face data captured');
-      return;
+  const handleIdentificationSuccess = (patientData: Patient) => {
+    if (patientData && patientData.id) {
+      onIdentificationSuccess(patientData.id);
     }
-
-    try {
-      const result = await recognizeFace(faceData);
-      if (result.patientId) {
-        onIdentificationSuccess(result.patientId);
-        toast.success('Patient identified successfully');
-      } else {
-        toast.error('No matching patient found');
-      }
-    } catch (error) {
-      console.error('Face recognition error', error);
-      toast.error('Error during face recognition');
-    }
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Face Identification</DialogTitle>
+          <DialogTitle>Patient Identification</DialogTitle>
           <DialogDescription>
-            Identify a patient using facial recognition
+            Use facial recognition to identify a patient
           </DialogDescription>
         </DialogHeader>
-        {/* Future implementation for face capture */}
         <div className="space-y-4">
-          <Button onClick={handleFaceRecognition}>
-            Identify Patient
-          </Button>
+          <FaceCapture 
+            mode="identify" 
+            onSuccess={handleIdentificationSuccess}
+          />
         </div>
       </DialogContent>
     </Dialog>

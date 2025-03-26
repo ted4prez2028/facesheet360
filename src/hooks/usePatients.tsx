@@ -2,27 +2,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPatients, createPatient, updatePatient } from '@/lib/supabaseApi';
 import { toast } from 'sonner';
+import { Patient } from '@/types';
 
-export interface PatientType {
-  id: string;
-  first_name: string;
-  last_name: string;
-  date_of_birth: string;
-  gender: string;
-  phone: string;
-  email?: string;
-  medical_record_number?: string;
-  insurance_provider?: string;
-  policy_number?: string;
-  facial_data?: string;
+export interface PatientType extends Patient {
   // Legacy MongoDB compatibility fields
   _id?: string; 
   name?: string;
   age?: number;
-  condition?: string;
-  status?: 'Active' | 'Stable' | 'Critical';
   lastVisit?: string;
-  assignedDoctor?: string;
 }
 
 export const usePatients = (filters = {}) => {
@@ -50,17 +37,20 @@ export const usePatients = (filters = {}) => {
   });
   
   const createPatientMutation = useMutation({
-    mutationFn: (newPatient: Omit<PatientType, 'id'>) => {
+    mutationFn: (newPatient: Partial<PatientType>) => {
       // Adapt the patient data structure for Supabase
-      const supabasePatient: Record<string, any> = {
+      const supabasePatient: Partial<Patient> = {
         first_name: newPatient.first_name || (newPatient.name ? newPatient.name.split(' ')[0] : ''),
         last_name: newPatient.last_name || (newPatient.name ? newPatient.name.split(' ').slice(1).join(' ') : ''),
-        gender: newPatient.gender,
+        gender: newPatient.gender || 'Unknown',
         phone: newPatient.phone,
         email: newPatient.email,
         medical_record_number: newPatient.medical_record_number,
         insurance_provider: newPatient.insurance_provider,
-        policy_number: newPatient.policy_number
+        policy_number: newPatient.policy_number,
+        facial_data: newPatient.facial_data,
+        condition: newPatient.condition,
+        status: newPatient.status
       };
       
       // Handle date of birth field
@@ -92,7 +82,7 @@ export const usePatients = (filters = {}) => {
   const updatePatientMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<PatientType> }) => {
       // Adapt the patient data structure for Supabase
-      const supabasePatient: any = {};
+      const supabasePatient: Partial<Patient> = {};
       
       if (data.first_name || data.name) {
         supabasePatient.first_name = data.first_name || (data.name ? data.name.split(' ')[0] : undefined);
@@ -113,6 +103,9 @@ export const usePatients = (filters = {}) => {
       if (data.medical_record_number) supabasePatient.medical_record_number = data.medical_record_number;
       if (data.insurance_provider) supabasePatient.insurance_provider = data.insurance_provider;
       if (data.policy_number) supabasePatient.policy_number = data.policy_number;
+      if (data.facial_data) supabasePatient.facial_data = data.facial_data;
+      if (data.condition) supabasePatient.condition = data.condition;
+      if (data.status) supabasePatient.status = data.status;
       
       return updatePatient(id, supabasePatient);
     },

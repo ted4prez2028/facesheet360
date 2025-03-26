@@ -97,9 +97,35 @@ export const getPatientById = async (id: string) => {
 
 export const createPatient = async (patientData: Partial<Patient>) => {
   try {
+    // Ensure required fields exist
+    if (!patientData.first_name || !patientData.last_name || !patientData.gender) {
+      throw new Error("Missing required patient information");
+    }
+    
+    // Ensure date_of_birth is provided or derived from age
+    if (!patientData.date_of_birth && patientData.age) {
+      const today = new Date();
+      today.setFullYear(today.getFullYear() - patientData.age);
+      patientData.date_of_birth = today.toISOString().split('T')[0];
+    } else if (!patientData.date_of_birth) {
+      throw new Error("Either date_of_birth or age must be provided");
+    }
+    
     const { data, error } = await supabase
       .from('patients')
-      .insert(patientData)
+      .insert({
+        first_name: patientData.first_name,
+        last_name: patientData.last_name,
+        date_of_birth: patientData.date_of_birth,
+        gender: patientData.gender,
+        phone: patientData.phone,
+        email: patientData.email,
+        address: patientData.address,
+        medical_record_number: patientData.medical_record_number,
+        insurance_provider: patientData.insurance_provider,
+        policy_number: patientData.policy_number,
+        facial_data: patientData.facial_data
+      })
       .select()
       .single();
       
@@ -310,22 +336,38 @@ export const storeFacialData = async (patientId: string, facialData: string) => 
 };
 
 export const getPatientByFacialData = async (facialData: string) => {
-  // This would typically be implemented as an edge function for more complex matching logic
-  // For now, we'll just return a placeholder implementation
   try {
-    const { data, error } = await supabase
-      .from('patients')
-      .select('*')
-      .not('facial_data', 'is', null);
-      
+    const descriptor = await extractFaceDescriptor(facialData);
+    if (!descriptor) {
+      throw new Error("No face detected in the image");
+    }
+    
+    // Call the edge function for facial recognition
+    const { data, error } = await supabase.functions.invoke('facial-recognition', {
+      body: { 
+        action: 'identify', 
+        faceDescriptor: descriptor 
+      }
+    });
+    
     if (error) throw error;
     
-    // In a real app, you would implement facial comparison here
-    // This is just a placeholder
-    return data.length > 0 ? data[0] : null;
+    if (!data.success) {
+      return null;
+    }
+    
+    return data.patient;
   } catch (error) {
     console.error("Error recognizing face:", error);
     toast.error("Error recognizing face");
     throw error;
   }
+};
+
+// Helper function to extract face descriptor from image
+const extractFaceDescriptor = async (facialData: string) => {
+  // This is a placeholder, the actual implementation will be in facialRecognition.ts
+  // where we detect faces using face-api.js
+  // For now, we'll return null to indicate that no face was detected
+  return null;
 };

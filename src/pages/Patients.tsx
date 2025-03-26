@@ -19,34 +19,44 @@ import {
   Plus, 
   Search, 
   SortAsc,
-  Loader2 
+  Loader2,
+  Camera
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePatients, PatientType } from "@/hooks/usePatients";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FaceCapture from "@/components/facial-recognition/FaceCapture";
+import FaceIdentificationDialog from "@/components/facial-recognition/FaceIdentificationDialog";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Patients = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTab, setCurrentTab] = useState("all");
   const [showAddPatientDialog, setShowAddPatientDialog] = useState(false);
+  const [showFaceIdentificationDialog, setShowFaceIdentificationDialog] = useState(false);
+  const [showFaceRegistration, setShowFaceRegistration] = useState(false);
   const [newPatient, setNewPatient] = useState({
-    name: "",
-    age: "",
-    gender: "Male",
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    gender: "Male" as const,
     phone: "",
+    email: "",
     condition: "",
     status: "Active" as const,
-    assignedDoctor: ""
   });
   
-  // Get MongoDB patients data
+  // Get patients data
   const { 
     patients, 
     isLoading, 
     createPatient, 
-    isCreating 
+    isCreating,
+    refetch
   } = usePatients(
     currentTab !== "all" ? { status: currentTab.charAt(0).toUpperCase() + currentTab.slice(1) } : {}
   );
@@ -57,13 +67,15 @@ const Patients = () => {
   
   const filteredPatients = patients.filter(
     patient => 
-      patient.name.toLowerCase().includes(searchTerm) || 
-      patient._id.toLowerCase().includes(searchTerm) ||
-      patient.condition.toLowerCase().includes(searchTerm)
+      (patient.name?.toLowerCase().includes(searchTerm) || 
+       patient.first_name?.toLowerCase().includes(searchTerm) ||
+       patient.last_name?.toLowerCase().includes(searchTerm) ||
+       patient.id?.toLowerCase().includes(searchTerm) ||
+       patient.condition?.toLowerCase().includes(searchTerm))
   );
   
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "active":
         return "bg-green-50 text-green-700 border-green-200";
       case "stable":
@@ -76,6 +88,7 @@ const Patients = () => {
   };
   
   const formatDate = (dateString: string) => {
+    if (!dateString) return "Unknown";
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
@@ -84,25 +97,38 @@ const Patients = () => {
     }).format(date);
   };
   
-  const handleAddPatient = () => {
-    const today = new Date().toISOString().split('T')[0];
+  const handleAddPatient = async () => {
+    // Validate required fields
+    if (!newPatient.first_name || !newPatient.last_name || !newPatient.date_of_birth) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
     
-    createPatient({
-      ...newPatient,
-      age: parseInt(newPatient.age),
-      lastVisit: today,
-    });
-    
-    setShowAddPatientDialog(false);
-    setNewPatient({
-      name: "",
-      age: "",
-      gender: "Male",
-      phone: "",
-      condition: "",
-      status: "Active",
-      assignedDoctor: ""
-    });
+    try {
+      const createdPatient = await createPatient(newPatient);
+      
+      setShowAddPatientDialog(false);
+      setNewPatient({
+        first_name: "",
+        last_name: "",
+        date_of_birth: "",
+        gender: "Male",
+        phone: "",
+        email: "",
+        condition: "",
+        status: "Active",
+      });
+      
+      // If face registration is enabled, show the face capture component
+      if (showFaceRegistration && createdPatient?.id) {
+        toast.success("Patient created! Now register facial data.");
+        // Navigate to a route where we can register facial data
+        navigate(`/patients/${createdPatient.id}`);
+      }
+    } catch (error) {
+      console.error("Error adding patient:", error);
+      toast.error("Failed to add patient");
+    }
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,6 +138,11 @@ const Patients = () => {
   
   const handleSelectChange = (name: string, value: string) => {
     setNewPatient(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handlePatientIdentifiedByFace = (patientId: string) => {
+    toast.success("Patient identified! Navigating to patient's chart.");
+    navigate(`/patients/${patientId}`);
   };
 
   return (
@@ -136,6 +167,11 @@ const Patients = () => {
                 onChange={handleSearch}
               />
             </div>
+            
+            <Button variant="outline" className="flex gap-2 items-center" onClick={() => setShowFaceIdentificationDialog(true)}>
+              <Camera className="h-4 w-4" />
+              <span>Identify by Face</span>
+            </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -216,22 +252,22 @@ const Patients = () => {
                           <th className="text-left py-3 px-4 font-medium text-sm">Phone</th>
                           <th className="text-left py-3 px-4 font-medium text-sm">Condition</th>
                           <th className="text-left py-3 px-4 font-medium text-sm">Status</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Last Visit</th>
-                          <th className="text-left py-3 px-4 font-medium text-sm">Doctor</th>
+                          <th className="text-left py-3 px-4 font-medium text-sm">DOB</th>
+                          <th className="text-left py-3 px-4 font-medium text-sm">Facial ID</th>
                           <th className="text-left py-3 px-4 font-medium text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredPatients.map((patient) => (
                           <tr 
-                            key={patient._id} 
+                            key={patient.id} 
                             className="border-b hover:bg-muted/30 transition-colors"
                           >
                             <td className="py-3 px-4 text-sm">
-                              {patient._id.substring(0, 8)}
+                              {patient.id?.substring(0, 8)}
                             </td>
                             <td className="py-3 px-4 font-medium">
-                              {patient.name}
+                              {patient.first_name} {patient.last_name}
                             </td>
                             <td className="py-3 px-4 text-sm">
                               {patient.age} / {patient.gender}
@@ -240,21 +276,29 @@ const Patients = () => {
                               {patient.phone}
                             </td>
                             <td className="py-3 px-4 text-sm">
-                              {patient.condition}
+                              {patient.condition || 'General checkup'}
                             </td>
                             <td className="py-3 px-4">
                               <Badge 
                                 variant="outline" 
-                                className={getStatusColor(patient.status)}
+                                className={getStatusColor(patient.status || 'Active')}
                               >
-                                {patient.status}
+                                {patient.status || 'Active'}
                               </Badge>
                             </td>
                             <td className="py-3 px-4 text-sm">
-                              {formatDate(patient.lastVisit)}
+                              {formatDate(patient.date_of_birth)}
                             </td>
                             <td className="py-3 px-4 text-sm">
-                              {patient.assignedDoctor}
+                              {patient.facial_data ? (
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  Registered
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                                  Not Registered
+                                </Badge>
+                              )}
                             </td>
                             <td className="py-3 px-4">
                               <DropdownMenu>
@@ -264,11 +308,20 @@ const Patients = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>View Profile</DropdownMenuItem>
-                                  <DropdownMenuItem>View Chart</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}`)}>
+                                    View Profile
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => navigate(`/charting?patientId=${patient.id}`)}>
+                                    View Chart
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem>Edit Details</DropdownMenuItem>
                                   <DropdownMenuItem>Create Note</DropdownMenuItem>
                                   <DropdownMenuItem>Schedule Appointment</DropdownMenuItem>
+                                  {!patient.facial_data && (
+                                    <DropdownMenuItem onClick={() => navigate(`/patients/${patient.id}?register-face=true`)}>
+                                      Register Face
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </td>
@@ -325,32 +378,41 @@ const Patients = () => {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="first_name">First Name</Label>
                 <Input 
-                  id="name" 
-                  name="name"
-                  value={newPatient.name} 
+                  id="first_name" 
+                  name="first_name"
+                  value={newPatient.first_name} 
                   onChange={handleInputChange} 
-                  placeholder="John Smith"
+                  placeholder="John"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
+                <Label htmlFor="last_name">Last Name</Label>
                 <Input 
-                  id="age" 
-                  name="age"
-                  type="number" 
-                  value={newPatient.age} 
+                  id="last_name" 
+                  name="last_name"
+                  value={newPatient.last_name} 
                   onChange={handleInputChange} 
-                  min="0"
-                  placeholder="45"
+                  placeholder="Smith"
                   required
                 />
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date_of_birth">Date of Birth</Label>
+                <Input 
+                  id="date_of_birth" 
+                  name="date_of_birth"
+                  type="date" 
+                  value={newPatient.date_of_birth} 
+                  onChange={handleInputChange} 
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
                 <Select 
@@ -367,6 +429,9 @@ const Patients = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input 
@@ -376,6 +441,17 @@ const Patients = () => {
                   onChange={handleInputChange} 
                   placeholder="(555) 123-4567"
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  name="email"
+                  type="email"
+                  value={newPatient.email} 
+                  onChange={handleInputChange} 
+                  placeholder="patient@example.com"
                 />
               </div>
             </div>
@@ -388,7 +464,6 @@ const Patients = () => {
                 value={newPatient.condition} 
                 onChange={handleInputChange} 
                 placeholder="Hypertension"
-                required
               />
             </div>
             
@@ -409,17 +484,17 @@ const Patients = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="assignedDoctor">Assigned Doctor</Label>
-                <Input 
-                  id="assignedDoctor" 
-                  name="assignedDoctor"
-                  value={newPatient.assignedDoctor} 
-                  onChange={handleInputChange} 
-                  placeholder="Dr. Jane Wilson"
-                  required
-                />
-              </div>
+            </div>
+            
+            <div className="flex items-center mt-2">
+              <input
+                type="checkbox"
+                id="registerFace"
+                checked={showFaceRegistration}
+                onChange={() => setShowFaceRegistration(!showFaceRegistration)}
+                className="mr-2 h-4 w-4"
+              />
+              <Label htmlFor="registerFace" className="text-sm cursor-pointer">Register facial data after creating patient</Label>
             </div>
           </div>
           <DialogFooter>
@@ -443,6 +518,13 @@ const Patients = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Face Identification Dialog */}
+      <FaceIdentificationDialog
+        isOpen={showFaceIdentificationDialog}
+        onClose={() => setShowFaceIdentificationDialog(false)}
+        onIdentificationSuccess={handlePatientIdentifiedByFace}
+      />
     </DashboardLayout>
   );
 };

@@ -7,6 +7,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Calculate Euclidean distance between face descriptors
+function calculateEuclideanDistance(descriptor1: number[], descriptor2: number[]): number {
+  if (descriptor1.length !== descriptor2.length) {
+    throw new Error('Descriptors must have the same length');
+  }
+  
+  return Math.sqrt(
+    descriptor1.reduce((sum, value, index) => {
+      const diff = value - descriptor2[index];
+      return sum + diff * diff;
+    }, 0)
+  );
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -17,9 +31,10 @@ serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
-    const { action, facialData, patientId } = await req.json();
+    const requestData = await req.json();
+    const { action, faceDescriptor, patientId, facialData } = requestData;
 
     // For registering facial data
     if (action === 'register' && patientId && facialData) {
@@ -42,8 +57,8 @@ serve(async (req) => {
       );
     }
     
-    // For identifying patients by facial data
-    if (action === 'identify' && facialData) {
+    // For identifying patients by facial descriptor
+    if (action === 'identify' && faceDescriptor) {
       // Get all patients with facial data
       const { data: patients, error } = await supabaseClient
         .from('patients')
@@ -52,17 +67,50 @@ serve(async (req) => {
       
       if (error) throw error;
       
-      // In a real implementation, you would use a facial recognition algorithm here
-      // For this demo, we're just returning the first patient with facial data
-      // as a placeholder for actual facial matching logic
+      if (!patients || patients.length === 0) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            message: 'No patients with facial data found'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Match the face against stored face descriptors
+      let bestMatch = null;
+      let lowestDistance = 0.6; // Threshold for face recognition (lower is more strict)
       
-      if (patients && patients.length > 0) {
-        // Simulate a match with the first patient
+      for (const patient of patients) {
+        try {
+          if (!patient.facial_data) continue;
+          
+          const storedData = JSON.parse(patient.facial_data);
+          if (!storedData.descriptor) continue;
+          
+          const storedDescriptor = storedData.descriptor;
+          const distance = calculateEuclideanDistance(faceDescriptor, storedDescriptor);
+          
+          console.log(`Distance for patient ${patient.id}: ${distance}`);
+          
+          if (distance < lowestDistance) {
+            lowestDistance = distance;
+            bestMatch = patient;
+          }
+        } catch (err) {
+          console.error(`Error processing patient ${patient.id}:`, err);
+          continue;
+        }
+      }
+      
+      if (bestMatch) {
+        console.log('Match found:', bestMatch.id);
         return new Response(
           JSON.stringify({ 
             success: true, 
             message: 'Patient identified',
-            patient: patients[0]
+            patient: bestMatch,
+            confidence: 1 - lowestDistance
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
