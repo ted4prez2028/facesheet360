@@ -3,7 +3,7 @@ import React from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Check } from "lucide-react";
 import PatientFormFields from "@/components/patients/PatientFormFields";
 import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
@@ -38,6 +38,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
 
   const handleSubmitPatient = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
 
@@ -79,6 +80,7 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
               className="w-full sm:w-auto flex items-center bg-health-600 hover:bg-health-700" 
               disabled={formState.isLoading || !user}
             >
+              <Check className="mr-2 h-4 w-4" />
               {formState.isLoading ? "Adding Patient..." : "Submit Patient"}
             </Button>
             <Button 

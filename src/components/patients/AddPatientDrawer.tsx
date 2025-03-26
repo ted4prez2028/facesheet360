@@ -28,7 +28,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   onOpenChange,
   onPatientAdded,
 }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   const {
     formState,
@@ -43,6 +43,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
 

@@ -1,61 +1,47 @@
 
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/hooks/use-toast';
-import { Notification } from '@/lib/api/notificationApi';
+import React, { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Bell } from "lucide-react";
 
-const NotificationSound = () => {
-  const { user } = useAuth();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  
+interface NotificationSoundProps {
+  notifications: any[];
+  soundEnabled?: boolean;
+}
+
+const NotificationSound: React.FC<NotificationSoundProps> = ({
+  notifications,
+  soundEnabled = true,
+}) => {
+  const { toast } = useToast();
+  const [lastNotificationId, setLastNotificationId] = useState<string | null>(null);
+  const [audio] = useState<HTMLAudioElement>(new Audio("/notification.mp3"));
+
   useEffect(() => {
-    if (!user) return;
-    
-    // Initialize audio element
-    if (!audioRef.current) {
-      audioRef.current = new Audio('/notification.mp3');
-    }
-    
-    // Create a channel to listen for notifications
-    const channel = supabase.channel('notification-sound')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'notifications',
-        filter: `user_id=eq.${user.id}`
-      }, (payload: any) => {
-        const notification = payload.new as Notification;
+    // Check if we have notifications and if they're different from what we've seen before
+    if (notifications && notifications.length > 0) {
+      const latestNotification = notifications[0];
+      
+      // Only play sound for new notifications
+      if (latestNotification.id !== lastNotificationId) {
+        setLastNotificationId(latestNotification.id);
         
-        // Only show notifications meant for this user
-        if (notification.user_id === user.id) {
-          console.log('New notification received:', notification);
-          
-          // Play notification sound
-          if (audioRef.current) {
-            audioRef.current.play().catch(err => 
-              console.log('Error playing notification sound:', err)
-            );
-          }
-          
-          // Show toast notification
-          toast({
-            title: notification.title,
-            description: notification.message,
-            variant: notification.type === 'system' ? 'default' : 
-                    notification.type === 'medication' ? 'info' : 
-                    notification.type === 'appointment' ? 'success' : 'default',
-          });
+        // Play sound if enabled
+        if (soundEnabled) {
+          audio.play().catch(error => console.error("Error playing notification sound:", error));
         }
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-  
-  // This component doesn't render anything
+        
+        // Show toast notification
+        toast({
+          title: latestNotification.title,
+          description: latestNotification.message,
+          // Updated variant to use only values that are valid for the toast component
+          variant: "default",
+        });
+      }
+    }
+  }, [notifications, lastNotificationId, audio, soundEnabled, toast]);
+
   return null;
 };
 

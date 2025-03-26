@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { addPatient } from "@/lib/supabaseApi";
+import { supabase } from "@/integrations/supabase/client";
 import { Patient } from "@/types";
 
 export interface PatientFormState {
@@ -68,19 +68,40 @@ export const usePatientForm = (onSuccess: () => void) => {
     setFormState((prev) => ({ ...prev, isLoading: true }));
     
     try {
-      await addPatient({
-        first_name: formState.firstName,
-        last_name: formState.lastName,
-        email: formState.email,
-        phone: formState.phone,
-        date_of_birth: formState.dateOfBirth,
-        gender: formState.gender,
-        medical_record_number: formState.medicalRecordNumber,
-        insurance_provider: formState.insuranceProvider,
-        policy_number: formState.policyNumber,
-        address: formState.address,
-        facial_data: formState.facialData,
-      });
+      // Direct database insert using Supabase client
+      const { data, error } = await supabase
+        .from("patients")
+        .insert({
+          first_name: formState.firstName,
+          last_name: formState.lastName,
+          email: formState.email,
+          phone: formState.phone,
+          date_of_birth: formState.dateOfBirth,
+          gender: formState.gender,
+          medical_record_number: formState.medicalRecordNumber,
+          insurance_provider: formState.insuranceProvider,
+          policy_number: formState.policyNumber,
+          address: formState.address,
+          facial_data: formState.facialData,
+        })
+        .select();
+      
+      if (error) {
+        // Log the specific error for debugging
+        console.error("Supabase error details:", error);
+        
+        // Handle the database permission error specifically
+        if (error.code === 'PGRST116' || error.message?.includes('permission denied')) {
+          toast.error("Database Permission Error", {
+            description: "Please ensure you're logged in with the correct credentials before adding a patient.",
+          });
+        } else {
+          toast.error("Error Adding Patient", {
+            description: error.message || "Failed to add patient.",
+          });
+        }
+        return false;
+      }
       
       toast.success("Patient Added", {
         description: "Patient added successfully.",
@@ -90,16 +111,10 @@ export const usePatientForm = (onSuccess: () => void) => {
       onSuccess();
       return true;
     } catch (error: any) {
-      // Handle the database permission error specifically
-      if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
-        toast.error("Database Permission Error", {
-          description: "Please ensure you're logged in with the correct credentials before adding a patient.",
-        });
-      } else {
-        toast.error("Error Adding Patient", {
-          description: error?.message || "Failed to add patient.",
-        });
-      }
+      console.error("Error in submitForm:", error);
+      toast.error("Error Adding Patient", {
+        description: error?.message || "Failed to add patient.",
+      });
       return false;
     } finally {
       setFormState((prev) => ({ ...prev, isLoading: false }));
