@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,10 +52,8 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
     e.preventDefault();
     
     if (!firstName || !lastName || !dateOfBirth) {
-      toast({
-        title: "Missing required fields",
+      toast.error("Missing required fields", {
         description: "Please fill in all required fields.",
-        variant: "destructive",
       });
       return;
     }
@@ -78,8 +75,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
         facial_data: facialData,
       });
       
-      toast({
-        title: "Success",
+      toast.success("Patient Added", {
         description: "Patient added successfully.",
       });
       
@@ -87,10 +83,8 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
       onPatientAdded();
       onOpenChange(false);
     } catch (error: any) {
-      toast({
-        title: "Error",
+      toast.error("Error Adding Patient", {
         description: error.message || "Failed to add patient.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
