@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import ChatWindows from "./components/communication/ChatWindows";
 import CallDialog from "./components/communication/CallDialog";
 import Index from "./pages/Index";
 import PharmacistDashboard from "./pages/PharmacistDashboard";
+import DoctorAccounts from './pages/DoctorAccounts';
 
 // Configure React Query client with optimized settings
 const queryClient = new QueryClient({
@@ -56,6 +56,7 @@ function App() {
                 <Route path="/settings/configuration" element={<EnvExample />} />
                 <Route path="/patients/:patientId" element={<PatientProfile />} />
                 <Route path="/pharmacy" element={<PharmacistDashboard />} />
+                <Route path="/doctor-accounts" element={<DoctorAccounts />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               
