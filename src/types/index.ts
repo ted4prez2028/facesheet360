@@ -99,6 +99,7 @@ export interface CareCoinsTransaction {
   transaction_type: "transfer" | "reward" | "purchase";
   description?: string;
   created_at: string;
+  otherUserName?: string;
 }
 
 export interface ContactsState {
