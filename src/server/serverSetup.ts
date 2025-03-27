@@ -12,12 +12,19 @@ export const startSecureServer = (port: number = 8443): void => {
   const app = express();
   
   // Configure middleware
-  app.use(cors());
+  app.use(cors({
+    origin: [
+      'https://facesheet360.com:8080',
+      'https://localhost:8080',
+      'http://localhost:8080'
+    ],
+    credentials: true
+  }));
   app.use(express.json());
   
   // Add basic route for testing
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'healthy', secure: true });
+    res.json({ status: 'healthy', secure: true, domain: 'facesheet360.com' });
   });
   
   // Check if SSL certificates exist
@@ -32,7 +39,8 @@ export const startSecureServer = (port: number = 8443): void => {
   
   // Start the server
   server.listen(port, () => {
-    console.log(`Secure server running on https://localhost:${port}`);
+    console.log(`Secure server running on https://facesheet360.com:${port}`);
+    console.log(`You can also access it at https://localhost:${port}`);
   });
   
   // Handle graceful shutdown
