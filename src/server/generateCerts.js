@@ -1,10 +1,15 @@
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Directory for SSL certificates
-const SSL_DIR = path.join(process.cwd(), 'ssl');
+// Get current directory in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Directory for SSL certificates (relative to project root)
+const SSL_DIR = path.join(path.resolve(__dirname, '../..'), 'ssl');
 
 /**
  * Generates self-signed certificates for local HTTPS development
