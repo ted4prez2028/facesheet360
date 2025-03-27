@@ -29,6 +29,9 @@ import {
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
+import { useQuickActions } from "@/hooks/useQuickActions";
+import CareCoinsActivity from "@/components/wallet/CareCoinsActivity";
+import { useNavigate } from "react-router-dom";
 
 const patientStatistics = [
   { name: "Mon", newPatients: 4, activePatients: 22, avg: 18 },
@@ -75,6 +78,8 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { data: dashboardData, isLoading, error } = useDashboardData();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { addPatient, viewSchedule, createNote, viewAnalytics } = useQuickActions();
   
   const firstName = user?.name ? user.name.split(' ')[0] : "Doctor";
 
@@ -411,49 +416,7 @@ const Dashboard = () => {
         </Tabs>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>CareCoins Activity</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <div className="font-medium">Treatment plan updated</div>
-                    <div className="text-sm text-muted-foreground">Maria Rodriguez</div>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    +15 coins
-                  </Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <div className="font-medium">Diagnostic notes added</div>
-                    <div className="text-sm text-muted-foreground">Robert Johnson</div>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    +10 coins
-                  </Badge>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <div className="font-medium">Medication prescribed</div>
-                    <div className="text-sm text-muted-foreground">Emily Davis</div>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    +20 coins
-                  </Badge>
-                </div>
-                
-                <Button className="w-full" variant="outline">
-                  View all transactions
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} />
           
           <Card className="shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -461,22 +424,38 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <Button className="h-auto py-4 flex flex-col items-center justify-center gap-2" variant="outline">
+                <Button 
+                  className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
+                  variant="outline"
+                  onClick={addPatient}
+                >
                   <Users className="h-5 w-5" />
                   <span>Add Patient</span>
                 </Button>
                 
-                <Button className="h-auto py-4 flex flex-col items-center justify-center gap-2" variant="outline">
+                <Button 
+                  className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
+                  variant="outline"
+                  onClick={viewSchedule}
+                >
                   <Calendar className="h-5 w-5" />
                   <span>Schedule</span>
                 </Button>
                 
-                <Button className="h-auto py-4 flex flex-col items-center justify-center gap-2" variant="outline">
+                <Button 
+                  className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
+                  variant="outline"
+                  onClick={createNote}
+                >
                   <ClipboardList className="h-5 w-5" />
                   <span>Create Note</span>
                 </Button>
                 
-                <Button className="h-auto py-4 flex flex-col items-center justify-center gap-2" variant="outline">
+                <Button 
+                  className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
+                  variant="outline"
+                  onClick={viewAnalytics}
+                >
                   <Activity className="h-5 w-5" />
                   <span>Analytics</span>
                 </Button>
