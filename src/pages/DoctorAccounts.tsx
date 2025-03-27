@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import CreateDoctorAccounts from '@/components/admin/CreateDoctorAccounts';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
