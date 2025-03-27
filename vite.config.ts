@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     server: {
-      host: "::",
+      host: "0.0.0.0", // Allow connections from all network interfaces
       port: 8080,
       https: httpsConfig, // Enable HTTPS if certificates exist
     },
