@@ -48,8 +48,9 @@ export function useCareCoinsTransactions() {
           
           return {
             ...transaction,
-            otherUserName: userDetails?.name || 'System'
-          };
+            otherUserName: userDetails?.name || 'System',
+            transaction_type: transaction.transaction_type as "transfer" | "reward" | "purchase"
+          } as CareCoinsTransaction;
         })
       );
       
