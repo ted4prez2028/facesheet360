@@ -7,13 +7,14 @@ import { setupHttps, checkSslCertificates, getSslSetupInstructions } from './htt
  * Sets up and starts an HTTPS server for the health tracking application
  * @param port The port to run the server on
  */
-export const startSecureServer = (port = 8443) => {
+export const startSecureServer = (port = 443) => {
   // Create Express app
   const app = express();
   
   // Configure middleware
   app.use(cors({
     origin: [
+      'https://facesheet360.com',
       'https://facesheet360.com:8080',
       'https://localhost:8080',
       'http://localhost:8080'
@@ -39,8 +40,8 @@ export const startSecureServer = (port = 8443) => {
   
   // Start the server
   server.listen(port, () => {
-    console.log(`Secure server running on https://facesheet360.com:${port}`);
-    console.log(`You can also access it at https://localhost:${port}`);
+    console.log(`Secure server running on https://facesheet360.com${port === 443 ? '' : ':' + port}`);
+    console.log(`You can also access it at https://localhost${port === 443 ? '' : ':' + port}`);
   });
   
   // Handle graceful shutdown

@@ -1,8 +1,9 @@
 
 import { startSecureServer } from './serverSetup.js';
 
-// Start the secure server on the specified port
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8443;
+// Start the secure server on the standard HTTPS port (443)
+// Note: Running on port 443 typically requires root/admin privileges
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 443;
 startSecureServer(PORT);
 
 console.log(`Starting secure server on port ${PORT}...`);
