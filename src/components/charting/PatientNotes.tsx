@@ -1,6 +1,5 @@
-import { useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+
+import { useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,16 +16,8 @@ import {
   FilePlus, 
   FileText 
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-interface Note {
-  id: string;
-  patientId: string;
-  date: string;
-  provider: string;
-  type: string;
-  content: string;
-}
+import { usePatientNotes } from "@/hooks/usePatientNotes";
+import { format } from "date-fns";
 
 interface PatientNotesProps {
   patientId: string;
@@ -34,109 +25,37 @@ interface PatientNotesProps {
 }
 
 const PatientNotes = ({ patientId, userId }: PatientNotesProps) => {
-  const { toast } = useToast();
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [noteType, setNoteType] = useState("Progress Note");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { data: notes, isLoading: isLoadingNotes, refetch: refetchNotes } = useQuery({
-    queryKey: ['patient-notes', patientId],
-    queryFn: async () => {
-      if (!patientId) return [];
-      
-      const { data, error } = await supabase
-        .from('chart_records')
-        .select(`
-          id,
-          patient_id,
-          provider_id,
-          record_date,
-          record_type,
-          diagnosis,
-          notes,
-          users:provider_id (name)
-        `)
-        .eq('patient_id', patientId)
-        .eq('record_type', 'note')
-        .order('record_date', { ascending: false });
-        
-      if (error) throw error;
-      
-      return data.map(note => ({
-        id: note.id,
-        patientId: note.patient_id,
-        date: note.record_date,
-        provider: note.users?.name || 'Unknown Provider',
-        type: note.diagnosis || 'Progress Note',
-        content: note.notes || ''
-      }));
-    },
-    enabled: !!patientId
-  });
+  
+  const { 
+    notes, 
+    isLoading: isLoadingNotes, 
+    addNote 
+  } = usePatientNotes(patientId);
 
   const formatDateTime = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    return format(date, 'MMM dd, yyyy h:mm a');
   };
 
   const handleSaveNote = async () => {
-    if (!noteText.trim()) {
-      toast({
-        title: "Note cannot be empty",
-        description: "Please enter content for your note",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!noteText.trim() || !patientId || !userId) return;
     
-    if (!patientId || !userId) {
-      toast({
-        title: "Error",
-        description: "Patient or provider information is missing",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('chart_records')
-        .insert({
-          patient_id: patientId,
-          provider_id: userId,
-          record_type: 'note',
-          record_date: new Date().toISOString(),
-          diagnosis: noteType,
-          notes: noteText
-        })
-        .select();
-        
-      if (error) throw error;
-      
-      setIsCreatingNote(false);
-      setNoteText("");
-      setNoteType("Progress Note");
-      refetchNotes();
-      
-      toast({
-        title: "Note saved",
-        description: "Your note has been saved successfully",
-      });
-    } catch (error) {
-      console.error("Error saving note:", error);
-      toast({
-        title: "Error saving note",
-        description: "An error occurred while saving your note",
-        variant: "destructive",
-      });
-    }
+    addNote.mutate({
+      patientId,
+      providerId: userId,
+      content: noteText,
+      noteType
+    }, {
+      onSuccess: () => {
+        setIsCreatingNote(false);
+        setNoteText("");
+        setNoteType("Progress Note");
+      }
+    });
   };
   
   const handleFileUpload = () => {

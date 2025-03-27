@@ -39,7 +39,7 @@ serve(async (req) => {
       );
     }
 
-    // Prepare prompt with patient information
+    // Prepare prompt with patient information including notes
     const systemPrompt = `You are an AI healthcare assistant. Based on the provided patient information, 
     generate a comprehensive care plan with the following sections:
     1. Assessment summary
@@ -48,7 +48,16 @@ serve(async (req) => {
     4. Follow-up schedule
     5. Health metrics to monitor
     6. Lifestyle recommendations
+    
+    Pay special attention to the recent clinical notes and incorporate insights from these notes into your care plan.
     Format the response in markdown.`;
+
+    // Format recent notes for the prompt
+    const recentNotesText = patientData.recentNotes && patientData.recentNotes.length > 0
+      ? `Recent clinical notes:\n${patientData.recentNotes.map(note => 
+          `- Date: ${note.date}\n  Type: ${note.type}\n  Content: ${note.content}`
+        ).join('\n\n')}`
+      : 'No recent clinical notes available.';
 
     const userPrompt = `Generate a care plan for a patient with the following information:
     Name: ${patientData.first_name} ${patientData.last_name}
@@ -63,9 +72,11 @@ serve(async (req) => {
     Medical History: ${(patientData.medicalHistory && patientData.medicalHistory.length) ? 
       patientData.medicalHistory.join(', ') : 'None recorded'}
     Allergies: ${(patientData.allergies && patientData.allergies.length) ? 
-      patientData.allergies.join(', ') : 'None recorded'}`;
+      patientData.allergies.join(', ') : 'None recorded'}
+    
+    ${recentNotesText}`;
 
-    console.log("Sending request to OpenAI with patient data");
+    console.log("Sending request to OpenAI with patient data and notes");
     
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -125,11 +136,19 @@ function generateFallbackCarePlan(patientData) {
   const patientName = `${patientData.first_name} ${patientData.last_name}`;
   const today = new Date().toISOString().split('T')[0];
   
+  // Include notes summary if available
+  const notesSection = patientData.recentNotes && patientData.recentNotes.length > 0
+    ? `\n\n## Recent Notes Summary\n${patientData.recentNotes.slice(0, 2).map(note => 
+        `- ${new Date(note.date).toLocaleDateString()}: ${note.content.substring(0, 100)}...`
+      ).join('\n')}`
+    : '';
+  
   return `# Care Plan for ${patientName}
   
 ## Assessment Summary
 Patient is a ${patientData.gender} born on ${patientData.date_of_birth}. 
 ${patientData.condition ? `Current condition: ${patientData.condition}` : 'Current condition requires clinical assessment.'}
+${notesSection}
 
 ## Treatment Goals
 1. Assess current health status

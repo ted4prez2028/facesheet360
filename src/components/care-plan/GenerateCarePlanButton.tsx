@@ -1,80 +1,95 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Sparkles, LoaderCircle } from "lucide-react";
+import { useCarePlanGenerator } from "@/hooks/useCarePlanGenerator";
+import { PatientNotesForCarePlan } from './PatientNotesForCarePlan';
 
 interface GenerateCarePlanButtonProps {
   patientId: string;
-  onPlanGenerated: (carePlan: string) => void;
+  onPlanGenerated: (plan: string) => void;
   patientData: any;
 }
 
-export function GenerateCarePlanButton({ patientId, onPlanGenerated, patientData }: GenerateCarePlanButtonProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
-
-  const generateCarePlan = async () => {
-    if (!patientId || !patientData) {
-      toast({
-        title: "Missing patient data",
-        description: "Complete patient information is required to generate a care plan.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
+export function GenerateCarePlanButton({ 
+  patientId, 
+  onPlanGenerated, 
+  patientData 
+}: GenerateCarePlanButtonProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
+  const { generateCarePlan, isGenerating } = useCarePlanGenerator({ patientId });
+  
+  const handleGenerateCarePlan = async () => {
+    if (!patientData) return;
     
-    try {
-      // Call the Supabase edge function
-      const { data, error } = await supabase.functions.invoke('generate-care-plan', {
-        body: { patientData }
-      });
-
-      if (error) throw error;
-      
-      if (data && data.carePlan) {
-        onPlanGenerated(data.carePlan);
-        toast({
-          title: "Care plan generated",
-          description: "AI has created a personalized care plan based on patient data."
-        });
-      } else {
-        throw new Error("Failed to generate care plan - no data returned");
-      }
-    } catch (error) {
-      console.error('Error generating care plan:', error);
-      toast({
-        title: "Failed to generate care plan",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
+    // Include the selected notes in the patient data
+    const enhancedPatientData = {
+      ...patientData,
+      selectedNotes
+    };
+    
+    const generatedPlan = await generateCarePlan(enhancedPatientData);
+    if (generatedPlan) {
+      onPlanGenerated(generatedPlan);
+      setIsDialogOpen(false);
     }
   };
 
   return (
-    <Button 
-      variant="outline" 
-      className="gap-2 w-full" 
-      onClick={generateCarePlan}
-      disabled={isGenerating}
-    >
-      {isGenerating ? (
-        <>
-          <Spinner className="h-4 w-4" />
-          <span>Generating Care Plan...</span>
-        </>
-      ) : (
-        <>
-          <Sparkles className="h-4 w-4" />
-          <span>Generate AI Care Plan</span>
-        </>
-      )}
-    </Button>
+    <>
+      <Button 
+        onClick={() => setIsDialogOpen(true)}
+        className="gap-1 bg-purple-600 hover:bg-purple-700"
+      >
+        <Sparkles className="h-4 w-4" />
+        <span>Generate AI Care Plan</span>
+      </Button>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Generate AI Care Plan</DialogTitle>
+            <DialogDescription>
+              The AI will create a care plan based on the patient's data. You can select specific notes to include in the plan generation.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <PatientNotesForCarePlan 
+              patientId={patientId} 
+              onSelectNotes={setSelectedNotes}
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleGenerateCarePlan}
+              disabled={isGenerating}
+              className="gap-2 bg-purple-600 hover:bg-purple-700"
+            >
+              {isGenerating ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  <span>Generate Plan</span>
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

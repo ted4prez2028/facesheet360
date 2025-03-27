@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { usePatientNotes } from './usePatientNotes';
 
 interface UseCarePlanGeneratorProps {
   patientId: string;
@@ -13,6 +14,7 @@ export function useCarePlanGenerator({ patientId }: UseCarePlanGeneratorProps) {
   const [generatedPlan, setGeneratedPlan] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { getPatientNotesForCarePlan } = usePatientNotes(patientId);
 
   const generateCarePlan = async (patientData: any) => {
     if (!patientId || !patientData) {
@@ -27,9 +29,22 @@ export function useCarePlanGenerator({ patientId }: UseCarePlanGeneratorProps) {
     setIsGenerating(true);
     
     try {
+      // Get recent patient notes to include in the AI prompt
+      const recentNotes = await getPatientNotesForCarePlan();
+      
+      // Add the notes to the patient data
+      const patientDataWithNotes = {
+        ...patientData,
+        recentNotes: recentNotes.map(note => ({
+          date: note.record_date,
+          type: note.diagnosis,
+          content: note.notes
+        }))
+      };
+      
       // Call the Supabase edge function
       const { data, error } = await supabase.functions.invoke('generate-care-plan', {
-        body: { patientData }
+        body: { patientData: patientDataWithNotes }
       });
 
       if (error) throw error;
