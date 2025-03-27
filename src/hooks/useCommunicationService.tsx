@@ -1,9 +1,9 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Message, Call, ChatWindow } from '@/types';
 import { toast } from 'sonner';
+import { sampleDoctors } from '@/lib/api/sampleDoctors';
 
 // Define an interface for the database user to avoid type errors
 interface DbUser {
@@ -60,7 +60,25 @@ export function useCommunicationService() {
         updated_at: dbUser.updated_at
       })) || [];
       
-      setOnlineUsers(typedUsers);
+      // Add the sample doctors to the list of users
+      const allSampleDoctors = sampleDoctors.map(doctor => ({
+        ...doctor,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        care_coins_balance: 0,
+        careCoinsBalance: 0,
+      })) as User[];
+
+      // Combine real users with sample doctors and ensure there are no duplicates by ID
+      const combinedUsers = [...typedUsers];
+      
+      allSampleDoctors.forEach(doctor => {
+        if (!combinedUsers.some(user => user.id === doctor.id)) {
+          combinedUsers.push(doctor);
+        }
+      });
+      
+      setOnlineUsers(combinedUsers);
     } catch (error) {
       console.error('Error fetching online users:', error);
       toast.error('Failed to load contacts');
