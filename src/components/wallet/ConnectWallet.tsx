@@ -1,87 +1,110 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { toast } from 'sonner';
-import { useWallet } from '@/hooks/useWallet';
-import { WalletIcon, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { isMetaMaskInstalled } from '@/lib/carecoin';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Wallet, ExternalLink, AlertTriangle } from "lucide-react";
+import { useWallet } from "@/hooks/useWallet";
+import { useWalletSetup } from "@/hooks/useWalletSetup";
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ConnectWallet = () => {
-  const { user } = useAuth();
-  const { 
-    isWalletConnected, 
-    walletAddress, 
-    ethBalance, 
-    isLoading, 
-    connectWallet 
-  } = useWallet();
-
-  if (!user) {
-    return null;
-  }
-
+  const { isWalletConnected, walletAddress, connectWallet } = useWallet();
+  const { setupWallet, isProcessing } = useWalletSetup();
+  const [showHelp, setShowHelp] = useState(false);
+  
   const handleConnect = async () => {
-    if (isWalletConnected) {
-      toast.info('Wallet already connected');
-      return;
-    }
+    if (isWalletConnected) return;
     
-    await connectWallet();
+    // First try the regular connect
+    const success = await connectWallet();
+    
+    // If successful, also setup the welcome bonus
+    if (success) {
+      await setupWallet();
+    }
   };
-
-  const formatAddress = (address: string) => {
-    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-  };
-
+  
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Wallet Connection</CardTitle>
-        <WalletIcon className="h-4 w-4 text-muted-foreground" />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Wallet className="h-5 w-5" />
+          Connect Wallet
+        </CardTitle>
+        <CardDescription>
+          Connect your MetaMask wallet to manage your CareCoins
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        {!isMetaMaskInstalled() ? (
-          <Alert variant="destructive" className="mt-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              MetaMask is not installed. Please install the MetaMask browser extension to use CareCoins.
-            </AlertDescription>
-          </Alert>
-        ) : isWalletConnected ? (
-          <div className="space-y-2">
-            <CardDescription className="text-xs">
-              Connected Wallet
-            </CardDescription>
-            <div className="font-mono text-sm truncate">
-              {formatAddress(walletAddress || '')}
-            </div>
-            {ethBalance && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Balance:</span> {ethBalance} ETH
-              </div>
-            )}
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              Disconnect
-            </Button>
+        {isWalletConnected ? (
+          <div className="bg-muted rounded-lg p-4">
+            <p className="text-sm font-medium mb-1">Connected Wallet</p>
+            <p className="font-mono text-xs break-all">{walletAddress}</p>
           </div>
         ) : (
           <>
-            <CardDescription className="text-xs">
-              Connect your wallet to receive 10 CareCoins and start using blockchain features.
-            </CardDescription>
-            <Button 
-              disabled={isLoading} 
-              onClick={handleConnect} 
-              className="mt-4 w-full"
-            >
-              {isLoading ? 'Connecting...' : 'Connect Wallet'}
-            </Button>
+            <div className="bg-muted rounded-lg p-4 mb-4">
+              <p className="text-sm">
+                Connect your MetaMask wallet to manage your CareCoins and receive your
+                welcome bonus of 1 CareCoin.
+              </p>
+            </div>
+            
+            {showHelp && (
+              <Alert variant="default" className="mb-4 bg-blue-50 border-blue-200">
+                <AlertDescription className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Don't have MetaMask?</p>
+                  <p className="mb-2">
+                    MetaMask is a digital wallet that allows you to interact with
+                    blockchain applications. You'll need it to use CareCoins.
+                  </p>
+                  <a 
+                    href="https://metamask.io/download/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                  >
+                    Install MetaMask <ExternalLink className="h-3 w-3" />
+                  </a>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {!window.ethereum && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  MetaMask is not installed. You'll need to install it to use CareCoins.
+                </AlertDescription>
+              </Alert>
+            )}
           </>
         )}
       </CardContent>
+      <CardFooter className="flex justify-between">
+        {isWalletConnected ? (
+          <Button disabled className="w-full" variant="outline">
+            Wallet Connected
+          </Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <Button 
+              onClick={handleConnect} 
+              className="flex-1"
+              disabled={isProcessing || !window.ethereum}
+            >
+              {isProcessing ? "Connecting..." : "Connect MetaMask"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowHelp(!showHelp)}
+              className="sm:w-auto"
+            >
+              {showHelp ? "Hide Help" : "Need Help?"}
+            </Button>
+          </div>
+        )}
+      </CardFooter>
     </Card>
   );
 };

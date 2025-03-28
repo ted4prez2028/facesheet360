@@ -8,25 +8,9 @@ import StatisticsCards from "@/components/dashboard/StatisticsCards";
 import DashboardTabs from "@/components/dashboard/DashboardTabs";
 import CareCoinsActivity from "@/components/wallet/CareCoinsActivity";
 import QuickActions from "@/components/dashboard/QuickActions";
-
-const patientStatistics = [
-  { name: "Mon", newPatients: 4, activePatients: 22, avg: 18 },
-  { name: "Tue", newPatients: 3, activePatients: 25, avg: 19 },
-  { name: "Wed", newPatients: 5, activePatients: 28, avg: 22 },
-  { name: "Thu", newPatients: 2, activePatients: 27, avg: 20 },
-  { name: "Fri", newPatients: 6, activePatients: 30, avg: 24 },
-  { name: "Sat", newPatients: 3, activePatients: 14, avg: 12 },
-  { name: "Sun", newPatients: 1, activePatients: 8, avg: 6 },
-];
-
-const healthMetrics = [
-  { name: "Jan", heartRate: 75, bloodPressure: 120, o2Saturation: 98 },
-  { name: "Feb", heartRate: 72, bloodPressure: 118, o2Saturation: 97 },
-  { name: "Mar", heartRate: 78, bloodPressure: 125, o2Saturation: 99 },
-  { name: "Apr", heartRate: 74, bloodPressure: 115, o2Saturation: 98 },
-  { name: "May", heartRate: 76, bloodPressure: 122, o2Saturation: 97 },
-  { name: "Jun", heartRate: 73, bloodPressure: 119, o2Saturation: 98 }
-];
+import { usePatientStatistics, usePatientHealthMetrics } from "@/hooks/usePatientStatistics";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePatients } from "@/hooks/usePatients";
 
 const recentPatients = [
   { id: 1, name: "John Smith", age: 45, condition: "Hypertension", lastVisit: "2 days ago", status: "Stable" },
@@ -53,6 +37,12 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [timeframe, setTimeframe] = useState("year");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | undefined>();
+  
+  const { data: patientsList } = usePatients();
+  const { data: patientStatistics = [], isLoading: isStatsLoading } = usePatientStatistics(timeframe);
+  const { data: healthMetrics = [], isLoading: isMetricsLoading } = usePatientHealthMetrics(selectedPatientId);
   
   const firstName = user?.name ? user.name.split(' ')[0] : "Doctor";
 
@@ -79,13 +69,48 @@ const Dashboard = () => {
         
         <StatisticsCards />
         
-        <DashboardTabs 
-          patientStatistics={patientStatistics}
-          healthMetrics={healthMetrics}
-          recentPatients={recentPatients}
-          upcomingAppointments={upcomingAppointments}
-          pendingTasks={pendingTasks}
-        />
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h2 className="text-2xl font-bold">Patient Analytics</h2>
+            <div className="flex gap-4 items-center">
+              <Select value={timeframe} onValueChange={setTimeframe}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Last Week</SelectItem>
+                  <SelectItem value="month">Last Month</SelectItem>
+                  <SelectItem value="quarter">Last Quarter</SelectItem>
+                  <SelectItem value="year">Last Year</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={selectedPatientId} 
+                onValueChange={setSelectedPatientId}
+              >
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder="Select patient for metrics" />
+                </SelectTrigger>
+                <SelectContent>
+                  {patientsList?.map(patient => (
+                    <SelectItem key={patient.id} value={patient.id}>
+                      {patient.first_name} {patient.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DashboardTabs 
+            patientStatistics={patientStatistics}
+            healthMetrics={healthMetrics}
+            recentPatients={recentPatients}
+            upcomingAppointments={upcomingAppointments}
+            pendingTasks={pendingTasks}
+          />
+        </div>
         
         <div className="grid gap-6 md:grid-cols-2">
           <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} />

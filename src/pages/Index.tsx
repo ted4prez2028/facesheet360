@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -76,7 +75,7 @@ const Index = () => {
               <Button size="lg" className="bg-white text-health-800 hover:bg-health-100">
                 <Link to="/dashboard">Get Started</Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10 hover:text-white">
                 <Link to="/subscription">View Plans</Link>
               </Button>
             </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sheet, 
   SheetContent, 
@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { User } from '@/types/index';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLocation } from 'react-router-dom';
 
 const ContactsList = () => {
   const { user } = useAuth();
@@ -33,6 +34,10 @@ const ContactsList = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState<string>('all');
+  const location = useLocation();
+  
+  // Hide on homepage
+  const isHomePage = location.pathname === '/';
   
   // Get unique organizations from users
   const organizations = ['all', ...new Set(
@@ -59,6 +64,10 @@ const ContactsList = () => {
     
     return matchesSearch && matchesOrganization && sameOrganization;
   });
+  
+  if (isHomePage) {
+    return null; // Don't render on homepage
+  }
   
   return (
     <>
