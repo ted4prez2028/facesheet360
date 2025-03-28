@@ -2,38 +2,41 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
-export interface Note {
+interface Note {
   id: string;
-  patientId: string;
   date: string;
-  provider: string;
-  type: string;
   content: string;
+  type: string;
+  provider: string;
 }
 
-export function usePatientNotes(patientId: string | undefined) {
-  const { toast } = useToast();
+interface AddNoteParams {
+  patientId: string;
+  providerId: string;
+  content: string;
+  noteType: string;
+}
+
+export const usePatientNotes = (patientId: string) => {
   const queryClient = useQueryClient();
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   
+  // Fetch patient notes
   const { data: notes, isLoading, error } = useQuery({
     queryKey: ['patient-notes', patientId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Note[]> => {
       if (!patientId) return [];
       
       const { data, error } = await supabase
         .from('chart_records')
         .select(`
           id,
-          patient_id,
-          provider_id,
           record_date,
-          record_type,
-          diagnosis,
           notes,
-          users:provider_id (name)
+          record_type,
+          provider_id,
+          users:provider_id(name)
         `)
         .eq('patient_id', patientId)
         .eq('record_type', 'note')
@@ -41,95 +44,51 @@ export function usePatientNotes(patientId: string | undefined) {
         
       if (error) throw error;
       
-      return data.map(note => ({
-        id: note.id,
-        patientId: note.patient_id,
-        date: note.record_date,
-        provider: note.users?.name || 'Unknown Provider',
-        type: note.diagnosis || 'Progress Note',
-        content: note.notes || ''
+      return data.map(record => ({
+        id: record.id,
+        date: record.record_date,
+        content: record.notes || '',
+        type: record.record_type,
+        provider: record.users?.name || 'Unknown Provider'
       }));
     },
     enabled: !!patientId
   });
-
+  
+  // Add a new note
   const addNote = useMutation({
-    mutationFn: async ({ 
-      patientId, 
-      providerId, 
-      content, 
-      noteType 
-    }: { 
-      patientId: string; 
-      providerId: string; 
-      content: string; 
-      noteType: string;
-    }) => {
+    mutationFn: async (params: AddNoteParams) => {
+      const { patientId, providerId, content, noteType } = params;
+      
       const { data, error } = await supabase
         .from('chart_records')
         .insert({
           patient_id: patientId,
           provider_id: providerId,
           record_type: 'note',
-          record_date: new Date().toISOString(),
-          diagnosis: noteType,
-          notes: content
+          notes: content,
+          record_date: new Date().toISOString()
         })
-        .select();
+        .select()
+        .single();
         
       if (error) throw error;
-      return data[0];
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient-notes', patientId] });
-      toast({
-        title: "Note saved",
-        description: "Your note has been saved successfully",
-      });
+      toast.success('Note added successfully');
     },
     onError: (error) => {
-      console.error("Error saving note:", error);
-      toast({
-        title: "Error saving note",
-        description: "An error occurred while saving your note",
-        variant: "destructive",
-      });
+      console.error('Error adding note:', error);
+      toast.error('Failed to add note');
     }
   });
-
-  const getPatientNotesForCarePlan = async () => {
-    if (!patientId) return [];
-    
-    try {
-      const { data, error } = await supabase
-        .from('chart_records')
-        .select(`
-          id,
-          record_date,
-          diagnosis,
-          notes
-        `)
-        .eq('patient_id', patientId)
-        .eq('record_type', 'note')
-        .order('record_date', { ascending: false })
-        .limit(5);
-        
-      if (error) throw error;
-      
-      return data;
-    } catch (error) {
-      console.error("Error fetching patient notes for care plan:", error);
-      return [];
-    }
-  };
-
+  
   return {
     notes,
     isLoading,
     error,
-    addNote,
-    selectedNote,
-    setSelectedNote,
-    getPatientNotesForCarePlan
+    addNote
   };
-}
+};

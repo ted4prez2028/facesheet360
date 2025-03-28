@@ -10,17 +10,24 @@ import { NotesTable } from "@/components/charting/NotesTable";
 import { CarePlanList } from "@/components/charting/CarePlanList";
 import { GenerateCarePlanButton } from "@/components/care-plan/GenerateCarePlanButton";
 import { useCarePlanGenerator } from "@/hooks/useCarePlanGenerator";
+import VitalSignsPanel from "@/components/charting/VitalSignsPanel";
+import MedicationsPanel from "@/components/charting/MedicationsPanel";
+import LabResultsPanel from "@/components/charting/LabResultsPanel";
+import PatientNotes from "@/components/charting/PatientNotes";
+import ImagingPanel from "@/components/charting/ImagingPanel";
 
 interface PatientChartTabsProps {
   patient: any;
   chartData: any;
+  patientId: string;
+  userId?: string;
 }
 
-export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) {
+export function PatientChartTabs({ patient, chartData, patientId, userId }: PatientChartTabsProps) {
   const [selectedTab, setSelectedTab] = useState("vitals");
   
   const { generateCarePlan, isGenerating } = useCarePlanGenerator({ 
-    patientId: patient?.id || '' 
+    patientId: patientId || '' 
   });
   
   // Handler for when a care plan is generated
@@ -43,9 +50,13 @@ export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) 
     };
   };
 
+  const handleTabChange = (value: string) => {
+    setSelectedTab(value);
+  };
+
   return (
-    <div className="space-y-4">
-      <Tabs defaultValue="vitals" className="w-full">
+    <div className="space-y-4 p-4">
+      <Tabs defaultValue="vitals" className="w-full" onValueChange={handleTabChange}>
         <TabsList className="grid grid-cols-6 mb-4">
           <TabsTrigger value="vitals">Vital Signs</TabsTrigger>
           <TabsTrigger value="medications">Medications</TabsTrigger>
@@ -56,23 +67,23 @@ export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) 
         </TabsList>
         
         <TabsContent value="vitals">
-          <VitalsTable vitals={chartData?.vitalSigns} />
+          <VitalSignsPanel patientId={patientId} />
         </TabsContent>
         
         <TabsContent value="medications">
-          <MedicationsTable medications={chartData?.medications} />
+          <MedicationsPanel patientId={patientId} />
         </TabsContent>
         
         <TabsContent value="lab">
-          <LabResultsTable labResults={chartData?.labResults} />
+          <LabResultsPanel patientId={patientId} />
         </TabsContent>
         
         <TabsContent value="imaging">
-          <ImagingTable imaging={chartData?.imaging} />
+          <ImagingPanel patientId={patientId} />
         </TabsContent>
         
         <TabsContent value="notes">
-          <NotesTable notes={chartData?.notes} />
+          {userId && <PatientNotes patientId={patientId} userId={userId} />}
         </TabsContent>
         
         {/* Add the AI Care Plan generator button to the care plans tab */}
@@ -86,7 +97,7 @@ export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) 
                 </CardHeader>
                 <CardContent>
                   <GenerateCarePlanButton 
-                    patientId={patient?.id || ''}
+                    patientId={patientId || ''}
                     onPlanGenerated={handlePlanGenerated}
                     patientData={preparePatientDataForAI()}
                   />
@@ -94,7 +105,7 @@ export function PatientChartTabs({ patient, chartData }: PatientChartTabsProps) 
               </Card>
             </div>
             <div className="md:col-span-2">
-              <CarePlanList patientId={patient?.id || ''} />
+              <CarePlanList patientId={patientId || ''} />
             </div>
           </div>
         </TabsContent>

@@ -3,6 +3,13 @@ import { Card } from "@/components/ui/card";
 import { CardHeader } from "@/components/ui/card";
 import PatientDetailHeader from "./PatientDetailHeader";
 import { PatientChartTabs } from "./PatientChartTabs";
+import { 
+  useVitalSigns, 
+  useLabResults, 
+  useMedications, 
+  useImagingRecords 
+} from "@/hooks/useChartData";
+import { useState, useEffect } from "react";
 
 interface Patient {
   id: string;
@@ -20,6 +27,24 @@ interface PatientChartProps {
 }
 
 const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProps) => {
+  // Fetch patient chart data from the database
+  const { data: vitalSigns = [] } = useVitalSigns(selectedPatient);
+  const { data: labResults = [] } = useLabResults(selectedPatient);
+  const { data: medications = [] } = useMedications(selectedPatient);
+  const { data: imaging = [] } = useImagingRecords(selectedPatient);
+
+  // Create combined chart data object
+  const chartData = {
+    vitalSigns: vitalSigns,
+    medications: medications,
+    labResults: labResults,
+    imaging: imaging,
+    notes: [], // We'll handle notes separately
+    history: [],
+    diagnosis: "",
+    allergies: []
+  };
+
   if (!selectedPatient) {
     return (
       <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed">
@@ -33,18 +58,6 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     );
   }
 
-  // Create a sample chart data object with the structure expected by PatientChartTabs
-  const chartData = {
-    vitalSigns: [],
-    medications: [],
-    labResults: [],
-    imaging: [],
-    notes: [],
-    history: [],
-    diagnosis: "",
-    allergies: []
-  };
-
   return (
     <Card className="shadow-sm flex-1 flex flex-col">
       <CardHeader className="pb-0">
@@ -55,7 +68,12 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
         />
       </CardHeader>
       
-      <PatientChartTabs patient={patientData} chartData={chartData} />
+      <PatientChartTabs 
+        patient={patientData} 
+        chartData={chartData} 
+        patientId={selectedPatient}
+        userId={userId}
+      />
     </Card>
   );
 };

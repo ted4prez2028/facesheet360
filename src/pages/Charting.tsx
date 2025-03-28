@@ -40,7 +40,7 @@ const Charting = () => {
             />
           </div>
           
-          <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
             <PatientChart 
               selectedPatient={selectedPatient}
               patientData={selectedPatientData}
