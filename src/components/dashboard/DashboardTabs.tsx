@@ -10,17 +10,23 @@ import DashboardCharts from "./DashboardCharts";
 interface DashboardTabsProps {
   patientStatistics: any[];
   healthMetrics: any[];
-  recentPatients: any[];
-  upcomingAppointments: any[];
-  pendingTasks: any[];
+  recentPatients?: any[];
+  isRecentPatientsLoading?: boolean;
+  todayAppointments?: any[];
+  isAppointmentsLoading?: boolean;
+  pendingTasks?: any[];
+  isTasksLoading?: boolean;
 }
 
 const DashboardTabs = ({
   patientStatistics,
   healthMetrics,
   recentPatients,
-  upcomingAppointments,
-  pendingTasks
+  isRecentPatientsLoading,
+  todayAppointments,
+  isAppointmentsLoading,
+  pendingTasks,
+  isTasksLoading
 }: DashboardTabsProps) => {
   const [timeframe, setTimeframe] = useState("week");
 
@@ -55,15 +61,24 @@ const DashboardTabs = ({
       </TabsContent>
       
       <TabsContent value="patients" className="mt-6">
-        <RecentPatients patients={recentPatients} />
+        <RecentPatients 
+          patients={recentPatients} 
+          isLoading={isRecentPatientsLoading} 
+        />
       </TabsContent>
       
       <TabsContent value="appointments" className="mt-6">
-        <TodayAppointments appointments={upcomingAppointments} />
+        <TodayAppointments 
+          appointments={todayAppointments} 
+          isLoading={isAppointmentsLoading} 
+        />
       </TabsContent>
       
       <TabsContent value="tasks" className="mt-6">
-        <PendingTasks tasks={pendingTasks} />
+        <PendingTasks 
+          tasks={pendingTasks} 
+          isLoading={isTasksLoading} 
+        />
       </TabsContent>
     </Tabs>
   );

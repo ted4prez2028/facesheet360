@@ -11,27 +11,9 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import { usePatientStatistics, usePatientHealthMetrics } from "@/hooks/usePatientStatistics";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePatients } from "@/hooks/usePatients";
-
-const recentPatients = [
-  { id: 1, name: "John Smith", age: 45, condition: "Hypertension", lastVisit: "2 days ago", status: "Stable" },
-  { id: 2, name: "Maria Rodriguez", age: 32, condition: "Pregnancy", lastVisit: "1 day ago", status: "Follow-up" },
-  { id: 3, name: "Robert Johnson", age: 67, condition: "Diabetes Type 2", lastVisit: "Today", status: "Critical" },
-  { id: 4, name: "Emily Davis", age: 28, condition: "Migraine", lastVisit: "3 days ago", status: "Stable" }
-];
-
-const upcomingAppointments = [
-  { id: 1, patient: "James Wilson", time: "9:00 AM", type: "Check-up", duration: "30 min" },
-  { id: 2, patient: "Sarah Thompson", time: "10:30 AM", type: "Follow-up", duration: "45 min" },
-  { id: 3, patient: "Michael Brown", time: "1:15 PM", type: "Consultation", duration: "60 min" },
-  { id: 4, patient: "Lisa Anderson", time: "3:00 PM", type: "Procedure", duration: "45 min" }
-];
-
-const pendingTasks = [
-  { id: 1, task: "Review lab results for Robert Johnson", priority: "High", due: "Today" },
-  { id: 2, task: "Update treatment plan for Maria Rodriguez", priority: "Medium", due: "Tomorrow" },
-  { id: 3, task: "Sign off on discharge papers for Emily Davis", priority: "High", due: "Today" },
-  { id: 4, task: "Follow up on referral for John Smith", priority: "Low", due: "Next Week" }
-];
+import { useRecentPatients } from "@/hooks/useRecentPatients";
+import { useAppointmentsToday } from "@/hooks/useAppointmentsToday";
+import { usePendingTasks } from "@/hooks/usePendingTasks";
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -43,6 +25,11 @@ const Dashboard = () => {
   const { data: patientsList } = usePatients();
   const { data: patientStatistics = [], isLoading: isStatsLoading } = usePatientStatistics(timeframe);
   const { data: healthMetrics = [], isLoading: isMetricsLoading } = usePatientHealthMetrics(selectedPatientId);
+  
+  // Fetch dynamic data
+  const { data: recentPatients, isLoading: isRecentPatientsLoading } = useRecentPatients();
+  const { data: todayAppointments, isLoading: isAppointmentsLoading } = useAppointmentsToday();
+  const { data: pendingTasks, isLoading: isTasksLoading } = usePendingTasks();
   
   const firstName = user?.name ? user.name.split(' ')[0] : "Doctor";
 
@@ -107,8 +94,11 @@ const Dashboard = () => {
             patientStatistics={patientStatistics}
             healthMetrics={healthMetrics}
             recentPatients={recentPatients}
-            upcomingAppointments={upcomingAppointments}
+            isRecentPatientsLoading={isRecentPatientsLoading}
+            todayAppointments={todayAppointments}
+            isAppointmentsLoading={isAppointmentsLoading}
             pendingTasks={pendingTasks}
+            isTasksLoading={isTasksLoading}
           />
         </div>
         

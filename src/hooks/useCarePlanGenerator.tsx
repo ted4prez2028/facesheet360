@@ -1,104 +1,47 @@
 
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/AuthContext';
-import { usePatientNotes } from './usePatientNotes';
+import { toast } from 'sonner';
+import { usePatientNotes } from '@/hooks/usePatientNotes';
 
-interface UseCarePlanGeneratorProps {
+interface CarePlanGeneratorProps {
   patientId: string;
 }
 
-export function useCarePlanGenerator({ patientId }: UseCarePlanGeneratorProps) {
+export const useCarePlanGenerator = ({ patientId }: CarePlanGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPlan, setGeneratedPlan] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const { getPatientNotesForCarePlan } = usePatientNotes(patientId);
+  const { notes } = usePatientNotes(patientId);
 
-  const generateCarePlan = async (patientData: any) => {
-    if (!patientId || !patientData) {
-      toast({
-        title: "Missing patient data",
-        description: "Complete patient information is required to generate a care plan.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    
-    try {
-      // Get recent patient notes to include in the AI prompt
-      const recentNotes = await getPatientNotesForCarePlan();
+  const generateCarePlan = useMutation({
+    mutationFn: async (patientData: any) => {
+      setIsGenerating(true);
       
-      // Add the notes to the patient data
-      const patientDataWithNotes = {
-        ...patientData,
-        recentNotes: recentNotes.map(note => ({
-          date: note.record_date,
-          type: note.diagnosis,
-          content: note.notes
-        }))
-      };
-      
-      // Call the Supabase edge function
-      const { data, error } = await supabase.functions.invoke('generate-care-plan', {
-        body: { patientData: patientDataWithNotes }
-      });
-
-      if (error) throw error;
-      
-      if (data && data.carePlan) {
-        setGeneratedPlan(data.carePlan);
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-care-plan', {
+          body: { patientId, patientData, notes }
+        });
         
-        // Save the care plan to the database
-        if (user?.id) {
-          const { error: saveError } = await supabase
-            .from('care_plans')
-            .insert({
-              patient_id: patientId,
-              provider_id: user.id,
-              content: data.carePlan,
-              is_ai_generated: true,
-              status: 'draft'
-            });
-            
-          if (saveError) {
-            console.error('Error saving care plan:', saveError);
-            toast({
-              title: "Care plan generated but not saved",
-              description: "The care plan couldn't be saved to the database.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Care plan generated and saved",
-              description: "AI has created a personalized care plan based on patient data."
-            });
-          }
-        }
+        if (error) throw new Error(error.message);
         
-        return data.carePlan;
-      } else {
-        throw new Error("Failed to generate care plan - no data returned");
+        return data?.carePlan || '';
+      } catch (error) {
+        console.error('Error generating care plan:', error);
+        throw error;
+      } finally {
+        setIsGenerating(false);
       }
-    } catch (error) {
-      console.error('Error generating care plan:', error);
-      toast({
-        title: "Failed to generate care plan",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setIsGenerating(false);
+    },
+    onSuccess: (data) => {
+      toast.success('Care plan generated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to generate care plan: ${error.message}`);
     }
-  };
+  });
 
   return {
     generateCarePlan,
-    isGenerating,
-    generatedPlan,
+    isGenerating
   };
-}
+};
