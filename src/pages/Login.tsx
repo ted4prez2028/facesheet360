@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,29 +23,23 @@ const Login = () => {
   const { login, signUp, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Enhanced useEffect to handle redirection when authentication state changes
   useEffect(() => {
-    // Only redirect if authentication has been checked (not loading) and user is authenticated
     if (!isLoading && isAuthenticated) {
       console.log("User is authenticated, redirecting to dashboard");
-      // Use replace: true to prevent user from going back to login page with browser back button
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  // Handle input changes for login form
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle input changes for registration form
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setRegisterData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle login form submission
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -54,16 +47,13 @@ const Login = () => {
     try {
       await login(loginData.email, loginData.password);
       console.log("Login successful, waiting for auth state to update");
-      // The useEffect hook will handle navigation after auth state changes
     } catch (error) {
       console.error("Login error:", error);
-      // Error is already handled in the login function
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle registration form submission
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -88,7 +78,6 @@ const Login = () => {
         }
       );
       
-      // Reset form
       setRegisterData({
         name: "",
         email: "",
@@ -98,16 +87,13 @@ const Login = () => {
       });
       
       console.log("Registration successful, waiting for auth state to update");
-      // The useEffect hook will handle navigation after auth state changes
     } catch (error) {
       console.error("Registration error:", error);
-      // Error is already handled in the signUp function
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // If still loading auth state, show loading indicator
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -116,10 +102,8 @@ const Login = () => {
     );
   }
 
-  // If already authenticated, force immediate redirect
   if (isAuthenticated) {
     console.log("Already authenticated, redirecting to dashboard immediately");
-    // Immediate redirect for extra protection against race conditions
     navigate('/dashboard', { replace: true });
     return null;
   }
