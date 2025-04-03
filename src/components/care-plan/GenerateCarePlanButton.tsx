@@ -30,11 +30,12 @@ export function GenerateCarePlanButton({
       selectedNotes
     };
     
-    const generatedPlan = await generateCarePlan(enhancedPatientData);
-    if (generatedPlan) {
-      onPlanGenerated(generatedPlan);
-      setIsDialogOpen(false);
-    }
+    generateCarePlan.mutate(enhancedPatientData, {
+      onSuccess: (data) => {
+        onPlanGenerated(data);
+        setIsDialogOpen(false);
+      }
+    });
   };
 
   return (
@@ -72,10 +73,10 @@ export function GenerateCarePlanButton({
             </Button>
             <Button 
               onClick={handleGenerateCarePlan}
-              disabled={isGenerating}
+              disabled={isGenerating || generateCarePlan.isPending}
               className="gap-2 bg-purple-600 hover:bg-purple-700"
             >
-              {isGenerating ? (
+              {isGenerating || generateCarePlan.isPending ? (
                 <>
                   <LoaderCircle className="h-4 w-4 animate-spin" />
                   <span>Generating...</span>
