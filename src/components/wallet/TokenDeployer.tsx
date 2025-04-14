@@ -5,17 +5,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Code, Loader2 } from "lucide-react";
-import { isMetaMaskInstalled, getConnectedAccount } from "@/lib/carecoin";
+import { AlertCircle, Code, Loader2, Coins, Wallet } from "lucide-react";
+import { isMetaMaskInstalled, getConnectedAccount, CARECOIN_REWARDS } from "@/lib/carecoin";
 import { ethers } from "ethers";
 import { toast } from "sonner";
 
-// Simple ERC-20 token contract
+// Simple ERC-20 token contract with reward distribution functionality
 const TOKEN_CONTRACT_BYTECODE = `
 // This would be the actual bytecode of your compiled contract
 `;
 
-// Simplified ERC-20 ABI
+// Enhanced ERC-20 ABI with reward distribution function
 const TOKEN_CONTRACT_ABI = [
   "function name() view returns (string)",
   "function symbol() view returns (string)",
@@ -23,7 +23,8 @@ const TOKEN_CONTRACT_ABI = [
   "function totalSupply() view returns (uint256)",
   "function balanceOf(address owner) view returns (uint256)",
   "function transfer(address to, uint256 value) returns (bool)",
-  "event Transfer(address indexed from, address indexed to, uint256 value)"
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "function mintReward(address provider, address patient, address platform) returns (bool)"
 ];
 
 export function TokenDeployer() {
@@ -119,11 +120,11 @@ export function TokenDeployer() {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Code className="h-5 w-5" />
+          <Coins className="h-5 w-5 text-green-500" />
           Deploy CareCoin Token
         </CardTitle>
         <CardDescription>
-          Create your own ERC-20 token on the blockchain
+          Create your own ERC-20 token for healthcare data rewards
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -180,10 +181,29 @@ export function TokenDeployer() {
                   </div>
                 </div>
                 
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                  <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Reward Distribution</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li className="flex justify-between">
+                      <span>Healthcare Provider:</span>
+                      <span className="font-medium">{CARECOIN_REWARDS.PROVIDER_PERCENTAGE}%</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Patient:</span>
+                      <span className="font-medium">{CARECOIN_REWARDS.PATIENT_PERCENTAGE}%</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Platform Owner:</span>
+                      <span className="font-medium">{CARECOIN_REWARDS.PLATFORM_PERCENTAGE}%</span>
+                    </li>
+                  </ul>
+                </div>
+                
                 <Button 
                   className="w-full mt-4"
                   onClick={addTokenToMetaMask}
                 >
+                  <Wallet className="mr-2 h-4 w-4" />
                   Add Token to MetaMask
                 </Button>
               </div>
@@ -221,6 +241,17 @@ export function TokenDeployer() {
                       min="1"
                     />
                   </div>
+
+                  <Alert className="bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">
+                    <AlertTitle className="text-amber-800 dark:text-amber-300">Reward Distribution</AlertTitle>
+                    <AlertDescription>
+                      <ul className="mt-2 text-sm space-y-1">
+                        <li>Healthcare Provider: {CARECOIN_REWARDS.PROVIDER_PERCENTAGE}%</li>
+                        <li>Patient: {CARECOIN_REWARDS.PATIENT_PERCENTAGE}%</li>
+                        <li>Platform Owner: {CARECOIN_REWARDS.PLATFORM_PERCENTAGE}%</li>
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
                 </div>
               </form>
             )}
@@ -231,7 +262,7 @@ export function TokenDeployer() {
         {!deployedAddress && (
           <Button
             type="button"
-            className="w-full"
+            className="w-full bg-green-500 hover:bg-green-600"
             onClick={deployToken}
             disabled={isDeploying || !isMetaMaskInstalled()}
           >
@@ -241,7 +272,10 @@ export function TokenDeployer() {
                 Deploying...
               </>
             ) : (
-              "Deploy Token Contract"
+              <>
+                <Coins className="mr-2 h-4 w-4" />
+                Deploy Token Contract
+              </>
             )}
           </Button>
         )}

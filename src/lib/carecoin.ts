@@ -20,8 +20,16 @@ const CareCoinsABI = [
   // Write functions
   "function transfer(address to, uint256 value) returns (bool)",
   "function approve(address spender, uint256 value) returns (bool)",
-  "function transferFrom(address from, address to, uint256 value) returns (bool)"
+  "function transferFrom(address from, address to, uint256 value) returns (bool)",
+  "function mintReward(address provider, address patient, address platform) returns (bool)"
 ];
+
+// CareCoin reward configuration
+export const CARECOIN_REWARDS = {
+  PROVIDER_PERCENTAGE: 60, // 60% goes to healthcare provider
+  PATIENT_PERCENTAGE: 30,  // 30% goes to patient
+  PLATFORM_PERCENTAGE: 10  // 10% goes to platform owner
+};
 
 // Check if MetaMask is installed
 export const isMetaMaskInstalled = () => {
@@ -113,6 +121,59 @@ export const getCareCoinsTokenBalance = async (address: string, contractAddress:
   } catch (error) {
     console.error('Error getting CareCoins token balance:', error);
     return '0';
+  }
+};
+
+// Issue CareCoin rewards when data is entered into the EHR
+export const issueDataEntryReward = async (
+  contractAddress: string, 
+  providerAddress: string, 
+  patientAddress: string, 
+  platformAddress: string, 
+  amount: string = "1.0" // Default is 1 CareCoin per data entry
+) => {
+  if (!isMetaMaskInstalled()) {
+    toast.error('MetaMask is not installed.');
+    return false;
+  }
+  
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    
+    // Create contract instance
+    const contract = new ethers.Contract(contractAddress, CareCoinsABI, signer);
+    
+    // Convert amount to token units (with decimals)
+    const tokenDecimals = await contract.decimals();
+    const amountInTokenUnits = ethers.utils.parseUnits(amount, tokenDecimals);
+    
+    // Show pending toast
+    const pendingToastId = toast.loading('Issuing CareCoins rewards...');
+    
+    // Mint rewards to each party based on percentages
+    const txResponse = await contract.mintReward(providerAddress, patientAddress, platformAddress);
+    
+    // Wait for transaction to be mined
+    const receipt = await txResponse.wait();
+    
+    // Update toast based on transaction status
+    if (receipt.status === 1) {
+      toast.success(`Successfully issued CareCoins rewards`, {
+        id: pendingToastId,
+        description: `Provider: ${CARECOIN_REWARDS.PROVIDER_PERCENTAGE}%, Patient: ${CARECOIN_REWARDS.PATIENT_PERCENTAGE}%, Platform: ${CARECOIN_REWARDS.PLATFORM_PERCENTAGE}%`
+      });
+      return true;
+    } else {
+      toast.error('Transaction failed', {
+        id: pendingToastId,
+      });
+      return false;
+    }
+  } catch (error: any) {
+    console.error('Error issuing CareCoins:', error);
+    toast.error(error.message || 'Failed to issue CareCoins. Please try again.');
+    return false;
   }
 };
 
