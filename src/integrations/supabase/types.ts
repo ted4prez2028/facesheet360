@@ -42,6 +42,50 @@ export type Database = {
         }
         Relationships: []
       }
+      allergies: {
+        Row: {
+          allergen: string
+          created_at: string | null
+          date_identified: string
+          id: string
+          patient_id: string
+          reaction: string
+          severity: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          allergen: string
+          created_at?: string | null
+          date_identified: string
+          id?: string
+          patient_id: string
+          reaction: string
+          severity: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          allergen?: string
+          created_at?: string | null
+          date_identified?: string
+          id?: string
+          patient_id?: string
+          reaction?: string
+          severity?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allergies_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           appointment_date: string

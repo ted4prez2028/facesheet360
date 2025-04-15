@@ -2,16 +2,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Tables } from '@/integrations/supabase/types';
 
-interface Allergy {
-  id: string;
-  allergen: string;
-  reaction: string;
-  severity: string;
-  dateIdentified: string;
-  status: string;
-  patientId: string;
-}
+export interface Allergy extends Tables['allergies']['Row'] {}
 
 export function useAllergies(patientId: string) {
   const [allergies, setAllergies] = useState<Allergy[]>([]);
@@ -23,7 +16,7 @@ export function useAllergies(patientId: string) {
         .from('allergies')
         .select('*')
         .eq('patient_id', patientId)
-        .order('dateIdentified', { ascending: false });
+        .order('date_identified', { ascending: false });
 
       if (error) throw error;
       setAllergies(data || []);
@@ -39,11 +32,14 @@ export function useAllergies(patientId: string) {
     fetchAllergies();
   }, [patientId]);
 
-  const addAllergy = async (newAllergy: Omit<Allergy, 'id'>) => {
+  const addAllergy = async (newAllergy: Omit<Allergy, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
         .from('allergies')
-        .insert([{ ...newAllergy, patient_id: patientId }])
+        .insert({
+          ...newAllergy, 
+          patient_id: patientId
+        })
         .select()
         .single();
 
@@ -61,13 +57,15 @@ export function useAllergies(patientId: string) {
     try {
       const { data, error } = await supabase
         .from('allergies')
-        .update({ ...updatedAllergy, patient_id: patientId })
+        .update(updatedAllergy)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      setAllergies(prev => prev.map(allergy => allergy.id === id ? data : allergy));
+      setAllergies(prev => prev.map(allergy => 
+        allergy.id === id ? data : allergy
+      ));
       toast.success('Allergy updated successfully');
     } catch (error) {
       console.error('Error updating allergy:', error);
@@ -98,6 +96,7 @@ export function useAllergies(patientId: string) {
     isLoading,
     addAllergy,
     updateAllergy,
-    deleteAllergy
+    deleteAllergy,
+    refetch: fetchAllergies
   };
 }
