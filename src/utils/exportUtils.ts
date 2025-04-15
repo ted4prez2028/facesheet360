@@ -13,16 +13,48 @@ export const exportToExcel = (data: any[], fileName: string) => {
 };
 
 export const exportToPdf = (title: string, data: any[]) => {
+  if (!data.length) {
+    console.error('No data to export');
+    return;
+  }
+
+  const headers = Object.keys(data[0]).map(key => ({
+    text: key.charAt(0).toUpperCase() + key.slice(1),
+    style: 'tableHeader'
+  }));
+  
+  const rows = data.map(item => 
+    Object.values(item).map(value => ({
+      text: value === null || value === undefined ? '-' : String(value),
+      style: 'tableCell'
+    }))
+  );
+
   const docDefinition = {
     content: [
       { text: title, style: 'header' },
       {
         table: {
           headerRows: 1,
+          widths: Array(headers.length).fill('*'),
           body: [
-            Object.keys(data[0]),
-            ...data.map(item => Object.values(item))
+            headers,
+            ...rows
           ]
+        },
+        layout: {
+          hLineWidth: function(i: number, node: any) {
+            return (i === 0 || i === node.table.body.length) ? 1 : 0.5;
+          },
+          vLineWidth: function(i: number, node: any) {
+            return (i === 0 || i === node.table.widths.length) ? 1 : 0.5;
+          },
+          hLineColor: function(i: number) {
+            return i === 0 ? '#000' : '#aaa';
+          },
+          vLineColor: function(i: number) {
+            return i === 0 ? '#000' : '#aaa';
+          }
         }
       }
     ],
@@ -31,6 +63,16 @@ export const exportToPdf = (title: string, data: any[]) => {
         fontSize: 18,
         bold: true,
         margin: [0, 0, 0, 10]
+      },
+      tableHeader: {
+        bold: true,
+        fontSize: 12,
+        color: 'black',
+        fillColor: '#eeeeee'
+      },
+      tableCell: {
+        fontSize: 10,
+        color: '#333333'
       }
     }
   };
