@@ -24,6 +24,7 @@ import MedicalProfessionalsList from '@/components/patientview/MedicalProfession
 import PatientHeader from '@/components/patientview/PatientHeader';
 import MedicalDiagnosis from '@/components/patientview/MedicalDiagnosis';
 import Immunizations from '@/components/patientview/Immunizations';
+import Allergies from '@/components/patientview/Allergies';
 
 const PatientDetailView = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -247,7 +248,7 @@ const PatientDetailView = () => {
               </TabsContent>
               
               <TabsContent value="allergy">
-                <p>Allergy content here</p>
+                {patientId && <Allergies patientId={patientId} />}
               </TabsContent>
               
               <TabsContent value="immun">

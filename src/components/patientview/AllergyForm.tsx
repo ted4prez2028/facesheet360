@@ -15,22 +15,27 @@ interface AllergyFormProps {
 
 const AllergyForm: React.FC<AllergyFormProps> = ({ patientId, allergy, onSuccess }) => {
   const { addAllergy, updateAllergy } = useAllergies(patientId);
-  const form = useForm({
+  const form = useForm<Allergy>({
     defaultValues: allergy || {
+      id: '',
+      patient_id: patientId,
       allergen: '',
       reaction: '',
       severity: 'mild',
       date_identified: new Date().toISOString().split('T')[0],
-      status: 'active'
+      status: 'active',
+      created_at: '',
+      updated_at: ''
     }
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Allergy) => {
     try {
       if (allergy) {
         await updateAllergy(allergy.id, data);
       } else {
-        await addAllergy({ ...data, patient_id: patientId });
+        const { id, created_at, updated_at, ...newAllergyData } = data;
+        await addAllergy(newAllergyData);
       }
       onSuccess();
     } catch (error) {

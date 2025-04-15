@@ -2,9 +2,18 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Tables } from '@/integrations/supabase/types';
 
-export interface Allergy extends Tables['allergies']['Row'] {}
+export interface Allergy {
+  id: string;
+  patient_id: string;
+  allergen: string;
+  reaction: string;
+  severity: string;
+  date_identified: string;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export function useAllergies(patientId: string) {
   const [allergies, setAllergies] = useState<Allergy[]>([]);
@@ -37,14 +46,14 @@ export function useAllergies(patientId: string) {
       const { data, error } = await supabase
         .from('allergies')
         .insert({
-          ...newAllergy, 
+          ...newAllergy,
           patient_id: patientId
         })
         .select()
         .single();
 
       if (error) throw error;
-      setAllergies(prev => [...prev, data]);
+      setAllergies(prev => [...prev, data as Allergy]);
       toast.success('Allergy added successfully');
     } catch (error) {
       console.error('Error adding allergy:', error);
@@ -64,7 +73,7 @@ export function useAllergies(patientId: string) {
 
       if (error) throw error;
       setAllergies(prev => prev.map(allergy => 
-        allergy.id === id ? data : allergy
+        allergy.id === id ? (data as Allergy) : allergy
       ));
       toast.success('Allergy updated successfully');
     } catch (error) {
