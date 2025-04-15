@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet, FilePdf } from 'lucide-react';
+import { FileSpreadsheet, FileText } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
 
 interface Immunization {
@@ -34,7 +34,7 @@ const Immunizations: React.FC<ImmunizationsProps> = ({ immunizations }) => {
           Export Excel
         </Button>
         <Button variant="outline" size="sm" onClick={handleExportPdf}>
-          <FilePdf className="mr-2 h-4 w-4" />
+          <FileText className="mr-2 h-4 w-4" />
           Export PDF
         </Button>
       </div>

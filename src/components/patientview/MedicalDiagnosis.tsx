@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, FilePdf } from 'lucide-react';
+import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
 
 interface Diagnosis {
@@ -37,7 +37,7 @@ const MedicalDiagnosis: React.FC<MedicalDiagnosisProps> = ({ diagnoses }) => {
           Export Excel
         </Button>
         <Button variant="outline" size="sm" onClick={handleExportPdf}>
-          <FilePdf className="mr-2 h-4 w-4" />
+          <FileText className="mr-2 h-4 w-4" />
           Export PDF
         </Button>
       </div>
