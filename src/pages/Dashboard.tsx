@@ -14,6 +14,9 @@ import { usePatients } from "@/hooks/usePatients";
 import { useRecentPatients } from "@/hooks/useRecentPatients";
 import { useAppointmentsToday } from "@/hooks/useAppointmentsToday";
 import { usePendingTasks } from "@/hooks/usePendingTasks";
+import { Button } from "@/components/ui/button";
+import { Patient } from "@/types";
+import { AlertTriangle } from "lucide-react";
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -32,6 +35,12 @@ const Dashboard = () => {
   const { data: pendingTasks, isLoading: isTasksLoading } = usePendingTasks();
   
   const firstName = user?.name ? user.name.split(' ')[0] : "Doctor";
+
+  const viewPatientDetailView = (patient: Patient) => {
+    if (patient && patient.id) {
+      navigate(`/patients/${patient.id}/detail`);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -53,6 +62,22 @@ const Dashboard = () => {
             Welcome back, {firstName}. Here's what's happening today.
           </p>
         </div>
+        
+        {patientsList && patientsList.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800 flex items-center justify-between">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2 text-amber-600" />
+              <p>Try the new EHR interface with our first patient</p>
+            </div>
+            <Button 
+              onClick={() => viewPatientDetailView(patientsList[0])}
+              variant="outline"
+              className="border-amber-300 hover:bg-amber-100"
+            >
+              View EHR Interface
+            </Button>
+          </div>
+        )}
         
         <StatisticsCards />
         

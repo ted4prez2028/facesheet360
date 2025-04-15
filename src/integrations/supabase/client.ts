@@ -20,7 +20,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     }
   },
   global: {
-    fetch: (...args) => fetch(...args)
+    headers: {
+      'x-client-info': 'facesheet360-ehr'
+    }
   }
 });
 

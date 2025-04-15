@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 import EnvExample from "./components/EnvExample";
 import PatientProfile from "./pages/PatientProfile";
+import PatientDetailView from "./pages/PatientDetailView";
 import ContactsList from "./components/communication/ContactsList";
 import ChatWindows from "./components/communication/ChatWindows";
 import CallDialog from "./components/communication/CallDialog";
@@ -55,6 +57,7 @@ function App() {
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/settings/configuration" element={<EnvExample />} />
                 <Route path="/patients/:patientId" element={<PatientProfile />} />
+                <Route path="/patients/:patientId/detail" element={<PatientDetailView />} />
                 <Route path="/pharmacy" element={<PharmacistDashboard />} />
                 <Route path="/doctor-accounts" element={<DoctorAccounts />} />
                 <Route path="*" element={<NotFound />} />
