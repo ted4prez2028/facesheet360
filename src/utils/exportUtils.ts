@@ -4,7 +4,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 // Set up the fonts for pdfMake
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 export const exportToExcel = (data: any[], fileName: string) => {
   const ws = XLSX.utils.json_to_sheet(data);
@@ -31,10 +31,11 @@ export const exportToPdf = (title: string, data: any[]) => {
     }))
   );
 
-  const docDefinition = {
+  const docDefinition: any = {
     content: [
       { text: title, style: 'header' },
       {
+        style: 'tableExample',
         table: {
           headerRows: 1,
           widths: Array(headers.length).fill('*'),
@@ -64,6 +65,9 @@ export const exportToPdf = (title: string, data: any[]) => {
         fontSize: 18,
         bold: true,
         margin: [0, 0, 0, 10]
+      },
+      tableExample: {
+        margin: [0, 5, 0, 15]
       },
       tableHeader: {
         bold: true,
