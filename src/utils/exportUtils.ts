@@ -1,9 +1,10 @@
 
 import * as XLSX from 'xlsx';
 import pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 // Set up the fonts for pdfMake
+// @ts-ignore - The typing for pdfFonts doesn't include the pdfMake property but it exists at runtime
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 export const exportToExcel = (data: any[], fileName: string) => {
@@ -31,7 +32,7 @@ export const exportToPdf = (title: string, data: any[]) => {
     }))
   );
 
-  const docDefinition: pdfMake.TDocumentDefinitions = {
+  const docDefinition = {
     content: [
       { text: title, style: 'header' },
       {
