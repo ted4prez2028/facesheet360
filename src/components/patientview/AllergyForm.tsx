@@ -5,18 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAllergies } from '@/hooks/useAllergies';
+import { useAllergies, Allergy } from '@/hooks/useAllergies';
 
 interface AllergyFormProps {
   patientId: string;
-  allergy?: {
-    id: string;
-    allergen: string;
-    reaction: string;
-    severity: string;
-    dateIdentified: string;
-    status: string;
-  } | null;
+  allergy?: Allergy | null;
   onSuccess: () => void;
 }
 
@@ -27,7 +20,7 @@ const AllergyForm: React.FC<AllergyFormProps> = ({ patientId, allergy, onSuccess
       allergen: '',
       reaction: '',
       severity: 'mild',
-      dateIdentified: new Date().toISOString().split('T')[0],
+      date_identified: new Date().toISOString().split('T')[0],
       status: 'active'
     }
   });
@@ -35,9 +28,9 @@ const AllergyForm: React.FC<AllergyFormProps> = ({ patientId, allergy, onSuccess
   const onSubmit = async (data: any) => {
     try {
       if (allergy) {
-        await updateAllergy(allergy.id, { ...data, patientId });
+        await updateAllergy(allergy.id, data);
       } else {
-        await addAllergy({ ...data, patientId });
+        await addAllergy({ ...data, patient_id: patientId });
       }
       onSuccess();
     } catch (error) {
@@ -98,7 +91,7 @@ const AllergyForm: React.FC<AllergyFormProps> = ({ patientId, allergy, onSuccess
 
         <FormField
           control={form.control}
-          name="dateIdentified"
+          name="date_identified"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Date Identified</FormLabel>

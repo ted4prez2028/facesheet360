@@ -4,18 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileText, Plus, Pencil, Trash } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
-import { useAllergies } from '@/hooks/useAllergies';
+import { useAllergies, Allergy } from '@/hooks/useAllergies';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import AllergyForm from './AllergyForm';
-
-interface AllergyRecord {
-  id: string;
-  allergen: string;
-  reaction: string;
-  severity: string;
-  dateIdentified: string;
-  status: string;
-}
 
 interface AllergiesProps {
   patientId: string;
@@ -24,17 +15,31 @@ interface AllergiesProps {
 const Allergies: React.FC<AllergiesProps> = ({ patientId }) => {
   const { allergies, isLoading, deleteAllergy } = useAllergies(patientId);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [selectedAllergy, setSelectedAllergy] = React.useState<AllergyRecord | null>(null);
+  const [selectedAllergy, setSelectedAllergy] = React.useState<Allergy | null>(null);
 
   const handleExportExcel = () => {
-    exportToExcel(allergies, 'patient-allergies');
+    const formattedData = allergies.map(allergy => ({
+      Allergen: allergy.allergen,
+      Reaction: allergy.reaction,
+      Severity: allergy.severity,
+      DateIdentified: allergy.date_identified,
+      Status: allergy.status
+    }));
+    exportToExcel(formattedData, 'patient-allergies');
   };
 
   const handleExportPdf = () => {
-    exportToPdf('Patient Allergies', allergies);
+    const formattedData = allergies.map(allergy => ({
+      Allergen: allergy.allergen,
+      Reaction: allergy.reaction,
+      Severity: allergy.severity,
+      DateIdentified: allergy.date_identified,
+      Status: allergy.status
+    }));
+    exportToPdf('Patient Allergies', formattedData);
   };
 
-  const handleEdit = (allergy: AllergyRecord) => {
+  const handleEdit = (allergy: Allergy) => {
     setSelectedAllergy(allergy);
     setIsDialogOpen(true);
   };
@@ -105,7 +110,7 @@ const Allergies: React.FC<AllergiesProps> = ({ patientId }) => {
                 <TableCell>{allergy.allergen}</TableCell>
                 <TableCell>{allergy.reaction}</TableCell>
                 <TableCell>{allergy.severity}</TableCell>
-                <TableCell>{allergy.dateIdentified}</TableCell>
+                <TableCell>{allergy.date_identified}</TableCell>
                 <TableCell>{allergy.status}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">

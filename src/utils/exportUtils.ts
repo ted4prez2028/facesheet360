@@ -3,9 +3,8 @@ import * as XLSX from 'xlsx';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-// Set up the fonts for pdfMake
-// @ts-ignore - The typing for pdfFonts doesn't include the pdfMake property but it exists at runtime
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// Set up the fonts for pdfMake correctly
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 export const exportToExcel = (data: any[], fileName: string) => {
   const ws = XLSX.utils.json_to_sheet(data);
@@ -81,7 +80,7 @@ export const exportToPdf = (title: string, data: any[]) => {
         color: '#333333'
       }
     }
-  };
+  } as any; // Type assertion to avoid complex typing
 
   pdfMake.createPdf(docDefinition).download(`${title}.pdf`);
 };
