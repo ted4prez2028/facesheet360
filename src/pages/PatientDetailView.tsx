@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { usePatient } from '@/hooks/usePatient';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar } from '@/components/ui/avatar';
 import AuthErrorAlert from '@/components/patients/AuthErrorAlert';
 import { useAuth } from '@/context/AuthContext';
-import { format } from 'date-fns';
 import { 
   FileText, 
   AlertCircle,
@@ -18,13 +17,8 @@ import {
   Thermometer,
   Scale
 } from 'lucide-react';
-import { CareTeamAssignments } from '@/components/patients/CareTeamAssignments';
-import ContactsList from '@/components/patientview/ContactsList';
-import MedicalProfessionalsList from '@/components/patientview/MedicalProfessionalsList';
 import PatientHeader from '@/components/patientview/PatientHeader';
-import MedicalDiagnosis from '@/components/patientview/MedicalDiagnosis';
-import Immunizations from '@/components/patientview/Immunizations';
-import Allergies from '@/components/patientview/Allergies';
+import PatientTabs from '@/components/patientview/PatientTabs';
 
 const PatientDetailView = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -43,34 +37,6 @@ const PatientDetailView = () => {
     }
     return age;
   };
-
-  const mockDiagnoses = [
-    {
-      code: "L89.313",
-      description: "PRESSURE ULCER OF RIGHT BUTTOCK, STAGE 3",
-      category: "Medical Management",
-      date: "9/17/2024",
-      rank: "Primary",
-      classification: "Admission",
-      createdDate: "9/23/2024",
-      createdBy: "dawn.odie"
-    }
-  ];
-
-  const mockImmunizations = [
-    {
-      vaccine: "Pneumococcal PCV13",
-      cvxCode: "133",
-      status: "Refused",
-      source: "System"
-    },
-    {
-      vaccine: "Influenza (standard dose syringe)",
-      cvxCode: "201",
-      status: "Refused",
-      source: "System"
-    }
-  ];
 
   const vitalSigns = {
     bloodPressure: "128/81 mmHg",
@@ -163,187 +129,60 @@ const PatientDetailView = () => {
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="bg-gray-100 border-b border-gray-300">
-            <div className="container overflow-x-auto">
-              <TabsList className="bg-transparent h-12 w-auto inline-flex">
-                <TabsTrigger className="data-[state=active]:bg-white" value="dash">Dash</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="profile">Profile</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="census">Census</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="med-diag">Med Diag</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="allergy">Allergy</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="immun">Immun</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="orders">Orders</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="vitals">Wks/Vitals</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="results">Results</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="mds">MDS</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="evaluations">Evaluations</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="skin">Skin and Wound</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="therapy">Therapy</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="prog">Prog Note</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="care-plan">Care Plan</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="tasks">Tasks</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="documents">Documents</TabsTrigger>
-                <TabsTrigger className="data-[state=active]:bg-white" value="contacts">Contacts</TabsTrigger>
-              </TabsList>
-            </div>
+        {patientId && <PatientTabs patientId={patientId} />}
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+          <div className="md:col-span-3">
+            {/* Main content area */}
           </div>
           
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="col-span-3">
-              <TabsContent value="dash">
-                <p>Dashboard content here</p>
-              </TabsContent>
-              
-              <TabsContent value="contacts" className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Contacts</h2>
-                  <Button>Add</Button>
+          <div>
+            <Card>
+              <CardContent className="p-0">
+                <div className="bg-blue-100 text-blue-800 py-2 px-4 font-medium">
+                  Current Vitals
                 </div>
-                
-                <ContactsList 
-                  patient={patient}
-                  onEdit={(id) => console.log('Edit contact:', id)} 
-                  onDelete={(id) => console.log('Delete contact:', id)}
-                />
-                
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">Medical Professionals</h2>
-                    <Button>Modify</Button>
+                <div className="grid grid-cols-2 divide-x divide-y">
+                  <div className="p-2">
+                    <div className="text-xs text-gray-600">BP:</div>
+                    <div className="font-semibold">{vitalSigns.bloodPressure}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.bpDate}</div>
                   </div>
-                  
-                  <MedicalProfessionalsList 
-                    onViewProfile={(id) => console.log('View profile:', id)}
-                    onClearPrimaryPhysician={() => console.log('Clear primary physician')}
-                  />
+                  <div className="p-2">
+                    <div className="text-xs text-gray-600">Temp:</div>
+                    <div className="font-semibold">{vitalSigns.temperature}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.tempDate}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-xs text-gray-600">Pulse:</div>
+                    <div className="font-semibold">{vitalSigns.pulse}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.pulseDate}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-xs text-gray-600">Weight:</div>
+                    <div className="font-semibold">{vitalSigns.weight}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.weightDate}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-xs text-gray-600">O2:</div>
+                    <div className="font-semibold">{vitalSigns.oxygenSaturation}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.oxDate}</div>
+                  </div>
+                  <div className="p-2">
+                    <div className="text-xs text-gray-600">Pain:</div>
+                    <div className="font-semibold">{vitalSigns.pain}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.painDate}</div>
+                  </div>
+                  <div className="p-2 col-span-2">
+                    <div className="text-xs text-gray-600">Resp:</div>
+                    <div className="font-semibold">{vitalSigns.respiratoryRate}</div>
+                    <div className="text-xs text-gray-500">{vitalSigns.rrDate}</div>
+                  </div>
                 </div>
-                
-                <div className="mt-6">
-                  <div className="flex justify-end space-x-4">
-                    <Button variant="outline">
-                      <Link to={`/patients/${patientId}`}>Admission Record</Link>
-                    </Button>
-                    <Button variant="outline">
-                      <Link to={`/patients/${patientId}`}>Transfer / Discharge Record</Link>
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="vitals">
-                <p>Vitals content here</p>
-              </TabsContent>
-              
-              <TabsContent value="profile">
-                <p>Profile content here</p>
-              </TabsContent>
-              
-              <TabsContent value="census">
-                <p>Census content here</p>
-              </TabsContent>
-              
-              <TabsContent value="med-diag">
-                <MedicalDiagnosis diagnoses={mockDiagnoses} />
-              </TabsContent>
-              
-              <TabsContent value="allergy">
-                {patientId && <Allergies patientId={patientId} />}
-              </TabsContent>
-              
-              <TabsContent value="immun">
-                <Immunizations immunizations={mockImmunizations} />
-              </TabsContent>
-              
-              <TabsContent value="orders">
-                <p>Orders content here</p>
-              </TabsContent>
-              
-              <TabsContent value="results">
-                <p>Results content here</p>
-              </TabsContent>
-              
-              <TabsContent value="mds">
-                <p>MDS content here</p>
-              </TabsContent>
-              
-              <TabsContent value="evaluations">
-                <p>Evaluations content here</p>
-              </TabsContent>
-              
-              <TabsContent value="skin">
-                <p>Skin and wound content here</p>
-              </TabsContent>
-              
-              <TabsContent value="therapy">
-                <p>Therapy content here</p>
-              </TabsContent>
-              
-              <TabsContent value="prog">
-                <p>Progress notes content here</p>
-              </TabsContent>
-              
-              <TabsContent value="care-plan">
-                <p>Care plan content here</p>
-              </TabsContent>
-              
-              <TabsContent value="tasks">
-                <p>Tasks content here</p>
-              </TabsContent>
-              
-              <TabsContent value="documents">
-                <p>Documents content here</p>
-              </TabsContent>
-            </div>
-            
-            <div>
-              <Card>
-                <CardHeader className="bg-blue-100 text-blue-800 py-2 px-4">
-                  <CardTitle className="text-base">Current Vitals</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="grid grid-cols-2 divide-x divide-y">
-                    <div className="p-2">
-                      <div className="text-xs text-gray-600">BP:</div>
-                      <div className="font-semibold">{vitalSigns.bloodPressure}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.bpDate}</div>
-                    </div>
-                    <div className="p-2">
-                      <div className="text-xs text-gray-600">Temp:</div>
-                      <div className="font-semibold">{vitalSigns.temperature}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.tempDate}</div>
-                    </div>
-                    <div className="p-2">
-                      <div className="text-xs text-gray-600">Pulse:</div>
-                      <div className="font-semibold">{vitalSigns.pulse}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.pulseDate}</div>
-                    </div>
-                    <div className="p-2">
-                      <div className="text-xs text-gray-600">Weight:</div>
-                      <div className="font-semibold">{vitalSigns.weight}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.weightDate}</div>
-                    </div>
-                    <div className="p-2">
-                      <div className="text-xs text-gray-600">O2:</div>
-                      <div className="font-semibold">{vitalSigns.oxygenSaturation}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.oxDate}</div>
-                    </div>
-                    <div className="p-2">
-                      <div className="text-xs text-gray-600">Pain:</div>
-                      <div className="font-semibold">{vitalSigns.pain}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.painDate}</div>
-                    </div>
-                    <div className="p-2 col-span-2">
-                      <div className="text-xs text-gray-600">Resp:</div>
-                      <div className="font-semibold">{vitalSigns.respiratoryRate}</div>
-                      <div className="text-xs text-gray-500">{vitalSigns.rrDate}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        </Tabs>
+        </div>
       </div>
     </DashboardLayout>
   );

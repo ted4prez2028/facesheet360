@@ -11,6 +11,7 @@ export interface Allergy {
   severity: string;
   date_identified: string;
   status: string;
+  category?: string;
   created_at?: string;
   updated_at?: string;
 }

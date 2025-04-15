@@ -53,7 +53,7 @@ const AllergyForm: React.FC<AllergyFormProps> = ({ patientId, allergy, onSuccess
             <FormItem>
               <FormLabel>Allergen</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder="Enter allergen name" />
               </FormControl>
             </FormItem>
           )}
@@ -66,7 +66,7 @@ const AllergyForm: React.FC<AllergyFormProps> = ({ patientId, allergy, onSuccess
             <FormItem>
               <FormLabel>Reaction</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder="Describe reaction" />
               </FormControl>
             </FormItem>
           )}
