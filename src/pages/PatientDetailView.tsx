@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -23,6 +22,8 @@ import { CareTeamAssignments } from '@/components/patients/CareTeamAssignments';
 import ContactsList from '@/components/patientview/ContactsList';
 import MedicalProfessionalsList from '@/components/patientview/MedicalProfessionalsList';
 import PatientHeader from '@/components/patientview/PatientHeader';
+import MedicalDiagnosis from '@/components/patientview/MedicalDiagnosis';
+import Immunizations from '@/components/patientview/Immunizations';
 
 const PatientDetailView = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -31,7 +32,6 @@ const PatientDetailView = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('contacts');
   
-  // Calculate age from date of birth
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -42,8 +42,35 @@ const PatientDetailView = () => {
     }
     return age;
   };
-  
-  // Mock vital signs data based on the screenshot
+
+  const mockDiagnoses = [
+    {
+      code: "L89.313",
+      description: "PRESSURE ULCER OF RIGHT BUTTOCK, STAGE 3",
+      category: "Medical Management",
+      date: "9/17/2024",
+      rank: "Primary",
+      classification: "Admission",
+      createdDate: "9/23/2024",
+      createdBy: "dawn.odie"
+    }
+  ];
+
+  const mockImmunizations = [
+    {
+      vaccine: "Pneumococcal PCV13",
+      cvxCode: "133",
+      status: "Refused",
+      source: "System"
+    },
+    {
+      vaccine: "Influenza (standard dose syringe)",
+      cvxCode: "201",
+      status: "Refused",
+      source: "System"
+    }
+  ];
+
   const vitalSigns = {
     bloodPressure: "128/81 mmHg",
     bpDate: "4/7/2025 07:18",
@@ -109,7 +136,6 @@ const PatientDetailView = () => {
           calculateAge={calculateAge}
         />
         
-        {/* Allergies and Code Status Section */}
         <div className="grid gap-4">
           <div className="bg-red-50 p-3 border border-red-200 rounded-md">
             <div className="font-semibold flex items-center text-red-700">
@@ -136,7 +162,6 @@ const PatientDetailView = () => {
           </div>
         </div>
         
-        {/* Main Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-gray-100 border-b border-gray-300">
             <div className="container overflow-x-auto">
@@ -163,7 +188,6 @@ const PatientDetailView = () => {
             </div>
           </div>
           
-          {/* Vital Signs Card */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="col-span-3">
               <TabsContent value="dash">
@@ -206,7 +230,6 @@ const PatientDetailView = () => {
                 </div>
               </TabsContent>
               
-              {/* Add content for other tabs */}
               <TabsContent value="vitals">
                 <p>Vitals content here</p>
               </TabsContent>
@@ -220,7 +243,7 @@ const PatientDetailView = () => {
               </TabsContent>
               
               <TabsContent value="med-diag">
-                <p>Medical diagnostics content here</p>
+                <MedicalDiagnosis diagnoses={mockDiagnoses} />
               </TabsContent>
               
               <TabsContent value="allergy">
@@ -228,7 +251,7 @@ const PatientDetailView = () => {
               </TabsContent>
               
               <TabsContent value="immun">
-                <p>Immunizations content here</p>
+                <Immunizations immunizations={mockImmunizations} />
               </TabsContent>
               
               <TabsContent value="orders">
