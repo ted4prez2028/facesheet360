@@ -5,9 +5,8 @@ import { Link } from 'react-router-dom';
 import { 
   Edit, 
   Printer, 
-  CheckCircle,
-  FileText,
-  LinkIcon
+  LinkIcon,
+  FileText
 } from 'lucide-react';
 import { Patient } from '@/types';
 import { Avatar } from '@/components/ui/avatar';

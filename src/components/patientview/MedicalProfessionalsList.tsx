@@ -9,9 +9,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
 
-const MedicalProfessionalsList: React.FC = () => {
+interface MedicalProfessionalsListProps {
+  onViewProfile?: (professionalId: string) => void;
+  onClearPrimaryPhysician?: () => void;
+}
+
+const MedicalProfessionalsList: React.FC<MedicalProfessionalsListProps> = ({ 
+  onViewProfile,
+  onClearPrimaryPhysician
+}) => {
   // Mock medical professionals data based on the screenshot
   const professionals = [
     {
@@ -80,6 +87,22 @@ const MedicalProfessionalsList: React.FC = () => {
     }
   ];
 
+  const handleViewProfile = (id: string) => {
+    if (onViewProfile) {
+      onViewProfile(id);
+    } else {
+      console.log('View profile:', id);
+    }
+  };
+
+  const handleClearPrimaryPhysician = () => {
+    if (onClearPrimaryPhysician) {
+      onClearPrimaryPhysician();
+    } else {
+      console.log('Clear primary physician');
+    }
+  };
+
   return (
     <>
       <Table className="border">
@@ -97,7 +120,12 @@ const MedicalProfessionalsList: React.FC = () => {
           {professionals.map((professional) => (
             <TableRow key={professional.id} className={professional.relation === 'Primary' ? 'bg-blue-50' : undefined}>
               <TableCell className="py-2">
-                <Button variant="link" size="sm" className="h-6 p-0 text-blue-600">
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="h-6 p-0 text-blue-600"
+                  onClick={() => handleViewProfile(professional.id)}
+                >
                   view profile
                 </Button>
               </TableCell>
@@ -110,9 +138,14 @@ const MedicalProfessionalsList: React.FC = () => {
           ))}
         </TableBody>
       </Table>
-      <div className="text-sm mt-2">
+      <div className="text-sm mt-2 flex items-center">
         <span className="font-medium">Note: Primary Physician in bold</span>
-        <Button variant="link" size="sm" className="text-blue-600 ml-4">
+        <Button 
+          variant="link" 
+          size="sm" 
+          className="text-blue-600 ml-4"
+          onClick={handleClearPrimaryPhysician}
+        >
           Clear Primary Physician
         </Button>
       </div>

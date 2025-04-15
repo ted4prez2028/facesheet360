@@ -14,12 +14,6 @@ import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { 
   FileText, 
-  Edit, 
-  Printer, 
-  UserCircle, 
-  Phone, 
-  Mail, 
-  Calendar,
   AlertCircle,
   Heart,
   Thermometer,
@@ -35,6 +29,7 @@ const PatientDetailView = () => {
   const { patient, isLoading, error } = usePatient(patientId || "");
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('contacts');
   
   // Calculate age from date of birth
   const calculateAge = (dateOfBirth: string) => {
@@ -56,7 +51,7 @@ const PatientDetailView = () => {
     tempDate: "3/31/2025 07:54",
     pulse: "95 bpm",
     pulseDate: "4/7/2025 07:18",
-    oxygenSaturation: "02:97 %",
+    oxygenSaturation: "O2:97 %",
     oxDate: "4/7/2025 07:18",
     respiratoryRate: "16",
     rrDate: "4/7/2025 07:18",
@@ -142,10 +137,10 @@ const PatientDetailView = () => {
         </div>
         
         {/* Main Tabs Navigation */}
-        <Tabs defaultValue="contacts" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="bg-gray-100 border-b border-gray-300">
-            <div className="container">
-              <TabsList className="bg-transparent h-12">
+            <div className="container overflow-x-auto">
+              <TabsList className="bg-transparent h-12 w-auto inline-flex">
                 <TabsTrigger className="data-[state=active]:bg-white" value="dash">Dash</TabsTrigger>
                 <TabsTrigger className="data-[state=active]:bg-white" value="profile">Profile</TabsTrigger>
                 <TabsTrigger className="data-[state=active]:bg-white" value="census">Census</TabsTrigger>
@@ -163,6 +158,7 @@ const PatientDetailView = () => {
                 <TabsTrigger className="data-[state=active]:bg-white" value="care-plan">Care Plan</TabsTrigger>
                 <TabsTrigger className="data-[state=active]:bg-white" value="tasks">Tasks</TabsTrigger>
                 <TabsTrigger className="data-[state=active]:bg-white" value="documents">Documents</TabsTrigger>
+                <TabsTrigger className="data-[state=active]:bg-white" value="contacts">Contacts</TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -180,7 +176,11 @@ const PatientDetailView = () => {
                   <Button>Add</Button>
                 </div>
                 
-                <ContactsList patient={patient} />
+                <ContactsList 
+                  patient={patient}
+                  onEdit={(id) => console.log('Edit contact:', id)} 
+                  onDelete={(id) => console.log('Delete contact:', id)}
+                />
                 
                 <div className="mt-8">
                   <div className="flex items-center justify-between mb-4">
@@ -188,10 +188,25 @@ const PatientDetailView = () => {
                     <Button>Modify</Button>
                   </div>
                   
-                  <MedicalProfessionalsList />
+                  <MedicalProfessionalsList 
+                    onViewProfile={(id) => console.log('View profile:', id)}
+                    onClearPrimaryPhysician={() => console.log('Clear primary physician')}
+                  />
+                </div>
+                
+                <div className="mt-6">
+                  <div className="flex justify-end space-x-4">
+                    <Button variant="outline">
+                      <Link to={`/patients/${patientId}`}>Admission Record</Link>
+                    </Button>
+                    <Button variant="outline">
+                      <Link to={`/patients/${patientId}`}>Transfer / Discharge Record</Link>
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
               
+              {/* Add content for other tabs */}
               <TabsContent value="vitals">
                 <p>Vitals content here</p>
               </TabsContent>
@@ -255,17 +270,6 @@ const PatientDetailView = () => {
               <TabsContent value="documents">
                 <p>Documents content here</p>
               </TabsContent>
-              
-              <div className="mt-6">
-                <div className="flex justify-end space-x-4">
-                  <Button variant="outline">
-                    <Link to={`/patients/${patientId}`}>Admission Record</Link>
-                  </Button>
-                  <Button variant="outline">
-                    <Link to={`/patients/${patientId}`}>Transfer / Discharge Record</Link>
-                  </Button>
-                </div>
-              </div>
             </div>
             
             <div>
