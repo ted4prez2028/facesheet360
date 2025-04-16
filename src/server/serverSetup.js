@@ -1,7 +1,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { setupHttps, checkSslCertificates, getSslSetupInstructions } from './httpsConfig.js';
+import { setupHttps, checkSslCertificates, getSslSetupInstructions } from './serverSetup.js';
 
 /**
  * Sets up and starts an HTTPS server for the health tracking application

@@ -1,7 +1,6 @@
 
 import express from 'express';
 import cors from 'cors';
-import { Server } from 'http';
 import { setupHttps, checkSslCertificates, getSslSetupInstructions } from './httpsConfig';
 
 /**
