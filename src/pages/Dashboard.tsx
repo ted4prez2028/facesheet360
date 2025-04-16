@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import StatisticsCards from "@/components/dashboard/StatisticsCards";
 import DashboardTabs from "@/components/dashboard/DashboardTabs";
 import CareCoinsActivity from "@/components/wallet/CareCoinsActivity";
-import QuickActions from "@/components/dashboard/QuickActions";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import { usePatientStatistics, usePatientHealthMetrics } from "@/hooks/usePatientStatistics";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePatients } from "@/hooks/usePatients";

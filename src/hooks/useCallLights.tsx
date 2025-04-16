@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CallLightRequest, getActiveCallLights, updateCallLightStatus } from '@/lib/api/callLightApi';
+import { CallLightRequest } from '@/types';
+import { CallLight, getActiveCallLights, updateCallLightStatus } from '@/lib/api/callLightApi';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { Howl } from 'howler';
 
-interface CallLight extends CallLightRequest {
+interface CallLightWithPatient extends CallLightRequest {
   patients?: {
     first_name: string;
     last_name: string;
@@ -15,7 +16,7 @@ interface CallLight extends CallLightRequest {
 }
 
 export function useCallLights() {
-  const [activeCallLights, setActiveCallLights] = useState<CallLight[]>([]);
+  const [activeCallLights, setActiveCallLights] = useState<CallLightWithPatient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
@@ -75,7 +76,7 @@ export function useCallLights() {
         async (payload) => {
           if (payload.eventType === 'INSERT') {
             // Check if the new call light is for the user's organization
-            const newCallLight = payload.new as CallLight;
+            const newCallLight = payload.new as CallLightWithPatient;
             
             // Get user's organization
             const { data: userData } = await supabase

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from '@/context/AuthContext';
 import CallLightDashboard from '@/components/call-light/CallLightDashboard';
 
-export const QuickActions = () => {
+const QuickActions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [callLightOpen, setCallLightOpen] = useState(false);
@@ -71,3 +71,6 @@ export const QuickActions = () => {
     </>
   );
 };
+
+export { QuickActions };
+export default QuickActions; // Export as default too for backward compatibility

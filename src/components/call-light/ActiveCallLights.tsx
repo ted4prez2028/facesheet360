@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { CallLightRequest } from '@/types';
 import { CallLight } from '@/lib/api/callLightApi';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ActiveCallLightsProps {
-  callLights: CallLight[];
+  callLights: CallLightRequest[];
   isLoading: boolean;
   onRespond: (id: string) => void;
   onComplete: (id: string) => void;

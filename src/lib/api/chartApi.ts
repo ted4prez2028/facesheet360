@@ -1,73 +1,118 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { ChartRecord, Patient } from "@/types";
+import { toast } from "sonner";
 
-export const getPatientCharts = async (patientId: string) => {
+// Define the ChartRecord interface locally if it's not exported from types
+export interface ChartRecord {
+  id: string;
+  created_at: string;
+  patient_id: string | null;
+  provider_id: string | null;
+  notes: string | null;
+  vitals: string | null;
+  diagnosis: string | null;
+  treatment_plan: string | null;
+  record_type?: string;
+  record_date?: string;
+  vital_signs?: any;
+  medications?: any;
+  updated_at?: string;
+}
+
+/**
+ * Create a new chart record
+ */
+export const createChartRecord = async (chartRecord: Omit<ChartRecord, "id" | "created_at">): Promise<ChartRecord | null> => {
   try {
     const { data, error } = await supabase
-      .from("chart_records")
-      .select("*")
-      .eq("patient_id", patientId)
-      .order("record_date", { ascending: false });
-
-    if (error) throw error;
-    return data as ChartRecord[];
-  } catch (error) {
-    console.error(`Error fetching charts for patient ${patientId}:`, error);
-    throw error;
-  }
-};
-
-export const addChartRecord = async (record: Partial<ChartRecord>) => {
-  try {
-    if (!record.patient_id || !record.provider_id || !record.record_type) {
-      throw new Error("Missing required chart record fields");
-    }
-    
-    const { data, error } = await supabase
-      .from("chart_records")
-      .insert({
-        patient_id: record.patient_id,
-        provider_id: record.provider_id,
-        record_type: record.record_type,
-        record_date: record.record_date || new Date().toISOString(),
-        diagnosis: record.diagnosis,
-        notes: record.notes,
-        vital_signs: record.vital_signs,
-        medications: record.medications
-      })
+      .from('chart_records')
+      .insert([chartRecord])
       .select()
       .single();
 
     if (error) throw error;
     return data as ChartRecord;
   } catch (error) {
-    console.error("Error adding chart record:", error);
-    throw error;
+    console.error("Error creating chart record:", error);
+    toast.error("Failed to create chart record");
+    return null;
   }
 };
 
-export const updateChartRecord = async (id: string, data: Partial<ChartRecord>) => {
-  const { patient_id, provider_id, record_type, ...rest } = data;
-  
-  const updateData: any = { ...rest };
-  if (patient_id) {
-    updateData.patient_id = patient_id;
-  }
-  if (provider_id) {
-    updateData.provider_id = provider_id;
-  }
-  if (record_type) {
-    updateData.record_type = record_type;
-  }
-  
-  const { data: updatedRecord, error } = await supabase
-    .from('chart_records')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
+/**
+ * Update an existing chart record
+ */
+export const updateChartRecord = async (id: string, updates: Partial<ChartRecord>): Promise<ChartRecord | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('chart_records')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
 
-  if (error) throw error;
-  return updatedRecord;
+    if (error) throw error;
+    return data as ChartRecord;
+  } catch (error) {
+    console.error("Error updating chart record:", error);
+    toast.error("Failed to update chart record");
+    return null;
+  }
+};
+
+/**
+ * Get a chart record by ID
+ */
+export const getChartRecordById = async (id: string): Promise<ChartRecord | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('chart_records')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as ChartRecord;
+  } catch (error) {
+    console.error("Error fetching chart record:", error);
+    return null;
+  }
+};
+
+/**
+ * Get all chart records for a patient
+ */
+export const getChartRecordsByPatientId = async (patientId: string): Promise<ChartRecord[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('chart_records')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ChartRecord[];
+  } catch (error) {
+    console.error("Error fetching chart records:", error);
+    return [];
+  }
+};
+
+/**
+ * Delete a chart record by ID
+ */
+export const deleteChartRecord = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('chart_records')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    toast.success("Chart record deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error deleting chart record:", error);
+    toast.error("Failed to delete chart record");
+    return false;
+  }
 };

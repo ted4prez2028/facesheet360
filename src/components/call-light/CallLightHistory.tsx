@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { CallLightRequest } from '@/types';
 import { CallLight, getPatientCallLightHistory } from '@/lib/api/callLightApi';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,7 @@ interface CallLightHistoryProps {
 }
 
 const CallLightHistory: React.FC<CallLightHistoryProps> = ({ patientId }) => {
-  const [history, setHistory] = useState<CallLight[]>([]);
+  const [history, setHistory] = useState<CallLightRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

@@ -16,7 +16,7 @@ interface CommunicationContextType {
   isCallActive: boolean;
   isCallIncoming: boolean;
   localStream: MediaStream | null;
-  remoteStream: MediaStream | null;
+  remoteStreams: Map<string, MediaStream> | null; // Updated to use remoteStreams
   toggleContacts: () => void;
   openChatWindow: (userId: string, userName: string) => void;
   closeChatWindow: (userId: string) => void;
@@ -112,7 +112,7 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
     isCallActive: communicationService.isCallActive,
     isCallIncoming: communicationService.isCallIncoming,
     localStream: peerConnection.localStream,
-    remoteStream: peerConnection.remoteStream,
+    remoteStreams: peerConnection.remoteStreams, // Updated to use remoteStreams
     toggleContacts,
     openChatWindow: communicationService.openChatWindow,
     closeChatWindow: communicationService.closeChatWindow,
