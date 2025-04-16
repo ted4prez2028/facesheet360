@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -19,6 +20,8 @@ import {
 } from 'lucide-react';
 import PatientHeader from '@/components/patientview/PatientHeader';
 import PatientTabs from '@/components/patientview/PatientTabs';
+import CallLightButton from '@/components/call-light/CallLightButton';
+import CallLightHistory from '@/components/call-light/CallLightHistory';
 
 const PatientDetailView = () => {
   const { patientId } = useParams<{ patientId: string }>();
@@ -36,6 +39,21 @@ const PatientDetailView = () => {
       age--;
     }
     return age;
+  };
+
+  // Simulated room number assignment - in a real app, this would be stored in the database
+  const getRoomNumber = (patientId: string) => {
+    // Hash the patient ID to generate a consistent room number
+    const hashCode = (s: string) => {
+      let h = 0;
+      for(let i = 0; i < s.length; i++)
+        h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+      return h;
+    };
+    
+    // Generate a room number from 100-499
+    const roomBase = Math.abs(hashCode(patientId)) % 400 + 100;
+    return roomBase.toString();
   };
 
   const vitalSigns = {
@@ -95,13 +113,31 @@ const PatientDetailView = () => {
     );
   }
 
+  const roomNumber = getRoomNumber(patient.id);
+  const patientName = `${patient.first_name} ${patient.last_name}`;
+
   return (
     <DashboardLayout>
       <div className="container py-4 space-y-4">
-        <PatientHeader 
-          patient={patient} 
-          calculateAge={calculateAge}
-        />
+        <div className="flex justify-between items-center">
+          <PatientHeader 
+            patient={patient} 
+            calculateAge={calculateAge}
+          />
+          
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <div className="font-medium">Room {roomNumber}</div>
+              <div className="text-sm text-muted-foreground">Assigned Room</div>
+            </div>
+            
+            <CallLightButton 
+              patientId={patient.id}
+              patientName={patientName}
+              roomNumber={roomNumber}
+            />
+          </div>
+        </div>
         
         <div className="grid gap-4">
           <div className="bg-red-50 p-3 border border-red-200 rounded-md">
@@ -134,6 +170,12 @@ const PatientDetailView = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
           <div className="md:col-span-3">
             {/* Main content area */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-medium mb-4">Call Light History</h3>
+                {patientId && <CallLightHistory patientId={patientId} />}
+              </CardContent>
+            </Card>
           </div>
           
           <div>

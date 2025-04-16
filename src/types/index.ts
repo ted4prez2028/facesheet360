@@ -56,3 +56,61 @@ export interface GroupCall {
   created_at: string;
   updated_at: string;
 }
+
+export interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  medical_record_number?: string;
+  insurance_provider?: string;
+  policy_number?: string;
+  facial_data?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CareCoinsTransaction {
+  id: string;
+  from_user_id?: string;
+  to_user_id?: string;
+  amount: number;
+  transaction_type: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface Prescription {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  instructions?: string;
+  start_date: string;
+  end_date?: string;
+  status: string;
+  administered_at?: string;
+  administered_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CallLightRequest {
+  id: string;
+  patient_id: string;
+  room_number: string;
+  request_type: 'assistance' | 'emergency' | 'pain' | 'bathroom' | 'water' | 'other';
+  message?: string;
+  status: 'active' | 'in_progress' | 'completed';
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+  completed_by?: string;
+  organization?: string;
+}

@@ -1,59 +1,73 @@
 
-import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, ClipboardList, Activity } from "lucide-react";
-import { useQuickActions } from "@/hooks/useQuickActions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar, Clock, FileText, Search, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from '@/context/AuthContext';
+import CallLightDashboard from '@/components/call-light/CallLightDashboard';
 
-const QuickActions = () => {
-  const { addPatient, viewSchedule, createNote, viewAnalytics } = useQuickActions();
+export const QuickActions = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [callLightOpen, setCallLightOpen] = useState(false);
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Quick Actions</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+    <>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Button 
-            className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
-            variant="outline"
-            onClick={addPatient}
+            variant="outline" 
+            className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
+            onClick={() => navigate('/patients')}
           >
-            <Users className="h-5 w-5" />
-            <span>Add Patient</span>
+            <Search className="h-10 w-10 text-muted-foreground/70 mb-2" />
+            <div className="font-medium text-sm">Find Patient</div>
           </Button>
-          
+
           <Button 
-            className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
-            variant="outline"
-            onClick={viewSchedule}
+            variant="outline" 
+            className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
+            onClick={() => navigate('/appointments')}
           >
-            <Calendar className="h-5 w-5" />
-            <span>Schedule</span>
+            <Calendar className="h-10 w-10 text-muted-foreground/70 mb-2" />
+            <div className="font-medium text-sm">Schedule Appointment</div>
           </Button>
-          
+
           <Button 
-            className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
-            variant="outline"
-            onClick={createNote}
+            variant="outline" 
+            className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
+            onClick={() => navigate('/charting')}
           >
-            <ClipboardList className="h-5 w-5" />
-            <span>Create Note</span>
+            <FileText className="h-10 w-10 text-muted-foreground/70 mb-2" />
+            <div className="font-medium text-sm">Patient Chart</div>
           </Button>
-          
+
           <Button 
-            className="h-auto py-4 flex flex-col items-center justify-center gap-2" 
-            variant="outline"
-            onClick={viewAnalytics}
+            variant="outline" 
+            className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
+            onClick={() => setCallLightOpen(true)}
           >
-            <Activity className="h-5 w-5" />
-            <span>Analytics</span>
+            <Bell className="h-10 w-10 text-amber-500 mb-2" />
+            <div className="font-medium text-sm">Call Light Dashboard</div>
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <Dialog open={callLightOpen} onOpenChange={setCallLightOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Call Light Dashboard</DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <CallLightDashboard />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
-
-export default QuickActions;
