@@ -1,7 +1,9 @@
 
 import express from 'express';
 import cors from 'cors';
-import { setupHttps, checkSslCertificates, getSslSetupInstructions } from './serverSetup.js';
+import fs from 'fs';
+import https from 'https';
+import path from 'path';
 
 /**
  * Sets up and starts an HTTPS server for the health tracking application
@@ -28,8 +30,10 @@ export const startSecureServer = (port = 443) => {
     res.json({ status: 'healthy', secure: true, domain: 'facesheet360.com' });
   });
   
-  // Check if SSL certificates exist - exit if not available
-  if (!checkSslCertificates()) {
+  // Check if SSL certificates exist
+  const certsExist = checkSslCertificates();
+  
+  if (!certsExist) {
     console.error('SSL certificates not found!');
     console.log(getSslSetupInstructions());
     process.exit(1);
@@ -53,4 +57,58 @@ export const startSecureServer = (port = 443) => {
       process.exit(0);
     });
   });
+};
+
+/**
+ * Sets up an HTTPS server with SSL certificates
+ * @param app Express app instance
+ * @returns HTTPS server instance
+ */
+export const setupHttps = (app) => {
+  try {
+    const keyPath = path.join(process.cwd(), 'localhost-key.pem');
+    const certPath = path.join(process.cwd(), 'localhost.pem');
+    
+    const httpsOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath)
+    };
+    
+    return https.createServer(httpsOptions, app);
+  } catch (error) {
+    console.error('Error setting up HTTPS server:', error);
+    process.exit(1);
+  }
+};
+
+/**
+ * Checks if SSL certificates exist
+ * @returns Boolean indicating if certificates exist
+ */
+export const checkSslCertificates = () => {
+  try {
+    const keyPath = path.join(process.cwd(), 'localhost-key.pem');
+    const certPath = path.join(process.cwd(), 'localhost.pem');
+    return fs.existsSync(keyPath) && fs.existsSync(certPath);
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Returns instructions for setting up SSL certificates
+ * @returns String with setup instructions
+ */
+export const getSslSetupInstructions = () => {
+  return `
+To set up SSL certificates for local development:
+
+1. Install mkcert (https://github.com/FiloSottile/mkcert)
+2. Run the following commands:
+   - mkcert -install
+   - mkcert localhost
+3. Move the generated files to your project root:
+   - localhost.pem
+   - localhost-key.pem
+  `;
 };

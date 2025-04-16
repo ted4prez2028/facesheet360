@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,7 +31,7 @@ export function useCommunicationService() {
   const [isCallActive, setIsCallActive] = useState<boolean>(false);
   const [isCallIncoming, setIsCallIncoming] = useState<boolean>(false);
   
-  // Load online users - in a real app, we would use Supabase presence
+  // Load online users - use Supabase presence
   const fetchOnlineUsers = useCallback(async () => {
     if (!user) return;
     
@@ -42,6 +43,15 @@ export function useCommunicationService() {
         .order('name', { ascending: true });
         
       if (error) throw error;
+      
+      // Get user's organization
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization')
+        .eq('id', user.id)
+        .single();
+      
+      const userOrganization = userData?.organization;
       
       // Transform database users to match our User type
       const typedUsers: User[] = data?.map((dbUser: DbUser) => ({
@@ -60,23 +70,32 @@ export function useCommunicationService() {
         updated_at: dbUser.updated_at
       })) || [];
       
-      // Add the sample doctors to the list of users
+      // Only add sample doctors if no real users with the same organization
       const allSampleDoctors = sampleDoctors.map(doctor => ({
         ...doctor,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         care_coins_balance: 0,
         careCoinsBalance: 0,
+        // If user has an organization, assign the same org to sample doctors
+        organization: userOrganization || doctor.organization
       })) as User[];
 
       // Combine real users with sample doctors and ensure there are no duplicates by ID
       const combinedUsers = [...typedUsers];
       
-      allSampleDoctors.forEach(doctor => {
-        if (!combinedUsers.some(user => user.id === doctor.id)) {
-          combinedUsers.push(doctor);
-        }
-      });
+      // Only add sample doctors if there are fewer than 3 real users with the same organization
+      const realUsersInOrg = typedUsers.filter(u => u.organization === userOrganization).length;
+      
+      if (realUsersInOrg < 3 && userOrganization) {
+        allSampleDoctors.forEach(doctor => {
+          if (!combinedUsers.some(user => user.id === doctor.id)) {
+            // Set the organization to match the user's
+            doctor.organization = userOrganization;
+            combinedUsers.push(doctor);
+          }
+        });
+      }
       
       setOnlineUsers(combinedUsers);
     } catch (error) {
@@ -123,6 +142,63 @@ export function useCommunicationService() {
       supabase.removeChannel(channel);
     };
   }, [user, fetchOnlineUsers]);
+  
+  // Set up group calls subscription
+  useEffect(() => {
+    if (!user) return;
+    
+    const channel = supabase.channel('group-calls')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'group_calls' },
+        async (payload) => {
+          const groupCall = payload.new as any;
+          const participants = groupCall.participants || [];
+          
+          // Check if current user is a participant but not the initiator
+          if (
+            groupCall.initiator_id !== user.id && 
+            participants.includes(user.id)
+          ) {
+            // Get initiator name
+            const { data: initiatorData } = await supabase
+              .from('users')
+              .select('name')
+              .eq('id', groupCall.initiator_id)
+              .single();
+              
+            const initiatorName = initiatorData?.name || 'Someone';
+            
+            // Show notification about group call
+            toast(
+              `${initiatorName} is inviting you to a group call`, 
+              {
+                action: {
+                  label: "Join",
+                  onClick: () => {
+                    // Implement join group call logic
+                    // This would be handled by the communication context
+                    window.dispatchEvent(new CustomEvent('join-group-call', { 
+                      detail: { 
+                        roomId: groupCall.room_id,
+                        participants: participants.filter((id: string) => id !== user.id),
+                        isVideo: groupCall.is_video_call
+                      } 
+                    }));
+                  }
+                },
+                duration: 10000, // 10 seconds
+              }
+            );
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
   
   // Fetch messages when chat windows are opened
   useEffect(() => {
@@ -276,6 +352,24 @@ export function useCommunicationService() {
     };
   }, [user]);
   
+  // Listen for group call join events
+  useEffect(() => {
+    const handleJoinGroupCall = (event: any) => {
+      const { roomId, participants, isVideo } = event.detail;
+      
+      // Dispatch join group call event to be handled by the context
+      window.dispatchEvent(new CustomEvent('join-group-call-event', { 
+        detail: { roomId, participants, isVideo } 
+      }));
+    };
+    
+    window.addEventListener('join-group-call', handleJoinGroupCall);
+    
+    return () => {
+      window.removeEventListener('join-group-call', handleJoinGroupCall);
+    };
+  }, []);
+  
   // Open chat window with a user
   const openChatWindow = useCallback(async (userId: string, userName: string) => {
     setChatWindows(prev => {
@@ -389,6 +483,28 @@ export function useCommunicationService() {
     }
   }, [user]);
   
+  // Send group call invitation
+  const sendGroupCallInvitation = useCallback(async (userId: string, roomId: string, isVideo: boolean) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          title: 'Group Call Invitation',
+          message: `${user.name} has invited you to join a group call`,
+          type: 'group_call',
+          event_id: roomId,
+          event_time: new Date().toISOString()
+        });
+        
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error sending group call invitation:', error);
+    }
+  }, [user]);
+  
   // Accept call
   const acceptCall = useCallback(async () => {
     if (!user || !activeCall) return;
@@ -474,6 +590,7 @@ export function useCommunicationService() {
     startCall,
     acceptCall,
     endCall,
-    fetchOnlineUsers
+    fetchOnlineUsers,
+    sendGroupCallInvitation
   };
 }

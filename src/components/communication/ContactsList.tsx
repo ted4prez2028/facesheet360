@@ -13,7 +13,8 @@ import {
   Video, 
   PhoneCall,
   Circle,
-  Building
+  Building,
+  UserPlus
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCommunication } from '@/context/communication/CommunicationContext';
@@ -22,6 +23,7 @@ import { User } from '@/types/index';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLocation } from 'react-router-dom';
+import GroupCallModal from './GroupCallModal';
 
 const ContactsList = () => {
   const { user } = useAuth();
@@ -29,7 +31,10 @@ const ContactsList = () => {
     contacts,
     toggleContacts,
     openChatWindow,
-    startCall
+    startCall,
+    isGroupCallModalOpen,
+    openGroupCallModal,
+    closeGroupCallModal
   } = useCommunication();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,7 +61,7 @@ const ContactsList = () => {
       contact.organization === organizationFilter ||
       (organizationFilter === 'No Organization' && !contact.organization);
     
-    // If user has an organization, only show contacts in the same organization
+    // Only show contacts with the same organization as the user
     const sameOrganization = 
       !user?.organization || 
       user.organization === contact.organization || 
@@ -83,7 +88,18 @@ const ContactsList = () => {
       <Sheet open={contacts.isOpen} onOpenChange={toggleContacts}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
-            <SheetTitle>Healthcare Team</SheetTitle>
+            <div className="flex justify-between items-center">
+              <SheetTitle>Healthcare Team</SheetTitle>
+              <Button
+                onClick={openGroupCallModal}
+                variant="outline"
+                size="sm"
+                className="flex gap-1 items-center"
+              >
+                <UserPlus className="h-4 w-4 mr-1" />
+                Group Call
+              </Button>
+            </div>
           </SheetHeader>
           
           <div className="mt-6 space-y-4">
@@ -142,6 +158,11 @@ const ContactsList = () => {
           </div>
         </SheetContent>
       </Sheet>
+      
+      <GroupCallModal 
+        open={isGroupCallModalOpen} 
+        onOpenChange={closeGroupCallModal} 
+      />
     </>
   );
 };

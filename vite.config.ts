@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "0.0.0.0", // Allow connections from all network interfaces
-      port: 443, // Use port 443 as requested
+      port: 8080, // Use port 8080 as requested by Lovable config
       https: httpsConfig, // Enable HTTPS using the provided certificates
     },
     plugins: [
