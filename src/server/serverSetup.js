@@ -15,10 +15,10 @@ export const startSecureServer = (port = 443) => {
   app.use(cors({
     origin: [
       'https://facesheet360.com',
-      'https://facesheet360.com:8080',
+      'https://facesheet360.com:443',
       'https://localhost',
-      'https://localhost:8080',
-      'http://localhost:8080'
+      'https://localhost:443',
+      'http://localhost:443'
     ],
     credentials: true
   }));
