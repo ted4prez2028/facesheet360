@@ -17,6 +17,12 @@ export default defineConfig(({ mode }) => {
       }
     : undefined;
 
+  // Force HTTPS configuration to be present
+  if (!httpsConfig) {
+    console.error('SSL certificates not found! HTTPS is required.');
+    process.exit(1);
+  }
+
   return {
     server: {
       host: "0.0.0.0", // Allow connections from all network interfaces

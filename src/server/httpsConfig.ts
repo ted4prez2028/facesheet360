@@ -16,9 +16,16 @@ export const setupHttps = (app: any): Server => {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Use the specific certificate files provided
+    const keyPath = path.join(process.cwd(), 'umgrow-key.pem');
+    const certPath = path.join(process.cwd(), 'umgrow.pem');
+    
+    if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+      throw new Error('SSL certificates not found at the expected paths.');
+    }
+    
     const sslOptions = {
-      key: fs.readFileSync(path.join(process.cwd(), 'umgrow-key.pem')),
-      cert: fs.readFileSync(path.join(process.cwd(), 'umgrow.pem')),
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath),
     };
     
     // Create and return the HTTPS server

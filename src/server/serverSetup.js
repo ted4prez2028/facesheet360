@@ -17,8 +17,8 @@ export const startSecureServer = (port = 443) => {
       'https://facesheet360.com',
       'https://facesheet360.com:443',
       'https://localhost',
-      'https://localhost:443',
-      'http://localhost:443'
+      'https://localhost:443'
+      // Removed HTTP URLs as we want to enforce HTTPS
     ],
     credentials: true
   }));
@@ -29,7 +29,7 @@ export const startSecureServer = (port = 443) => {
     res.json({ status: 'healthy', secure: true, domain: 'facesheet360.com' });
   });
   
-  // Check if SSL certificates exist
+  // Check if SSL certificates exist - exit if not available
   if (!checkSslCertificates()) {
     console.error('SSL certificates not found!');
     console.log(getSslSetupInstructions());
@@ -41,7 +41,7 @@ export const startSecureServer = (port = 443) => {
   
   // Start the server
   server.listen(port, () => {
-    console.log(`Secure server running on https://facesheet360.com${port === 443 ? '' : ':' + port}`);
+    console.log(`Secure HTTPS server running on https://facesheet360.com${port === 443 ? '' : ':' + port}`);
     console.log(`You can also access it at https://localhost${port === 443 ? '' : ':' + port}`);
   });
   
