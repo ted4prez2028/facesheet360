@@ -1,204 +1,140 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
 
-type TimeframeType = 'week' | 'month' | 'quarter' | 'year';
-
-export function usePatientStatistics(timeframe: TimeframeType = 'year') {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['patientStatistics', timeframe],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_patient_trends', { timeframe_param: timeframe });
-
-        if (error) {
-          throw new Error(`Error fetching patient statistics: ${error.message}`);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Error in usePatientStatistics:', error);
-        return [];
-      }
-    },
-    enabled: !!user,
-  });
+// Define types for analytics data
+interface AnalyticsDataPoint {
+  date: string;
+  count: number;
+  category?: string;
 }
 
-export function useAppointmentStatistics(timeframe: TimeframeType = 'year', providerId?: string) {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['appointmentStatistics', timeframe, providerId],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_appointment_analytics', { 
-            timeframe_param: timeframe,
-            provider_id_param: providerId || null 
-          });
-
-        if (error) {
-          throw new Error(`Error fetching appointment statistics: ${error.message}`);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Error in useAppointmentStatistics:', error);
-        return [];
-      }
-    },
-    enabled: !!user,
-  });
+interface AnalyticsMetric {
+  title: string;
+  value: number;
+  change: number;
+  trend: 'up' | 'down' | 'neutral';
 }
 
-export function usePatientDemographics() {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['patientDemographics'],
+export const useAnalyticsData = (timeframe: string = 'year') => {
+  // Query for patient visits over time
+  const { data: patientVisits, isLoading: isVisitsLoading } = useQuery({
+    queryKey: ['analytics', 'patient-visits', timeframe],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_patient_demographics');
-
-        if (error) {
-          throw new Error(`Error fetching patient demographics: ${error.message}`);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Error in usePatientDemographics:', error);
-        return [];
-      }
-    },
-    enabled: !!user,
+      const startDate = getStartDateForTimeframe(timeframe);
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('appointment_date')
+        .gte('appointment_date', startDate.toISOString())
+        .order('appointment_date', { ascending: true });
+      
+      if (error) throw error;
+      
+      // Process data into a format suitable for charts
+      return processTimeSeriesData(data.map(item => item.appointment_date), timeframe);
+    }
   });
+
+  // Query for key metrics
+  const { data: keyMetrics, isLoading: isMetricsLoading } = useQuery({
+    queryKey: ['analytics', 'key-metrics', timeframe],
+    queryFn: async () => {
+      // This would typically come from multiple queries aggregated together
+      // For now, returning mock data
+      return [
+        {
+          title: 'Total Patients',
+          value: 1254,
+          change: 12.5,
+          trend: 'up' as const
+        },
+        {
+          title: 'Appointments',
+          value: 542,
+          change: 8.2,
+          trend: 'up' as const
+        },
+        {
+          title: 'Avg Visit Duration',
+          value: 32,
+          change: -2.1,
+          trend: 'down' as const
+        },
+        {
+          title: 'Care Plan Adherence',
+          value: 86,
+          change: 4.3,
+          trend: 'up' as const
+        }
+      ];
+    }
+  });
+
+  return {
+    patientVisits,
+    keyMetrics,
+    isLoading: isVisitsLoading || isMetricsLoading
+  };
+};
+
+// Helper function to get start date based on timeframe
+function getStartDateForTimeframe(timeframe: string): Date {
+  const now = new Date();
+  switch (timeframe) {
+    case 'week':
+      return new Date(now.setDate(now.getDate() - 7));
+    case 'month':
+      return new Date(now.setMonth(now.getMonth() - 1));
+    case 'quarter':
+      return new Date(now.setMonth(now.getMonth() - 3));
+    case 'year':
+    default:
+      return new Date(now.setFullYear(now.getFullYear() - 1));
+  }
 }
 
-export function useCommonDiagnoses() {
-  const { user } = useAuth();
+// Helper function to process time series data
+function processTimeSeriesData(dates: string[], timeframe: string): AnalyticsDataPoint[] {
+  const dateMap = new Map<string, number>();
+  const format = timeframe === 'week' ? 'yyyy-MM-dd' : 'yyyy-MM';
 
-  return useQuery({
-    queryKey: ['commonDiagnoses'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_common_diagnoses');
-
-        if (error) {
-          throw new Error(`Error fetching common diagnoses: ${error.message}`);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Error in useCommonDiagnoses:', error);
-        return [];
-      }
-    },
-    enabled: !!user,
+  // Initialize with zero counts
+  const startDate = getStartDateForTimeframe(timeframe);
+  const now = new Date();
+  let current = new Date(startDate);
+  
+  while (current <= now) {
+    const key = timeframe === 'week' 
+      ? current.toISOString().split('T')[0] 
+      : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+    
+    dateMap.set(key, 0);
+    
+    if (timeframe === 'week') {
+      current.setDate(current.getDate() + 1);
+    } else {
+      current.setMonth(current.getMonth() + 1);
+    }
+  }
+  
+  // Count actual appointments
+  dates.forEach(dateStr => {
+    const date = new Date(dateStr);
+    const key = timeframe === 'week'
+      ? date.toISOString().split('T')[0]
+      : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (dateMap.has(key)) {
+      dateMap.set(key, dateMap.get(key)! + 1);
+    }
   });
+  
+  // Convert map to array
+  return Array.from(dateMap).map(([date, count]) => ({
+    date,
+    count
+  })).sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export function useProviderPerformance() {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['providerPerformance'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .rpc('get_provider_performance');
-
-        if (error) {
-          throw new Error(`Error fetching provider performance: ${error.message}`);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Error in useProviderPerformance:', error);
-        return [];
-      }
-    },
-    enabled: !!user,
-  });
-}
-
-export function useCareCoinsAnalytics(timeframe: TimeframeType = 'year', userId?: string) {
-  const { user } = useAuth();
-  const targetUserId = userId || user?.id;
-
-  return useQuery({
-    queryKey: ['careCoinsAnalytics', timeframe, targetUserId],
-    queryFn: async () => {
-      try {
-        if (!targetUserId) return [];
-        
-        const { data, error } = await supabase
-          .rpc('get_care_coins_analytics', { 
-            user_id_param: targetUserId,
-            timeframe_param: timeframe 
-          });
-
-        if (error) {
-          throw new Error(`Error fetching care coins analytics: ${error.message}`);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('Error in useCareCoinsAnalytics:', error);
-        return [];
-      }
-    },
-    enabled: !!user && !!targetUserId,
-  });
-}
-
-export function useAnalyticsOverview(timeframe: TimeframeType = 'year', providerId?: string) {
-  const { user } = useAuth();
-  const targetUserId = providerId || user?.id;
-
-  return useQuery({
-    queryKey: ['analyticsOverview', timeframe, targetUserId],
-    queryFn: async () => {
-      try {
-        if (!targetUserId) return null;
-        
-        const { data, error } = await supabase
-          .rpc('get_analytics_overview', { 
-            provider_id_param: targetUserId,
-            timeframe_param: timeframe 
-          });
-
-        if (error) {
-          throw new Error(`Error fetching analytics overview: ${error.message}`);
-        }
-
-        // Ensure we have data and it's the first record
-        if (data && data.length > 0) {
-          return {
-            totalPatients: data[0].totalpatients,
-            appointments: data[0].appointments,
-            chartingRate: data[0].chartingrate,
-            careCoinsGenerated: data[0].carecoinsgenerated,
-            patientsGrowth: data[0].patientsgrowth,
-            appointmentsGrowth: data[0].appointmentsgrowth,
-            chartingRateGrowth: data[0].chartingrategrowth,
-            careCoinsGrowth: data[0].carecoinsgrowth
-          };
-        }
-        
-        return null;
-      } catch (error) {
-        console.error('Error in useAnalyticsOverview:', error);
-        return null;
-      }
-    },
-    enabled: !!user && !!targetUserId,
-  });
-}
+export default useAnalyticsData;

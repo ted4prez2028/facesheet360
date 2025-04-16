@@ -1,8 +1,9 @@
+
 // Updated imports with proper property names
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CareCoin, Coins, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Coins, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { useCareCoinsTransactions } from '@/hooks/useCareCoinsTransactions';
 import { format } from 'date-fns';
@@ -35,7 +36,7 @@ export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({ onViewAll 
           </p>
         </div>
         <div className={`font-semibold ${isOutgoing ? 'text-red-500' : 'text-green-500'}`}>
-          {isOutgoing ? '-' : '+'} {transaction.amount} <CareCoin className="h-3 w-3 inline" />
+          {isOutgoing ? '-' : '+'} {transaction.amount} <span className="inline-flex items-center"><Coins className="h-3 w-3 inline ml-1" /></span>
         </div>
       </div>
     );
@@ -73,7 +74,7 @@ export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({ onViewAll 
           CareCoins Activity
         </CardTitle>
         <CardDescription>
-          Your current balance: <span className="font-semibold">{balance} <CareCoin className="h-3.5 w-3.5 inline" /></span>
+          Your current balance: <span className="font-semibold">{balance} <Coins className="h-3.5 w-3.5 inline" /></span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 max-h-[350px] overflow-auto pb-1">

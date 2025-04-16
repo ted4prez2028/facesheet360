@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -11,7 +12,7 @@ export interface ChartRecord {
   vitals: string | null;
   diagnosis: string | null;
   treatment_plan: string | null;
-  record_type?: string;
+  record_type: string; // Make this required
   record_date?: string;
   vital_signs?: any;
   medications?: any;
@@ -25,7 +26,7 @@ export const createChartRecord = async (chartRecord: Omit<ChartRecord, "id" | "c
   try {
     const { data, error } = await supabase
       .from('chart_records')
-      .insert([chartRecord])
+      .insert(chartRecord) // Pass single object, not an array
       .select()
       .single();
 
@@ -116,3 +117,7 @@ export const deleteChartRecord = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Add these functions for backward compatibility
+export const getPatientCharts = getChartRecordsByPatientId;
+export const addChartRecord = createChartRecord;

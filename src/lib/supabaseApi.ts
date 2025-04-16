@@ -24,7 +24,11 @@ export const {
 export const {
   getPatientCharts,
   addChartRecord,
-  updateChartRecord
+  updateChartRecord,
+  createChartRecord,
+  getChartRecordById,
+  getChartRecordsByPatientId,
+  deleteChartRecord
 } = chartApi;
 
 export const {
