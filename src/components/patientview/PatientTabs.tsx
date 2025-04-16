@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CensusTab from './CensusTab';
@@ -16,6 +15,8 @@ import ProgressNoteTab from './ProgressNoteTab';
 import CarePlanTab from './CarePlanTab';
 import TasksTab from './TasksTab';
 import DocumentsTab from './DocumentsTab';
+import DashboardTab from './DashboardTab';
+import ProfileTab from './ProfileTab';
 
 interface PatientTabsProps {
   patientId: string;
@@ -50,11 +51,11 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
       
       <div className="mt-6">
         <TabsContent value="dash">
-          <p>Dashboard content will be implemented</p>
+          <DashboardTab patientId={patientId} />
         </TabsContent>
 
         <TabsContent value="profile">
-          <p>Patient profile content will be implemented</p>
+          <ProfileTab patientId={patientId} />
         </TabsContent>
 
         <TabsContent value="census">
