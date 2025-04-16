@@ -42,6 +42,53 @@ export type Database = {
         }
         Relationships: []
       }
+      advanced_directives: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          directive_type: string
+          end_date: string | null
+          id: string
+          patient_id: string
+          start_date: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          directive_type: string
+          end_date?: string | null
+          id?: string
+          patient_id: string
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          directive_type?: string
+          end_date?: string | null
+          id?: string
+          patient_id?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advanced_directives_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allergies: {
         Row: {
           allergen: string
@@ -314,6 +361,56 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluations: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          patient_id: string
+          revised_by: string | null
+          score: string | null
+          status: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          patient_id: string
+          revised_by?: string | null
+          score?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          patient_id?: string
+          revised_by?: string | null
+          score?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       imaging_records: {
         Row: {
           body_area: string
@@ -348,6 +445,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "imaging_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immunizations: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          cvx_code: string | null
+          date_administered: string | null
+          id: string
+          patient_id: string
+          source: string | null
+          status: string | null
+          updated_at: string | null
+          vaccine: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          cvx_code?: string | null
+          date_administered?: string | null
+          id?: string
+          patient_id: string
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vaccine: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          cvx_code?: string | null
+          date_administered?: string | null
+          id?: string
+          patient_id?: string
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vaccine?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immunizations_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
@@ -392,6 +536,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "lab_results_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_diagnoses: {
+        Row: {
+          classification: string | null
+          clinical_category: string | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          patient_id: string
+          pdpm_comorbidities: string | null
+          rank: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          classification?: string | null
+          clinical_category?: string | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          patient_id: string
+          pdpm_comorbidities?: string | null
+          rank?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          classification?: string | null
+          clinical_category?: string | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          patient_id?: string
+          pdpm_comorbidities?: string | null
+          rank?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_diagnoses_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
@@ -599,6 +796,53 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          frequency: string
+          id: string
+          patient_id: string
+          position: string
+          status: string | null
+          task_description: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          frequency: string
+          id?: string
+          patient_id: string
+          position: string
+          status?: string | null
+          task_description: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          frequency?: string
+          id?: string
+          patient_id?: string
+          position?: string
+          status?: string | null
+          task_description?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
