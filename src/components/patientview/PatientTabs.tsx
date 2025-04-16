@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CensusTab from './CensusTab';
@@ -26,8 +27,9 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
   return (
     <Tabs defaultValue="dash" className="w-full">
       <div className="bg-gray-100 border-b border-gray-300">
-        <div className="container overflow-x-auto">
-          <TabsList className="bg-transparent h-12 w-auto inline-flex">
+        <div className="container">
+          {/* First Row of Tabs */}
+          <TabsList className="bg-transparent h-10 w-full flex justify-start mb-1">
             <TabsTrigger className="data-[state=active]:bg-white" value="dash">Dash</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="profile">Profile</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="census">Census</TabsTrigger>
@@ -36,6 +38,10 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
             <TabsTrigger className="data-[state=active]:bg-white" value="immun">Immun</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="orders">Orders</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="vitals">Wks/Vitals</TabsTrigger>
+          </TabsList>
+          
+          {/* Second Row of Tabs */}
+          <TabsList className="bg-transparent h-10 w-full flex justify-start">
             <TabsTrigger className="data-[state=active]:bg-white" value="results">Results</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="mds">MDS</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="evaluations">Evaluations</TabsTrigger>
