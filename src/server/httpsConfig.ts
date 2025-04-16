@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 import { Server } from 'http';
@@ -12,15 +11,12 @@ import https from 'https';
  */
 export const setupHttps = (app: any): Server => {
   try {
-    // Check if running in production
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    // Use the localhost certificate files
+    // Use the localhost certificate files in project root
     const keyPath = path.join(process.cwd(), 'localhost-key.pem');
     const certPath = path.join(process.cwd(), 'localhost.pem');
     
     if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
-      throw new Error('SSL certificates not found at the expected paths.');
+      throw new Error(`SSL certificates not found at: ${keyPath} and ${certPath}`);
     }
     
     const sslOptions = {

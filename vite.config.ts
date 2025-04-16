@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   // Check if SSL certificates exist for HTTPS
   const keyPath = path.join(process.cwd(), 'localhost-key.pem');
   const certPath = path.join(process.cwd(), 'localhost.pem');
+  
   const httpsConfig = fs.existsSync(keyPath) && fs.existsSync(certPath)
     ? {
         key: fs.readFileSync(keyPath),
@@ -17,16 +18,10 @@ export default defineConfig(({ mode }) => {
       }
     : undefined;
 
-  // Force HTTPS configuration to be present
-  if (!httpsConfig) {
-    console.error('SSL certificates not found! HTTPS is required.');
-    process.exit(1);
-  }
-
   return {
     server: {
       host: "0.0.0.0", // Allow connections from all network interfaces
-      port: 8080, // Use port 8080 as specified
+      port: 443, // Use port 443 as requested
       https: httpsConfig, // Enable HTTPS using the provided certificates
     },
     plugins: [
