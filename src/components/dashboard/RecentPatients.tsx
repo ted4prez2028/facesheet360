@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useRecentPatients, RecentPatient } from "@/hooks/useRecentPatients";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
+import GoToEhrButton from "@/components/patientview/GoToEhrButton";
 
 interface RecentPatientsProps {
   patients?: RecentPatient[];
@@ -88,6 +89,7 @@ const RecentPatients = ({ patients: propPatients, isLoading: propIsLoading }: Re
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => handleViewPatient(patient.id)}>View</Button>
                         <Button size="sm" variant="outline" onClick={() => handleChartPatient(patient.id)}>Chart</Button>
+                        <GoToEhrButton patientId={patient.id} size="sm" variant="outline" text="EHR" />
                       </div>
                     </td>
                   </tr>

@@ -12,7 +12,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Patient } from "@/types";
 import {
@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import GoToEhrButton from "../patientview/GoToEhrButton";
 
 interface PatientsListProps {
   patients: Patient[];
@@ -49,6 +50,7 @@ const PatientsList: React.FC<PatientsListProps> = ({
           <TableHead className="hidden md:table-cell">Email</TableHead>
           <TableHead className="hidden md:table-cell">Phone</TableHead>
           <TableHead className="hidden md:table-cell">MRN</TableHead>
+          <TableHead>EHR</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -70,6 +72,9 @@ const PatientsList: React.FC<PatientsListProps> = ({
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Skeleton className="h-4 w-[100px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-8 w-[80px]" />
                   </TableCell>
                   <TableCell className="text-right">
                     <Skeleton className="h-8 w-[80px]" />
@@ -94,6 +99,9 @@ const PatientsList: React.FC<PatientsListProps> = ({
               <TableCell className="hidden md:table-cell">
                 {patient.medical_record_number}
               </TableCell>
+              <TableCell>
+                <GoToEhrButton patientId={patient.id} variant="outline" size="sm" />
+              </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -112,6 +120,11 @@ const PatientsList: React.FC<PatientsListProps> = ({
                       View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      onClick={() => navigate(`/patients/${patient.id}/detail`)}
+                    >
+                      Open EHR Interface
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onClick={() => handleDeletePatient(patient.id)}
                     >
                       Delete Patient
@@ -124,7 +137,7 @@ const PatientsList: React.FC<PatientsListProps> = ({
         ) : (
           <TableRow>
             <TableCell
-              colSpan={5}
+              colSpan={6}
               className="text-center py-4 text-muted-foreground"
             >
               {error ? "Error loading patients." : "No patients found."}
@@ -134,7 +147,7 @@ const PatientsList: React.FC<PatientsListProps> = ({
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell colSpan={5}>
+          <TableCell colSpan={6}>
             {filteredPatients.length} Patient(s)
           </TableCell>
         </TableRow>
