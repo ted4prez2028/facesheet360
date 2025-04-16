@@ -8,8 +8,8 @@ import fs from 'fs';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Check if SSL certificates exist for HTTPS
-  const keyPath = path.join(process.cwd(), 'umgrow-key.pem');
-  const certPath = path.join(process.cwd(), 'umgrow.pem');
+  const keyPath = path.join(process.cwd(), 'localhost-key.pem');
+  const certPath = path.join(process.cwd(), 'localhost.pem');
   const httpsConfig = fs.existsSync(keyPath) && fs.existsSync(certPath)
     ? {
         key: fs.readFileSync(keyPath),
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "0.0.0.0", // Allow connections from all network interfaces
-      port: 443, // Use port 443 for HTTPS
+      port: 8080, // Use port 8080 as specified
       https: httpsConfig, // Enable HTTPS using the provided certificates
     },
     plugins: [

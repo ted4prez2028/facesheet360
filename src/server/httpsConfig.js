@@ -14,9 +14,9 @@ export const setupHttps = (app) => {
     // Check if running in production
     const isProduction = process.env.NODE_ENV === 'production';
     
-    // Use the specific certificate files provided
-    const keyPath = path.join(process.cwd(), 'umgrow-key.pem');
-    const certPath = path.join(process.cwd(), 'umgrow.pem');
+    // Use the localhost certificate files
+    const keyPath = path.join(process.cwd(), 'localhost-key.pem');
+    const certPath = path.join(process.cwd(), 'localhost.pem');
     
     if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
       throw new Error('SSL certificates not found at the expected paths.');
@@ -28,11 +28,11 @@ export const setupHttps = (app) => {
     };
     
     // Create and return the HTTPS server
-    console.log('HTTPS server configured successfully with umgrow certificates');
+    console.log('HTTPS server configured successfully with localhost certificates');
     return https.createServer(sslOptions, app);
   } catch (error) {
     console.error('Failed to set up HTTPS server:', error);
-    throw new Error('HTTPS configuration failed. Make sure umgrow-key.pem and umgrow.pem exist in the project root directory.');
+    throw new Error('HTTPS configuration failed. Make sure localhost-key.pem and localhost.pem exist in the project root directory.');
   }
 };
 
@@ -44,7 +44,7 @@ export const getSslSetupInstructions = () => {
   return `
 To use the provided certificates:
 
-1. Ensure that umgrow-key.pem and umgrow.pem files are in the project root directory.
+1. Ensure that localhost-key.pem and localhost.pem files are in the project root directory.
 2. Make sure the certificates are properly formatted and valid.
 3. For local development, you might need to add these certificates to your trusted certificates.
 
@@ -57,8 +57,8 @@ For production, ensure these certificates are from a trusted certificate authori
  * @returns boolean indicating if certificates exist
  */
 export const checkSslCertificates = () => {
-  const keyPath = path.join(process.cwd(), 'umgrow-key.pem');
-  const certPath = path.join(process.cwd(), 'umgrow.pem');
+  const keyPath = path.join(process.cwd(), 'localhost-key.pem');
+  const certPath = path.join(process.cwd(), 'localhost.pem');
   
   return fs.existsSync(keyPath) && fs.existsSync(certPath);
 };
