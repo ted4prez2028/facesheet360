@@ -1,7 +1,6 @@
 
 import { useContext } from 'react';
-import { AuthContext } from '@/context/AuthContext';
+import { AuthContext, useAuth as originalUseAuth } from '@/context/AuthContext';
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+// Re-export the useAuth hook from the AuthContext
+export const useAuth = originalUseAuth;
