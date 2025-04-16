@@ -181,6 +181,56 @@ export type Database = {
           },
         ]
       }
+      call_lights: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          message: string | null
+          organization: string | null
+          patient_id: string
+          request_type: string
+          room_number: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          organization?: string | null
+          patient_id: string
+          request_type: string
+          room_number: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          organization?: string | null
+          patient_id?: string
+          request_type?: string
+          room_number?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_lights_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       care_coins_transactions: {
         Row: {
           amount: number
@@ -410,6 +460,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      group_calls: {
+        Row: {
+          created_at: string
+          id: string
+          initiator_id: string
+          is_video_call: boolean
+          participants: Json
+          room_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          initiator_id: string
+          is_video_call?: boolean
+          participants?: Json
+          room_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          initiator_id?: string
+          is_video_call?: boolean
+          participants?: Json
+          room_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       imaging_records: {
         Row: {
@@ -857,6 +940,7 @@ export type Database = {
           license_number: string | null
           name: string
           online_status: boolean | null
+          organization: string | null
           profile_image: string | null
           role: string
           specialty: string | null
@@ -871,6 +955,7 @@ export type Database = {
           license_number?: string | null
           name: string
           online_status?: boolean | null
+          organization?: string | null
           profile_image?: string | null
           role: string
           specialty?: string | null
@@ -885,6 +970,7 @@ export type Database = {
           license_number?: string | null
           name?: string
           online_status?: boolean | null
+          organization?: string | null
           profile_image?: string | null
           role?: string
           specialty?: string | null

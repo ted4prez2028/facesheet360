@@ -1,25 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-export interface CallLight {
-  id: string;
-  patient_id: string;
-  room_number: string;
-  request_type: 'assistance' | 'emergency' | 'pain' | 'bathroom' | 'water' | 'other';
-  message?: string;
-  status: 'active' | 'in_progress' | 'completed';
-  created_at: string;
-  updated_at: string;
-  completed_at?: string;
-  completed_by?: string;
-  organization?: string;
-}
+import { CallLightRequest } from "@/types";
 
 /**
  * Create a new call light request
  */
-export const createCallLight = async (callLight: Omit<CallLight, "id" | "created_at" | "updated_at" | "status">): Promise<CallLight | null> => {
+export const createCallLight = async (callLight: Omit<CallLightRequest, "id" | "created_at" | "updated_at" | "status">): Promise<CallLightRequest | null> => {
   try {
     // If organization is not provided, try to get it from the current user
     if (!callLight.organization) {
@@ -71,7 +58,7 @@ export const createCallLight = async (callLight: Omit<CallLight, "id" | "created
       }
     }
     
-    return data as CallLight;
+    return data as CallLightRequest;
   } catch (error) {
     console.error("Error creating call light:", error);
     toast.error("Failed to create call light request");
@@ -82,7 +69,7 @@ export const createCallLight = async (callLight: Omit<CallLight, "id" | "created
 /**
  * Update a call light status
  */
-export const updateCallLightStatus = async (id: string, status: 'in_progress' | 'completed'): Promise<CallLight | null> => {
+export const updateCallLightStatus = async (id: string, status: 'in_progress' | 'completed'): Promise<CallLightRequest | null> => {
   try {
     const updateData: any = {
       status,
@@ -103,7 +90,7 @@ export const updateCallLightStatus = async (id: string, status: 'in_progress' | 
       .single();
 
     if (error) throw error;
-    return data as CallLight;
+    return data as CallLightRequest;
   } catch (error) {
     console.error("Error updating call light:", error);
     toast.error("Failed to update call light");
@@ -114,7 +101,7 @@ export const updateCallLightStatus = async (id: string, status: 'in_progress' | 
 /**
  * Get all active call lights for an organization
  */
-export const getActiveCallLights = async (organization?: string): Promise<CallLight[]> => {
+export const getActiveCallLights = async (organization?: string): Promise<CallLightRequest[]> => {
   try {
     let query = supabase
       .from('call_lights')
@@ -129,7 +116,7 @@ export const getActiveCallLights = async (organization?: string): Promise<CallLi
     const { data, error } = await query;
 
     if (error) throw error;
-    return data as unknown as CallLight[];
+    return data as unknown as CallLightRequest[];
   } catch (error) {
     console.error("Error fetching call lights:", error);
     return [];
@@ -139,7 +126,7 @@ export const getActiveCallLights = async (organization?: string): Promise<CallLi
 /**
  * Get call light history for a patient
  */
-export const getPatientCallLightHistory = async (patientId: string): Promise<CallLight[]> => {
+export const getPatientCallLightHistory = async (patientId: string): Promise<CallLightRequest[]> => {
   try {
     const { data, error } = await supabase
       .from('call_lights')
@@ -148,7 +135,7 @@ export const getPatientCallLightHistory = async (patientId: string): Promise<Cal
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as CallLight[];
+    return data as CallLightRequest[];
   } catch (error) {
     console.error("Error fetching call light history:", error);
     return [];

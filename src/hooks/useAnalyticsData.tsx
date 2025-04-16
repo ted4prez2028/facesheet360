@@ -1,203 +1,204 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
-interface OverviewData {
-  totalPatients: number;
-  appointments: number;
-  chartingRate: number;
-  careCoinsGenerated: number;
-  patientsGrowth: number;
-  appointmentsGrowth: number;
-  chartingRateGrowth: number;
-  careCoinsGrowth: number;
-}
+type TimeframeType = 'week' | 'month' | 'quarter' | 'year';
 
-interface MonthlyTrendData {
-  month: string;
-  newPatients: number;
-  activePatients: number;
-  discharge: number;
-}
-
-interface PatientsByDemographicData {
-  category: string;
-  value: number;
-}
-
-interface ChartingRateData {
-  date: string;
-  rate: number;
-}
-
-interface AnalyticsData {
-  overview: OverviewData;
-  monthlyTrends: MonthlyTrendData[];
-  patientsByAge: PatientsByDemographicData[];
-  patientsByGender: PatientsByDemographicData[];
-  chartingRate: ChartingRateData[];
-  isLoading: boolean;
-  error: Error | null;
-}
-
-export function useAnalyticsData() {
+export function usePatientStatistics(timeframe: TimeframeType = 'year') {
   const { user } = useAuth();
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
-    overview: {
-      totalPatients: 0,
-      appointments: 0,
-      chartingRate: 0,
-      careCoinsGenerated: 0,
-      patientsGrowth: 0,
-      appointmentsGrowth: 0,
-      chartingRateGrowth: 0,
-      careCoinsGrowth: 0
-    },
-    monthlyTrends: [],
-    patientsByAge: [],
-    patientsByGender: [],
-    chartingRate: [],
-    isLoading: true,
-    error: null
-  });
 
-  // Fetch analytics data from server
-  useEffect(() => {
-    if (!user) return;
-    
-    const fetchData = async () => {
+  return useQuery({
+    queryKey: ['patientStatistics', timeframe],
+    queryFn: async () => {
       try {
-        // Fetch overview stats
-        const { data: overviewData, error: overviewError } = await supabase
-          .rpc('get_analytics_overview', {
-            provider_id_param: user.id,
-            timeframe_param: 'year'
+        const { data, error } = await supabase
+          .rpc('get_patient_trends', { timeframe_param: timeframe });
+
+        if (error) {
+          throw new Error(`Error fetching patient statistics: ${error.message}`);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in usePatientStatistics:', error);
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
+}
+
+export function useAppointmentStatistics(timeframe: TimeframeType = 'year', providerId?: string) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['appointmentStatistics', timeframe, providerId],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .rpc('get_appointment_analytics', { 
+            timeframe_param: timeframe,
+            provider_id_param: providerId || null 
           });
-        
-        if (overviewError) throw overviewError;
-        
-        // Fetch monthly trends
-        const { data: monthlyData, error: monthlyError } = await supabase
-          .rpc('get_patient_trends', { timeframe_param: 'year' });
-        
-        if (monthlyError) throw monthlyError;
-        
-        // Fetch patients by age
-        const { data: ageData, error: ageError } = await supabase
+
+        if (error) {
+          throw new Error(`Error fetching appointment statistics: ${error.message}`);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in useAppointmentStatistics:', error);
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
+}
+
+export function usePatientDemographics() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['patientDemographics'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
           .rpc('get_patient_demographics');
-        
-        if (ageError) throw ageError;
-        
-        // Fetch patients by gender (common diagnoses as placeholder)
-        const { data: genderData, error: genderError } = await supabase
+
+        if (error) {
+          throw new Error(`Error fetching patient demographics: ${error.message}`);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in usePatientDemographics:', error);
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
+}
+
+export function useCommonDiagnoses() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['commonDiagnoses'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
           .rpc('get_common_diagnoses');
+
+        if (error) {
+          throw new Error(`Error fetching common diagnoses: ${error.message}`);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in useCommonDiagnoses:', error);
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
+}
+
+export function useProviderPerformance() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['providerPerformance'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .rpc('get_provider_performance');
+
+        if (error) {
+          throw new Error(`Error fetching provider performance: ${error.message}`);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in useProviderPerformance:', error);
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
+}
+
+export function useCareCoinsAnalytics(timeframe: TimeframeType = 'year', userId?: string) {
+  const { user } = useAuth();
+  const targetUserId = userId || user?.id;
+
+  return useQuery({
+    queryKey: ['careCoinsAnalytics', timeframe, targetUserId],
+    queryFn: async () => {
+      try {
+        if (!targetUserId) return [];
         
-        if (genderError) throw genderError;
+        const { data, error } = await supabase
+          .rpc('get_care_coins_analytics', { 
+            user_id_param: targetUserId,
+            timeframe_param: timeframe 
+          });
+
+        if (error) {
+          throw new Error(`Error fetching care coins analytics: ${error.message}`);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error in useCareCoinsAnalytics:', error);
+        return [];
+      }
+    },
+    enabled: !!user && !!targetUserId,
+  });
+}
+
+export function useAnalyticsOverview(timeframe: TimeframeType = 'year', providerId?: string) {
+  const { user } = useAuth();
+  const targetUserId = providerId || user?.id;
+
+  return useQuery({
+    queryKey: ['analyticsOverview', timeframe, targetUserId],
+    queryFn: async () => {
+      try {
+        if (!targetUserId) return null;
         
-        // Fetch charting rate data
-        const { data: chartingData, error: chartingError } = await supabase
-          .from('vital_signs')
-          .select('date_recorded')
-          .order('date_recorded', { ascending: true })
-          .limit(12);
-          
-        if (chartingError) throw chartingError;
-        
-        // Transform the charting rate data
-        const transformedChartingData = chartingData ? 
-          chartingData.map((item, index) => ({
-            date: new Date(item.date_recorded).toISOString().split('T')[0],
-            rate: 85 + Math.random() * 15
-          })) : 
-          Array.from({ length: 12 }, (_, i) => ({
-            date: new Date(new Date().getFullYear(), i, 1).toISOString().split('T')[0],
-            rate: 85 + Math.random() * 15
-          }));
-        
-        // Transform the data
-        const transformedAgeData = Array.isArray(ageData) ? ageData.map((item: any) => ({
-          category: item.name,
-          value: item.value
-        })) : [];
-        
-        const transformedGenderData = Array.isArray(genderData) ? genderData.map((item: any) => ({
-          category: item.name || 'Unknown',
-          value: item.value
-        })) : [];
-        
-        // Map monthly trends to expected schema
-        const transformedMonthlyData = Array.isArray(monthlyData) ? monthlyData.map((item: any) => ({
-          month: item.month,
-          newPatients: item.newpatients,
-          activePatients: item.activepatients,
-          discharge: item.discharge
-        })) : [];
-        
-        // Format overview data properly
-        let formattedOverviewData: OverviewData;
-        
-        if (Array.isArray(overviewData) && overviewData.length > 0) {
-          const item = overviewData[0];
-          formattedOverviewData = {
-            totalPatients: item.totalpatients || 0,
-            appointments: item.appointments || 0,
-            chartingRate: item.chartingrate || 0,
-            careCoinsGenerated: item.carecoinsgenerated || 0,
-            patientsGrowth: item.patientsgrowth || 0,
-            appointmentsGrowth: item.appointmentsgrowth || 0,
-            chartingRateGrowth: item.chartingrategrowth || 0,
-            careCoinsGrowth: item.carecoinsgrowth || 0
-          };
-        } else if (overviewData) {
-          const item = overviewData;
-          formattedOverviewData = {
-            totalPatients: item.totalpatients || 0,
-            appointments: item.appointments || 0,
-            chartingRate: item.chartingrate || 0,
-            careCoinsGenerated: item.carecoinsgenerated || 0,
-            patientsGrowth: item.patientsgrowth || 0,
-            appointmentsGrowth: item.appointmentsgrowth || 0,
-            chartingRateGrowth: item.chartingrategrowth || 0,
-            careCoinsGrowth: item.carecoinsgrowth || 0
-          };
-        } else {
-          // Default empty values
-          formattedOverviewData = {
-            totalPatients: 0,
-            appointments: 0,
-            chartingRate: 0,
-            careCoinsGenerated: 0,
-            patientsGrowth: 0,
-            appointmentsGrowth: 0,
-            chartingRateGrowth: 0,
-            careCoinsGrowth: 0
+        const { data, error } = await supabase
+          .rpc('get_analytics_overview', { 
+            provider_id_param: targetUserId,
+            timeframe_param: timeframe 
+          });
+
+        if (error) {
+          throw new Error(`Error fetching analytics overview: ${error.message}`);
+        }
+
+        // Ensure we have data and it's the first record
+        if (data && data.length > 0) {
+          return {
+            totalPatients: data[0].totalpatients,
+            appointments: data[0].appointments,
+            chartingRate: data[0].chartingrate,
+            careCoinsGenerated: data[0].carecoinsgenerated,
+            patientsGrowth: data[0].patientsgrowth,
+            appointmentsGrowth: data[0].appointmentsgrowth,
+            chartingRateGrowth: data[0].chartingrategrowth,
+            careCoinsGrowth: data[0].carecoinsgrowth
           };
         }
         
-        setAnalyticsData({
-          overview: formattedOverviewData,
-          monthlyTrends: transformedMonthlyData,
-          patientsByAge: transformedAgeData,
-          patientsByGender: transformedGenderData,
-          chartingRate: transformedChartingData,
-          isLoading: false,
-          error: null
-        });
+        return null;
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
-        toast.error('Failed to load analytics data. Please try again later.');
-        setAnalyticsData(prev => ({
-          ...prev,
-          isLoading: false,
-          error: error instanceof Error ? error : new Error(String(error))
-        }));
+        console.error('Error in useAnalyticsOverview:', error);
+        return null;
       }
-    };
-
-    fetchData();
-  }, [user]);
-
-  return analyticsData;
+    },
+    enabled: !!user && !!targetUserId,
+  });
 }

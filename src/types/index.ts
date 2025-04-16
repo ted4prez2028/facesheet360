@@ -74,6 +74,17 @@ export interface Patient {
   updated_at: string;
 }
 
+export interface Appointment {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  appointment_date: string;
+  status: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CareCoinsTransaction {
   id: string;
   from_user_id?: string;
@@ -82,6 +93,7 @@ export interface CareCoinsTransaction {
   transaction_type: string;
   description?: string;
   created_at: string;
+  otherUserName?: string;
 }
 
 export interface Prescription {

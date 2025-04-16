@@ -1,10 +1,18 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CallLight, getActiveCallLights, updateCallLightStatus } from '@/lib/api/callLightApi';
+import { CallLightRequest, getActiveCallLights, updateCallLightStatus } from '@/lib/api/callLightApi';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { Howl } from 'howler';
+
+interface CallLight extends CallLightRequest {
+  patients?: {
+    first_name: string;
+    last_name: string;
+  }
+}
 
 export function useCallLights() {
   const [activeCallLights, setActiveCallLights] = useState<CallLight[]>([]);
@@ -35,13 +43,13 @@ export function useCallLights() {
         .eq('id', user.id)
         .single();
       
-      const organization = userData?.organization;
+      const organization = userData?.organization || '';
       if (!organization) {
-        throw new Error("User organization not found");
+        console.warn("User organization not found");
       }
       
       const callLights = await getActiveCallLights(organization);
-      setActiveCallLights(callLights);
+      setActiveCallLights(callLights as CallLight[]);
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
       console.error("Error fetching call lights:", err);
@@ -76,7 +84,9 @@ export function useCallLights() {
               .eq('id', user.id)
               .single();
             
-            if (userData?.organization === newCallLight.organization) {
+            const organization = userData?.organization || '';
+            
+            if (organization && organization === newCallLight.organization) {
               // Play sound for new call lights
               if (newCallLight.id !== lastNotificationId) {
                 callLightSound.play();
