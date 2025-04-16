@@ -120,7 +120,7 @@ const PatientList = ({
                     </button>
                     <div className="ml-12 flex gap-2">
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm" 
                         className="text-xs h-7" 
                         onClick={() => setSelectedPatient(patient.id)}
@@ -129,7 +129,7 @@ const PatientList = ({
                       </Button>
                       <GoToEhrButton 
                         patientId={patient.id} 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm" 
                         className="text-xs h-7" 
                       />

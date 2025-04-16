@@ -16,6 +16,7 @@ export const startSecureServer = (port = 443) => {
     origin: [
       'https://facesheet360.com',
       'https://facesheet360.com:8080',
+      'https://localhost',
       'https://localhost:8080',
       'http://localhost:8080'
     ],
