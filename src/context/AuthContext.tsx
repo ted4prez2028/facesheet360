@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
@@ -6,7 +5,7 @@ import { AuthContextType, User } from '@/types/auth';
 import { useAuthOperations } from '@/hooks/useAuthOperations';
 import { toast } from 'sonner';
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   isAuthenticated: false,
@@ -28,17 +27,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const authOperations = useAuthOperations(setUser, setSession, setIsLoading);
 
   useEffect(() => {
-    // First set up auth state listener before checking for existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state changed:", event, !!currentSession);
         setSession(currentSession);
         
         if (currentSession?.user) {
-          // Use setTimeout to prevent deadlocks with Supabase client
           setTimeout(async () => {
             try {
-              // Simplified user state update to avoid RLS issues
               const userData: User = {
                 id: currentSession.user.id,
                 name: currentSession.user.email || '',
@@ -54,7 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               }
             } catch (error) {
               console.error("Error updating user state:", error);
-              // Set minimal user data in case of error
               setUser({
                 id: currentSession.user.id,
                 name: currentSession.user.email || '',
@@ -76,13 +71,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Then check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         if (error) {
           console.error("Failed to get session:", error);
-          // Try refreshing the session if we get an error
           await supabase.auth.refreshSession();
           const { data: { session: refreshedSession } } = await supabase.auth.getSession();
           console.log("Session refreshed:", !!refreshedSession);
@@ -96,7 +89,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (currentSession?.user) {
           try {
-            // Simplified user object to bypass RLS issues
             const userData: User = {
               id: currentSession.user.id,
               name: currentSession.user.email || '',
@@ -108,7 +100,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(userData);
           } catch (error) {
             console.error("Error initializing user state:", error);
-            // Set minimal user data in case of error
             setUser({
               id: currentSession.user.id,
               name: currentSession.user.email || '',
