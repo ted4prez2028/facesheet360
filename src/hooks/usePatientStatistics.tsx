@@ -99,3 +99,5 @@ const defaultHealthMetrics: HealthMetric[] = [
   { name: "May", heartRate: 76, bloodPressure: 122, o2Saturation: 97 },
   { name: "Jun", heartRate: 73, bloodPressure: 119, o2Saturation: 98 }
 ];
+
+export default usePatientStatistics;
