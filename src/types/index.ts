@@ -1,4 +1,3 @@
-
 // If this file doesn't exist, this will create it
 export interface User {
   id: string;
@@ -90,8 +89,9 @@ export interface CareCoinsTransaction {
   from_user_id?: string;
   to_user_id?: string;
   amount: number;
-  transaction_type: string;
+  transaction_type: "transfer" | "reward" | "purchase";
   description?: string;
+  reward_category?: string;
   created_at: string;
   otherUserName?: string;
 }
