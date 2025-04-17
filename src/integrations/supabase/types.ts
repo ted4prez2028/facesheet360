@@ -775,34 +775,64 @@ export type Database = {
       }
       menu_items: {
         Row: {
+          allergen_warnings: string[] | null
+          brand: string | null
           category: string
           created_at: string | null
           description: string | null
           dietary_info: Json | null
           id: string
+          image_url: string | null
+          ingredients: string | null
           is_available: boolean | null
           name: string
+          nutrition_facts: Json | null
+          preparation_instructions: string | null
+          serving_size: string | null
+          unit_price: number | null
+          unit_size: string | null
           updated_at: string | null
+          usfoods_id: string | null
         }
         Insert: {
+          allergen_warnings?: string[] | null
+          brand?: string | null
           category: string
           created_at?: string | null
           description?: string | null
           dietary_info?: Json | null
           id?: string
+          image_url?: string | null
+          ingredients?: string | null
           is_available?: boolean | null
           name: string
+          nutrition_facts?: Json | null
+          preparation_instructions?: string | null
+          serving_size?: string | null
+          unit_price?: number | null
+          unit_size?: string | null
           updated_at?: string | null
+          usfoods_id?: string | null
         }
         Update: {
+          allergen_warnings?: string[] | null
+          brand?: string | null
           category?: string
           created_at?: string | null
           description?: string | null
           dietary_info?: Json | null
           id?: string
+          image_url?: string | null
+          ingredients?: string | null
           is_available?: boolean | null
           name?: string
+          nutrition_facts?: Json | null
+          preparation_instructions?: string | null
+          serving_size?: string | null
+          unit_price?: number | null
+          unit_size?: string | null
           updated_at?: string | null
+          usfoods_id?: string | null
         }
         Relationships: []
       }

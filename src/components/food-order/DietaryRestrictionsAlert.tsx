@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
@@ -8,6 +7,7 @@ interface DietaryRestrictionsAlertProps {
   restrictions: DietaryRestrictions | null;
   selectedItems: Array<{
     menuItem: {
+      name?: string;
       dietary_info?: {
         allergies: string[];
         diet_types: string[];
@@ -40,7 +40,7 @@ export function DietaryRestrictionsAlert({ restrictions, selectedItems }: Dietar
         Some selected items may conflict with the patient's dietary restrictions:
         <ul className="list-disc ml-4 mt-2">
           {conflicts.map((item, index) => (
-            <li key={index}>{item.menuItem.name}</li>
+            <li key={index}>{item.menuItem.name || 'Unnamed Item'}</li>
           ))}
         </ul>
       </AlertDescription>
