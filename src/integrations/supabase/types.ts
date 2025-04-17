@@ -470,8 +470,10 @@ export type Database = {
           patient_id: string | null
           room_number: string | null
           special_instructions: string | null
-          status: Database["public"]["Enums"]["order_status"] | null
+          status: Database["public"]["Enums"]["usfoods_order_status"] | null
           updated_at: string | null
+          usfoods_order_id: string | null
+          usfoods_tracking_info: Json | null
         }
         Insert: {
           created_at?: string | null
@@ -481,8 +483,10 @@ export type Database = {
           patient_id?: string | null
           room_number?: string | null
           special_instructions?: string | null
-          status?: Database["public"]["Enums"]["order_status"] | null
+          status?: Database["public"]["Enums"]["usfoods_order_status"] | null
           updated_at?: string | null
+          usfoods_order_id?: string | null
+          usfoods_tracking_info?: Json | null
         }
         Update: {
           created_at?: string | null
@@ -492,8 +496,10 @@ export type Database = {
           patient_id?: string | null
           room_number?: string | null
           special_instructions?: string | null
-          status?: Database["public"]["Enums"]["order_status"] | null
+          status?: Database["public"]["Enums"]["usfoods_order_status"] | null
           updated_at?: string | null
+          usfoods_order_id?: string | null
+          usfoods_tracking_info?: Json | null
         }
         Relationships: [
           {
@@ -1393,6 +1399,13 @@ export type Database = {
         | "preparing"
         | "delivered"
         | "cancelled"
+      usfoods_order_status:
+        | "pending"
+        | "submitted_to_usfoods"
+        | "confirmed"
+        | "in_transit"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1512,6 +1525,14 @@ export const Constants = {
         "pending",
         "approved",
         "preparing",
+        "delivered",
+        "cancelled",
+      ],
+      usfoods_order_status: [
+        "pending",
+        "submitted_to_usfoods",
+        "confirmed",
+        "in_transit",
         "delivered",
         "cancelled",
       ],

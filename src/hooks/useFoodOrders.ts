@@ -70,7 +70,7 @@ export function useFoodOrders(patientId?: string) {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Not authenticated');
 
-      // First create the order
+      // First create the order locally
       const { data: order, error: orderError } = await supabase
         .from('food_orders')
         .insert({
@@ -79,13 +79,14 @@ export function useFoodOrders(patientId?: string) {
           delivery_time: orderData.delivery_time,
           special_instructions: orderData.special_instructions,
           room_number: orderData.room_number,
+          status: 'pending'
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // Then create all order items
+      // Create order items
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(
@@ -98,14 +99,34 @@ export function useFoodOrders(patientId?: string) {
         );
 
       if (itemsError) throw itemsError;
+
+      // Submit order to USFoods API via edge function
+      const usfoodsResponse = await supabase.functions.invoke('usfoods-order', {
+        body: JSON.stringify({
+          order_id: order.id,
+          patient_id: orderData.patient_id,
+          items: orderData.items,
+          delivery_details: {
+            room_number: orderData.room_number,
+            special_instructions: orderData.special_instructions
+          }
+        })
+      });
+
+      if (usfoodsResponse.error) {
+        // Rollback local order if USFoods submission fails
+        await supabase.from('food_orders').delete().eq('id', order.id);
+        throw new Error('Failed to submit order to USFoods');
+      }
+
       return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['foodOrders', patientId] });
-      toast.success('Food order created successfully');
+      toast.success('Food order created and submitted to USFoods');
     },
     onError: (error) => {
-      toast.error('Failed to create food order');
+      toast.error(`Failed to create food order: ${error.message}`);
       console.error('Order creation error:', error);
     }
   });
