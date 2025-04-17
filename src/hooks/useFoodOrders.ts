@@ -12,44 +12,15 @@ export function useFoodOrders(patientId?: string) {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
+        .eq('is_available', true)
         .order('category');
       
-      if (error) throw error;
+      if (error) {
+        toast.error('Failed to load menu items');
+        throw error;
+      }
       
-      // Transform the data to ensure it matches our MenuItem type
-      return (data as any[]).map(item => {
-        // Ensure dietary_info is properly structured
-        const dietary_info = item.dietary_info ? {
-          calories: item.dietary_info.calories || 0,
-          protein: item.dietary_info.protein || '0g',
-          allergies: Array.isArray(item.dietary_info.allergies) ? item.dietary_info.allergies : [],
-          diet_types: Array.isArray(item.dietary_info.diet_types) ? item.dietary_info.diet_types : [],
-          kosher: item.dietary_info.kosher || false,
-          halal: item.dietary_info.halal || false,
-          vegan: item.dietary_info.vegan || false,
-          vegetarian: item.dietary_info.vegetarian || false,
-          gluten_free: item.dietary_info.gluten_free || false,
-          dairy_free: item.dietary_info.dairy_free || false
-        } : undefined;
-        
-        return {
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          category: item.category,
-          dietary_info,
-          is_available: item.is_available ?? true,
-          brand: item.brand,
-          ingredients: item.ingredients,
-          serving_size: item.serving_size,
-          preparation_instructions: item.preparation_instructions,
-          allergen_warnings: item.allergen_warnings,
-          nutrition_facts: item.nutrition_facts,
-          image_url: item.image_url,
-          unit_size: item.unit_size,
-          unit_price: item.unit_price
-        } as MenuItem;
-      });
+      return data as MenuItem[];
     }
   });
 
