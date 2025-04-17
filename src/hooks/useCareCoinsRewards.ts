@@ -49,16 +49,33 @@ export function useCareCoinsRewards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('care_coins_reward_analytics')
-        .select('*');
+        .select('*')
+        .order('reward_date', { ascending: false })
+        .limit(30);
 
       if (error) throw error;
       return data;
     }
   });
 
+  const { data: rewardCategories } = useQuery({
+    queryKey: ['careCoinsRewardCategories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('care_coins_transactions')
+        .select('reward_category')
+        .filter('reward_category', 'not.is', null)
+        .order('reward_category');
+
+      if (error) throw error;
+      return [...new Set(data.map(t => t.reward_category))];
+    }
+  });
+
   return {
     distributeReward,
     rewardAnalytics,
+    rewardCategories,
     isLoadingAnalytics
   };
 }
