@@ -18,6 +18,7 @@ import TasksTab from './TasksTab';
 import DocumentsTab from './DocumentsTab';
 import DashboardTab from './DashboardTab';
 import ProfileTab from './ProfileTab';
+import WoundCareTab from './WoundCareTab';
 
 interface PatientTabsProps {
   patientId: string;
@@ -46,6 +47,7 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
             <TabsTrigger className="data-[state=active]:bg-white" value="mds">MDS</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="evaluations">Evaluations</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="skin">Skin and Wound</TabsTrigger>
+            <TabsTrigger className="data-[state=active]:bg-white" value="wound-care">Wound Care</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="therapy">Therapy</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="prog">Prog Note</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="care-plan">Care Plan</TabsTrigger>
@@ -102,6 +104,10 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
 
         <TabsContent value="skin">
           <SkinAndWoundTab patientId={patientId} />
+        </TabsContent>
+
+        <TabsContent value="wound-care">
+          <WoundCareTab patientId={patientId} />
         </TabsContent>
 
         <TabsContent value="therapy">

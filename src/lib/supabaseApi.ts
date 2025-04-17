@@ -7,6 +7,7 @@ import * as appointmentApi from './api/appointmentApi';
 import * as userApi from './api/userApi';
 import * as careCoinsApi from './api/careCoinsApi';
 import * as notificationApi from './api/notificationApi';
+import * as woundCareApi from './api/woundCareApi';
 
 // Re-export all functions from the new modules
 export const {
@@ -53,3 +54,11 @@ export const {
 export const {
   getNotifications
 } = notificationApi;
+
+export const {
+  getWoundRecordsByPatientId,
+  createWoundRecord,
+  updateWoundRecord,
+  deleteWoundRecord,
+  uploadWoundImage
+} = woundCareApi;
