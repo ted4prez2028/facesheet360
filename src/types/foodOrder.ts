@@ -9,8 +9,23 @@ export interface MenuItem {
     protein: string;
     allergies: string[];
     diet_types: string[];
+    kosher?: boolean;
+    halal?: boolean;
+    vegan?: boolean;
+    vegetarian?: boolean;
+    gluten_free?: boolean;
+    dairy_free?: boolean;
   };
   is_available: boolean;
+  brand?: string;
+  ingredients?: string;
+  serving_size?: string;
+  preparation_instructions?: string;
+  allergen_warnings?: string[];
+  nutrition_facts?: Record<string, any>;
+  image_url?: string;
+  unit_size?: string;
+  unit_price?: number;
 }
 
 export interface FoodOrder {

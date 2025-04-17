@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
@@ -12,6 +13,7 @@ interface DietaryRestrictionsAlertProps {
         allergies: string[];
         diet_types: string[];
       };
+      allergen_warnings?: string[];
     };
   }>;
 }
@@ -24,10 +26,21 @@ export function DietaryRestrictionsAlert({ restrictions, selectedItems }: Dietar
   
   const conflicts = selectedItems.filter(item => {
     const itemAllergies = item.menuItem.dietary_info?.allergies || [];
+    const itemAllergenWarnings = item.menuItem.allergen_warnings || [];
     const itemDietTypes = item.menuItem.dietary_info?.diet_types || [];
     
-    return allergies.some(allergy => itemAllergies.includes(allergy)) ||
-           dietTypes.some(diet => !itemDietTypes.includes(diet));
+    // Check for allergy conflicts in both dietary_info.allergies and allergen_warnings
+    const hasAllergyConflict = allergies.some(
+      allergy => itemAllergies.includes(allergy) || 
+                 itemAllergenWarnings.some(warning => 
+                   warning.toLowerCase().includes(allergy.toLowerCase())
+                 )
+    );
+    
+    // Check for diet type conflicts
+    const hasDietTypeConflict = dietTypes.some(diet => !itemDietTypes.includes(diet));
+    
+    return hasAllergyConflict || hasDietTypeConflict;
   });
 
   if (conflicts.length === 0) return null;
