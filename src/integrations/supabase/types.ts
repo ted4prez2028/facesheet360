@@ -1028,6 +1028,56 @@ export type Database = {
           },
         ]
       }
+      wounds: {
+        Row: {
+          assessment: string | null
+          created_at: string
+          description: string
+          healing_status: string | null
+          id: string
+          image_url: string
+          infection_status: string | null
+          location: string
+          patient_id: string
+          stage: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment?: string | null
+          created_at?: string
+          description: string
+          healing_status?: string | null
+          id?: string
+          image_url: string
+          infection_status?: string | null
+          location: string
+          patient_id: string
+          stage?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment?: string | null
+          created_at?: string
+          description?: string
+          healing_status?: string | null
+          id?: string
+          image_url?: string
+          infection_status?: string | null
+          location?: string
+          patient_id?: string
+          stage?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wounds_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
