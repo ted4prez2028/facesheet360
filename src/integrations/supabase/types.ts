@@ -461,6 +461,50 @@ export type Database = {
           },
         ]
       }
+      food_orders: {
+        Row: {
+          created_at: string | null
+          delivery_time: string | null
+          id: string
+          ordered_by_id: string | null
+          patient_id: string | null
+          room_number: string | null
+          special_instructions: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_time?: string | null
+          id?: string
+          ordered_by_id?: string | null
+          patient_id?: string | null
+          room_number?: string | null
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_time?: string | null
+          id?: string
+          ordered_by_id?: string | null
+          patient_id?: string | null
+          room_number?: string | null
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_calls: {
         Row: {
           created_at: string
@@ -723,6 +767,39 @@ export type Database = {
           },
         ]
       }
+      menu_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          dietary_info: Json | null
+          id: string
+          is_available: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          dietary_info?: Json | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          dietary_info?: Json | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -758,6 +835,83 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          menu_item_id: string | null
+          notes: string | null
+          order_id: string | null
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          menu_item_id?: string | null
+          notes?: string | null
+          order_id?: string | null
+          quantity: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          menu_item_id?: string | null
+          notes?: string | null
+          order_id?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "food_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_dietary_restrictions: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string | null
+          restrictions: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          restrictions: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          restrictions?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_dietary_restrictions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patients: {
         Row: {
@@ -1233,7 +1387,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      order_status:
+        | "pending"
+        | "approved"
+        | "preparing"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1348,6 +1507,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      order_status: [
+        "pending",
+        "approved",
+        "preparing",
+        "delivered",
+        "cancelled",
+      ],
+    },
   },
 } as const
