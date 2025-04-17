@@ -1,5 +1,5 @@
 
 project_id = "tuembzleutkexrmrzxkg"
 
-[functions.analyze-wound]
+[functions.sync-menu-items]
 verify_jwt = false
