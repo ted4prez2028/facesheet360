@@ -1,5 +1,4 @@
 
-# This is the config file for the edge functions.
 project_id = "tuembzleutkexrmrzxkg"
 
 [functions.analyze-wound]
