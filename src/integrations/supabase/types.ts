@@ -238,6 +238,9 @@ export type Database = {
           description: string | null
           from_user_id: string | null
           id: string
+          metadata: Json | null
+          reward_category: string | null
+          status: string | null
           to_user_id: string | null
           transaction_type: string
         }
@@ -247,6 +250,9 @@ export type Database = {
           description?: string | null
           from_user_id?: string | null
           id?: string
+          metadata?: Json | null
+          reward_category?: string | null
+          status?: string | null
           to_user_id?: string | null
           transaction_type: string
         }
@@ -256,6 +262,9 @@ export type Database = {
           description?: string | null
           from_user_id?: string | null
           id?: string
+          metadata?: Json | null
+          reward_category?: string | null
+          status?: string | null
           to_user_id?: string | null
           transaction_type?: string
         }
@@ -1270,7 +1279,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      care_coins_reward_analytics: {
+        Row: {
+          reward_category: string | null
+          reward_date: string | null
+          total_amount: number | null
+          transaction_count: number | null
+          transaction_type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_patient: {
@@ -1303,6 +1321,16 @@ export type Database = {
           policy_number: string | null
           updated_at: string
         }
+      }
+      distribute_care_coins_reward: {
+        Args: {
+          p_amount: number
+          p_provider_id: string
+          p_patient_id: string
+          p_reward_category: string
+          p_description?: string
+        }
+        Returns: boolean
       }
       get_all_patients: {
         Args: Record<PropertyKey, never>

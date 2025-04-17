@@ -2,6 +2,7 @@
 import ConnectWallet from "@/components/wallet/ConnectWallet";
 import SendTransaction from "@/components/wallet/SendTransaction";
 import { WalletBalance } from "@/components/wallet/WalletBalance";
+import { CareCoinsRewards } from "@/components/wallet/CareCoinsRewards";
 
 export default function WalletTab() {
   return (
@@ -11,7 +12,10 @@ export default function WalletTab() {
         <WalletBalance />
       </div>
       
-      <SendTransaction />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SendTransaction />
+        <CareCoinsRewards />
+      </div>
     </div>
   );
 }

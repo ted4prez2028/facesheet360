@@ -1,4 +1,3 @@
-
 export interface MenuItem {
   id: string;
   name: string;
@@ -26,6 +25,7 @@ export interface MenuItem {
   image_url?: string;
   unit_size?: string;
   unit_price?: number;
+  usfoods_id?: string;
 }
 
 export interface FoodOrder {
