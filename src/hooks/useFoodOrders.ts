@@ -16,7 +16,26 @@ export function useFoodOrders(patientId?: string) {
         .order('category');
       
       if (error) throw error;
-      return data as MenuItem[];
+      
+      // Transform the data to ensure it matches our MenuItem type
+      return (data as any[]).map(item => {
+        // Ensure dietary_info is properly structured
+        const dietary_info = item.dietary_info ? {
+          calories: item.dietary_info.calories || 0,
+          protein: item.dietary_info.protein || '0g',
+          allergies: Array.isArray(item.dietary_info.allergies) ? item.dietary_info.allergies : [],
+          diet_types: Array.isArray(item.dietary_info.diet_types) ? item.dietary_info.diet_types : []
+        } : undefined;
+        
+        return {
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          category: item.category,
+          dietary_info,
+          is_available: item.is_available ?? true,
+        } as MenuItem;
+      });
     }
   });
 
