@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/woundCareApi";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useWoundRecords = (patientId: string) => {
   const queryClient = useQueryClient();
@@ -66,20 +67,16 @@ export const useWoundRecords = (patientId: string) => {
     try {
       setIsAnalyzing(true);
       
-      // Call to our edge function that will integrate with OpenAI for analysis
-      const response = await fetch(`https://tuembzleutkexrmrzxkg.supabase.co/functions/v1/analyze-wound`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ imageUrl }),
+      // Use Supabase client to invoke the edge function instead of direct fetch
+      const { data, error } = await supabase.functions.invoke('analyze-wound', {
+        body: { imageUrl },
       });
       
-      if (!response.ok) {
+      if (error) {
+        console.error("Analysis request failed:", error);
         throw new Error('Analysis request failed');
       }
       
-      const data = await response.json();
       return data;
     } catch (error) {
       console.error("Error analyzing wound image:", error);

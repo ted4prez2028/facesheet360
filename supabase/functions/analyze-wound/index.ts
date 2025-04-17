@@ -33,6 +33,8 @@ serve(async (req) => {
       );
     }
 
+    console.log("Calling OpenAI API to analyze wound image...");
+
     // Call OpenAI API to analyze the wound
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -82,12 +84,15 @@ serve(async (req) => {
     });
 
     const data = await response.json();
+    console.log("OpenAI API response received");
     
     // Extract and parse the JSON response from the AI
     const analysisText = data.choices[0]?.message?.content;
     if (!analysisText) {
       throw new Error("No analysis received from OpenAI");
     }
+    
+    console.log("Analysis text:", analysisText.substring(0, 100) + "...");
     
     // Extract JSON from the response
     let analysisJson;
@@ -96,6 +101,7 @@ serve(async (req) => {
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysisJson = JSON.parse(jsonMatch[0]);
+        console.log("Successfully parsed AI response as JSON");
       } else {
         throw new Error("Could not find JSON in AI response");
       }
