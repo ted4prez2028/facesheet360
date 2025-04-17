@@ -20,7 +20,35 @@ export function useFoodOrders(patientId?: string) {
         throw error;
       }
       
-      return data as MenuItem[];
+      return data.map((item: any): MenuItem => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        category: item.category,
+        dietary_info: {
+          calories: item.dietary_info?.calories,
+          protein: item.dietary_info?.protein || '',
+          allergies: Array.isArray(item.dietary_info?.allergies) ? item.dietary_info?.allergies : [],
+          diet_types: Array.isArray(item.dietary_info?.diet_types) ? item.dietary_info?.diet_types : [],
+          kosher: !!item.dietary_info?.kosher,
+          halal: !!item.dietary_info?.halal,
+          vegan: !!item.dietary_info?.vegan,
+          vegetarian: !!item.dietary_info?.vegetarian,
+          gluten_free: !!item.dietary_info?.gluten_free,
+          dairy_free: !!item.dietary_info?.dairy_free
+        },
+        is_available: !!item.is_available,
+        brand: item.brand || '',
+        ingredients: item.ingredients || '',
+        serving_size: item.serving_size || '',
+        preparation_instructions: item.preparation_instructions || '',
+        allergen_warnings: Array.isArray(item.allergen_warnings) ? item.allergen_warnings : [],
+        nutrition_facts: item.nutrition_facts || {},
+        image_url: item.image_url || '',
+        unit_size: item.unit_size || '',
+        unit_price: typeof item.unit_price === 'number' ? item.unit_price : 0,
+        usfoods_id: item.usfoods_id || ''
+      }));
     }
   });
 
