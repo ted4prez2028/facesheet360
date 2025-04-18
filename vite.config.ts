@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "0.0.0.0", // Allow connections from all network interfaces
-      port: 443, // Use standard HTTPS port
+      port: 443, // Keep using standard HTTPS port
       https: httpsConfig, // Enable HTTPS using the provided certificates
       cors: {
         origin: "*", // Enable CORS for all origins during development
