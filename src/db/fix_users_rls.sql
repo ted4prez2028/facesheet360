@@ -15,7 +15,7 @@ ON public.users
 FOR SELECT
 USING (true);
 
--- Create a policy allowing users to update their own profile only
+-- Create a policy allowing users to update own profile only
 CREATE POLICY "Allow users to update own profile"
 ON public.users
 FOR UPDATE
