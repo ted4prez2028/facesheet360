@@ -1,77 +1,34 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { CommunicationProvider } from "./context/communication/CommunicationContext";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Patients from "./pages/Patients";
-import Charting from "./pages/Charting";
-import Appointments from "./pages/Appointments";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
-import Subscription from "./pages/Subscription";
-import NotFound from "./pages/NotFound";
-import EnvExample from "./components/EnvExample";
-import PatientProfile from "./pages/PatientProfile";
-import PatientDetailView from "./pages/PatientDetailView";
-import ContactsList from "./components/communication/ContactsList";
-import ChatWindows from "./components/communication/ChatWindows";
-import CallDialog from "./components/communication/CallDialog";
-import Index from "./pages/Index";
-import PharmacistDashboard from "./pages/PharmacistDashboard";
-import DoctorAccounts from './pages/DoctorAccounts';
-
-// Configure React Query client with optimized settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 60000, // 1 minute
-    },
-  },
-});
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Home } from './pages/Home';
+import { Patients } from './pages/Patients';
+import { PatientView } from './pages/PatientView';
+import { Appointments } from './pages/Appointments';
+import { MedicationReminders } from './pages/MedicationReminders';
+import { Wallet } from './pages/Wallet';
+import { Messaging } from './pages/Messaging';
+import { VideoCall } from './pages/VideoCall';
+import { FoodOrderPage } from './pages/FoodOrderPage';
+import { CallLightRequestsPage } from './pages/CallLightRequestsPage';
+import { DailyMenu } from './components/food-order/DailyMenu';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <CommunicationProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/patients" element={<Patients />} />
-                <Route path="/charting" element={<Charting />} />
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/subscription" element={<Subscription />} />
-                <Route path="/settings/configuration" element={<EnvExample />} />
-                <Route path="/patients/:patientId" element={<PatientProfile />} />
-                <Route path="/patients/:patientId/detail" element={<PatientDetailView />} />
-                <Route path="/pharmacy" element={<PharmacistDashboard />} />
-                <Route path="/doctor-accounts" element={<DoctorAccounts />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              
-              {/* Communication components */}
-              <ContactsList />
-              <ChatWindows />
-              <CallDialog />
-            </CommunicationProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/patients" element={<Patients />} />
+        <Route path="/patient/:id" element={<PatientView />} />
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/medication-reminders" element={<MedicationReminders />} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/messaging" element={<Messaging />} />
+        <Route path="/video-call" element={<VideoCall />} />
+        <Route path="/food-order" element={<FoodOrderPage />} />
+        <Route path="/call-light-requests" element={<CallLightRequestsPage />} />
+        <Route path="/daily-menu" element={<DailyMenu />} />
+      </Routes>
+    </Router>
   );
 }
 

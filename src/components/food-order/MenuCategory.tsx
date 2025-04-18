@@ -29,7 +29,9 @@ export function MenuCategory({ category, items, onAddItem }: MenuCategoryProps) 
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="text-lg font-medium">{category}</CardTitle>
-        <CardDescription>{items.length} items available</CardDescription>
+        <CardDescription>
+          {items.filter(item => item.is_available).length} items available
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
