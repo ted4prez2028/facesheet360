@@ -21,7 +21,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   global: {
     headers: {
-      'x-client-info': 'facesheet360-ehr'
+      'x-client-info': 'facesheet360-ehr',
+      'x-application-name': 'lovable-app', // Adding this helps with API request identification
     }
   }
 });
