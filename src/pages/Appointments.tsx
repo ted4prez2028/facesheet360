@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { usePatients } from "@/hooks/usePatients";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Filter, MoreHorizontal, Plus, Search, User, Users } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay, addWeeks, subWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -17,90 +17,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-// Mock appointment data
-const appointmentsData = [
-  {
-    id: 1,
-    patientName: "John Smith",
-    patientId: "P001",
-    type: "Check-up",
-    date: new Date(2023, 5, 22, 9, 0),
-    duration: 30,
-    status: "confirmed",
-    notes: "Routine diabetes check"
-  },
-  {
-    id: 2,
-    patientName: "Maria Rodriguez",
-    patientId: "P002",
-    type: "Follow-up",
-    date: new Date(2023, 5, 22, 10, 0),
-    duration: 45,
-    status: "confirmed",
-    notes: "Prenatal care visit"
-  },
-  {
-    id: 3,
-    patientName: "Robert Johnson",
-    patientId: "P003",
-    type: "Consultation",
-    date: new Date(2023, 5, 22, 11, 30),
-    duration: 60,
-    status: "confirmed",
-    notes: "Diabetes management"
-  },
-  {
-    id: 4,
-    patientName: "Emily Davis",
-    patientId: "P004",
-    type: "Procedure",
-    date: new Date(2023, 5, 22, 13, 0),
-    duration: 45,
-    status: "confirmed",
-    notes: "Blood draw for lab tests"
-  },
-  {
-    id: 5,
-    patientName: "William Brown",
-    patientId: "P005",
-    type: "Check-up",
-    date: new Date(2023, 5, 23, 9, 30),
-    duration: 30,
-    status: "confirmed",
-    notes: "Arthritis follow-up"
-  },
-  {
-    id: 6,
-    patientName: "Jennifer Lee",
-    patientId: "P006",
-    type: "Urgent",
-    date: new Date(2023, 5, 23, 11, 0),
-    duration: 60,
-    status: "confirmed",
-    notes: "Severe asthma symptoms"
-  },
-  {
-    id: 7,
-    patientName: "Michael Wilson",
-    patientId: "P007",
-    type: "Therapy",
-    date: new Date(2023, 5, 23, 14, 0),
-    duration: 45,
-    status: "confirmed",
-    notes: "Anxiety management session"
-  },
-  {
-    id: 8,
-    patientName: "Samantha Taylor",
-    patientId: "P008",
-    type: "Follow-up",
-    date: new Date(2023, 5, 24, 10, 30),
-    duration: 30,
-    status: "confirmed",
-    notes: "Depression medication review"
-  }
-];
-
 const Appointments = () => {
   const [date, setDate] = useState<Date>(new Date());
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,6 +27,8 @@ const Appointments = () => {
   
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  
+  const { data: patients, isLoading: isLoadingPatients } = usePatients();
   
   const getAppointmentsForDay = (date: Date) => {
     return appointmentsData.filter(appointment => 
@@ -193,14 +111,17 @@ const Appointments = () => {
                   <Label htmlFor="patient">Patient</Label>
                   <Select>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select patient" />
+                      <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select patient"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="P001">John Smith (P001)</SelectItem>
-                      <SelectItem value="P002">Maria Rodriguez (P002)</SelectItem>
-                      <SelectItem value="P003">Robert Johnson (P003)</SelectItem>
-                      <SelectItem value="P004">Emily Davis (P004)</SelectItem>
-                      <SelectItem value="P005">William Brown (P005)</SelectItem>
+                      {patients?.map((patient) => (
+                        <SelectItem 
+                          key={patient.id} 
+                          value={patient.id}
+                        >
+                          {`${patient.first_name} ${patient.last_name} (${patient.medical_record_number || 'No MRN'})`}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
