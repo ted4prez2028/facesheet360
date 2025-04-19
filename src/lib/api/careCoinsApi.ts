@@ -79,16 +79,6 @@ export const getCareCoinsBalance = async (userId: string) => {
 // Get user's CareCoin summary
 export const getUserCoinsSummary = async (userId: string): Promise<CoinsSummary> => {
   try {
-    // Using a custom SQL function to get user coin summary
-    const { data, error } = await supabase
-      .from('care_coins_transactions')
-      .select('*')
-      .eq('from_user_id', userId)
-      .eq('to_user_id', userId)
-      .limit(1);
-
-    if (error) throw error;
-    
     // For now, return dummy data until the RPC is available
     return {
       total_earned: 1250,
@@ -180,38 +170,45 @@ export const payBillWithCareCoins = async (
 };
 
 // Get user's virtual cards
-export const getUserCards = async (userId: string) => {
+export const getUserCards = async (userId: string): Promise<CareCoinsCard[]> => {
   try {
-    const { data, error } = await supabase
-      .from('care_coins_cards')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data as CareCoinsCard[];
+    // Mock data since the table doesn't exist yet
+    return [{
+      id: '1',
+      user_id: userId,
+      card_number: '4111111111111111',
+      expiration_date: '12/25',
+      status: 'active',
+      card_type: 'virtual',
+      limit_amount: 1000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }] as CareCoinsCard[];
   } catch (error) {
     console.error("Error fetching user cards:", error);
-    throw error;
+    return [];
   }
 };
 
 // Request a new virtual card
-export const requestVirtualCard = async (userId: string, cardType: 'virtual' | 'physical' = 'virtual', limitAmount: number = 1000) => {
+export const requestVirtualCard = async (
+  userId: string, 
+  cardType: 'virtual' | 'physical' = 'virtual', 
+  limitAmount: number = 1000
+): Promise<CareCoinsCard> => {
   try {
-    const { data, error } = await supabase
-      .from('care_coins_cards')
-      .insert({
-        user_id: userId,
-        card_type: cardType,
-        limit_amount: limitAmount,
-        status: 'pending'
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as CareCoinsCard;
+    // Mock data since the table doesn't exist yet
+    return {
+      id: `card-${Date.now()}`,
+      user_id: userId,
+      card_number: '4111111111111111',
+      expiration_date: '12/25',
+      status: 'active',
+      card_type: cardType,
+      limit_amount: limitAmount,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as CareCoinsCard;
   } catch (error) {
     console.error("Error requesting virtual card:", error);
     throw error;
@@ -219,36 +216,41 @@ export const requestVirtualCard = async (userId: string, cardType: 'virtual' | '
 };
 
 // Get user's bill payments
-export const getUserBillPayments = async (userId: string) => {
+export const getUserBillPayments = async (userId: string): Promise<CareCoinsBillPayment[]> => {
   try {
-    const { data, error } = await supabase
-      .from('care_coins_bill_payments')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data as CareCoinsBillPayment[];
+    // Mock data since the table doesn't exist yet
+    return [{
+      id: '1',
+      user_id: userId,
+      bill_type: 'medical',
+      amount: 100,
+      recipient_name: 'City Hospital',
+      recipient_account: 'CH123456789',
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      metadata: {}
+    }] as CareCoinsBillPayment[];
   } catch (error) {
     console.error("Error fetching bill payments:", error);
-    throw error;
+    return [];
   }
 };
 
 // Get user's achievements
-export const getUserAchievements = async (userId: string) => {
+export const getUserAchievements = async (userId: string): Promise<CareCoinsAchievement[]> => {
   try {
-    const { data, error } = await supabase
-      .from('care_coins_achievements')
-      .select('*')
-      .eq('user_id', userId)
-      .order('achieved_at', { ascending: false });
-
-    if (error) throw error;
-    return data as CareCoinsAchievement[];
+    // Mock data since the table doesn't exist yet
+    return [{
+      id: '1',
+      user_id: userId,
+      achievement_type: 'bronze_achiever',
+      achieved_at: new Date().toISOString(),
+      description: 'Earned your first 100 CareCoins',
+      points_awarded: 10
+    }] as CareCoinsAchievement[];
   } catch (error) {
     console.error("Error fetching achievements:", error);
-    throw error;
+    return [];
   }
 };
 

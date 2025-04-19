@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,6 +17,7 @@ import ProfilePage from './pages/ProfilePage';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
 import CommunicationContainer from '@/components/communication/CommunicationContainer';
 import ContactsList from '@/components/communication/ContactsList';
+import WalletDashboard from './pages/WalletDashboard';
 
 function App() {
   const queryClient = new QueryClient();
@@ -83,6 +85,14 @@ function App() {
                     element={
                       <RequireAuth>
                         <ProfilePage />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/wallet"
+                    element={
+                      <RequireAuth>
+                        <WalletDashboard />
                       </RequireAuth>
                     }
                   />

@@ -73,10 +73,10 @@ export const CoinsSummaryView = () => {
           <div className="mt-4 pt-4 border-t">
             <div className="text-xs text-muted-foreground mb-2">Rewards by Category:</div>
             <div className="space-y-2">
-              {Object.entries(summary.rewards_by_category).map(([category, amount]) => (
+              {Object.entries(summary.rewards_by_category || {}).map(([category, amount]) => (
                 <div key={category} className="flex items-center justify-between">
                   <span className="text-xs">{category}</span>
-                  <span className="text-xs font-medium">{amount}</span>
+                  <span className="text-xs font-medium">{String(amount)}</span>
                 </div>
               ))}
             </div>

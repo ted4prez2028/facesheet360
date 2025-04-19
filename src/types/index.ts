@@ -1,190 +1,89 @@
+// Health prediction types for AI-powered health analytics
+import { Json } from '@/integrations/supabase/types';
 
-// If this file doesn't exist, this will create it
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  specialty?: string;
-  license_number?: string;
-  profile_image?: string;
-  care_coins_balance: number;
-  online_status?: boolean;
-  last_seen?: string;
-  organization?: string;
-  created_at?: string;
-  updated_at?: string;
-  
-  // Adding camelCase aliases to maintain compatibility
-  licenseNumber?: string;
-  profileImage?: string;
-  careCoinsBalance?: number;
-}
-
-export interface Message {
-  id: string;
-  sender_id: string;
-  recipient_id: string;
-  content: string;
-  timestamp: string;
-  read: boolean;
-}
-
-export interface Call {
-  callerId: string;
-  callerName: string;
-  receiverId: string;
-  receiverName: string;
-  isVideoCall: boolean;
-  status: 'ringing' | 'ongoing' | 'ended';
-}
-
-export interface ChatWindow {
-  userId: string;
-  userName: string;
-  minimized: boolean;
-  messages: Message[];
-}
-
-export interface ContactsState {
-  onlineUsers: User[];
-  isOpen: boolean;
-}
-
-export interface GroupCall {
-  id: string;
-  room_id: string;
-  initiator_id: string;
-  is_video_call: boolean;
-  status: string;
-  participants: string[];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Patient {
-  id: string;
-  first_name: string;
-  last_name: string;
-  date_of_birth: string;
-  gender: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  medical_record_number?: string;
-  insurance_provider?: string;
-  policy_number?: string;
-  facial_data?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Appointment {
+export interface HealthPrediction {
   id: string;
   patient_id: string;
-  provider_id: string;
-  appointment_date: string;
-  status: string;
-  notes?: string;
+  prediction_type: string;
+  prediction_data: Record<string, any>;
+  confidence_score: number;
   created_at: string;
   updated_at: string;
+  model_version: string;
+  verified_by?: string;
+  status: 'pending' | 'verified' | 'rejected';
 }
 
+export interface RiskAssessmentData {
+  vital_signs?: {
+    blood_pressure?: string;
+    heart_rate?: number;
+    temperature?: number;
+    respiratory_rate?: number;
+    oxygen_saturation?: number;
+  };
+  medical_history?: string[];
+  current_medications?: string[];
+  lifestyle_factors?: {
+    smoking?: boolean;
+    alcohol_consumption?: string;
+    exercise_frequency?: string;
+  };
+}
+
+export interface CoinsSummary {
+  total_earned: number;
+  total_spent: number; 
+  total_rewards: number;
+  rewards_by_category?: Record<string, number>;
+}
+
+export interface ExchangeRate {
+  id: string;
+  currency_code: string;
+  rate_to_usd: number;
+  last_updated: string;
+}
+
+export interface CashOutResult {
+  success: boolean;
+  message?: string;
+  transaction_id?: string;
+  usd_amount?: number;
+}
+
+export interface BillPaymentResult {
+  success: boolean;
+  message?: string;
+  transaction_id?: string;
+  payment_id?: string;
+}
+
+// CareCoins related types
 export interface CareCoinsTransaction {
   id: string;
   from_user_id?: string;
   to_user_id?: string;
   amount: number;
-  transaction_type: "transfer" | "reward" | "purchase" | "cash_out" | "bill_payment";
+  transaction_type: "transfer" | "reward" | "purchase";
+  status?: string;
+  created_at: string;
   description?: string;
   reward_category?: string;
-  created_at: string;
-  otherUserName?: string;
   metadata?: any;
-}
-
-interface PatientInfo {
-  first_name: string;
-  last_name: string;
-}
-
-interface ProviderInfo {
-  name: string;
-}
-
-export interface Prescription {
-  id: string;
-  patient_id: string;
-  provider_id: string;
-  medication_name: string;
-  dosage: string;
-  frequency: string;
-  instructions?: string;
-  start_date: string;
-  end_date?: string;
-  status: string;
-  administered_at?: string;
-  administered_by?: string;
-  created_at: string;
-  updated_at: string;
-  patients?: PatientInfo;
-  providers?: ProviderInfo;
-}
-
-export interface CallLightRequest {
-  id: string;
-  patient_id: string;
-  room_number: string;
-  request_type: 'assistance' | 'emergency' | 'pain' | 'bathroom' | 'water' | 'other';
-  message?: string;
-  status: 'active' | 'in_progress' | 'completed';
-  created_at: string;
-  updated_at: string;
-  completed_at?: string;
-  completed_by?: string;
-  organization?: string;
-}
-
-export interface PreferenceType {
-  theme: string;
-  dashboardLayout: string;
-  notification: boolean;
-  soundEnabled: boolean;
-}
-
-export interface PatientHeaderProps {
-  patient: Patient;
-  calculateAge?: (dob: string) => number;
-}
-
-export interface PatientsListProps {
-  patients: Patient[];
-  filteredPatients: Patient[];
-  isLoading: boolean;
-  error: Error | null;
-  handleDeletePatient: (id: string) => void;
-}
-
-export interface PatientToolbarProps {
-  query: string;
-  onQueryChange: (query: string) => void;
-  filter: string;
-  onFilterChange: (filter: string) => void;
+  otherUserName?: string;
 }
 
 export interface CareCoinsCard {
   id: string;
   user_id: string;
-  card_number: string;
-  expiration_date: string;
-  status: 'pending' | 'active' | 'suspended' | 'canceled';
+  card_number?: string;
+  expiration_date?: string;
+  status: string;
+  card_type: string;
+  limit_amount: number;
   created_at: string;
   updated_at: string;
-  limit_amount: number;
-  current_balance: number;
-  is_active: boolean;
-  card_type: 'virtual' | 'physical';
-  metadata?: any;
 }
 
 export interface CareCoinsBillPayment {
@@ -194,11 +93,8 @@ export interface CareCoinsBillPayment {
   amount: number;
   recipient_name: string;
   recipient_account: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  transaction_id?: string;
+  status: string;
   created_at: string;
-  scheduled_date?: string;
-  completed_at?: string;
   metadata?: any;
 }
 
@@ -207,11 +103,6 @@ export interface CareCoinsAchievement {
   user_id: string;
   achievement_type: string;
   achieved_at: string;
-  metadata?: any;
-}
-
-export interface ExchangeRate {
-  currency_code: string;
-  rate_to_usd: number;
-  last_updated: string;
+  description: string;
+  points_awarded: number;
 }

@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export const VirtualCardView = () => {
   const { user } = useAuth();
-  const { cards, isLoading, requestCard } = useVirtualCard();
+  const { cards, isLoading, requestNewCard } = useVirtualCard();
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -18,7 +18,7 @@ export const VirtualCardView = () => {
   
   const handleRequestCard = async () => {
     if (!user?.id) return;
-    await requestCard();
+    await requestNewCard();
   };
 
   const formatCardNumber = (cardNumber: string) => {
