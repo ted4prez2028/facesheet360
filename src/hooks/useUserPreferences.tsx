@@ -5,26 +5,28 @@ import { supabase } from "@/integrations/supabase/client";
 type PreferenceType = 'theme' | 'calendarView' | 'notification' | 'dashboardLayout';
 type PreferenceValue = string | boolean | number | object;
 
+interface UserPreferences {
+  [key: string]: PreferenceValue;
+}
+
 export function useUserPreferences() {
-  const [preferences, setPreferences] = useState<Record<string, any>>({});
+  const [preferences, setPreferences] = useState<UserPreferences>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const loadPreferences = async () => {
       try {
-        // Check if user is logged in
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Fetch user preferences from database
-          const { data, error } = await supabase
+          const { data, error: fetchError } = await supabase
             .from('user_preferences')
             .select('preferences')
             .eq('user_id', session.user.id)
-            .single();
+            .maybeSingle();
           
-          if (error) throw error;
+          if (fetchError) throw fetchError;
           
           if (data) {
             setPreferences(data.preferences || {});
@@ -59,7 +61,7 @@ export function useUserPreferences() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        const { error } = await supabase
+        const { error: saveError } = await supabase
           .from('user_preferences')
           .upsert({ 
             user_id: session.user.id, 
@@ -67,7 +69,7 @@ export function useUserPreferences() {
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
         
-        if (error) throw error;
+        if (saveError) throw saveError;
       }
       
       return true;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
@@ -32,7 +31,7 @@ const AppointmentForm = ({
   const [formData, setFormData] = useState<Partial<Appointment>>({
     patient_id: initialData?.patient_id || "",
     provider_id: initialData?.provider_id || user?.id || "",
-    appointment_date: initialData?.appointment_date ? new Date(initialData.appointment_date) : new Date(),
+    appointment_date: initialData?.appointment_date || new Date().toISOString(),
     status: initialData?.status || "scheduled",
     notes: initialData?.notes || "",
   });
@@ -50,7 +49,6 @@ const AppointmentForm = ({
   const [appointmentType, setAppointmentType] = useState(initialData?.notes?.split(':')[0] || "check-up");
   const [duration, setDuration] = useState<string>("30");
   
-  // Update the appointment date when date or time changes
   useEffect(() => {
     if (selectedDate) {
       const [hours, minutes] = selectedTime.split(':').map(Number);
@@ -59,7 +57,7 @@ const AppointmentForm = ({
       
       setFormData(prev => ({
         ...prev,
-        appointment_date: newDate
+        appointment_date: newDate.toISOString()
       }));
     }
   }, [selectedDate, selectedTime]);

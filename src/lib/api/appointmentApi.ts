@@ -85,7 +85,7 @@ export const getTodayAppointments = async (providerId?: string) => {
 // Add a new appointment
 export const addAppointment = async (appointment: Appointment) => {
   try {
-    // Ensure appointment_date is a string (convert if it's a Date object)
+    // Ensure appointment_date is a string
     const formattedAppointment = {
       ...appointment,
       appointment_date: typeof appointment.appointment_date === 'object' 

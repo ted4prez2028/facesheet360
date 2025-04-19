@@ -21,7 +21,7 @@ const getHttpsConfig = () => {
       cert: fs.readFileSync('./localhost.pem')
     };
   }
-  return false;
+  return undefined;
 };
 
 export default defineConfig({
@@ -32,7 +32,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: process.env.PORT ? parseInt(process.env.PORT, 10) : 443,
+    port: 8080,
     https: getHttpsConfig(),
     host: true
   }
