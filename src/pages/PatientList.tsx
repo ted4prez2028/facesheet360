@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Patient } from '@/types';
 import { AddPatientDrawer } from '@/components/patients/AddPatientDrawer';
-import { PatientsList } from '@/components/patients/PatientsList';
-import { PatientToolbar } from '@/components/patients/PatientToolbar';
+import PatientsList from '@/components/patients/PatientsList';
+import PatientToolbar from '@/components/patients/PatientToolbar';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
 const PatientListPage = () => {
