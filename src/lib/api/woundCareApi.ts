@@ -1,20 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { WoundRecord } from "@/hooks/useWoundCare";
 
-export interface WoundRecord {
-  id: string;
-  patient_id: string;
-  image_url: string;
-  location: string;
-  description: string;
-  assessment: string | null;
-  stage: string | null;
-  infection_status: string | null;
-  healing_status: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type { WoundRecord };
 
 /**
  * Get all wound records for a patient
@@ -28,7 +17,7 @@ export const getWoundRecordsByPatientId = async (patientId: string): Promise<Wou
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as WoundRecord[];
+    return data;
   } catch (error) {
     console.error("Error fetching wound records:", error);
     toast.error("Failed to load wound records");
@@ -39,7 +28,9 @@ export const getWoundRecordsByPatientId = async (patientId: string): Promise<Wou
 /**
  * Create a new wound record
  */
-export const createWoundRecord = async (woundRecord: Omit<WoundRecord, "id" | "created_at" | "updated_at">): Promise<WoundRecord | null> => {
+export const createWoundRecord = async (
+  woundRecord: Omit<WoundRecord, "id" | "created_at" | "updated_at">
+): Promise<WoundRecord | null> => {
   try {
     const { data, error } = await supabase
       .from('wounds')
@@ -49,7 +40,7 @@ export const createWoundRecord = async (woundRecord: Omit<WoundRecord, "id" | "c
 
     if (error) throw error;
     toast.success("Wound record created successfully");
-    return data as WoundRecord;
+    return data;
   } catch (error) {
     console.error("Error creating wound record:", error);
     toast.error("Failed to create wound record");
@@ -60,7 +51,10 @@ export const createWoundRecord = async (woundRecord: Omit<WoundRecord, "id" | "c
 /**
  * Update an existing wound record
  */
-export const updateWoundRecord = async (id: string, updates: Partial<WoundRecord>): Promise<WoundRecord | null> => {
+export const updateWoundRecord = async (
+  id: string, 
+  updates: Partial<WoundRecord>
+): Promise<WoundRecord | null> => {
   try {
     const { data, error } = await supabase
       .from('wounds')
@@ -71,7 +65,7 @@ export const updateWoundRecord = async (id: string, updates: Partial<WoundRecord
 
     if (error) throw error;
     toast.success("Wound record updated successfully");
-    return data as WoundRecord;
+    return data;
   } catch (error) {
     console.error("Error updating wound record:", error);
     toast.error("Failed to update wound record");
@@ -102,16 +96,22 @@ export const deleteWoundRecord = async (id: string): Promise<boolean> => {
 /**
  * Upload a wound image to storage
  */
-export const uploadWoundImage = async (patientId: string, file: File): Promise<string | null> => {
+export const uploadWoundImage = async (
+  patientId: string, 
+  file: File
+): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
     const filePath = `${patientId}/${Date.now()}.${fileExt}`;
     
-    const { error } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('wound_images')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
       
-    if (error) throw error;
+    if (uploadError) throw uploadError;
     
     const { data } = supabase.storage
       .from('wound_images')

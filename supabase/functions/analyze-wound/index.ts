@@ -8,8 +8,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+interface WoundAnalysisResponse {
+  stage: string;
+  infection_status: string;
+  healing_status: string;
+  assessment: string;
+}
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -33,9 +39,8 @@ serve(async (req) => {
       );
     }
 
-    console.log("Calling OpenAI API to analyze wound image...");
+    console.log("Analyzing wound image using OpenAI vision model...");
 
-    // Call OpenAI API to analyze the wound
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -43,24 +48,28 @@ serve(async (req) => {
         "Authorization": `Bearer ${openAIApiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4-vision-preview",
         messages: [
           {
             role: "system",
             content: `You are a wound care expert. Analyze the wound image and provide:
-            1. Most likely wound stage (if applicable): 1, 2, 3, 4, unstageable, or deep tissue injury
-            2. Assessment of whether the wound appears to be infected or not
-            3. Overall assessment of healing status
-            4. Detailed analysis of wound characteristics
+            1. Most likely wound stage if applicable (1, 2, 3, 4, unstageable, or deep tissue injury)
+            2. Assessment of infection status based on visible signs
+            3. Overall healing status assessment
+            4. Detailed analysis of wound characteristics including:
+               - Wound bed appearance
+               - Periwound condition
+               - Exudate characteristics if visible
+               - Size estimation if possible
+               - Any concerning features
             
-            Format your response as a JSON object with the following keys:
+            Format your response as a JSON object with these keys:
             {
-              "stage": "The wound stage (e.g., '2', 'Unstageable')",
-              "infection_status": "Clear statement about infection (e.g., 'No signs of infection', 'Likely infected')",
-              "healing_status": "Status of healing (e.g., 'Good progression', 'Poor healing')",
-              "assessment": "Detailed analysis of wound characteristics"
-            }
-            `
+              "stage": "Stage number or classification",
+              "infection_status": "Clear statement about infection",
+              "healing_status": "Status of healing progression",
+              "assessment": "Detailed wound characteristics analysis"
+            }`
           },
           {
             role: "user",
@@ -83,51 +92,60 @@ serve(async (req) => {
       }),
     });
 
-    const data = await response.json();
-    console.log("OpenAI API response received");
-    
-    // Extract and parse the JSON response from the AI
-    const analysisText = data.choices[0]?.message?.content;
-    if (!analysisText) {
-      throw new Error("No analysis received from OpenAI");
+    if (!response.ok) {
+      throw new Error(`OpenAI API request failed: ${response.statusText}`);
     }
+
+    const data = await response.json();
+    console.log("OpenAI analysis received");
     
-    console.log("Analysis text:", analysisText.substring(0, 100) + "...");
+    let analysisJson: WoundAnalysisResponse;
     
-    // Extract JSON from the response
-    let analysisJson;
     try {
-      // Look for JSON in the string (handling cases where the AI might include additional text)
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      const jsonMatch = data.choices[0]?.message?.content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysisJson = JSON.parse(jsonMatch[0]);
-        console.log("Successfully parsed AI response as JSON");
+        console.log("Successfully parsed wound analysis");
       } else {
         throw new Error("Could not find JSON in AI response");
       }
     } catch (e) {
       console.error("Error parsing AI response:", e);
-      console.log("Raw AI response:", analysisText);
+      console.log("Raw AI response:", data.choices[0]?.message?.content);
       
-      // Create a fallback response
       analysisJson = {
-        stage: "Unknown",
+        stage: "Undetermined",
         infection_status: "Assessment incomplete",
         healing_status: "Assessment incomplete",
-        assessment: `Unable to parse structured response. Raw analysis: ${analysisText.substring(0, 500)}`
+        assessment: `Error processing analysis. Raw response: ${data.choices[0]?.message?.content.substring(0, 500)}`
       };
     }
 
     return new Response(
       JSON.stringify(analysisJson),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache" 
+        } 
+      }
     );
   } catch (error) {
-    console.error("Error analyzing wound image:", error);
+    console.error("Error in wound analysis:", error);
     
     return new Response(
-      JSON.stringify({ error: "Failed to analyze wound image", details: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ 
+        error: "Failed to analyze wound image", 
+        details: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json" 
+        } 
+      }
     );
   }
 });
