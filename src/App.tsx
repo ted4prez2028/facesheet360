@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,6 +22,8 @@ import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Appointments from './pages/Appointments';
 import Charting from './pages/Charting';
+import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
 
 function App() {
   const queryClient = new QueryClient();
@@ -94,6 +97,22 @@ function App() {
                     element={
                       <RequireAuth>
                         <Charting />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <RequireAuth>
+                        <Analytics />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <RequireAuth>
+                        <Settings />
                       </RequireAuth>
                     }
                   />
