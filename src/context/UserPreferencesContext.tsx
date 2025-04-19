@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,7 +53,12 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
         // Load from local storage if user is not logged in
         const storedPreferences = localStorage.getItem('userPreferences');
         if (storedPreferences) {
-          setPreferences({ ...defaultPreferences, ...JSON.parse(storedPreferences) });
+          try {
+            const parsedPrefs = JSON.parse(storedPreferences);
+            setPreferences({ ...defaultPreferences, ...parsedPrefs });
+          } catch (e) {
+            console.error('Failed to parse stored preferences');
+          }
         }
       }
     };

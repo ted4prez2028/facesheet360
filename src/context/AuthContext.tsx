@@ -1,18 +1,25 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { User } from '@/types/auth';
 
-interface AuthContextType {
-  user: any;
+export interface AuthContextType {
+  user: User | null;
+  session: any | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  logout: () => Promise<void>; // Add alias for signOut for backward compatibility
   isAuthenticated: boolean;
   isLoading: boolean;
+  updateUserProfile: (userData: Partial<User>) => Promise<void>;
+  updateCurrentUser?: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -23,15 +30,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-          setUser(session.user);
+          const userData = await getUserProfile(session.user.id);
+          setUser(userData || {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+            role: session.user.user_metadata?.role || 'doctor',
+            careCoinsBalance: 0
+          } as User);
+          setSession(session);
           setIsAuthenticated(true);
         } else {
           setUser(null);
+          setSession(null);
           setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error loading session:', error);
         setUser(null);
+        setSession(null);
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
@@ -40,16 +57,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     loadSession();
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        setUser(session.user);
+        const userData = await getUserProfile(session.user.id);
+        setUser(userData || {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          role: session.user.user_metadata?.role || 'doctor',
+          careCoinsBalance: 0
+        } as User);
+        setSession(session);
         setIsAuthenticated(true);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setSession(null);
         setIsAuthenticated(false);
       }
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const getUserProfile = async (userId: string): Promise<User | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      return data as User;
+    } catch (error) {
+      console.error('Unexpected error fetching user profile:', error);
+      return null;
+    }
+  };
 
   const signIn = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -63,7 +113,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      setUser(data.user);
+      const userData = await getUserProfile(data.user.id);
+      setUser(userData || {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+        role: data.user.user_metadata?.role || 'doctor',
+        careCoinsBalance: 0
+      } as User);
+      setSession(data.session);
       setIsAuthenticated(true);
     } catch (error: any) {
       console.error('Sign-in error:', error.message);
@@ -81,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       setUser(null);
+      setSession(null);
       setIsAuthenticated(false);
     } catch (error: any) {
       console.error('Sign-out error:', error.message);
@@ -90,12 +149,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserProfile = async (userData: Partial<User>): Promise<void> => {
+    if (!user?.id) throw new Error("User is not authenticated");
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update(userData)
+        .eq('id', user.id);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setUser(prevUser => prevUser ? { ...prevUser, ...userData } : null);
+    } catch (error: any) {
+      console.error('Error updating user profile:', error.message);
+      throw error;
+    }
+  };
+
+  const updateCurrentUser = (userData: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...userData } : null);
+  };
+
   const value: AuthContextType = {
     user,
+    session,
     signIn,
     signOut,
+    logout: signOut, // Add alias for signOut
     isAuthenticated,
     isLoading,
+    updateUserProfile,
+    updateCurrentUser
   };
 
   return (

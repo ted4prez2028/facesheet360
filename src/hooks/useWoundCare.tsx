@@ -1,14 +1,8 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getWoundRecordsByPatientId,
-  createWoundRecord,
-  updateWoundRecord,
-  deleteWoundRecord,
-  uploadWoundImage
-} from '@/lib/api/woundCareApi';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface WoundRecord {
   id: string;
@@ -24,9 +18,95 @@ export interface WoundRecord {
   updated_at: string;
 }
 
-export function useWoundCare(patientId: string) {
+// Function to fetch wound records
+const getWoundRecordsByPatientId = async (patientId: string): Promise<WoundRecord[]> => {
+  const { data, error } = await supabase
+    .from('wounds')
+    .select('*')
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as WoundRecord[];
+};
+
+// Function to create a new wound record
+const createWoundRecord = async (record: Omit<WoundRecord, "id" | "created_at" | "updated_at">): Promise<WoundRecord> => {
+  const { data, error } = await supabase
+    .from('wounds')
+    .insert(record)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as WoundRecord;
+};
+
+// Function to update a wound record
+const updateWoundRecord = async (id: string, updates: Partial<WoundRecord>): Promise<WoundRecord> => {
+  const { data, error } = await supabase
+    .from('wounds')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as WoundRecord;
+};
+
+// Function to delete a wound record
+const deleteWoundRecord = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('wounds')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+// Function to upload a wound image
+const uploadWoundImage = async (patientId: string, file: File): Promise<string> => {
+  const fileExt = file.name.split('.').pop();
+  const filePath = `${patientId}/${Date.now()}.${fileExt}`;
+  
+  const { error } = await supabase.storage
+    .from('wound_images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+    
+  if (error) throw error;
+  
+  const { data } = supabase.storage
+    .from('wound_images')
+    .getPublicUrl(filePath);
+    
+  return data.publicUrl;
+};
+
+// Function to analyze wound image using AI
+const analyzeWoundImage = async (imageUrl: string) => {
+  try {
+    // This would call an edge function or external API for analysis
+    // For now, returning mock data
+    return {
+      assessment: "The wound appears to be healing well with minimal signs of infection.",
+      stage: "2",
+      infection_status: "No signs of infection",
+      healing_status: "Healing well"
+    };
+  } catch (error) {
+    console.error("Error analyzing wound image:", error);
+    return null;
+  }
+};
+
+export function useWoundRecords(patientId: string) {
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   // Fetch wound records for a specific patient
   const {
@@ -41,7 +121,7 @@ export function useWoundCare(patientId: string) {
   });
   
   // Create mutation
-  const createMutation = useMutation({
+  const createWound = useMutation({
     mutationFn: (record: Omit<WoundRecord, 'id' | 'created_at' | 'updated_at'>) => {
       return createWoundRecord(record);
     },
@@ -56,7 +136,7 @@ export function useWoundCare(patientId: string) {
   });
   
   // Update mutation
-  const updateMutation = useMutation({
+  const updateWound = useMutation({
     mutationFn: ({ id, updates }: { id: string, updates: Partial<WoundRecord> }) => {
       return updateWoundRecord(id, updates);
     },
@@ -71,7 +151,7 @@ export function useWoundCare(patientId: string) {
   });
   
   // Delete mutation
-  const deleteMutation = useMutation({
+  const deleteWound = useMutation({
     mutationFn: (id: string) => {
       return deleteWoundRecord(id);
     },
@@ -99,6 +179,21 @@ export function useWoundCare(patientId: string) {
       return null;
     }
   };
+
+  // Image analysis function
+  const analyzeImage = async (imageUrl: string) => {
+    try {
+      setIsAnalyzing(true);
+      const analysis = await analyzeWoundImage(imageUrl);
+      setIsAnalyzing(false);
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      toast.error('Failed to analyze image');
+      setIsAnalyzing(false);
+      return null;
+    }
+  };
   
   return {
     woundRecords,
@@ -106,9 +201,11 @@ export function useWoundCare(patientId: string) {
     error,
     refetch,
     isUploading,
-    createWoundRecord: createMutation.mutate,
-    updateWoundRecord: updateMutation.mutate,
-    deleteWoundRecord: deleteMutation.mutate,
-    uploadImage
+    isAnalyzing,
+    createWound,
+    updateWound,
+    deleteWound,
+    uploadImage,
+    analyzeWoundImage: analyzeImage
   };
 }
