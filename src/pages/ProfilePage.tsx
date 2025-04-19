@@ -24,9 +24,9 @@ const ProfilePage = () => {
     name: '',
     email: '',
     specialty: '',
-    licenseNumber: '',
+    license_number: '',
     role: '',
-    profileImage: '',
+    profile_image: '',
   });
   
   useEffect(() => {
@@ -35,9 +35,9 @@ const ProfilePage = () => {
         name: user.name || '',
         email: user.email || '',
         specialty: user.specialty || '',
-        licenseNumber: user.licenseNumber || '',
+        license_number: user.license_number || '',
         role: user.role || '',
-        profileImage: user.profileImage || '',
+        profile_image: user.profile_image || '',
       });
     }
   }, [user]);
@@ -94,7 +94,7 @@ const ProfilePage = () => {
               <Card className="md:col-span-1">
                 <CardHeader className="text-center">
                   <Avatar className="h-24 w-24 mx-auto">
-                    <AvatarImage src={profile.profileImage || undefined} />
+                    <AvatarImage src={profile.profile_image || undefined} />
                     <AvatarFallback className="text-2xl">
                       {getInitials(profile.name || '')}
                     </AvatarFallback>
@@ -109,9 +109,9 @@ const ProfilePage = () => {
                       Specialty: {profile.specialty}
                     </p>
                   )}
-                  {profile.licenseNumber && (
+                  {profile.license_number && (
                     <p className="text-sm text-muted-foreground">
-                      License: {profile.licenseNumber}
+                      License: {profile.license_number}
                     </p>
                   )}
                 </CardContent>
@@ -157,8 +157,8 @@ const ProfilePage = () => {
                     <Label htmlFor="license">License Number</Label>
                     <Input 
                       id="license" 
-                      value={profile.licenseNumber || ''} 
-                      onChange={(e) => handleProfileChange('licenseNumber', e.target.value)} 
+                      value={profile.license_number || ''} 
+                      onChange={(e) => handleProfileChange('license_number', e.target.value)} 
                     />
                   </div>
                   
@@ -166,8 +166,8 @@ const ProfilePage = () => {
                     <Label htmlFor="image">Profile Image URL</Label>
                     <Input 
                       id="image" 
-                      value={profile.profileImage || ''} 
-                      onChange={(e) => handleProfileChange('profileImage', e.target.value)} 
+                      value={profile.profile_image || ''} 
+                      onChange={(e) => handleProfileChange('profile_image', e.target.value)} 
                       placeholder="https://example.com/your-image.jpg" 
                     />
                   </div>

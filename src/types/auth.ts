@@ -7,11 +7,11 @@ export type User = {
   email: string;
   role: string; // Allow any string for role to match database
   specialty?: string;
-  licenseNumber?: string;
-  profileImage?: string;
-  careCoinsBalance: number;
+  license_number?: string; // Using snake_case to match database fields
+  profile_image?: string; // Using snake_case to match database fields
+  care_coins_balance: number;
   online_status?: boolean;
-  organization?: string; // Add organization field
+  organization?: string; 
   created_at?: string;
   updated_at?: string;
 };

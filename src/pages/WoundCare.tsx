@@ -18,7 +18,7 @@ const WoundCare = () => {
   const { 
     woundRecords, 
     isLoading: woundLoading, 
-    createWoundRecord, 
+    createWound, 
     uploadImage, 
     isUploading 
   } = useWoundCare(id || '');
@@ -51,7 +51,7 @@ const WoundCare = () => {
       }
       
       // Create wound record with image URL
-      await createWoundRecord({
+      await createWound.mutateAsync({
         patient_id: id,
         description,
         location,

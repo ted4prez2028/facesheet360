@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Patient } from '@/types';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { PatientHeader } from '@/components/patientview/PatientHeader';
+import PatientHeader from '@/components/patientview/PatientHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePatient } from '@/hooks/usePatient';
 import { Spinner } from '@/components/ui/spinner';
@@ -12,8 +13,15 @@ import ProfileTab from '@/components/patientview/ProfileTab';
 import MedicalDiagnosesTab from '@/components/patientview/MedicalDiagnosesTab';
 import AllergiesTab from '@/components/patientview/AllergiesTab';
 import WoundCareTab from '@/components/patientview/WoundCareTab';
-import MedicationsTab from '@/components/patientview/MedicationsTab';
 import ImmunizationsTab from '@/components/patientview/ImmunizationsTab';
+
+// Create a basic MedicationsTab component since it's missing
+const MedicationsTab = ({ patientId }: { patientId: string }) => (
+  <div className="p-4">
+    <h2 className="text-xl font-semibold mb-4">Medications</h2>
+    <p>Medications information will be displayed here.</p>
+  </div>
+);
 
 const PatientDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,22 +71,22 @@ const PatientDetails = () => {
               <TabsTrigger value="immunizations">Immunizations</TabsTrigger>
             </TabsList>
             <TabsContent value="profile">
-              <ProfileTab patient={patient} />
+              <ProfileTab patientId={patient.id} />
             </TabsContent>
             <TabsContent value="medical-diagnoses">
-              <MedicalDiagnosesTab patient={patient} />
+              <MedicalDiagnosesTab patientId={patient.id} />
             </TabsContent>
             <TabsContent value="allergies">
-              <AllergiesTab patient={patient} />
+              <AllergiesTab patientId={patient.id} />
             </TabsContent>
             <TabsContent value="wound-care">
-              <WoundCareTab patient={patient} />
+              <WoundCareTab patientId={patient.id} />
             </TabsContent>
             <TabsContent value="medications">
-              <MedicationsTab patient={patient} />
+              <MedicationsTab patientId={patient.id} />
             </TabsContent>
             <TabsContent value="immunizations">
-              <ImmunizationsTab patient={patient} />
+              <ImmunizationsTab patientId={patient.id} />
             </TabsContent>
           </Tabs>
         </div>

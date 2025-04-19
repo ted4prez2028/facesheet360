@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { FileImage, Upload, Plus, Trash2, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useWoundRecords } from '@/hooks/useWoundCare';
-import { WoundRecord } from '@/lib/api/woundCareApi';
+import { useWoundCare } from '@/hooks/useWoundCare';
+import { WoundRecord } from '@/hooks/useWoundCare';
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -39,7 +38,7 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
     deleteWound,
     uploadImage,
     analyzeWoundImage
-  } = useWoundRecords(patientId);
+  } = useWoundCare(patientId);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

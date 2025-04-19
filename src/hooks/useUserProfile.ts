@@ -22,9 +22,9 @@ export const useUserProfile = (userId: string) => {
         email: data.email,
         role: data.role,
         specialty: data.specialty,
-        licenseNumber: data.license_number,
-        profileImage: data.profile_image,
-        careCoinsBalance: data.care_coins_balance || 0,
+        license_number: data.license_number,
+        profile_image: data.profile_image,
+        care_coins_balance: data.care_coins_balance || 0,
         online_status: data.online_status,
         organization: data.organization,
         created_at: data.created_at,
@@ -45,9 +45,9 @@ export const useUpdateUser = () => {
       if (updates.name) dbData.name = updates.name;
       if (updates.email) dbData.email = updates.email;
       if (updates.specialty) dbData.specialty = updates.specialty;
-      if (updates.licenseNumber) dbData.license_number = updates.licenseNumber;
-      if (updates.profileImage) dbData.profile_image = updates.profileImage;
-      if (updates.careCoinsBalance !== undefined) dbData.care_coins_balance = updates.careCoinsBalance;
+      if (updates.license_number) dbData.license_number = updates.license_number;
+      if (updates.profile_image) dbData.profile_image = updates.profile_image;
+      if (updates.care_coins_balance !== undefined) dbData.care_coins_balance = updates.care_coins_balance;
       if (updates.role) dbData.role = updates.role;
       if (updates.organization) dbData.organization = updates.organization;
       
