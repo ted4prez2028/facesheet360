@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,20 +19,19 @@ import ContactsList from '@/components/communication/ContactsList';
 import WalletDashboard from './pages/WalletDashboard';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import Appointments from './pages/Appointments';
+import Charting from './pages/Charting';
 
 function App() {
   const queryClient = new QueryClient();
 
-  // Custom hook to check authentication status
   const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, isLoading } = useAuth();
 
-    // Show a loading indicator while checking authentication status
     if (isLoading) {
       return <div>Loading...</div>;
     }
 
-    // Redirect to landing page if not authenticated
     if (!isAuthenticated) {
       return <Navigate to="/login" />;
     }
@@ -80,6 +78,22 @@ function App() {
                     element={
                       <RequireAuth>
                         <WoundCare />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/appointments"
+                    element={
+                      <RequireAuth>
+                        <Appointments />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/charting"
+                    element={
+                      <RequireAuth>
+                        <Charting />
                       </RequireAuth>
                     }
                   />
