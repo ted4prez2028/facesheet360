@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AuthProvider } from './context/AuthContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
-import LandingPage from './pages/LandingPage';
+import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
@@ -45,7 +45,7 @@ function App() {
             <UserPreferencesProvider>
               <CommunicationProvider>
                 <Routes>
-                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/" element={<Index />} />
                   <Route
                     path="/dashboard"
                     element={
