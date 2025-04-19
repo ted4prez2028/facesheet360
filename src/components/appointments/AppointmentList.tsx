@@ -11,11 +11,27 @@ import AppointmentCard from "./AppointmentCard";
 import { useDeleteAppointment } from "@/hooks/useAppointments";
 import { toast } from "sonner";
 
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
+interface AppointmentData {
+  id: string;
+  appointment_date: string;
+  notes?: string;
+  status: string;
+  patients?: Patient;
+  patientName?: string;
+  type?: string;
+}
+
 interface AppointmentListProps {
-  appointments: any[];
+  appointments: AppointmentData[];
   view?: "list" | "day" | "upcoming";
-  onReschedule?: (appointment: any) => void;
-  onViewDetails?: (appointment: any) => void;
+  onReschedule?: (appointment: AppointmentData) => void;
+  onViewDetails?: (appointment: AppointmentData) => void;
 }
 
 const AppointmentList = ({
@@ -76,16 +92,14 @@ const AppointmentList = ({
     }
   };
 
-  const groupedAppointments = Array.isArray(appointments) 
-    ? appointments.reduce((acc, appointment) => {
-        const dateKey = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
-        if (!acc[dateKey]) {
-          acc[dateKey] = [];
-        }
-        acc[dateKey].push(appointment);
-        return acc;
-      }, {} as Record<string, any[]>)
-    : {};
+  const groupedAppointments = appointments.reduce((acc, appointment) => {
+    const dateKey = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(appointment);
+    return acc;
+  }, {} as Record<string, AppointmentData[]>);
 
   if (view === "upcoming") {
     return (
