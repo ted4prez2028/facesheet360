@@ -18,6 +18,8 @@ import { CommunicationProvider } from '@/context/communication/CommunicationCont
 import CommunicationContainer from '@/components/communication/CommunicationContainer';
 import ContactsList from '@/components/communication/ContactsList';
 import WalletDashboard from './pages/WalletDashboard';
+import Login from './pages/Login';
+import NotFound from './pages/NotFound';
 
 function App() {
   const queryClient = new QueryClient();
@@ -33,7 +35,7 @@ function App() {
 
     // Redirect to landing page if not authenticated
     if (!isAuthenticated) {
-      return <Navigate to="/" />;
+      return <Navigate to="/login" />;
     }
 
     return <>{children}</>;
@@ -48,6 +50,7 @@ function App() {
               <CommunicationProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
                   <Route
                     path="/dashboard"
                     element={
@@ -96,6 +99,7 @@ function App() {
                       </RequireAuth>
                     }
                   />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
                 <Toaster />
                 <CommunicationContainer />

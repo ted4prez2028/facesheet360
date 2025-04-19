@@ -1,3 +1,4 @@
+
 // Health prediction types for AI-powered health analytics
 import { Json } from '@/integrations/supabase/types';
 
@@ -105,4 +106,110 @@ export interface CareCoinsAchievement {
   achieved_at: string;
   description: string;
   points_awarded: number;
+}
+
+// Add missing types referenced in other components
+export interface User {
+  id: string;
+  email: string | null;
+  name: string | null;
+  image_url: string | null;
+  care_coins_balance: number | null;
+  role?: string;
+  specialty?: string;
+  license_number?: string;
+  profile_image?: string;
+  online_status?: string;
+  organization?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Patient {
+  id: string;
+  created_at: string;
+  first_name?: string;
+  last_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  medical_record_number?: string;
+  insurance_provider?: string;
+  policy_number?: string;
+  facial_data?: string;
+  name?: string | null;
+  dob?: string | null;
+  contact_number?: string | null;
+  known_conditions?: string | null;
+  allergies?: string | null;
+  medications?: string | null;
+  notes?: string | null;
+  provider_id?: string | null;
+  insurance_number?: string | null;
+}
+
+export interface Prescription {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  start_date: string;
+  end_date?: string;
+  instructions?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: string;
+  created_at: string;
+  from_user_id: string | null;
+  to_user_id: string | null;
+  content: string | null;
+}
+
+export interface Call {
+  id: string;
+  created_at: string;
+  from_user_id: string | null;
+  to_user_id: string | null;
+  accepted: boolean | null;
+  ended_at: string | null;
+  isVideo: boolean | null;
+  otherUserName?: string;
+}
+
+export interface ChatWindow {
+  userId: string;
+  userName: string;
+  minimized: boolean;
+}
+
+export interface ContactsState {
+  onlineUsers: User[];
+  isOpen: boolean;
+}
+
+export interface CallLightRequest {
+  id: string;
+  created_at: string;
+  patient_id: string;
+  request_type: string;
+  status: string;
+  room_number: string;
+  message?: string;
+  completed_at?: string;
+  completed_by?: string;
+  organization?: string;
+  updated_at?: string;
+}
+
+export interface CallLightWithPatient extends CallLightRequest {
+  patients?: Patient;
 }
