@@ -76,15 +76,16 @@ const AppointmentList = ({
     }
   };
 
-  // Group appointments by day for list view
-  const groupedAppointments = appointments.reduce((acc, appointment) => {
-    const dateKey = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(appointment);
-    return acc;
-  }, {} as Record<string, any[]>);
+  const groupedAppointments = Array.isArray(appointments) 
+    ? appointments.reduce((acc, appointment) => {
+        const dateKey = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(appointment);
+        return acc;
+      }, {} as Record<string, any[]>)
+    : {};
 
   if (view === "upcoming") {
     return (

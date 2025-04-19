@@ -1,12 +1,21 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 type PreferenceType = 'theme' | 'calendarView' | 'notification' | 'dashboardLayout';
 type PreferenceValue = string | boolean | number | object;
 
 interface UserPreferences {
   [key: string]: PreferenceValue;
+}
+
+interface UserPreferenceRecord {
+  id?: string;
+  user_id: string;
+  preferences: Json;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function useUserPreferences() {
@@ -61,13 +70,14 @@ export function useUserPreferences() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
+        const preferenceRecord: UserPreferenceRecord = {
+          user_id: session.user.id,
+          preferences: newPreferences as Json
+        };
+
         const { error: saveError } = await supabase
           .from('user_preferences')
-          .upsert({ 
-            user_id: session.user.id, 
-            preferences: newPreferences,
-            updated_at: new Date().toISOString()
-          });
+          .upsert(preferenceRecord);
         
         if (saveError) throw saveError;
       }
