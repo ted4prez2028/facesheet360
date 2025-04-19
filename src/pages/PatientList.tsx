@@ -52,10 +52,8 @@ const PatientListPage = () => {
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
         <PatientToolbar
-          searchQuery={query}
-          setSearchQuery={setQuery}
-          filter={filter}
-          onFilterChange={setFilter}
+          filter={query}
+          onFilterChange={setQuery}
           isAuthenticated={isAuthenticated}
           setIsAddPatientOpen={setIsAddPatientOpen}
           setIsFaceIdDialogOpen={setIsFaceIdDialogOpen}

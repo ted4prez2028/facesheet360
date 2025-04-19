@@ -25,7 +25,9 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
         specialty: userData.specialty || undefined,
         license_number: userData.license_number || undefined,
         profile_image: userData.profile_image || undefined,
-        care_coins_balance: userData.care_coins_balance || 0
+        care_coins_balance: userData.care_coins_balance || 0,
+        created_at: userData.created_at || new Date().toISOString(),
+        updated_at: userData.updated_at || new Date().toISOString()
       };
     } else {
       // If database query fails, fall back to session user metadata
@@ -40,7 +42,9 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
         name: userMeta.name || user.email || '',
         email: user.email || '',
         role: userMeta.role || 'doctor',
-        care_coins_balance: 0
+        care_coins_balance: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
     }
   } catch (error) {
@@ -52,7 +56,9 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
       name: currentSession.user.email || '',
       email: currentSession.user.email || '',
       role: 'doctor',
-      care_coins_balance: 0
+      care_coins_balance: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
   }
 };

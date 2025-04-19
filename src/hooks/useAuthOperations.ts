@@ -153,7 +153,9 @@ export const useAuthOperations = (
           specialty: userData.specialty || undefined,
           license_number: userData.license_number || undefined,
           profile_image: userData.profile_image || undefined,
-          care_coins_balance: userData.care_coins_balance || 0
+          care_coins_balance: userData.care_coins_balance || 0,
+          created_at: userData.created_at || new Date().toISOString(),
+          updated_at: userData.updated_at || new Date().toISOString()
         };
       }
     } catch (error) {

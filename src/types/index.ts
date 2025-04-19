@@ -1,3 +1,4 @@
+
 // If this file doesn't exist, this will create it
 export interface User {
   id: string;
@@ -11,8 +12,8 @@ export interface User {
   online_status?: boolean;
   last_seen?: string;
   organization?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   
   // Adding camelCase aliases to maintain compatibility
   licenseNumber?: string;
