@@ -1,73 +1,142 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Appointment } from "@/types";
+import { toast } from "sonner";
 
+export interface Appointment {
+  id?: string;
+  patient_id: string;
+  provider_id: string;
+  appointment_date: Date | string;
+  status: string;
+  notes?: string;
+}
+
+// Get all appointments
+export const getAppointments = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        patients(id, first_name, last_name, medical_record_number),
+        users!provider_id(id, name, email, role)
+      `)
+      .order('appointment_date', { ascending: true });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    throw error;
+  }
+};
+
+// Get appointments for a specific patient
 export const getPatientAppointments = async (patientId: string) => {
   try {
     const { data, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("patient_id", patientId)
-      .order("appointment_date", { ascending: true });
+      .from('appointments')
+      .select(`
+        *,
+        patients(id, first_name, last_name, medical_record_number),
+        users!provider_id(id, name, email, role)
+      `)
+      .eq('patient_id', patientId)
+      .order('appointment_date', { ascending: true });
 
     if (error) throw error;
-    return data as Appointment[];
+    return data;
   } catch (error) {
     console.error(`Error fetching appointments for patient ${patientId}:`, error);
     throw error;
   }
 };
 
-export const addAppointment = async (appointment: Partial<Appointment>) => {
+// Get appointments for today
+export const getTodayAppointments = async (providerId?: string) => {
+  const today = new Date();
+  const startOfToday = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+  const endOfToday = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+  
+  let query = supabase
+    .from('appointments')
+    .select(`
+      *,
+      patients(id, first_name, last_name, medical_record_number),
+      users!provider_id(id, name, email, role)
+    `)
+    .gte('appointment_date', startOfToday)
+    .lte('appointment_date', endOfToday);
+  
+  if (providerId) {
+    query = query.eq('provider_id', providerId);
+  }
+  
   try {
-    if (!appointment.patient_id || !appointment.provider_id || !appointment.appointment_date || !appointment.status) {
-      throw new Error("Missing required appointment fields");
-    }
-    
-    const { data, error } = await supabase
-      .from("appointments")
-      .insert({
-        patient_id: appointment.patient_id,
-        provider_id: appointment.provider_id,
-        appointment_date: appointment.appointment_date,
-        status: appointment.status,
-        notes: appointment.notes
-      })
-      .select()
-      .single();
-
+    const { data, error } = await query.order('appointment_date', { ascending: true });
     if (error) throw error;
-    return data as Appointment;
+    return data;
   } catch (error) {
-    console.error("Error adding appointment:", error);
+    console.error("Error fetching today's appointments:", error);
     throw error;
   }
 };
 
-export const updateAppointment = async (id: string, data: Partial<Appointment>) => {
-  const { appointment_date, patient_id, provider_id, status, ...rest } = data;
-  
-  const updateData: any = { ...rest };
-  if (appointment_date) {
-    updateData.appointment_date = appointment_date;
+// Add a new appointment
+export const addAppointment = async (appointment: Appointment) => {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert(appointment)
+      .select(`
+        *,
+        patients(id, first_name, last_name, medical_record_number),
+        users!provider_id(id, name, email, role)
+      `)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error creating appointment:", error);
+    throw error;
   }
-  if (patient_id) {
-    updateData.patient_id = patient_id;
-  }
-  if (provider_id) {
-    updateData.provider_id = provider_id;
-  }
-  if (status) {
-    updateData.status = status;
-  }
-  
-  const { data: updatedAppointment, error } = await supabase
-    .from('appointments')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
+};
 
-  if (error) throw error;
-  return updatedAppointment;
+// Update an existing appointment
+export const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(updates)
+      .eq('id', id)
+      .select(`
+        *,
+        patients(id, first_name, last_name, medical_record_number),
+        users!provider_id(id, name, email, role)
+      `)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error(`Error updating appointment ${id}:`, error);
+    throw error;
+  }
+};
+
+// Delete an appointment
+export const deleteAppointment = async (id: string) => {
+  try {
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id);
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error(`Error deleting appointment ${id}:`, error);
+    throw error;
+  }
 };
