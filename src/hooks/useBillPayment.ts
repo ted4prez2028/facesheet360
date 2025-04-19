@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { payBillWithCareCoins } from '@/lib/api/careCoinsApi';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { BillPaymentResult } from '@/types/health-predictions';
 
 export const useBillPayment = () => {
   const [billType, setBillType] = useState<string>('');
@@ -31,7 +32,7 @@ export const useBillPayment = () => {
 
     setIsProcessing(true);
     try {
-      const result = await payBillWithCareCoins(
+      const result: BillPaymentResult = await payBillWithCareCoins(
         user.id,
         billType,
         amount,

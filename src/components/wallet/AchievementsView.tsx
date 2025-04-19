@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/context/AuthContext';
 import { getUserCoinsSummary } from '@/lib/api/careCoinsApi';
 import { useQuery } from '@tanstack/react-query';
+import { CoinsSummary } from '@/types/health-predictions';
 
 const getAchievementIcon = (achievementType: string) => {
   switch (achievementType) {
@@ -23,9 +24,9 @@ export const AchievementsView = () => {
   const { achievements, isLoading, hasAchievement } = useUserAchievements();
   const { user } = useAuth();
   
-  const { data: coinsSummary } = useQuery({
+  const { data: coinsSummary } = useQuery<CoinsSummary | null>({
     queryKey: ['userCoinsSummary', user?.id],
-    queryFn: () => user?.id ? getUserCoinsSummary(user.id) : null,
+    queryFn: () => user?.id ? getUserCoinsSummary(user.id) : Promise.resolve(null),
     enabled: !!user?.id,
   });
 

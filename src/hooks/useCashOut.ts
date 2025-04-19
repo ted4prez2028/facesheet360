@@ -4,6 +4,7 @@ import { cashOutCareCoins, convertCareCoinsToUSD, getExchangeRate } from '@/lib/
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { CashOutResult } from '@/types/health-predictions';
 
 export const useCashOut = () => {
   const [amount, setAmount] = useState<number>(0);
@@ -48,7 +49,7 @@ export const useCashOut = () => {
 
     setIsProcessing(true);
     try {
-      const result = await cashOutCareCoins(
+      const result: CashOutResult = await cashOutCareCoins(
         user.id,
         amount,
         paymentMethod,
@@ -56,7 +57,8 @@ export const useCashOut = () => {
       );
 
       if (result.success) {
-        toast.success(`Successfully cashed out ${amount} CareCoins for $${result.usd_amount.toFixed(2)} USD`);
+        const usdAmountDisplay = result.usd_amount?.toFixed(2) || '0.00';
+        toast.success(`Successfully cashed out ${amount} CareCoins for $${usdAmountDisplay} USD`);
         setAmount(0);
         return true;
       } else {

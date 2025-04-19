@@ -6,13 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CoinsIcon, TrendingUpIcon, TrendingDownIcon, GiftIcon } from 'lucide-react';
+import { CoinsSummary } from '@/types/health-predictions';
 
 export const CoinsSummaryView = () => {
   const { user } = useAuth();
 
   const { data: summary, isLoading } = useQuery({
     queryKey: ['userCoinsSummary', user?.id],
-    queryFn: () => user?.id ? getUserCoinsSummary(user.id) : null,
+    queryFn: () => user?.id ? getUserCoinsSummary(user.id) : Promise.resolve(null),
     enabled: !!user?.id,
   });
 

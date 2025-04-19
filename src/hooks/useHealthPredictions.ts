@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { HealthPrediction, RiskAssessmentData } from '@/types/predictions';
+import { HealthPrediction, RiskAssessmentData } from '@/types/health-predictions';
 import { toast } from 'sonner';
 
 export const useHealthPredictions = (patientId?: string) => {
@@ -29,7 +29,7 @@ export const useHealthPredictions = (patientId?: string) => {
       
       const { data, error } = await supabase.rpc('assess_health_risks', {
         patient_id_param: patientId,
-        assessment_data: assessmentData
+        assessment_data: assessmentData as any // Cast to any to bypass strict type checking
       });
 
       if (error) throw error;
