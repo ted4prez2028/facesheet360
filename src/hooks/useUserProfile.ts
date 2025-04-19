@@ -14,22 +14,7 @@ export const useUserProfile = (userId: string) => {
         .single();
 
       if (error) throw error;
-      
-      // Map database fields to User type fields
-      return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        specialty: data.specialty,
-        license_number: data.license_number,
-        profile_image: data.profile_image,
-        care_coins_balance: data.care_coins_balance || 0,
-        online_status: data.online_status,
-        organization: data.organization,
-        created_at: data.created_at,
-        updated_at: data.updated_at
-      } as User;
+      return data as User;
     },
     enabled: !!userId,
   });
@@ -40,7 +25,7 @@ export const useUpdateUser = () => {
   
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string, updates: Partial<User> }) => {
-      // Convert from User type field names to database field names
+      // Convert user updates to database field names
       const dbData: any = {};
       if (updates.name) dbData.name = updates.name;
       if (updates.email) dbData.email = updates.email;

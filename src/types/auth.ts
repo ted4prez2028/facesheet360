@@ -5,13 +5,13 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: string; // Allow any string for role to match database
+  role: string;
   specialty?: string;
-  license_number?: string; // Using snake_case to match database fields
-  profile_image?: string; // Using snake_case to match database fields
+  license_number?: string;
+  profile_image?: string;
   care_coins_balance: number;
   online_status?: boolean;
-  organization?: string; 
+  organization?: string;
   created_at?: string;
   updated_at?: string;
 };

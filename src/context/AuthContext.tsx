@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/auth';
@@ -19,6 +18,21 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const initialUser = (userData: any): User => ({
+  id: userData.id,
+  name: userData.name || userData.email?.split('@')[0] || 'User',
+  email: userData.email || '',
+  role: userData.role || 'doctor',
+  specialty: userData.specialty,
+  license_number: userData.license_number,
+  profile_image: userData.profile_image,
+  care_coins_balance: userData.care_coins_balance || 0,
+  online_status: userData.online_status,
+  organization: userData.organization,
+  created_at: userData.created_at,
+  updated_at: userData.updated_at
+});
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<any>(null);
@@ -33,13 +47,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (session) {
           const userData = await getUserProfile(session.user.id);
-          setUser(userData || {
+          setUser(userData ? initialUser(userData) : initialUser({
             id: session.user.id,
             email: session.user.email,
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-            role: session.user.user_metadata?.role || 'doctor',
-            careCoinsBalance: 0
-          } as User);
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
+            role: session.user.user_metadata?.role || 'doctor'
+          }));
           setSession(session);
           setIsAuthenticated(true);
         } else {
@@ -62,13 +75,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         const userData = await getUserProfile(session.user.id);
-        setUser(userData || {
+        setUser(userData ? initialUser(userData) : initialUser({
           id: session.user.id,
           email: session.user.email,
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          role: session.user.user_metadata?.role || 'doctor',
-          careCoinsBalance: 0
-        } as User);
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
+          role: session.user.user_metadata?.role || 'doctor'
+        }));
         setSession(session);
         setIsAuthenticated(true);
       } else if (event === 'SIGNED_OUT') {
@@ -96,7 +108,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      // Map database fields to User type fields
       return {
         id: data.id,
         name: data.name,
@@ -182,7 +193,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       if (data.user) {
-        // Create user profile in users table
         const { error: profileError } = await supabase.from('users').insert({
           id: data.user.id,
           name: userData.name,
@@ -205,7 +215,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user?.id) throw new Error("User is not authenticated");
     
     try {
-      // Convert from User type field names to database field names
       const dbData: any = {};
       if (userData.name) dbData.name = userData.name;
       if (userData.email) dbData.email = userData.email;
@@ -223,7 +232,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
       if (error) throw error;
       
-      // Update local state
       setUser(prevUser => prevUser ? { ...prevUser, ...userData } : null);
     } catch (error: any) {
       console.error('Error updating user profile:', error.message);
@@ -235,7 +243,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(prev => prev ? { ...prev, ...userData } : null);
   };
   
-  // Add login as an alias for signIn
   const login = signIn;
   
   const value: AuthContextType = {
@@ -243,8 +250,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     signIn,
     signOut,
-    logout: signOut, // Add alias for signOut
-    login, // Add alias for signIn
+    logout: signOut,
+    login,
     signUp,
     isAuthenticated,
     isLoading,
