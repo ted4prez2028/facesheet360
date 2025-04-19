@@ -420,6 +420,53 @@ export type Database = {
         }
         Relationships: []
       }
+      data_sharing_logs: {
+        Row: {
+          access_expires_at: string | null
+          access_granted_at: string | null
+          blockchain_verification_hash: string | null
+          data_type: string
+          id: string
+          metadata: Json | null
+          patient_id: string | null
+          purpose: string
+          shared_by: string | null
+          shared_with: string | null
+        }
+        Insert: {
+          access_expires_at?: string | null
+          access_granted_at?: string | null
+          blockchain_verification_hash?: string | null
+          data_type: string
+          id?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          purpose: string
+          shared_by?: string | null
+          shared_with?: string | null
+        }
+        Update: {
+          access_expires_at?: string | null
+          access_granted_at?: string | null
+          blockchain_verification_hash?: string | null
+          data_type?: string
+          id?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          purpose?: string
+          shared_by?: string | null
+          shared_with?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_sharing_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evaluations: {
         Row: {
           category: string | null
@@ -552,6 +599,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      health_predictions: {
+        Row: {
+          confidence_score: number
+          created_at: string | null
+          id: string
+          model_version: string
+          patient_id: string | null
+          prediction_data: Json
+          prediction_type: string
+          status: string | null
+          updated_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          confidence_score: number
+          created_at?: string | null
+          id?: string
+          model_version: string
+          patient_id?: string | null
+          prediction_data: Json
+          prediction_type: string
+          status?: string | null
+          updated_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string | null
+          id?: string
+          model_version?: string
+          patient_id?: string | null
+          prediction_data?: Json
+          prediction_type?: string
+          status?: string | null
+          updated_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_predictions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       imaging_records: {
         Row: {
@@ -1345,6 +1439,10 @@ export type Database = {
           policy_number: string | null
           updated_at: string
         }
+      }
+      assess_health_risks: {
+        Args: { patient_id_param: string; assessment_data: Json }
+        Returns: Json
       }
       distribute_care_coins_reward: {
         Args: {
