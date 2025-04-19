@@ -7,11 +7,7 @@ import {
   Calendar, 
   Bell, 
   Users,
-  FileText, 
-  ChevronRight,
-  Star,
-  Wallet,
-  Coins
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,18 +70,12 @@ const Index = () => {
               The complete platform for healthcare professionals to manage patients, appointments, 
               medications, and more - all in one secure place.
             </p>
-            <div className="space-x-4 flex flex-wrap gap-4">
-              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-bold text-lg shadow-lg transform hover:scale-105 transition-all">
-                <Link to="/dashboard" className="flex items-center">
-                  <Wallet className="mr-2 h-5 w-5" />
-                  Get Started
-                </Link>
+            <div className="space-x-4">
+              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
+                <Link to="/dashboard">Get Started</Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-health-800 font-bold text-lg shadow-lg transform hover:scale-105 transition-all">
-                <Link to="/subscription" className="flex items-center">
-                  <Coins className="mr-2 h-5 w-5" />
-                  View Plans
-                </Link>
+              <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-health-800">
+                <Link to="/subscription">View Plans</Link>
               </Button>
             </div>
           </div>
@@ -152,13 +142,13 @@ const Index = () => {
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="overflow-hidden">
+              <Card key={index}>
                 <CardContent className="p-6">
                   <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Check 
                         key={i} 
-                        className={`h-5 w-5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                        className="h-5 w-5 text-yellow-400" 
                       />
                     ))}
                   </div>
@@ -182,22 +172,13 @@ const Index = () => {
             Join thousands of healthcare professionals who are improving patient care with our platform.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white font-bold text-lg shadow-lg transform hover:scale-105 transition-all">
-              <Link to="/subscription" className="flex items-center">
-                <Coins className="mr-2 h-5 w-5" />
-                Subscribe Now
-              </Link>
+            <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
+              <Link to="/dashboard">Get Started</Link>
             </Button>
-            <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-health-800 font-bold text-lg shadow-lg transform hover:scale-105 transition-all">
-              <Link to="/dashboard" className="flex items-center">
-                <Wallet className="mr-2 h-5 w-5" />
-                Try Dashboard
-              </Link>
+            <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-health-800">
+              <Link to="/subscription">View Plans</Link>
             </Button>
           </div>
-          <p className="mt-6 text-health-200">
-            Secure payments processed through CashApp - $mycashdirect2022
-          </p>
         </div>
       </section>
     </div>
