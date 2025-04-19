@@ -65,7 +65,7 @@ export function useUserPreferences() {
           .from('user_preferences')
           .upsert({ 
             user_id: session.user.id, 
-            preferences: newPreferences as unknown as Json,
+            preferences: newPreferences,
             updated_at: new Date().toISOString()
           });
         

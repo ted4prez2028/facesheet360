@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { format, isSameDay, isToday } from "date-fns";
 import { MoreHorizontal, Clock } from "lucide-react";
@@ -92,12 +91,12 @@ const AppointmentList = ({
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-4">
-            {(appointments || []).length === 0 ? (
+            {appointments.length === 0 ? (
               <div className="text-center p-4 text-muted-foreground">
                 No upcoming appointments found
               </div>
             ) : (
-              (appointments || []).map((appointment) => (
+              appointments.map((appointment) => (
                 <AppointmentCard 
                   key={appointment.id}
                   appointment={{
