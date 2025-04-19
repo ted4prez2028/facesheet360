@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -74,8 +73,12 @@ const Index = () => {
               <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
                 <Link to="/dashboard">Get Started</Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-health-800">
-                <Link to="/subscription">View Plans</Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-2 border-white text-white hover:bg-white hover:text-health-800 transition-colors duration-300"
+              >
+                <Link to="/subscription" className="text-current">View Plans</Link>
               </Button>
             </div>
           </div>
@@ -175,8 +178,12 @@ const Index = () => {
             <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
               <Link to="/dashboard">Get Started</Link>
             </Button>
-            <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-health-800">
-              <Link to="/subscription">View Plans</Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-2 border-white text-white hover:bg-white hover:text-health-800 transition-colors duration-300"
+            >
+              <Link to="/subscription" className="text-current">View Plans</Link>
             </Button>
           </div>
         </div>
