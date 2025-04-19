@@ -3,21 +3,16 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Prescription } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Pill, CheckCircle, Clock, Filter, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useUpdatePrescriptionStatus } from "@/hooks/usePrescriptions";
 import { useAuth } from "@/context/AuthContext";
-
-interface PrescriptionWithRelations extends Prescription {
-  patients: { first_name: string; last_name: string } | null;
-  providers: { name: string } | null;
-}
+import { PrescriptionCard } from "@/components/pharmacy/PrescriptionCard";
+import { PharmacyStats } from "@/components/pharmacy/PharmacyStats";
+import { Card, CardContent } from "@/components/ui/card";
 
 const PharmacistDashboard = () => {
   const { user } = useAuth();
@@ -39,7 +34,7 @@ const PharmacistDashboard = () => {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as unknown as PrescriptionWithRelations[];
+      return data as Prescription[];
     },
     enabled: !!user?.id
   });
@@ -84,6 +79,18 @@ const PharmacistDashboard = () => {
     });
   };
 
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-8">
+          <div className="animate-pulse text-gray-500">Loading prescriptions...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const uniquePatients = new Set(prescriptions?.map(p => p.patient_id)).size;
+
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-6">
@@ -103,30 +110,28 @@ const PharmacistDashboard = () => {
           </div>
         </div>
 
+        <PharmacyStats 
+          pendingCount={pendingPrescriptions.length}
+          filledCount={filledPrescriptions.filter(p => 
+            new Date(p.administered_at || '').toDateString() === new Date().toDateString()
+          ).length}
+          totalPatients={uniquePatients}
+        />
+
         <Tabs defaultValue="pending" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="pending" className="flex items-center">
-              <Clock className="mr-2 h-4 w-4" />
-              <span>Pending</span>
-              {pendingPrescriptions.length > 0 && (
-                <Badge variant="secondary" className="ml-2">{pendingPrescriptions.length}</Badge>
-              )}
+            <TabsTrigger value="pending">
+              Pending ({pendingPrescriptions.length})
             </TabsTrigger>
-            <TabsTrigger value="filled" className="flex items-center">
-              <CheckCircle className="mr-2 h-4 w-4" />
-              <span>Filled</span>
+            <TabsTrigger value="filled">
+              Filled ({filledPrescriptions.length})
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="pending" className="space-y-4">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-pulse text-gray-500">Loading prescriptions...</div>
-              </div>
-            ) : pendingPrescriptions.length === 0 ? (
+          <TabsContent value="pending">
+            {pendingPrescriptions.length === 0 ? (
               <Card>
                 <CardContent className="py-12 flex flex-col items-center justify-center text-center">
-                  <Pill className="h-12 w-12 text-gray-300 mb-4" />
                   <p className="text-gray-500 mb-2">No pending prescriptions</p>
                   <p className="text-sm text-gray-400">All prescriptions have been filled</p>
                 </CardContent>
@@ -134,68 +139,21 @@ const PharmacistDashboard = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pendingPrescriptions.map((prescription) => (
-                  <Card key={prescription.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{prescription.medication_name}</CardTitle>
-                          <CardDescription>
-                            {prescription.patients ? 
-                              `${prescription.patients.first_name} ${prescription.patients.last_name}` : 
-                              "Unknown Patient"}
-                          </CardDescription>
-                        </div>
-                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                          Pending
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Dosage:</span>
-                          <span>{prescription.dosage}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Frequency:</span>
-                          <span>{prescription.frequency}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Prescribed by:</span>
-                          <span>{prescription.providers?.name || "Unknown"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Instructions:</span>
-                        </div>
-                        <div className="text-gray-700 bg-gray-50 p-2 rounded text-xs">
-                          {prescription.instructions || "No special instructions"}
-                        </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-2">
-                      <Button 
-                        className="w-full bg-health-600 hover:bg-health-700 text-white"
-                        onClick={() => handleFillPrescription(prescription.id)}
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Fill Prescription
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                  <PrescriptionCard
+                    key={prescription.id}
+                    prescription={prescription}
+                    onFill={handleFillPrescription}
+                    isPending
+                  />
                 ))}
               </div>
             )}
           </TabsContent>
           
-          <TabsContent value="filled" className="space-y-4">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-pulse text-gray-500">Loading prescriptions...</div>
-              </div>
-            ) : filledPrescriptions.length === 0 ? (
+          <TabsContent value="filled">
+            {filledPrescriptions.length === 0 ? (
               <Card>
                 <CardContent className="py-12 flex flex-col items-center justify-center text-center">
-                  <Pill className="h-12 w-12 text-gray-300 mb-4" />
                   <p className="text-gray-500 mb-2">No filled prescriptions</p>
                   <p className="text-sm text-gray-400">Prescriptions that have been filled will appear here</p>
                 </CardContent>
@@ -203,43 +161,11 @@ const PharmacistDashboard = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filledPrescriptions.map((prescription) => (
-                  <Card key={prescription.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{prescription.medication_name}</CardTitle>
-                          <CardDescription>
-                            {prescription.patients ? 
-                              `${prescription.patients.first_name} ${prescription.patients.last_name}` : 
-                              "Unknown Patient"}
-                          </CardDescription>
-                        </div>
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                          Filled
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Dosage:</span>
-                          <span>{prescription.dosage}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Frequency:</span>
-                          <span>{prescription.frequency}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-500">Filled on:</span>
-                          <span>
-                            {prescription.administered_at 
-                              ? new Date(prescription.administered_at).toLocaleDateString() 
-                              : "Unknown"}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <PrescriptionCard
+                    key={prescription.id}
+                    prescription={prescription}
+                    onFill={handleFillPrescription}
+                  />
                 ))}
               </div>
             )}

@@ -127,3 +127,30 @@ export interface CallLightRequest {
   completed_by?: string;
   organization?: string;
 }
+
+export interface PreferenceType {
+  theme: string;
+  dashboardLayout: string;
+  notification: boolean;
+  soundEnabled: boolean;
+}
+
+export interface PatientHeaderProps {
+  patient: Patient;
+  calculateAge?: (dob: string) => number;
+}
+
+export interface PatientsListProps {
+  patients: Patient[];
+  filteredPatients: Patient[];
+  isLoading: boolean;
+  error: Error | null;
+  handleDeletePatient: (id: string) => void;
+}
+
+export interface PatientToolbarProps {
+  query: string;
+  onQueryChange: (query: string) => void;
+  filter: string;
+  onFilterChange: (filter: string) => void;
+}
