@@ -3,3 +3,9 @@ project_id = "tuembzleutkexrmrzxkg"
 
 [functions.sync-menu-items]
 verify_jwt = false
+
+[functions.analyze-wound]
+verify_jwt = false
+
+[functions.admin-user-setup]
+verify_jwt = false

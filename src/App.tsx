@@ -24,6 +24,8 @@ import Appointments from './pages/Appointments';
 import Charting from './pages/Charting';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import PharmacistDashboard from './pages/PharmacistDashboard';
+import FoodOrderDashboard from './pages/FoodOrderDashboard';
 
 function App() {
   const queryClient = new QueryClient();
@@ -129,6 +131,22 @@ function App() {
                     element={
                       <RequireAuth>
                         <WalletDashboard />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/pharmacy"
+                    element={
+                      <RequireAuth>
+                        <PharmacistDashboard />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/food-ordering"
+                    element={
+                      <RequireAuth>
+                        <FoodOrderDashboard />
                       </RequireAuth>
                     }
                   />

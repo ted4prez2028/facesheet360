@@ -1,8 +1,8 @@
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useAuth } from './useAuth';
 
 export interface Prescription {
   id: string;
@@ -11,74 +11,102 @@ export interface Prescription {
   medication_name: string;
   dosage: string;
   frequency: string;
+  duration?: string;
   start_date: string;
   end_date?: string;
   instructions?: string;
-  status: "prescribed" | "administered" | "cancelled";
-  administered_by?: string;
-  administered_at?: string;
+  status: string;
   created_at: string;
   updated_at: string;
+  administered_at?: string;
+  administered_by?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+  };
+  providers?: {
+    name: string;
+  };
 }
 
-export const usePrescriptions = (patientId?: string) => {
-  const { user } = useAuth();
+export const usePrescriptions = (patientId: string) => {
+  const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ["prescriptions", patientId],
+    queryKey: ['prescriptions', patientId],
     queryFn: async () => {
-      try {
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
-        const query = supabase
-          .from("prescriptions")
-          .select("*")
-          .order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .select(`
+          *,
+          providers:provider_id (name)
+        `)
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false });
 
-        if (patientId) {
-          query.eq("patient_id", patientId);
-        }
-
-        const { data, error } = await query;
-        
-        if (error) throw error;
-        return data as Prescription[];
-      } catch (error) {
-        console.error("Error fetching prescriptions:", error);
-        toast.error("Failed to load prescriptions");
-        return [];
+      if (error) {
+        console.error('Error fetching prescriptions:', error);
+        throw error;
       }
+
+      return data as Prescription[];
     },
-    enabled: !!user?.id,
+    enabled: !!patientId,
   });
 };
 
-export const useAddPrescription = () => {
+export const useCreatePrescription = () => {
   const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (prescription: Omit<Prescription, "id" | "created_at" | "updated_at">) => {
-      try {
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
-        const { data, error } = await supabase
-          .from("prescriptions")
-          .insert(prescription as any)
-          .select()
-          .single();
 
-        if (error) throw error;
-        return data as Prescription;
-      } catch (error) {
-        console.error("Error adding prescription:", error);
-        throw error;
-      }
+  return useMutation({
+    mutationFn: async (prescription: Omit<Prescription, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .insert(prescription)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Prescription;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
-      queryClient.invalidateQueries({ queryKey: ["prescriptions", variables.patient_id] });
-      toast.success("Prescription added successfully");
+      toast.success('Prescription created successfully');
+      queryClient.invalidateQueries({ queryKey: ['prescriptions', variables.patient_id] });
     },
     onError: (error) => {
-      toast.error(`Failed to add prescription: ${(error as Error).message}`);
+      toast.error(`Failed to create prescription: ${(error as Error).message}`);
+    },
+  });
+};
+
+export const useUpdatePrescriptionStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status, administeredBy }: { id: string; status: string; administeredBy?: string }) => {
+      const updates: any = { status };
+      
+      if (status === 'administered' && administeredBy) {
+        updates.administered_at = new Date().toISOString();
+        updates.administered_by = administeredBy;
+      }
+
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Prescription;
+    },
+    onSuccess: (data) => {
+      toast.success(`Prescription ${data.status}`);
+      queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to update prescription: ${(error as Error).message}`);
     },
   });
 };
@@ -89,81 +117,28 @@ export const useAdministerPrescription = () => {
   
   return useMutation({
     mutationFn: async (prescriptionId: string) => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
       
-      try {
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
-        const { data, error } = await supabase
-          .from("prescriptions")
-          .update({
-            status: "administered",
-            administered_by: user.id,
-            administered_at: new Date().toISOString()
-          } as any)
-          .eq("id", prescriptionId)
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .update({
+          status: 'administered',
+          administered_at: new Date().toISOString(),
+          administered_by: user.id
+        })
+        .eq('id', prescriptionId)
+        .select()
+        .single();
 
-        if (error) throw error;
-        return data as Prescription;
-      } catch (error) {
-        console.error("Error administering prescription:", error);
-        throw error;
-      }
+      if (error) throw error;
+      return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
-      queryClient.invalidateQueries({ queryKey: ["prescriptions", data.patient_id] });
-      toast.success("Medication marked as administered");
+    onSuccess: () => {
+      toast.success('Medication administered successfully');
+      queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
     },
     onError: (error) => {
       toast.error(`Failed to administer medication: ${(error as Error).message}`);
-    },
-  });
-};
-
-// Add the missing useUpdatePrescriptionStatus hook
-export const useUpdatePrescriptionStatus = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, status, administeredBy }: { id: string; status: Prescription["status"]; administeredBy?: string }) => {
-      try {
-        const updateData: any = { status };
-        
-        if (administeredBy) {
-          updateData.administered_by = administeredBy;
-          updateData.administered_at = new Date().toISOString();
-        }
-        
-        const { data, error } = await supabase
-          .from("prescriptions")
-          .update(updateData)
-          .eq("id", id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data as Prescription;
-      } catch (error) {
-        console.error("Error updating prescription status:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
-      queryClient.invalidateQueries({ queryKey: ["prescriptions", data.patient_id] });
-      
-      const statusMessages = {
-        prescribed: "Prescription status updated",
-        administered: "Medication marked as administered",
-        cancelled: "Prescription cancelled"
-      };
-      
-      toast.success(statusMessages[data.status]);
-    },
-    onError: (error) => {
-      toast.error(`Failed to update prescription: ${(error as Error).message}`);
     },
   });
 };
