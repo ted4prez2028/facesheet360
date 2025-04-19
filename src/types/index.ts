@@ -95,11 +95,12 @@ export interface CareCoinsTransaction {
   from_user_id?: string;
   to_user_id?: string;
   amount: number;
-  transaction_type: "transfer" | "reward" | "purchase";
+  transaction_type: "transfer" | "reward" | "purchase" | "cash_out" | "bill_payment";
   description?: string;
   reward_category?: string;
   created_at: string;
   otherUserName?: string;
+  metadata?: any;
 }
 
 interface PatientInfo {
@@ -169,4 +170,48 @@ export interface PatientToolbarProps {
   onQueryChange: (query: string) => void;
   filter: string;
   onFilterChange: (filter: string) => void;
+}
+
+export interface CareCoinsCard {
+  id: string;
+  user_id: string;
+  card_number: string;
+  expiration_date: string;
+  status: 'pending' | 'active' | 'suspended' | 'canceled';
+  created_at: string;
+  updated_at: string;
+  limit_amount: number;
+  current_balance: number;
+  is_active: boolean;
+  card_type: 'virtual' | 'physical';
+  metadata?: any;
+}
+
+export interface CareCoinsBillPayment {
+  id: string;
+  user_id: string;
+  bill_type: string;
+  amount: number;
+  recipient_name: string;
+  recipient_account: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  transaction_id?: string;
+  created_at: string;
+  scheduled_date?: string;
+  completed_at?: string;
+  metadata?: any;
+}
+
+export interface CareCoinsAchievement {
+  id: string;
+  user_id: string;
+  achievement_type: string;
+  achieved_at: string;
+  metadata?: any;
+}
+
+export interface ExchangeRate {
+  currency_code: string;
+  rate_to_usd: number;
+  last_updated: string;
 }
