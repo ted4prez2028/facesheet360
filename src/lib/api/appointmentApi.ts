@@ -6,7 +6,7 @@ export interface Appointment {
   id?: string;
   patient_id: string;
   provider_id: string;
-  appointment_date: Date | string;
+  appointment_date: string; // Changed from Date | string to only string
   status: string;
   notes?: string;
 }
@@ -85,9 +85,17 @@ export const getTodayAppointments = async (providerId?: string) => {
 // Add a new appointment
 export const addAppointment = async (appointment: Appointment) => {
   try {
+    // Ensure appointment_date is a string (convert if it's a Date object)
+    const formattedAppointment = {
+      ...appointment,
+      appointment_date: typeof appointment.appointment_date === 'object' 
+        ? appointment.appointment_date.toISOString() 
+        : appointment.appointment_date
+    };
+    
     const { data, error } = await supabase
       .from('appointments')
-      .insert(appointment)
+      .insert(formattedAppointment)
       .select(`
         *,
         patients(id, first_name, last_name, medical_record_number),
@@ -106,9 +114,17 @@ export const addAppointment = async (appointment: Appointment) => {
 // Update an existing appointment
 export const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
   try {
+    // Format the appointment_date if it exists and is a Date object
+    const formattedUpdates = {
+      ...updates,
+      appointment_date: updates.appointment_date && typeof updates.appointment_date === 'object' 
+        ? updates.appointment_date.toISOString() 
+        : updates.appointment_date
+    };
+    
     const { data, error } = await supabase
       .from('appointments')
-      .update(updates)
+      .update(formattedUpdates)
       .eq('id', id)
       .select(`
         *,

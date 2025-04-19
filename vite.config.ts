@@ -2,6 +2,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import fs from "fs";
+
+// Check if SSL certificates exist for HTTPS
+const hasCertificates = () => {
+  try {
+    return fs.existsSync('./localhost-key.pem') && fs.existsSync('./localhost.pem');
+  } catch (e) {
+    return false;
+  }
+};
+
+// Configure HTTPS if certificates are available
+const getHttpsConfig = () => {
+  if (hasCertificates()) {
+    return {
+      key: fs.readFileSync('./localhost-key.pem'),
+      cert: fs.readFileSync('./localhost.pem')
+    };
+  }
+  return false;
+};
 
 export default defineConfig({
   plugins: [react()],
@@ -11,6 +32,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8080
+    port: process.env.PORT ? parseInt(process.env.PORT, 10) : 443,
+    https: getHttpsConfig(),
+    host: true
   }
 });
