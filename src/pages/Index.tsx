@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -135,77 +136,6 @@ const Index = () => {
                 <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Medication Management Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="md:w-1/2 mb-10 md:mb-0">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Advanced Medication Management</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Our medication management system connects doctors, pharmacists, and patients in a seamless workflow.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <Check className="mr-3 h-6 w-6 text-green-500 flex-shrink-0" />
-                  <span>Doctors can prescribe medications digitally with full medication history</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="mr-3 h-6 w-6 text-green-500 flex-shrink-0" />
-                  <span>Pharmacists receive prescriptions instantly and can update fulfillment status</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="mr-3 h-6 w-6 text-green-500 flex-shrink-0" />
-                  <span>Automated notifications for medication adherence and refill reminders</span>
-                </li>
-                <li className="flex items-start">
-                  <Check className="mr-3 h-6 w-6 text-green-500 flex-shrink-0" />
-                  <span>Track administration of medications by healthcare providers</span>
-                </li>
-              </ul>
-              <Button className="mt-8 bg-health-600 hover:bg-health-700">
-                <Link to="/charting">Explore Medication Tools</Link>
-              </Button>
-            </div>
-            <div className="md:w-1/2 md:pl-10">
-              <div className="bg-gray-100 p-6 rounded-xl shadow-inner">
-                <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium">Atorvastatin 20mg</h4>
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Prescribed</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Take 1 tablet daily at bedtime</p>
-                  <div className="mt-3 flex justify-between text-sm text-gray-500">
-                    <span>Dr. Emily Carter</span>
-                    <span>Refills: 3</span>
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium">Lisinopril 10mg</h4>
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Filled</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Take 1 tablet daily in the morning</p>
-                  <div className="mt-3 flex justify-between text-sm text-gray-500">
-                    <span>Dr. Michael Chen</span>
-                    <span>Pharmacy: Central Rx</span>
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg shadow-md p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium">Medication Reminder</h4>
-                    <Bell className="h-4 w-4 text-orange-500" />
-                  </div>
-                  <p className="text-sm text-gray-600">Metformin 500mg due in 30 minutes</p>
-                  <Button variant="outline" size="sm" className="mt-2 w-full">
-                    Mark as Taken
-                  </Button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

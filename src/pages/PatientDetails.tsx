@@ -33,11 +33,22 @@ const PatientDetails = () => {
     return null;
   }
 
+  const calculateAge = (dateOfBirth: string) => {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-        <PatientHeader patient={patient} />
-        <Tabs>
+        <PatientHeader patient={patient} calculateAge={calculateAge} />
+        <Tabs defaultValue="profile" className="mt-6">
           <TabsList>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="medical-diagnoses">Medical Diagnoses</TabsTrigger>
