@@ -1,46 +1,51 @@
-
-import { useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
-import { usePatient } from '@/hooks/usePatient';
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Patient } from '@/types';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import PatientHeader from '@/components/patientview/PatientHeader';
-import PatientTabs from '@/components/patientview/PatientTabs';
-import { Spinner } from '@/components/ui/spinner';
+import { PatientHeader } from '@/components/patientview/PatientHeader';
 
 const PatientDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { patient, isLoading, error } = usePatient(id || '');
-  
-  useEffect(() => {
-    if (id) {
-      document.title = `Patient - ${patient?.first_name || ''} ${patient?.last_name || ''}`;
+
+  const { data: patient, isLoading } = useQuery({
+    queryKey: ['patient', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data as Patient;
+    },
+    enabled: !!id
+  });
+
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
     }
-    
-    return () => {
-      document.title = 'Facesheet360';
-    };
-  }, [id, patient]);
+    return age;
+  };
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center h-96">
-          <Spinner size="lg" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (error || !patient) {
-    return <Navigate to="/patients" replace />;
+    return <div>Loading...</div>;
   }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <PatientHeader patient={patient} />
-        <PatientTabs patientId={id || ''} />
-      </div>
+      {patient && (
+        <div className="container mx-auto px-4 py-8">
+          <PatientHeader patient={patient} calculateAge={calculateAge} />
+        </div>
+      )}
     </DashboardLayout>
   );
 };

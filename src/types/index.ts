@@ -97,6 +97,15 @@ export interface CareCoinsTransaction {
   otherUserName?: string;
 }
 
+interface PatientInfo {
+  first_name: string;
+  last_name: string;
+}
+
+interface ProviderInfo {
+  name: string;
+}
+
 export interface Prescription {
   id: string;
   patient_id: string;
@@ -112,6 +121,8 @@ export interface Prescription {
   administered_by?: string;
   created_at: string;
   updated_at: string;
+  patients?: PatientInfo;
+  providers?: ProviderInfo;
 }
 
 export interface CallLightRequest {

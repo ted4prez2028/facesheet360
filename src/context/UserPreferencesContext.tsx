@@ -1,89 +1,101 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
-
-interface UserPreferencesContextType {
-  theme: string;
-  setTheme: (theme: string) => void;
+export type PreferenceType = {
+  theme: 'light' | 'dark' | 'system';
   dashboardLayout: string;
-  setDashboardLayout: (layout: string) => void;
-  notificationsEnabled: boolean;
-  setNotificationsEnabled: (enabled: boolean) => void;
+  notification: boolean;
   soundEnabled: boolean;
-  setSoundEnabled: (enabled: boolean) => void;
-}
-
-const defaultContext: UserPreferencesContextType = {
-  theme: 'light',
-  setTheme: () => {},
-  dashboardLayout: 'default',
-  setDashboardLayout: () => {},
-  notificationsEnabled: true,
-  setNotificationsEnabled: () => {},
-  soundEnabled: true,
-  setSoundEnabled: () => {},
 };
 
-const UserPreferencesContext = createContext<UserPreferencesContextType>(defaultContext);
-
-export const useUserPreferencesContext = () => useContext(UserPreferencesContext);
-
-interface UserPreferencesProviderProps {
-  children: React.ReactNode;
+interface UserPreferencesContextProps {
+  preferences: PreferenceType;
+  updatePreference: (key: keyof PreferenceType, value: PreferenceType[keyof PreferenceType]) => void;
 }
 
-export const UserPreferencesProvider = ({ children }: UserPreferencesProviderProps) => {
-  const [theme, setThemeState] = useState<string>('light');
-  const [dashboardLayout, setDashboardLayoutState] = useState<string>('default');
-  const [notificationsEnabled, setNotificationsEnabledState] = useState<boolean>(true);
-  const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
-  
-  const { preferences, savePreference } = useUserPreferences();
+const defaultPreferences: PreferenceType = {
+  theme: 'system',
+  dashboardLayout: 'default',
+  notification: true,
+  soundEnabled: true,
+};
 
-  // Load preferences from hook
+const UserPreferencesContext = createContext<UserPreferencesContextProps>({
+  preferences: defaultPreferences,
+  updatePreference: () => {},
+});
+
+export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const [preferences, setPreferences] = useState<PreferenceType>(defaultPreferences);
+
   useEffect(() => {
-    if (preferences) {
-      setThemeState(preferences.theme as string || 'light');
-      setDashboardLayoutState(preferences.dashboardLayout as string || 'default');
-      setNotificationsEnabledState(preferences.notification as boolean || true);
-      setSoundEnabledState(preferences.soundEnabled as boolean || true);
+    const fetchPreferences = async () => {
+      if (user?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('user_preferences')
+            .select('preferences')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching preferences:', error);
+          } else if (data?.preferences) {
+            setPreferences({ ...defaultPreferences, ...data.preferences });
+          }
+        } catch (error) {
+          console.error('Unexpected error fetching preferences:', error);
+        }
+      } else {
+        // Load from local storage if user is not logged in
+        const storedPreferences = localStorage.getItem('userPreferences');
+        if (storedPreferences) {
+          setPreferences({ ...defaultPreferences, ...JSON.parse(storedPreferences) });
+        }
+      }
+    };
+
+    fetchPreferences();
+  }, [user?.id]);
+
+  const updatePreference = async (key: keyof PreferenceType, value: PreferenceType[keyof PreferenceType]) => {
+    const newPreferences = { ...preferences, [key]: value };
+    setPreferences(newPreferences);
+
+    // Save to local storage
+    localStorage.setItem('userPreferences', JSON.stringify(newPreferences));
+
+    if (user?.id) {
+      try {
+        const { error } = await supabase
+          .from('user_preferences')
+          .upsert({
+            user_id: user.id,
+            preferences: newPreferences,
+          });
+
+        if (error) {
+          console.error('Error updating preferences:', error);
+        }
+      } catch (error) {
+        console.error('Unexpected error updating preferences:', error);
+      }
     }
-  }, [preferences]);
-
-  const setTheme = (value: string) => {
-    setThemeState(value);
-    savePreference('theme', value);
-  };
-
-  const setDashboardLayout = (value: string) => {
-    setDashboardLayoutState(value);
-    savePreference('dashboardLayout', value);
-  };
-
-  const setNotificationsEnabled = (value: boolean) => {
-    setNotificationsEnabledState(value);
-    savePreference('notification', value);
-  };
-
-  const setSoundEnabled = (value: boolean) => {
-    setSoundEnabledState(value);
-    savePreference('soundEnabled', value);
   };
 
   return (
-    <UserPreferencesContext.Provider
-      value={{
-        theme,
-        setTheme,
-        dashboardLayout,
-        setDashboardLayout,
-        notificationsEnabled,
-        setNotificationsEnabled,
-        soundEnabled,
-        setSoundEnabled,
-      }}
-    >
+    <UserPreferencesContext.Provider value={{ preferences, updatePreference }}>
       {children}
     </UserPreferencesContext.Provider>
   );
+};
+
+export const useUserPreferences = (): UserPreferencesContextProps => {
+  const context = useContext(UserPreferencesContext);
+  if (!context) {
+    throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
+  }
+  return context;
 };

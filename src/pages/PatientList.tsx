@@ -1,68 +1,68 @@
 
-import { useState } from 'react';
-import { usePatients } from '@/hooks/usePatients';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Patient } from '@/types';
+import { AddPatientDrawer } from '@/components/patients/AddPatientDrawer';
+import { PatientsList } from '@/components/patients/PatientsList';
+import { PatientToolbar } from '@/components/patients/PatientToolbar';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import PatientsList from '@/components/patients/PatientsList';
-import AddPatientDrawer from '@/components/patients/AddPatientDrawer';
-import PatientToolbar from '@/components/patients/PatientToolbar';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
-const PatientList = () => {
-  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentFilter, setCurrentFilter] = useState('all');
-  
-  const { patients, isLoading, error, refetch } = usePatients();
-  
-  const filteredPatients = patients?.filter(patient => {
-    const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
-    const matchesSearch = fullName.includes(searchTerm.toLowerCase());
-    
-    if (currentFilter === 'all') return matchesSearch;
-    // Add additional filters as needed
-    return matchesSearch;
+const PatientListPage = () => {
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+
+  const { data: patients = [], isLoading, error } = useQuery({
+    queryKey: ['patients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*');
+      if (error) throw error;
+      return data as Patient[];
+    }
   });
 
-  const handleAddPatientSuccess = () => {
-    setIsAddPatientOpen(false);
-    refetch();
+  const handleDeletePatient = async (id: string) => {
+    const { error } = await supabase
+      .from('patients')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting patient:', error);
+      return;
+    }
   };
+
+  const filteredPatients = patients.filter(patient => {
+    const matchesQuery = patient.first_name.toLowerCase().includes(query.toLowerCase()) ||
+      patient.last_name.toLowerCase().includes(query.toLowerCase());
+    
+    if (filter === 'all') return matchesQuery;
+    // Add more filter conditions as needed
+    return matchesQuery;
+  });
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Patients</h1>
-          <Button 
-            onClick={() => setIsAddPatientOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-5 w-5" /> Add Patient
-          </Button>
-        </div>
-        
-        <PatientToolbar 
-          searchTerm={searchTerm} 
-          onSearchChange={setSearchTerm}
-          currentFilter={currentFilter}
-          onFilterChange={setCurrentFilter}
+      <div className="container mx-auto px-4 py-8">
+        <PatientToolbar
+          query={query}
+          onQueryChange={setQuery}
+          filter={filter}
+          onFilterChange={setFilter}
         />
-        
-        <PatientsList 
-          patients={filteredPatients || []}
+        <PatientsList
+          patients={patients}
+          filteredPatients={filteredPatients}
           isLoading={isLoading}
           error={error}
-        />
-        
-        <AddPatientDrawer
-          open={isAddPatientOpen}
-          onOpenChange={setIsAddPatientOpen}
-          onSuccess={handleAddPatientSuccess}
+          handleDeletePatient={handleDeletePatient}
         />
       </div>
     </DashboardLayout>
   );
 };
 
-export default PatientList;
+export default PatientListPage;

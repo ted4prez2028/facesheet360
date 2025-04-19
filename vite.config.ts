@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs";
+import { componentTagger } from "lovable-tagger";
 
 // Check if SSL certificates exist for HTTPS
 const hasCertificates = () => {
@@ -24,8 +25,11 @@ const getHttpsConfig = () => {
   return undefined;
 };
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    mode === 'development' && componentTagger(),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -36,4 +40,4 @@ export default defineConfig({
     https: getHttpsConfig(),
     host: true
   }
-});
+}));
