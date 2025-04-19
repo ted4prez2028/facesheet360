@@ -7,10 +7,14 @@ import { AddPatientDrawer } from '@/components/patients/AddPatientDrawer';
 import PatientsList from '@/components/patients/PatientsList';
 import PatientToolbar from '@/components/patients/PatientToolbar';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useAuth } from '@/context/AuthContext';
 
 const PatientListPage = () => {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isFaceIdDialogOpen, setIsFaceIdDialogOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const { data: patients = [], isLoading, error } = useQuery({
     queryKey: ['patients'],
@@ -48,10 +52,13 @@ const PatientListPage = () => {
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
         <PatientToolbar
-          query={query}
-          onQueryChange={setQuery}
+          searchQuery={query}
+          setSearchQuery={setQuery}
           filter={filter}
           onFilterChange={setFilter}
+          isAuthenticated={isAuthenticated}
+          setIsAddPatientOpen={setIsAddPatientOpen}
+          setIsFaceIdDialogOpen={setIsFaceIdDialogOpen}
         />
         <PatientsList
           patients={patients}
@@ -60,6 +67,12 @@ const PatientListPage = () => {
           error={error}
           handleDeletePatient={handleDeletePatient}
         />
+        
+        {/* Add patient drawer should go here */}
+        {/* <AddPatientDrawer open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen} /> */}
+        
+        {/* Face ID dialog should go here */}
+        {/* <FaceIdentificationDialog open={isFaceIdDialogOpen} onOpenChange={setIsFaceIdDialogOpen} /> */}
       </div>
     </DashboardLayout>
   );

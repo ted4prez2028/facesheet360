@@ -6,20 +6,24 @@ import { UserPlus, Scan, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
-interface PatientToolbarProps {
+export interface PatientToolbarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  setIsAddPatientOpen: (isOpen: boolean) => void;
-  setIsFaceIdDialogOpen: (isOpen: boolean) => void;
-  isAuthenticated: boolean;
+  filter: string;
+  onFilterChange: (filter: string) => void;
+  isAuthenticated?: boolean;
+  setIsAddPatientOpen?: (isOpen: boolean) => void;
+  setIsFaceIdDialogOpen?: (isOpen: boolean) => void;
 }
 
 const PatientToolbar: React.FC<PatientToolbarProps> = ({
   searchQuery,
   setSearchQuery,
+  filter,
+  onFilterChange,
+  isAuthenticated = true,
   setIsAddPatientOpen,
   setIsFaceIdDialogOpen,
-  isAuthenticated,
 }) => {
   const handleButtonClick = (action: () => void) => {
     if (!isAuthenticated) {
@@ -37,7 +41,7 @@ const PatientToolbar: React.FC<PatientToolbarProps> = ({
   return (
     <div className="flex flex-col md:flex-row gap-4 justify-between">
       <Button
-        onClick={() => handleButtonClick(() => setIsAddPatientOpen(true))}
+        onClick={() => setIsAddPatientOpen && handleButtonClick(() => setIsAddPatientOpen(true))}
         className="flex items-center gap-2"
         disabled={!isAuthenticated}
       >
@@ -48,7 +52,7 @@ const PatientToolbar: React.FC<PatientToolbarProps> = ({
       <div className="flex flex-col sm:flex-row gap-2">
         <Button 
           variant="outline"
-          onClick={() => handleButtonClick(() => setIsFaceIdDialogOpen(true))}
+          onClick={() => setIsFaceIdDialogOpen && handleButtonClick(() => setIsFaceIdDialogOpen(true))}
           className="flex items-center gap-2"
           disabled={!isAuthenticated}
         >

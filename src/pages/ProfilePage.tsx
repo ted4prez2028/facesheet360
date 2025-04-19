@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { useUserPreferencesContext } from '@/context/UserPreferencesContext';
+import { useUserPreferences } from '@/context/UserPreferencesContext';
 import { useUpdateUser } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,16 +17,16 @@ import { User } from '@/types';
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const { theme, setTheme, notificationsEnabled, setNotificationsEnabled } = useUserPreferencesContext();
+  const { preferences, updatePreference } = useUserPreferences();
   const { mutate: updateUser } = useUpdateUser();
   
   const [profile, setProfile] = useState<Partial<User>>({
     name: '',
     email: '',
     specialty: '',
-    license_number: '',
+    licenseNumber: '',
     role: '',
-    profile_image: '',
+    profileImage: '',
   });
   
   useEffect(() => {
@@ -35,9 +35,9 @@ const ProfilePage = () => {
         name: user.name || '',
         email: user.email || '',
         specialty: user.specialty || '',
-        license_number: user.license_number || '',
+        licenseNumber: user.licenseNumber || '',
         role: user.role || '',
-        profile_image: user.profile_image || '',
+        profileImage: user.profileImage || '',
       });
     }
   }, [user]);
@@ -94,7 +94,7 @@ const ProfilePage = () => {
               <Card className="md:col-span-1">
                 <CardHeader className="text-center">
                   <Avatar className="h-24 w-24 mx-auto">
-                    <AvatarImage src={profile.profile_image || undefined} />
+                    <AvatarImage src={profile.profileImage || undefined} />
                     <AvatarFallback className="text-2xl">
                       {getInitials(profile.name || '')}
                     </AvatarFallback>
@@ -109,9 +109,9 @@ const ProfilePage = () => {
                       Specialty: {profile.specialty}
                     </p>
                   )}
-                  {profile.license_number && (
+                  {profile.licenseNumber && (
                     <p className="text-sm text-muted-foreground">
-                      License: {profile.license_number}
+                      License: {profile.licenseNumber}
                     </p>
                   )}
                 </CardContent>
@@ -157,8 +157,8 @@ const ProfilePage = () => {
                     <Label htmlFor="license">License Number</Label>
                     <Input 
                       id="license" 
-                      value={profile.license_number || ''} 
-                      onChange={(e) => handleProfileChange('license_number', e.target.value)} 
+                      value={profile.licenseNumber || ''} 
+                      onChange={(e) => handleProfileChange('licenseNumber', e.target.value)} 
                     />
                   </div>
                   
@@ -166,8 +166,8 @@ const ProfilePage = () => {
                     <Label htmlFor="image">Profile Image URL</Label>
                     <Input 
                       id="image" 
-                      value={profile.profile_image || ''} 
-                      onChange={(e) => handleProfileChange('profile_image', e.target.value)} 
+                      value={profile.profileImage || ''} 
+                      onChange={(e) => handleProfileChange('profileImage', e.target.value)} 
                       placeholder="https://example.com/your-image.jpg" 
                     />
                   </div>
@@ -195,7 +195,9 @@ const ProfilePage = () => {
                       Choose your preferred application theme
                     </p>
                   </div>
-                  <Select value={theme} onValueChange={setTheme}>
+                  <Select 
+                    value={preferences.theme} 
+                    onValueChange={(value) => updatePreference('theme', value as 'light' | 'dark' | 'system')}>
                     <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
@@ -215,8 +217,8 @@ const ProfilePage = () => {
                     </p>
                   </div>
                   <Switch 
-                    checked={notificationsEnabled}
-                    onCheckedChange={setNotificationsEnabled}
+                    checked={preferences.notification}
+                    onCheckedChange={(value) => updatePreference('notification', value)}
                   />
                 </div>
               </CardContent>

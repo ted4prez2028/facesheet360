@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Prescription } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -16,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const PharmacistDashboard = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const { mutate: updatePrescriptionStatus } = useUpdatePrescriptionStatus();
   
@@ -34,7 +32,15 @@ const PharmacistDashboard = () => {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as Prescription[];
+      
+      // Transform the data to match Prescription type
+      const transformedData = data.map((item: any) => ({
+        ...item,
+        patients: item.patients || { first_name: '', last_name: '' },
+        providers: item.providers ? { name: item.providers.name || '' } : { name: '' }
+      })) as Prescription[];
+      
+      return transformedData;
     },
     enabled: !!user?.id
   });
@@ -63,18 +69,11 @@ const PharmacistDashboard = () => {
       administeredBy: user.id
     }, {
       onSuccess: () => {
-        toast({
-          title: "Prescription filled",
-          description: "The prescription has been marked as filled.",
-        });
+        toast.success("Prescription filled");
         refetch();
       },
       onError: (error) => {
-        toast({
-          title: "Error",
-          description: `Failed to fill prescription: ${(error as Error).message}`,
-          variant: "destructive"
-        });
+        toast.error(`Failed to fill prescription: ${(error as Error).message}`);
       }
     });
   };

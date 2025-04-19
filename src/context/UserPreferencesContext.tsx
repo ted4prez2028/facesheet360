@@ -44,7 +44,9 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
           if (error) {
             console.error('Error fetching preferences:', error);
           } else if (data?.preferences) {
-            setPreferences({ ...defaultPreferences, ...data.preferences });
+            // Use type assertion to treat preferences as an object
+            const storedPrefs = data.preferences as object;
+            setPreferences({ ...defaultPreferences, ...storedPrefs });
           }
         } catch (error) {
           console.error('Unexpected error fetching preferences:', error);
