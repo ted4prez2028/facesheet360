@@ -1,77 +1,101 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { CommunicationProvider } from "./context/communication/CommunicationContext";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Patients from "./pages/Patients";
-import Charting from "./pages/Charting";
-import Appointments from "./pages/Appointments";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
-import Subscription from "./pages/Subscription";
-import NotFound from "./pages/NotFound";
-import EnvExample from "./components/EnvExample";
-import PatientProfile from "./pages/PatientProfile";
-import PatientDetailView from "./pages/PatientDetailView";
-import ContactsList from "./components/communication/ContactsList";
-import ChatWindows from "./components/communication/ChatWindows";
-import CallDialog from "./components/communication/CallDialog";
-import Index from "./pages/Index";
-import PharmacistDashboard from "./pages/PharmacistDashboard";
-import DoctorAccounts from './pages/DoctorAccounts';
-
-// Configure React Query client with optimized settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 60000, // 1 minute
-    },
-  },
-});
+import React from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from "@/components/ui/theme-provider"
+import { AuthProvider } from './context/AuthContext';
+import { UserPreferencesProvider } from './context/UserPreferencesContext';
+import LandingPage from './pages/LandingPage';
+import Dashboard from './pages/Dashboard';
+import PatientList from './pages/PatientList';
+import PatientDetails from './pages/PatientDetails';
+import WoundCare from './pages/WoundCare';
+import { Toaster } from "@/components/ui/toaster"
+import { useAuth } from './context/AuthContext';
+import { Navigate } from 'react-router-dom';
+import ProfilePage from './pages/ProfilePage';
+import { CommunicationProvider } from '@/context/communication/CommunicationContext';
+import CommunicationContainer from '@/components/communication/CommunicationContainer';
+import ContactsList from '@/components/communication/ContactsList';
 
 function App() {
+  const queryClient = new QueryClient();
+
+  // Custom hook to check authentication status
+  const RequireAuth = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated, isLoading } = useAuth();
+
+    // Show a loading indicator while checking authentication status
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+
+    // Redirect to landing page if not authenticated
+    if (!isAuthenticated) {
+      return <Navigate to="/" />;
+    }
+
+    return <>{children}</>;
+  };
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light">
           <AuthProvider>
-            <CommunicationProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/patients" element={<Patients />} />
-                <Route path="/charting" element={<Charting />} />
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/subscription" element={<Subscription />} />
-                <Route path="/settings/configuration" element={<EnvExample />} />
-                <Route path="/patients/:patientId" element={<PatientProfile />} />
-                <Route path="/patients/:patientId/detail" element={<PatientDetailView />} />
-                <Route path="/pharmacy" element={<PharmacistDashboard />} />
-                <Route path="/doctor-accounts" element={<DoctorAccounts />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              
-              {/* Communication components */}
-              <ContactsList />
-              <ChatWindows />
-              <CallDialog />
-            </CommunicationProvider>
+            <UserPreferencesProvider>
+              <CommunicationProvider>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <RequireAuth>
+                        <Dashboard />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/patients"
+                    element={
+                      <RequireAuth>
+                        <PatientList />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/patients/:id"
+                    element={
+                      <RequireAuth>
+                        <PatientDetails />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/patients/:id/wound-care"
+                    element={
+                      <RequireAuth>
+                        <WoundCare />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <RequireAuth>
+                        <ProfilePage />
+                      </RequireAuth>
+                    }
+                  />
+                </Routes>
+                <Toaster />
+                <CommunicationContainer />
+                <ContactsList />
+              </CommunicationProvider>
+            </UserPreferencesProvider>
           </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 

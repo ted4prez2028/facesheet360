@@ -1,136 +1,117 @@
 
-import React, { useEffect, useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
+import React, { useState, useEffect } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
   DialogTitle,
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Video, Phone, X } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useCommunication } from '@/context/communication/CommunicationContext';
-import { usePeerConnection } from '@/hooks/usePeerConnection';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Video, Phone } from 'lucide-react';
 
 interface GroupCallModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const GroupCallModal: React.FC<GroupCallModalProps> = ({ open, onOpenChange }) => {
-  const [organizationUsers, setOrganizationUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toggleContactSelection, selectedContacts, startGroupCall } = useCommunication();
-  const { getOrganizationUsers } = usePeerConnection();
+const GroupCallModal: React.FC<GroupCallModalProps> = ({ open, onOpenChange }) => {
+  const { 
+    contacts,
+    selectedContacts,
+    toggleContactSelection,
+    startGroupCall
+  } = useCommunication();
   
-  // Fetch organization users when modal opens
-  useEffect(() => {
-    if (open) {
-      const fetchUsers = async () => {
-        setIsLoading(true);
-        const users = await getOrganizationUsers();
-        setOrganizationUsers(users);
-        setIsLoading(false);
-      };
-      fetchUsers();
-    }
-  }, [open, getOrganizationUsers]);
+  const [callType, setCallType] = useState<'video' | 'audio'>('video');
   
-  // Start video group call
-  const handleStartVideoCall = () => {
-    startGroupCall(true);
-  };
-  
-  // Start audio-only group call
-  const handleStartAudioCall = () => {
-    startGroupCall(false);
-  };
-  
+  // Filter contacts to only show those from the same organization
+  const organizationContacts = contacts.onlineUsers.filter(
+    contact => contact.online_status
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Start a Group Call</DialogTitle>
           <DialogDescription>
-            Select team members from your organization to start a group call.
+            Select contacts to add to your group call
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4">
-          <h3 className="text-sm font-medium mb-3">Organization Members</h3>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-health-600"></div>
-            </div>
-          ) : organizationUsers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <User className="mx-auto h-8 w-8 mb-2 opacity-50" />
-              <p>No organization members available</p>
-              <p className="text-xs mt-1">Make sure your organization is set in your profile</p>
-            </div>
+        <div className="max-h-[300px] overflow-y-auto py-2">
+          {organizationContacts.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">
+              No online contacts available
+            </p>
           ) : (
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-              {organizationUsers.map(user => (
-                <div key={user.id} className="flex items-center space-x-3 p-2 rounded hover:bg-muted">
-                  <Checkbox
-                    id={`check-${user.id}`}
-                    checked={selectedContacts.includes(user.id)}
-                    onCheckedChange={() => toggleContactSelection(user.id)}
+            <div className="space-y-2">
+              {organizationContacts.map((contact) => (
+                <div 
+                  key={contact.id}
+                  className="flex items-center space-x-3 p-2 rounded-md border hover:bg-accent/50"
+                >
+                  <Checkbox 
+                    id={`contact-${contact.id}`}
+                    checked={selectedContacts.includes(contact.id)}
+                    onCheckedChange={() => toggleContactSelection(contact.id)}
                   />
-                  <div className="flex items-center w-full space-x-3">
+                  <Label 
+                    htmlFor={`contact-${contact.id}`}
+                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                  >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.profile_image} />
-                      <AvatarFallback className="bg-health-600 text-white">
-                        {user.name?.split(' ').map((n: string) => n[0]).join('')}
+                      <AvatarImage src={contact.profile_image} />
+                      <AvatarFallback>
+                        {contact.name.split(" ").map(n => n[0]).join("")}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">{user.name}</span>
-                      <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                    <div>
+                      <p className="text-sm font-medium">{contact.name}</p>
+                      <p className="text-xs text-muted-foreground">{contact.role}</p>
                     </div>
-                    <div className="ml-auto">
-                      {user.online_status ? (
-                        <span className="flex h-2 w-2 bg-green-500 rounded-full" title="Online" />
-                      ) : (
-                        <span className="flex h-2 w-2 bg-gray-300 rounded-full" title="Offline" />
-                      )}
-                    </div>
-                  </div>
+                  </Label>
                 </div>
               ))}
             </div>
           )}
         </div>
         
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:gap-0">
+        <div className="flex justify-center gap-4 py-2">
           <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            className="mt-2 sm:mt-0"
+            variant={callType === 'video' ? "default" : "outline"}
+            className="flex gap-2"
+            onClick={() => setCallType('video')}
           >
-            <X className="mr-2 h-4 w-4" />
+            <Video className="h-4 w-4" />
+            Video Call
+          </Button>
+          <Button
+            variant={callType === 'audio' ? "default" : "outline"}
+            className="flex gap-2"
+            onClick={() => setCallType('audio')}
+          >
+            <Phone className="h-4 w-4" />
+            Audio Call
+          </Button>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleStartAudioCall}
-              disabled={isLoading || selectedContacts.length === 0}
-            >
-              <Phone className="mr-2 h-4 w-4" />
-              Audio Call
-            </Button>
-            <Button 
-              onClick={handleStartVideoCall}
-              disabled={isLoading || selectedContacts.length === 0}
-            >
-              <Video className="mr-2 h-4 w-4" />
-              Video Call
-            </Button>
-          </div>
+          <Button 
+            onClick={() => startGroupCall(callType === 'video')}
+            disabled={selectedContacts.length === 0}
+          >
+            Start Call ({selectedContacts.length} selected)
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

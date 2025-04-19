@@ -10,6 +10,7 @@ export interface User {
   care_coins_balance?: number;
   careCoinsBalance?: number;
   online_status?: boolean;
+  last_seen?: string;
   organization?: string;
   created_at: string;
   updated_at: string;
