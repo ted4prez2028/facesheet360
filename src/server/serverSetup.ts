@@ -27,25 +27,32 @@ export const startSecureServer = (port: number = 443): void => {
   app.use(express.json());
   
   // Add basic route for testing
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'healthy', secure: true, domain: 'facesheet360.com' });
+  app.get('/health', (req, res) => {
+    res.json({ status: 'healthy', secure: true });
   });
   
   // Check if SSL certificates exist - exit if not available
-  if (!checkSslCertificates()) {
+  const keyPath = path.join(process.cwd(), 'localhost-key.pem');
+  const certPath = path.join(process.cwd(), 'localhost.pem');
+  
+  if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
     console.error('SSL certificates not found!');
-    console.log(getSslSetupInstructions());
+    console.log(`Please ensure ${keyPath} and ${certPath} exist`);
     process.exit(1);
   }
   
-  // Create HTTPS server
-  const server = setupHttps(app);
+  // Create HTTPS server with SSL certificates
+  const httpsOptions = {
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  };
+  
+  const server = https.createServer(httpsOptions, app);
   
   // Start the server
   server.listen(port, () => {
     console.log(`Secure HTTPS server running on port ${port}`);
-    console.log(`You can access it at https://localhost${port === 443 ? '' : ':' + port}`);
-    console.log(`Or at https://facesheet360.com${port === 443 ? '' : ':' + port}`);
+    console.log(`Access at https://localhost${port === 443 ? '' : ':' + port}`);
   });
   
   // Handle graceful shutdown
@@ -56,58 +63,4 @@ export const startSecureServer = (port: number = 443): void => {
       process.exit(0);
     });
   });
-};
-
-/**
- * Sets up an HTTPS server with SSL certificates
- * @param app Express app instance
- * @returns HTTPS server instance
- */
-export const setupHttps = (app: express.Application): https.Server => {
-  try {
-    const keyPath = path.join(process.cwd(), 'localhost-key.pem');
-    const certPath = path.join(process.cwd(), 'localhost.pem');
-    
-    const httpsOptions = {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath)
-    };
-    
-    return https.createServer(httpsOptions, app);
-  } catch (error) {
-    console.error('Error setting up HTTPS server:', error);
-    process.exit(1);
-  }
-};
-
-/**
- * Checks if SSL certificates exist
- * @returns Boolean indicating if certificates exist
- */
-export const checkSslCertificates = (): boolean => {
-  try {
-    const keyPath = path.join(process.cwd(), 'localhost-key.pem');
-    const certPath = path.join(process.cwd(), 'localhost.pem');
-    return fs.existsSync(keyPath) && fs.existsSync(certPath);
-  } catch (error) {
-    return false;
-  }
-};
-
-/**
- * Returns instructions for setting up SSL certificates
- * @returns String with setup instructions
- */
-export const getSslSetupInstructions = (): string => {
-  return `
-To set up SSL certificates for local development:
-
-1. Install mkcert (https://github.com/FiloSottile/mkcert)
-2. Run the following commands:
-   - mkcert -install
-   - mkcert localhost
-3. Move the generated files to your project root:
-   - localhost.pem
-   - localhost-key.pem
-  `;
 };
