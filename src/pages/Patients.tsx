@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Edit, Trash2, Plus, Eye, Face } from 'lucide-react';
+import { Edit, Trash2, Plus, Eye, User } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
@@ -46,11 +46,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon } from "@radix-ui/react-icons"
+import { format } from "date-fns";
+import { CalendarIcon } from 'lucide-react';
 import { addMonths, subMonths } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { PatientToolbar } from '@/components/patients/PatientToolbar';
+import PatientToolbar from '@/components/patients/PatientToolbar';
 
 const Patients = () => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
@@ -126,7 +126,7 @@ const Patients = () => {
     },
   })
 
-  const { mutate: addPatient, isLoading: isSubmitting } = useMutation({
+  const { mutate: addPatient, isPending: isSubmitting } = useMutation({
     mutationFn: async (values: z.infer<typeof patientSchema>) => {
       const { firstName, lastName, dateOfBirth, gender, email, phone, address, medicalRecordNumber, insuranceProvider, policyNumber } = values;
       const { data, error } = await supabase
@@ -169,7 +169,7 @@ const Patients = () => {
     },
   })
 
-  const { mutate: deletePatient, isLoading: isDeleting } = useMutation({
+  const { mutate: deletePatient, isPending: isDeleting } = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase
         .from('patients')
@@ -203,6 +203,10 @@ const Patients = () => {
   const handleFaceId = () => {
     setIsFaceIdDialogOpen(false);
     navigate('/face-id');
+  };
+
+  const onSubmit = (values: z.infer<typeof patientSchema>) => {
+    addPatient(values);
   };
 
   return (
@@ -284,7 +288,7 @@ const Patients = () => {
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(addPatient)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="firstName"

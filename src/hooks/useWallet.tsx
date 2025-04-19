@@ -87,8 +87,8 @@ export const useWallet = () => {
         
         // If user exists in our system, update their internal CareCoin balance
         if (user && updateCurrentUser) {
-          const newBalance = (user.careCoinsBalance || 0) + 10; // Bonus for connecting
-          updateCurrentUser({ careCoinsBalance: newBalance });
+          const newBalance = (user.care_coins_balance || 0) + 10; // Bonus for connecting
+          updateCurrentUser({ care_coins_balance: newBalance });
           toast.success('Wallet connected! You received 10 CareCoins as a bonus.');
         }
         

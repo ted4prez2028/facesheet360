@@ -25,7 +25,7 @@ export const useTransactionForm = () => {
       return;
     }
     
-    if (amount > (user.careCoinsBalance || 0)) {
+    if (amount > (user.care_coins_balance || 0)) {
       toast.error("Insufficient balance for this transaction.");
       return;
     }
@@ -37,7 +37,7 @@ export const useTransactionForm = () => {
       
       if (updateCurrentUser) {
         updateCurrentUser({
-          careCoinsBalance: (user.careCoinsBalance || 0) - amount
+          care_coins_balance: (user.care_coins_balance || 0) - amount
         });
       }
       

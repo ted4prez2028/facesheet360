@@ -7,13 +7,17 @@ export interface User {
   specialty?: string;
   license_number?: string;
   profile_image?: string;
-  care_coins_balance?: number;
-  careCoinsBalance?: number;
+  care_coins_balance: number;
   online_status?: boolean;
   last_seen?: string;
   organization?: string;
   created_at: string;
   updated_at: string;
+  
+  // Adding camelCase aliases to maintain compatibility
+  licenseNumber?: string;
+  profileImage?: string;
+  careCoinsBalance?: number;
 }
 
 export interface Message {

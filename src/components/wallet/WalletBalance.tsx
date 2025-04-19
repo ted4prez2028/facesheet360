@@ -25,7 +25,7 @@ export const WalletBalance = () => {
         <div className="space-y-2">
           {/* Internal platform balance */}
           <div>
-            <div className="text-2xl font-bold">{user.careCoinsBalance || 0} CC</div>
+            <div className="text-2xl font-bold">{user.care_coins_balance || 0} CC</div>
             <CardDescription className="text-xs">Platform Balance</CardDescription>
           </div>
           

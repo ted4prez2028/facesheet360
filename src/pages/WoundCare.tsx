@@ -56,7 +56,11 @@ const WoundCare = () => {
         patient_id: id,
         description,
         location,
-        image_url: imageUrl
+        image_url: imageUrl,
+        assessment: null,
+        stage: null,
+        infection_status: null,
+        healing_status: null
       });
       
       // Reset form
@@ -103,7 +107,7 @@ const WoundCare = () => {
             Back to Patient
           </Button>
           <h1 className="text-2xl font-bold">
-            Wound Care - {patient.first_name} {patient.last_name}
+            Wound Care - {patient?.first_name} {patient?.last_name}
           </h1>
         </div>
         

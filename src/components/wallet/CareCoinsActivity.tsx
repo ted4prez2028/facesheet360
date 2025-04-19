@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ interface CareCoinsActivityProps {
 export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({ onViewAll }) => {
   const { user } = useAuth();
   const { transactions, isLoading } = useCareCoinsTransactions();
-  const balance = user?.careCoinsBalance || 0;
+  const balance = user?.care_coins_balance || 0;
 
   const TransactionItem: React.FC<{ transaction: CareCoinsTransaction }> = ({ transaction }) => {
     const isOutgoing = transaction.from_user_id === user?.id;

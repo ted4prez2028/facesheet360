@@ -22,7 +22,7 @@ const profileFormSchema = z.object({
     .min(1, { message: "Email is required" })
     .email("This is not a valid email"),
   specialty: z.string().optional(),
-  licenseNumber: z.string().optional(),
+  license_number: z.string().optional(),
   bio: z.string().optional(),
 });
 
@@ -36,7 +36,7 @@ export default function ProfileTab() {
       name: user?.name || "",
       email: user?.email || "",
       specialty: user?.specialty || "",
-      licenseNumber: user?.licenseNumber || "",
+      license_number: user?.license_number || "",
       bio: "",
     },
   });
@@ -48,7 +48,7 @@ export default function ProfileTab() {
       await updateUserProfile({
         name: values.name,
         specialty: values.specialty,
-        licenseNumber: values.licenseNumber,
+        license_number: values.license_number,
       });
       
       toast.success("Profile updated successfully");
@@ -74,7 +74,7 @@ export default function ProfileTab() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={user?.profileImage} alt={user?.name} />
+                  <AvatarImage src={user?.profile_image} alt={user?.name} />
                   <AvatarFallback className="text-lg">
                     {user?.name?.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
@@ -136,7 +136,7 @@ export default function ProfileTab() {
                 
                 <FormField
                   control={form.control}
-                  name="licenseNumber"
+                  name="license_number"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>License Number</FormLabel>

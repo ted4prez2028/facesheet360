@@ -1,20 +1,8 @@
 
 import { Session } from '@supabase/supabase-js';
+import { User as AppUser } from '@/types';
 
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  specialty?: string;
-  license_number?: string;
-  profile_image?: string;
-  care_coins_balance: number;
-  online_status?: boolean;
-  organization?: string;
-  created_at?: string;
-  updated_at?: string;
-};
+export type User = AppUser;
 
 export type AuthContextType = {
   user: User | null;

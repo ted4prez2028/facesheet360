@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/auth';
@@ -105,8 +106,8 @@ export const useAuthOperations = (
       const dbUpdate = {
         name: userData.name,
         specialty: userData.specialty,
-        license_number: userData.licenseNumber,
-        profile_image: userData.profileImage,
+        license_number: userData.license_number,
+        profile_image: userData.profile_image,
       };
       
       const { data, error } = await supabase
@@ -150,9 +151,9 @@ export const useAuthOperations = (
           email: userData.email,
           role: userData.role as any,
           specialty: userData.specialty || undefined,
-          licenseNumber: userData.license_number || undefined,
-          profileImage: userData.profile_image || undefined,
-          careCoinsBalance: userData.care_coins_balance || 0
+          license_number: userData.license_number || undefined,
+          profile_image: userData.profile_image || undefined,
+          care_coins_balance: userData.care_coins_balance || 0
         };
       }
     } catch (error) {

@@ -23,9 +23,9 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
         email: userData.email,
         role: userData.role as any,
         specialty: userData.specialty || undefined,
-        licenseNumber: userData.license_number || undefined,
-        profileImage: userData.profile_image || undefined,
-        careCoinsBalance: userData.care_coins_balance || 0
+        license_number: userData.license_number || undefined,
+        profile_image: userData.profile_image || undefined,
+        care_coins_balance: userData.care_coins_balance || 0
       };
     } else {
       // If database query fails, fall back to session user metadata
@@ -40,7 +40,7 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
         name: userMeta.name || user.email || '',
         email: user.email || '',
         role: userMeta.role || 'doctor',
-        careCoinsBalance: 0
+        care_coins_balance: 0
       };
     }
   } catch (error) {
@@ -52,7 +52,7 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
       name: currentSession.user.email || '',
       email: currentSession.user.email || '',
       role: 'doctor',
-      careCoinsBalance: 0
+      care_coins_balance: 0
     };
   }
 };

@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types/auth';
+import { User } from '@/types';
 
 export interface AuthContextType {
   user: User | null;
@@ -114,9 +115,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: data.email,
         role: data.role,
         specialty: data.specialty,
-        licenseNumber: data.license_number,
-        profileImage: data.profile_image,
-        careCoinsBalance: data.care_coins_balance || 0,
+        license_number: data.license_number,
+        profile_image: data.profile_image,
+        care_coins_balance: data.care_coins_balance || 0,
         online_status: data.online_status,
         organization: data.organization,
         created_at: data.created_at,
@@ -219,9 +220,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userData.name) dbData.name = userData.name;
       if (userData.email) dbData.email = userData.email;
       if (userData.specialty) dbData.specialty = userData.specialty;
-      if (userData.licenseNumber) dbData.license_number = userData.licenseNumber;
-      if (userData.profileImage) dbData.profile_image = userData.profileImage;
-      if (userData.careCoinsBalance !== undefined) dbData.care_coins_balance = userData.careCoinsBalance;
+      if (userData.license_number) dbData.license_number = userData.license_number;
+      if (userData.profile_image) dbData.profile_image = userData.profile_image;
+      if (userData.care_coins_balance !== undefined) dbData.care_coins_balance = userData.care_coins_balance;
       if (userData.role) dbData.role = userData.role;
       if (userData.organization) dbData.organization = userData.organization;
       
