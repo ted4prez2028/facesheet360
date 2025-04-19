@@ -36,12 +36,12 @@ export default defineConfig(({ mode }) => ({
     },
   },
   server: {
-    port: 443,
+    port: 8080,
     https: getHttpsConfig(),
     host: true,
     proxy: {
       '/api': {
-        target: 'https://localhost:443',
+        target: 'https://localhost:8080',
         secure: false,
         changeOrigin: true
       }

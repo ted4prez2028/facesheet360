@@ -29,6 +29,23 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   retryInterval: 1000
 });
 
+// Clear any pending auth state on startup
+if (typeof window !== 'undefined') {
+  try {
+    const url = new URL(window.location.href);
+    if (url.hash && url.hash.includes('access_token')) {
+      // In case there's a lingering auth redirect, remove it
+      window.history.replaceState(
+        {}, 
+        document.title, 
+        url.pathname + url.search
+      );
+    }
+  } catch (e) {
+    console.error("Failed to clean URL:", e);
+  }
+}
+
 // Add comprehensive debug logging for auth state changes in development
 if (process.env.NODE_ENV === 'development') {
   supabase.auth.onAuthStateChange((event, session) => {

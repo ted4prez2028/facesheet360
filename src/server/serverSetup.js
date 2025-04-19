@@ -9,7 +9,7 @@ import path from 'path';
  * Sets up and starts an HTTPS server for the health tracking application
  * @param port The port to run the server on
  */
-export const startSecureServer = (port = 443) => {
+export const startSecureServer = (port = 8080) => {
   // Create Express app
   const app = express();
   
@@ -17,9 +17,9 @@ export const startSecureServer = (port = 443) => {
   app.use(cors({
     origin: [
       'https://facesheet360.com',
-      'https://facesheet360.com:443',
+      'https://facesheet360.com:8080',
       'https://localhost',
-      'https://localhost:443'
+      'https://localhost:8080'
     ],
     credentials: true
   }));
