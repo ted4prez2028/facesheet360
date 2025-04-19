@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Check, 
   Pill, 
@@ -10,8 +10,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 
 const Index = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate(isAuthenticated ? '/dashboard' : '/login');
+  };
+
   const features = [
     {
       icon: <Users className="h-8 w-8 text-health-500" />,
@@ -70,8 +78,12 @@ const Index = () => {
               medications, and more - all in one secure place.
             </p>
             <div className="space-x-4">
-              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
-                <Link to="/dashboard">Get Started</Link>
+              <Button 
+                size="lg" 
+                className="bg-green-500 hover:bg-green-600 text-white"
+                onClick={handleGetStarted}
+              >
+                Get Started
               </Button>
               <Button 
                 variant="outline" 
