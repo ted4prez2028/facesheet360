@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -27,12 +28,12 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const { 
     woundRecords, 
     isLoading, 
-    isUploading,
-    isAnalyzing,
     createWound, 
     updateWound,
     deleteWound,
@@ -67,52 +68,79 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
       return;
     }
 
-    // Upload image
-    const imageUrl = await uploadImage(selectedImage);
-    if (!imageUrl) return;
+    try {
+      setIsUploading(true);
+      // Upload image
+      const imageUrl = await uploadImage(selectedImage);
+      if (!imageUrl) {
+        toast.error("Failed to upload image");
+        setIsUploading(false);
+        return;
+      }
 
-    // Analyze the wound using OpenAI
-    const analysis = await analyzeWoundImage(imageUrl);
-    
-    // Create the wound record
-    await createWound.mutateAsync({
-      patient_id: patientId,
-      image_url: imageUrl,
-      location: location,
-      description: description,
-      assessment: analysis?.assessment || null,
-      stage: analysis?.stage || null,
-      infection_status: analysis?.infection_status || null,
-      healing_status: analysis?.healing_status || null
-    });
+      setIsAnalyzing(true);
+      // Analyze the wound using OpenAI
+      const analysis = await analyzeWoundImage(imageUrl);
+      
+      // Create the wound record
+      await createWound.mutateAsync({
+        patient_id: patientId,
+        image_url: imageUrl,
+        location: location,
+        description: description,
+        assessment: analysis?.assessment || null,
+        stage: analysis?.stage || null,
+        infection_status: analysis?.infection_status || null,
+        healing_status: analysis?.healing_status || null
+      });
 
-    // Reset form
-    setSelectedImage(null);
-    setImagePreview(null);
-    setLocation('');
-    setDescription('');
-    setIsAddWoundOpen(false);
+      // Reset form
+      setSelectedImage(null);
+      setImagePreview(null);
+      setLocation('');
+      setDescription('');
+      setIsAddWoundOpen(false);
+      toast.success("Wound record created successfully");
+    } catch (error) {
+      console.error("Error creating wound:", error);
+      toast.error("Failed to create wound record");
+    } finally {
+      setIsUploading(false);
+      setIsAnalyzing(false);
+    }
   };
 
   const handleDeleteWound = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this wound record?")) {
-      await deleteWound.mutateAsync(id);
+      try {
+        await deleteWound.mutateAsync(id);
+        toast.success("Wound record deleted successfully");
+      } catch (error) {
+        toast.error("Failed to delete wound record");
+      }
     }
   };
 
   const handleReanalyzeWound = async (wound: WoundRecord) => {
-    const analysis = await analyzeWoundImage(wound.image_url);
-    if (analysis) {
-      await updateWound.mutateAsync({
-        id: wound.id,
-        updates: {
-          assessment: analysis.assessment,
-          stage: analysis.stage,
-          infection_status: analysis.infection_status,
-          healing_status: analysis.healing_status
-        }
-      });
-      toast.success("Wound analysis updated");
+    try {
+      setIsAnalyzing(true);
+      const analysis = await analyzeWoundImage(wound.image_url);
+      if (analysis) {
+        await updateWound.mutateAsync({
+          id: wound.id,
+          updates: {
+            assessment: analysis.assessment,
+            stage: analysis.stage,
+            infection_status: analysis.infection_status,
+            healing_status: analysis.healing_status
+          }
+        });
+        toast.success("Wound analysis updated");
+      }
+    } catch (error) {
+      toast.error("Failed to analyze wound");
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 

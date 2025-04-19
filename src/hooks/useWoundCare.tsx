@@ -5,20 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 export interface WoundRecord {
   id: string;
   patient_id: string;
-  wound_location: string;
-  wound_type: string;
-  stage: string;
-  length: number;
-  width: number;
-  depth: number;
-  exudate_type: string;
-  exudate_amount: string;
-  wound_bed: string;
-  treatment: string;
+  location: string;
+  description: string;
+  image_url: string;
+  assessment: string | null;
+  stage: string | null;
+  infection_status: string | null;
+  healing_status: string | null;
   created_at: string;
   updated_at: string;
-  image_url?: string;
-  analysis_result?: any;
 }
 
 export const useWoundCare = (patientId: string) => {
@@ -28,7 +23,7 @@ export const useWoundCare = (patientId: string) => {
     queryKey: ['woundRecords', patientId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('wound_records')
+        .from('wounds')
         .select('*')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false });
@@ -38,10 +33,10 @@ export const useWoundCare = (patientId: string) => {
     },
   });
 
-  const createWoundRecord = useMutation({
+  const createWound = useMutation({
     mutationFn: async (newRecord: Omit<WoundRecord, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('wound_records')
+        .from('wounds')
         .insert([newRecord])
         .select()
         .single();
@@ -54,10 +49,10 @@ export const useWoundCare = (patientId: string) => {
     },
   });
 
-  const updateWoundRecord = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<WoundRecord> & { id: string }) => {
+  const updateWound = useMutation({
+    mutationFn: async ({ id, updates }: { id: string, updates: Partial<WoundRecord> }) => {
       const { data, error } = await supabase
-        .from('wound_records')
+        .from('wounds')
         .update(updates)
         .eq('id', id)
         .select()
@@ -71,10 +66,10 @@ export const useWoundCare = (patientId: string) => {
     },
   });
 
-  const deleteWoundRecord = useMutation({
+  const deleteWound = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('wound_records')
+        .from('wounds')
         .delete()
         .eq('id', id);
 
@@ -86,13 +81,43 @@ export const useWoundCare = (patientId: string) => {
     },
   });
 
-  const analyzeWoundImage = async (imageUrl: string) => {
-    const { data, error } = await supabase.functions.invoke('analyze-wound', {
-      body: { image_url: imageUrl }
-    });
+  const uploadImage = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${patientId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('wound_images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+        
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage
+        .from('wound_images')
+        .getPublicUrl(filePath);
+        
+      return data.publicUrl;
+    } catch (error) {
+      console.error("Error uploading wound image:", error);
+      return null;
+    }
+  };
 
-    if (error) throw error;
-    return data;
+  const analyzeWoundImage = async (imageUrl: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-wound', {
+        body: { image_url: imageUrl }
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error analyzing wound image:", error);
+      return null;
+    }
   };
 
   return {
@@ -100,9 +125,10 @@ export const useWoundCare = (patientId: string) => {
     isLoading,
     error,
     refetch,
-    createWoundRecord,
-    updateWoundRecord,
-    deleteWoundRecord,
+    createWound,
+    updateWound,
+    deleteWound,
+    uploadImage,
     analyzeWoundImage
   };
 };

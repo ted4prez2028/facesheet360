@@ -19,14 +19,14 @@ const WoundCare = () => {
     woundRecords, 
     isLoading: woundLoading, 
     createWound, 
-    uploadImage, 
-    isUploading 
+    uploadImage
   } = useWoundCare(id || '');
   
   const [activeTab, setActiveTab] = useState('records');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +43,7 @@ const WoundCare = () => {
     }
     
     try {
+      setIsUploading(true);
       // Upload image first
       const imageUrl = await uploadImage(selectedImage);
       if (!imageUrl) {
@@ -67,9 +68,12 @@ const WoundCare = () => {
       // Switch to records tab
       setActiveTab('records');
       
+      toast.success('Wound record created successfully');
     } catch (error) {
       console.error('Error creating wound record:', error);
       toast.error('Failed to create wound record');
+    } finally {
+      setIsUploading(false);
     }
   };
   
