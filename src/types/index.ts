@@ -1,4 +1,3 @@
-
 // Health prediction types for AI-powered health analytics
 import { Json } from '@/integrations/supabase/types';
 
@@ -164,6 +163,44 @@ export interface Prescription {
   status: string;
   created_at: string;
   updated_at: string;
+}
+
+// Update CarePlan interface to match database schema
+export interface CarePlan {
+  id: string;
+  patient_id: string;
+  content: string;
+  status: string;
+  created_at: string;
+  is_ai_generated: boolean;
+}
+
+// Update Call interface to match usage
+export interface Call {
+  id: string;
+  created_at: string;
+  from_user_id: string | null;
+  to_user_id: string | null;
+  accepted: boolean | null;
+  ended_at: string | null;
+  isVideo: boolean | null;
+  callerId?: string;
+  receiverId?: string;
+  callerName?: string;
+  receiverName?: string;
+  isVideoCall?: boolean;
+  status?: string;
+}
+
+// Update Message interface
+export interface Message {
+  id: string;
+  created_at: string;
+  from_user_id: string | null;
+  to_user_id: string | null;
+  content: string | null;
+  sender_id?: string;
+  timestamp?: string;
 }
 
 export interface Message {
