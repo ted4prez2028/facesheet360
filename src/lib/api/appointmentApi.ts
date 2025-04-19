@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -6,12 +5,11 @@ export interface Appointment {
   id?: string;
   patient_id: string;
   provider_id: string;
-  appointment_date: string; // Changed from Date | string to only string
+  appointment_date: string;
   status: string;
   notes?: string;
 }
 
-// Get all appointments
 export const getAppointments = async () => {
   try {
     const { data, error } = await supabase
@@ -31,7 +29,6 @@ export const getAppointments = async () => {
   }
 };
 
-// Get appointments for a specific patient
 export const getPatientAppointments = async (patientId: string) => {
   try {
     const { data, error } = await supabase
@@ -52,7 +49,6 @@ export const getPatientAppointments = async (patientId: string) => {
   }
 };
 
-// Get appointments for today
 export const getTodayAppointments = async (providerId?: string) => {
   const today = new Date();
   const startOfToday = new Date(today.setHours(0, 0, 0, 0)).toISOString();
@@ -82,15 +78,11 @@ export const getTodayAppointments = async (providerId?: string) => {
   }
 };
 
-// Add a new appointment
 export const addAppointment = async (appointment: Appointment) => {
   try {
-    // Ensure appointment_date is a string
     const formattedAppointment = {
       ...appointment,
-      appointment_date: typeof appointment.appointment_date === 'object' 
-        ? appointment.appointment_date.toISOString() 
-        : appointment.appointment_date
+      appointment_date: appointment.appointment_date
     };
     
     const { data, error } = await supabase
@@ -111,15 +103,11 @@ export const addAppointment = async (appointment: Appointment) => {
   }
 };
 
-// Update an existing appointment
 export const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
   try {
-    // Format the appointment_date if it exists and is a Date object
     const formattedUpdates = {
       ...updates,
-      appointment_date: updates.appointment_date && typeof updates.appointment_date === 'object' 
-        ? updates.appointment_date.toISOString() 
-        : updates.appointment_date
+      appointment_date: updates.appointment_date || undefined
     };
     
     const { data, error } = await supabase
@@ -141,7 +129,6 @@ export const updateAppointment = async (id: string, updates: Partial<Appointment
   }
 };
 
-// Delete an appointment
 export const deleteAppointment = async (id: string) => {
   try {
     const { error } = await supabase

@@ -28,8 +28,8 @@ export function useUserPreferences() {
           
           if (fetchError) throw fetchError;
           
-          if (data) {
-            setPreferences(data.preferences || {});
+          if (data?.preferences) {
+            setPreferences(data.preferences as UserPreferences);
           }
         } else {
           // If not logged in, try to get preferences from local storage
@@ -65,9 +65,9 @@ export function useUserPreferences() {
           .from('user_preferences')
           .upsert({ 
             user_id: session.user.id, 
-            preferences: newPreferences,
+            preferences: newPreferences as unknown as Json,
             updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
+          });
         
         if (saveError) throw saveError;
       }
