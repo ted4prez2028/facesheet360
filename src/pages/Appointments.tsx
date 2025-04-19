@@ -17,6 +17,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+const appointmentsData = [
+  {
+    id: '1',
+    patientName: 'John Doe',
+    patientId: 'P001',
+    date: new Date(2024, 3, 20, 10, 0),
+    type: 'check-up',
+    duration: 30,
+    notes: 'Annual check-up'
+  },
+  // Add more mock appointments or fetch from API
+];
+
 const Appointments = () => {
   const [date, setDate] = useState<Date>(new Date());
   const [searchTerm, setSearchTerm] = useState("");

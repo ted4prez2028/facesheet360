@@ -11,6 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8080
+    port: 443,
+    https: true
   }
 });
