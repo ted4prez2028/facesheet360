@@ -9,6 +9,7 @@ import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
+import PatientDetailView from './pages/PatientDetailView';
 import WoundCare from './pages/WoundCare';
 import { Toaster } from "@/components/ui/toaster"
 import { useAuth } from './context/AuthContext';
@@ -75,6 +76,14 @@ function App() {
                     element={
                       <RequireAuth>
                         <PatientDetails />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/patients/:patientId/detail"
+                    element={
+                      <RequireAuth>
+                        <PatientDetailView />
                       </RequireAuth>
                     }
                   />
