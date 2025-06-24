@@ -1,7 +1,6 @@
-
 import * as XLSX from 'xlsx';
 import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
 // Set up the fonts for pdfMake correctly
 // @ts-ignore - Ignoring type error as pdfMake expects this assignment
