@@ -60,7 +60,24 @@ Facesheet360 is a comprehensive healthcare management platform designed for medi
 - **Authentication**: Secure login and authentication
 - **Role-Based Permissions**: Control access based on user roles
 - **Data Protection**: Secure storage of patient information
+Pandemic Trend Analytics - A powerful dashboard that visualizes disease patterns over time, showing distribution across demographics, severity levels, and geographic regions. It includes anomaly detection to highlight unusual increases in specific illnesses.
 
+Interactive Illness Heat Map - A geographic visualization that displays disease hotspots on a map, with color-coding for severity and interactive popups showing detailed information about each outbreak location.
+
+Disease Outbreak Alerts - Real-time notifications about critical health events in your area, with severity ratings, detailed information, and specific recommendations for healthcare providers.
+
+Regional Health Trends - Comparative analysis of disease patterns across different regions, with demographic breakdowns and year-over-year comparisons to identify emerging health concerns.
+
+Dashboard Integration - Added pandemic monitoring to the main dashboard with critical alerts and local trends to keep providers informed of important health events in their area.
+
+The system includes:
+
+Filtering by region, timeframe, and illness type
+Severity indicators and growth rate tracking
+Demographic analysis of affected populations
+Comparative analytics across regions and time periods
+Subscription options for real-time alerts
+Export functionality for reports
 ## Technical Stack
 
 - **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui
