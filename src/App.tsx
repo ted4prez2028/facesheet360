@@ -1,17 +1,16 @@
-
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AuthProvider } from './context/AuthContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
+import { Toaster } from "sonner";
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
 import PatientDetailView from './pages/PatientDetailView';
 import WoundCare from './pages/WoundCare';
-import { Toaster } from "@/components/ui/toaster"
 import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
