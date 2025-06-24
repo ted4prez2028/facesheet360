@@ -1,69 +1,125 @@
-# Welcome to your Lovable project
+# Facesheet360 - Healthcare Management Platform
 
-## Project info
+Facesheet360 is a comprehensive healthcare management platform designed for medical professionals to streamline patient care, appointment scheduling, charting, and more.
 
-**URL**: https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505
+## Features
 
-## How can I edit this code?
+### Patient Management
+- **Patient Records**: Create and manage detailed patient profiles
+- **Facial Recognition**: Identify patients using facial recognition technology
+- **Medical History**: Track comprehensive patient medical histories
+- **Care Team Assignment**: Assign healthcare professionals to specific patients
 
-There are several ways of editing your application.
+### Charting & Documentation
+- **Digital Charting**: Comprehensive electronic health records
+- **Vital Signs Tracking**: Record and monitor patient vital signs
+- **Lab Results**: Manage and view laboratory test results
+- **Medication Management**: Prescribe and track patient medications
+- **Imaging Records**: Store and view patient imaging studies
+- **Wound Care**: Document and track wound healing with AI analysis
+- **Care Plans**: Create and manage patient care plans with AI assistance
 
-**Use Lovable**
+### Appointments & Scheduling
+- **Calendar View**: View appointments in day, week, or month format
+- **Appointment Scheduling**: Create and manage patient appointments
+- **Reminders**: Automated appointment reminders
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505) and start prompting.
+### Communication
+- **Secure Messaging**: Chat with other healthcare professionals
+- **Video Calls**: Conduct telemedicine sessions with patients
+- **Group Calls**: Host multi-participant video conferences
+- **Call Light System**: Respond to patient assistance requests
 
-Changes made via Lovable will be committed automatically to this repo.
+### Pharmacy Integration
+- **Prescription Management**: Create and track prescriptions
+- **Medication Administration**: Record when medications are administered
+- **Pharmacy Dashboard**: View and manage prescriptions from a pharmacist perspective
 
-**Use your preferred IDE**
+### Food Service
+- **Dietary Management**: Track patient dietary restrictions
+- **Meal Ordering**: Order meals for patients
+- **Menu Synchronization**: Automatically sync with food service providers
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Analytics & Reporting
+- **Health Metrics**: Track key health metrics and trends
+- **Patient Statistics**: View patient demographic information
+- **Appointment Analytics**: Monitor appointment statistics
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### CareCoins Rewards
+- **Digital Wallet**: Manage CareCoins digital currency
+- **Rewards System**: Earn CareCoins for healthcare activities
+- **Bill Payments**: Use CareCoins to pay medical bills
+- **Virtual Cards**: Create virtual payment cards backed by CareCoins
 
-Follow these steps:
+### User Management
+- **Role-Based Access**: Different permissions for doctors, nurses, therapists, and CNAs
+- **User Profiles**: Customizable user profiles
+- **Subscription Management**: Manage subscription plans and billing
 
+### Security & Compliance
+- **Authentication**: Secure login and authentication
+- **Role-Based Permissions**: Control access based on user roles
+- **Data Protection**: Secure storage of patient information
+
+## Technical Stack
+
+- **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage, Edge Functions)
+- **State Management**: React Query, Context API
+- **Real-time Features**: Supabase Realtime
+- **AI Integration**: OpenAI for care plan generation and wound analysis
+- **Communication**: WebRTC for video calls
+- **Deployment**: Netlify
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone <repository-url>
+cd facesheet360
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies
+```sh
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open your browser and navigate to `http://localhost:3000`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Environment Setup
 
-**Use GitHub Codespaces**
+The application requires the following environment variables:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+OPENAI_API_KEY=your_openai_api_key (for AI features)
+```
 
-## What technologies are used for this project?
+## Deployment
 
-This project is built with .
+The application can be deployed to Netlify:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```sh
+npm run build
+netlify deploy --prod
+```
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505) and click on Share -> Publish.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## I want to use a custom domain - is that possible?
+## Support
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+For support, please contact support@facesheet360.com
