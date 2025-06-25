@@ -56,7 +56,7 @@ Facesheet360 is a comprehensive healthcare management platform designed for medi
   - Visualization of disease patterns and hotspots
   - Early warning system for potential outbreaks
   - Contextual alerts for providers based on local trends
-
+  - 
 - **Enhanced Video Calling**
   - Real-time transcription of clinical conversations
   - Automatic documentation of video consultations
