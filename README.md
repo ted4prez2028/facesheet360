@@ -1,142 +1,156 @@
 # Facesheet360 - Healthcare Management Platform
 
-Facesheet360 is a comprehensive healthcare management platform designed for medical professionals to streamline patient care, appointment scheduling, charting, and more.
+Facesheet360 is a comprehensive healthcare management platform designed for medical professionals to streamline patient care, improve communication, and enhance clinical decision-making through advanced AI-powered features.
 
 ## Features
 
-### Patient Management
-- **Patient Records**: Create and manage detailed patient profiles
-- **Facial Recognition**: Identify patients using facial recognition technology
-- **Medical History**: Track comprehensive patient medical histories
-- **Care Team Assignment**: Assign healthcare professionals to specific patients
+### Core Functionality
 
-### Charting & Documentation
-- **Digital Charting**: Comprehensive electronic health records
-- **Vital Signs Tracking**: Record and monitor patient vital signs
-- **Lab Results**: Manage and view laboratory test results
-- **Medication Management**: Prescribe and track patient medications
-- **Imaging Records**: Store and view patient imaging studies
-- **Wound Care**: Document and track wound healing with AI analysis
-- **Care Plans**: Create and manage patient care plans with AI assistance
+- **Patient Management**
+  - Complete patient profiles with medical history, allergies, and demographics
+  - Facial recognition for quick patient identification
+  - Medical record management with secure access controls
+  - Care team assignments with role-based permissions
 
-### Appointments & Scheduling
-- **Calendar View**: View appointments in day, week, or month format
-- **Appointment Scheduling**: Create and manage patient appointments
-- **Reminders**: Automated appointment reminders
+- **Electronic Health Records (EHR)**
+  - Digital charting with comprehensive medical documentation
+  - Vital signs tracking and visualization
+  - Lab results management and abnormal result flagging
+  - Medication management and prescription tracking
+  - Wound care documentation with AI-assisted assessment
 
-### Communication
-- **Secure Messaging**: Chat with other healthcare professionals
-- **Video Calls**: Conduct telemedicine sessions with patients
-- **Group Calls**: Host multi-participant video conferences
-- **Call Light System**: Respond to patient assistance requests
+- **Appointment Scheduling**
+  - Calendar view with day, week, and month perspectives
+  - Appointment categorization (check-up, follow-up, consultation, etc.)
+  - Patient reminders and notifications
+  - Provider availability management
 
-### Pharmacy Integration
-- **Prescription Management**: Create and track prescriptions
-- **Medication Administration**: Record when medications are administered
-- **Pharmacy Dashboard**: View and manage prescriptions from a pharmacist perspective
+- **Communication Tools**
+  - Secure messaging between healthcare providers
+  - Video and audio calling with screen sharing
+  - Real-time call light system for patient assistance
+  - Group calling for multidisciplinary team meetings
 
-### Food Service
-- **Dietary Management**: Track patient dietary restrictions
-- **Meal Ordering**: Order meals for patients
-- **Menu Synchronization**: Automatically sync with food service providers
+### AI-Powered Features
 
-### Analytics & Reporting
-- **Health Metrics**: Track key health metrics and trends
-- **Patient Statistics**: View patient demographic information
-- **Appointment Analytics**: Monitor appointment statistics
+- **AI Care Plan Generation**
+  - Automated care plan creation based on patient data
+  - Contextual recommendations using patient history
+  - Treatment suggestions with evidence-based protocols
+  - Customizable templates with provider oversight
 
-### CareCoins Rewards
-- **Digital Wallet**: Manage CareCoins digital currency
-- **Rewards System**: Earn CareCoins for healthcare activities
-- **Bill Payments**: Use CareCoins to pay medical bills
-- **Virtual Cards**: Create virtual payment cards backed by CareCoins
+- **Health Predictions and Risk Assessment**
+  - Predictive analytics for patient outcomes
+  - Early warning systems for clinical deterioration
+  - Risk stratification for common conditions
+  - Trend analysis of vital signs and lab values
 
-### User Management
-- **Role-Based Access**: Different permissions for doctors, nurses, therapists, and CNAs
-- **User Profiles**: Customizable user profiles
-- **Subscription Management**: Manage subscription plans and billing
+- **Wound Care Analysis**
+  - AI-powered wound assessment from images
+  - Automatic wound staging and classification
+  - Infection detection and healing progress tracking
+  - Treatment recommendations based on wound characteristics
 
-### Security & Compliance
-- **Authentication**: Secure login and authentication
-- **Role-Based Permissions**: Control access based on user roles
-- **Data Protection**: Secure storage of patient information
-Pandemic Trend Analytics - A powerful dashboard that visualizes disease patterns over time, showing distribution across demographics, severity levels, and geographic regions. It includes anomaly detection to highlight unusual increases in specific illnesses.
+- **Pandemic and Outbreak Detection**
+  - Regional illness trend analysis
+  - Visualization of disease patterns and hotspots
+  - Early warning system for potential outbreaks
+  - Contextual alerts for providers based on local trends
 
-Interactive Illness Heat Map - A geographic visualization that displays disease hotspots on a map, with color-coding for severity and interactive popups showing detailed information about each outbreak location.
+- **Enhanced Video Calling**
+  - Real-time transcription of clinical conversations
+  - Automatic documentation of video consultations
+  - Language translation for multilingual patient care
+  - Emotion detection for improved patient assessment
 
-Disease Outbreak Alerts - Real-time notifications about critical health events in your area, with severity ratings, detailed information, and specific recommendations for healthcare providers.
+### Advanced Analytics
 
-Regional Health Trends - Comparative analysis of disease patterns across different regions, with demographic breakdowns and year-over-year comparisons to identify emerging health concerns.
+- **Clinical Dashboards**
+  - Provider performance metrics
+  - Patient outcome tracking
+  - Population health management
+  - Resource utilization analysis
 
-Dashboard Integration - Added pandemic monitoring to the main dashboard with critical alerts and local trends to keep providers informed of important health events in their area.
+- **Financial Tools**
+  - CareCoins digital currency for healthcare rewards
+  - Virtual payment cards for healthcare expenses
+  - Blockchain integration for secure transactions
+  - Bill payment services using earned CareCoins
 
-The system includes:
+### Specialized Modules
 
-Filtering by region, timeframe, and illness type
-Severity indicators and growth rate tracking
-Demographic analysis of affected populations
-Comparative analytics across regions and time periods
-Subscription options for real-time alerts
-Export functionality for reports
-## Technical Stack
+- **Pharmacy Dashboard**
+  - Medication fulfillment tracking
+  - Prescription management workflow
+  - Medication administration recording
+  - Automated medication reminders
+
+- **Food Ordering System**
+  - Dietary restriction management
+  - Nutritional information tracking
+  - Meal ordering with USFoods integration
+  - Allergen warnings and diet compliance
+
+- **Call Light Dashboard**
+  - Real-time patient assistance requests
+  - Staff assignment and response tracking
+  - Emergency prioritization
+  - Historical request analysis
+
+## Technology Stack
 
 - **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui
 - **Backend**: Supabase (PostgreSQL, Authentication, Storage, Edge Functions)
-- **State Management**: React Query, Context API
-- **Real-time Features**: Supabase Realtime
-- **AI Integration**: OpenAI for care plan generation and wound analysis
-- **Communication**: WebRTC for video calls
-- **Deployment**: Netlify
+- **AI Integration**: OpenAI API, custom AI models
+- **Real-time Communication**: WebRTC, PeerJS
+- **Data Visualization**: Recharts
+- **Authentication**: JWT-based auth with role-based access control
+- **Blockchain**: Ethereum integration for CareCoins (ERC-20 tokens)
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+)
 - npm or yarn
+- Supabase account
 
 ### Installation
 
-1. Clone the repository
-```sh
+```bash
+# Clone the repository
 git clone <repository-url>
+
+# Navigate to the project directory
 cd facesheet360
-```
 
-2. Install dependencies
-```sh
+# Install dependencies
 npm install
-```
 
-3. Start the development server
-```sh
+# Start the development server
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+### Environment Setup
 
-## Environment Setup
-
-The application requires the following environment variables:
+Create a `.env` file in the root directory with the following variables:
 
 ```
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-OPENAI_API_KEY=your_openai_api_key (for AI features)
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_OPENAI_API_KEY=your_openai_api_key
 ```
 
-## Deployment
+## Contributing
 
-The application can be deployed to Netlify:
-
-```sh
-npm run build
-netlify deploy --prod
-```
+Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## Acknowledgments
 
-For support, please contact support@facesheet360.com
+- All healthcare professionals who provided valuable feedback
+- The open-source community for the amazing tools and libraries
+- Supabase for the powerful backend infrastructure
