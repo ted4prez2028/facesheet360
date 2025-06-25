@@ -51,12 +51,6 @@ Facesheet360 is a comprehensive healthcare management platform designed for medi
   - Infection detection and healing progress tracking
   - Treatment recommendations based on wound characteristics
 
-- **Pandemic and Outbreak Detection**
-  - Regional illness trend analysis
-  - Visualization of disease patterns and hotspots
-  - Early warning system for potential outbreaks
-  - Contextual alerts for providers based on local trends
-
 - **Enhanced Video Calling**
   - Real-time transcription of clinical conversations
   - Automatic documentation of video consultations
