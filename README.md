@@ -1,69 +1,156 @@
-# Welcome to your Lovable project
+# Facesheet360 - Healthcare Management Platform
 
-## Project info
+Facesheet360 is a comprehensive healthcare management platform designed for medical professionals to streamline patient care, improve communication, and enhance clinical decision-making through advanced AI-powered features.
 
-**URL**: https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505
+## Features
 
-## How can I edit this code?
+### Core Functionality
 
-There are several ways of editing your application.
+- **Patient Management**
+  - Complete patient profiles with medical history, allergies, and demographics
+  - Facial recognition for quick patient identification
+  - Medical record management with secure access controls
+  - Care team assignments with role-based permissions
 
-**Use Lovable**
+- **Electronic Health Records (EHR)**
+  - Digital charting with comprehensive medical documentation
+  - Vital signs tracking and visualization
+  - Lab results management and abnormal result flagging
+  - Medication management and prescription tracking
+  - Wound care documentation with AI-assisted assessment
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505) and start prompting.
+- **Appointment Scheduling**
+  - Calendar view with day, week, and month perspectives
+  - Appointment categorization (check-up, follow-up, consultation, etc.)
+  - Patient reminders and notifications
+  - Provider availability management
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Communication Tools**
+  - Secure messaging between healthcare providers
+  - Video and audio calling with screen sharing
+  - Real-time call light system for patient assistance
+  - Group calling for multidisciplinary team meetings
 
-**Use your preferred IDE**
+### AI-Powered Features
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **AI Care Plan Generation**
+  - Automated care plan creation based on patient data
+  - Contextual recommendations using patient history
+  - Treatment suggestions with evidence-based protocols
+  - Customizable templates with provider oversight
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Health Predictions and Risk Assessment**
+  - Predictive analytics for patient outcomes
+  - Early warning systems for clinical deterioration
+  - Risk stratification for common conditions
+  - Trend analysis of vital signs and lab values
 
-Follow these steps:
+- **Wound Care Analysis**
+  - AI-powered wound assessment from images
+  - Automatic wound staging and classification
+  - Infection detection and healing progress tracking
+  - Treatment recommendations based on wound characteristics
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **Pandemic and Outbreak Detection**
+  - Regional illness trend analysis
+  - Visualization of disease patterns and hotspots
+  - Early warning system for potential outbreaks
+  - Contextual alerts for providers based on local trends
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Enhanced Video Calling**
+  - Real-time transcription of clinical conversations
+  - Automatic documentation of video consultations
+  - Language translation for multilingual patient care
+  - Emotion detection for improved patient assessment
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Advanced Analytics
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+- **Clinical Dashboards**
+  - Provider performance metrics
+  - Patient outcome tracking
+  - Population health management
+  - Resource utilization analysis
+
+- **Financial Tools**
+  - CareCoins digital currency for healthcare rewards
+  - Virtual payment cards for healthcare expenses
+  - Blockchain integration for secure transactions
+  - Bill payment services using earned CareCoins
+
+### Specialized Modules
+
+- **Pharmacy Dashboard**
+  - Medication fulfillment tracking
+  - Prescription management workflow
+  - Medication administration recording
+  - Automated medication reminders
+
+- **Food Ordering System**
+  - Dietary restriction management
+  - Nutritional information tracking
+  - Meal ordering with USFoods integration
+  - Allergen warnings and diet compliance
+
+- **Call Light Dashboard**
+  - Real-time patient assistance requests
+  - Staff assignment and response tracking
+  - Emergency prioritization
+  - Historical request analysis
+
+## Technology Stack
+
+- **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage, Edge Functions)
+- **AI Integration**: OpenAI API, custom AI models
+- **Real-time Communication**: WebRTC, PeerJS
+- **Data Visualization**: Recharts
+- **Authentication**: JWT-based auth with role-based access control
+- **Blockchain**: Ethereum integration for CareCoins (ERC-20 tokens)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18+)
+- npm or yarn
+- Supabase account
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+
+# Navigate to the project directory
+cd facesheet360
+
+# Install dependencies
+npm install
+
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` file in the root directory with the following variables:
 
-**Use GitHub Codespaces**
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_OPENAI_API_KEY=your_openai_api_key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Contributing
 
-## What technologies are used for this project?
+Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-This project is built with .
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## How can I deploy this project?
+## Acknowledgments
 
-Simply open [Lovable](https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+- All healthcare professionals who provided valuable feedback
+- The open-source community for the amazing tools and libraries
+- Supabase for the powerful backend infrastructure
