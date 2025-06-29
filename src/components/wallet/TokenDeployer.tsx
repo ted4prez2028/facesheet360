@@ -80,9 +80,9 @@ export function TokenDeployer() {
       setDeployedAddress(simulatedAddress);
       
       toast.success("CareCoin token contract deployed successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error deploying token:", err);
-      setError(err.message || "Failed to deploy token contract");
+      setError(err instanceof Error ? err.message : "Failed to deploy token contract");
     } finally {
       setIsDeploying(false);
     }

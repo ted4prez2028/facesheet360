@@ -3,7 +3,7 @@ export interface HealthPrediction {
   id: string;
   patient_id: string;
   prediction_type: string;
-  prediction_data: Record<string, any>;
+  prediction_data: Record<string, unknown>;
   confidence_score: number;
   created_at: string;
   updated_at: string;

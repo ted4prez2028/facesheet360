@@ -77,6 +77,16 @@ export interface Patient {
   facial_data?: string;
   created_at: string;
   updated_at: string;
+  status?: string;
+  condition?: string;
+  vitalSigns?: {
+    heartRate?: number;
+    bloodPressure?: string;
+    temperature?: number;
+  };
+  medications?: string[];
+  medicalHistory?: string[];
+  allergies?: string[];
 }
 
 export interface Appointment {
@@ -100,7 +110,7 @@ export interface CareCoinsTransaction {
   reward_category?: string;
   created_at: string;
   otherUserName?: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 interface PatientInfo {
@@ -143,6 +153,7 @@ export interface CallLightRequest {
   completed_at?: string;
   completed_by?: string;
   organization?: string;
+  patients?: Patient;
 }
 
 export interface PreferenceType {
@@ -184,7 +195,7 @@ export interface CareCoinsCard {
   current_balance: number;
   is_active: boolean;
   card_type: 'virtual' | 'physical';
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export interface CareCoinsBillPayment {
@@ -199,7 +210,7 @@ export interface CareCoinsBillPayment {
   created_at: string;
   scheduled_date?: string;
   completed_at?: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export interface CareCoinsAchievement {
@@ -207,7 +218,7 @@ export interface CareCoinsAchievement {
   user_id: string;
   achievement_type: string;
   achieved_at: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export interface ExchangeRate {

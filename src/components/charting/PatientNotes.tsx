@@ -50,10 +50,19 @@ const PatientNotes = ({ patientId, userId }: PatientNotesProps) => {
       content: noteText,
       noteType
     }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         setIsCreatingNote(false);
         setNoteText("");
         setNoteType("Progress Note");
+
+        // Mint CareCoin for charting activity
+        if (walletAddress) {
+          // In a real application, generate a robust hash of anonymized charting data.
+          // For demonstration, we'll use a simple hash of the note content and timestamp.
+          const metadata = `${noteText}-${Date.now()}`;
+          const metadataHash = btoa(metadata).substring(0, 32); // Simple base64 hash
+          await mintCareCoins(walletAddress, "1", metadataHash); // Mint 1 CareCoin
+        }
       }
     });
   };

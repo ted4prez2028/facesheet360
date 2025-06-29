@@ -54,22 +54,22 @@ const fetchPatients = async () => {
     // Try the regular API method first
     try {
       return await getPatientsApi();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Regular API method failed, trying direct method:", error);
       
       // If we get a recursion error, try the direct method
-      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
         console.log("Using direct API method due to recursion issue");
         return await getPatientsDirect();
       }
       
       throw error;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching patients:", error);
     
     // Handle specific RLS policy error
-    if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+    if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
       throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
     }
     
@@ -93,11 +93,11 @@ const fetchPatient = async (id: string) => {
     await verifySession();
     
     return await getPatientApi(id);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error fetching patient with ID ${id}:`, error);
     
     // Handle specific RLS policy error
-    if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+    if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
       throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
     }
     
@@ -129,12 +129,12 @@ export const useCreatePatient = () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
       toast.success("Patient created successfully");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // Handle specific RLS policy error
-      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
         toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
       } else {
-        toast.error(`Error creating patient: ${error?.message || 'Unknown error'}`);
+        toast.error(`Error creating patient: ${error instanceof Error ? error?.message : 'Unknown error'}`);
       }
     }
   });
@@ -154,12 +154,12 @@ export const useUpdatePatient = () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
       toast.success("Patient updated successfully");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // Handle specific RLS policy error
-      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
         toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
       } else {
-        toast.error(`Error updating patient: ${error?.message || 'Unknown error'}`);
+        toast.error(`Error updating patient: ${error instanceof Error ? error?.message : 'Unknown error'}`);
       }
     }
   });
@@ -179,12 +179,12 @@ export const useDeletePatient = () => {
       queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
       toast.success("Patient deleted successfully");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // Handle specific RLS policy error
-      if (error?.message?.includes('infinite recursion') || error?.code === '42P17') {
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
         toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
       } else {
-        toast.error(`Error deleting patient: ${error?.message || 'Unknown error'}`);
+        toast.error(`Error deleting patient: ${error instanceof Error ? error?.message : 'Unknown error'}`);
       }
     }
   });

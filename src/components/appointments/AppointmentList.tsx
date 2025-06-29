@@ -55,17 +55,17 @@ const AppointmentList = ({
     }
   };
 
-  const handleSendReminder = (appointment: any) => {
+  const handleSendReminder = (appointment: AppointmentData) => {
     // Implementation would connect to notification system
     toast.success(`Reminder sent to ${appointment.patients?.first_name || 'patient'}`);
   };
 
-  const handleCheckIn = (appointment: any) => {
+  const handleCheckIn = (appointment: AppointmentData) => {
     // Implementation would update appointment status
     toast.success(`${appointment.patients?.first_name || 'Patient'} checked in`);
   };
 
-  const handleStartSession = (appointment: any) => {
+  const handleStartSession = (appointment: AppointmentData) => {
     // Implementation would start virtual session or mark as in-progress
     toast.success(`Session started with ${appointment.patients?.first_name || 'patient'}`);
   };

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -7,6 +7,16 @@ import { Bell, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUpdatePrescriptionStatus } from '@/hooks/usePrescriptions';
 import { createNotification } from '@/lib/api/notificationApi';
+
+interface NotificationPayload {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  event_id?: string;
+}
 
 const MedicationReminders = () => {
   const { user } = useAuth();
@@ -42,7 +52,7 @@ const MedicationReminders = () => {
         schema: 'public',
         table: 'notifications',
         filter: `user_id=eq.${user.id}`
-      }, (payload: any) => {
+      }, (payload: { new: NotificationPayload }) => {
         const notification = payload.new;
         
         // Only handle new notifications for this user
@@ -71,9 +81,9 @@ const MedicationReminders = () => {
       supabase.removeChannel(medicationChannel);
       supabase.removeChannel(notificationChannel);
     };
-  }, [user]);
+  }, [user, fetchDueMedications, showMedicationToast]);
   
-  const fetchDueMedications = async () => {
+  const fetchDueMedications = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -83,9 +93,9 @@ const MedicationReminders = () => {
     } catch (error) {
       console.error('Error in medication reminders:', error);
     }
-  };
+  }, [user]);
   
-  const showMedicationToast = (notification: any) => {
+  const showMedicationToast = useCallback((notification: NotificationPayload) => {
     // Extract medication ID from event_id if it exists
     const medicationId = notification.event_id;
     
@@ -119,9 +129,9 @@ const MedicationReminders = () => {
         icon: <Bell className="h-5 w-5 text-amber-500" />
       }
     );
-  };
+  }, [handleAdministerMedication]);
   
-  const handleAdministerMedication = (prescriptionId: string) => {
+  const handleAdministerMedication = useCallback((prescriptionId: string) => {
     if (!user?.id) return;
     
     updatePrescriptionStatus({
@@ -146,7 +156,7 @@ const MedicationReminders = () => {
         toast.error(`Failed to update medication status: ${(error as Error).message}`);
       }
     });
-  };
+  }, [user, updatePrescriptionStatus]);
   
   // This component doesn't render anything visible
   // It just handles medication reminders in the background

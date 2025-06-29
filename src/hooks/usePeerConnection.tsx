@@ -92,8 +92,8 @@ export function usePeerConnection() {
 
         newPeer.on('error', (err) => {
           console.error('PeerJS error:', err);
-          toast.error(`Connection error: ${err.message}`);
-          setState(prev => ({ ...prev, error: err }));
+          toast.error(`Connection error: ${err instanceof Error ? err.message : String(err)}`);
+          setState(prev => ({ ...prev, error: err instanceof Error ? err : new Error(String(err)) }));
         });
 
         newPeer.on('call', async (call) => {
@@ -141,11 +141,11 @@ export function usePeerConnection() {
             
             call.on('error', (err) => {
               console.error('Call error:', err);
-              toast.error(`Call error: ${err.message}`);
-              setState(prev => ({ ...prev, error: err }));
+              toast.error(`Call error: ${err instanceof Error ? err.message : String(err)}`);
+              setState(prev => ({ ...prev, error: err instanceof Error ? err : new Error(String(err)) }));
               closeCallWithPeer(call.peer);
             });
-          } catch (err) {
+          } catch (err: unknown) {
             console.error('Error answering call:', err);
             toast.error('Could not access camera or microphone');
             setState(prev => ({ 
@@ -157,7 +157,7 @@ export function usePeerConnection() {
         });
 
         return newPeer;
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Error initializing peer:', err);
         toast.error('Could not initialize peer connection');
         setState(prev => ({ 
@@ -184,7 +184,7 @@ export function usePeerConnection() {
         state.peer.destroy();
       }
     };
-  }, [peerId]);
+  }, [peerId, state.localStream, state.peer, callsRef]);
 
   // Start a call to another peer
   const startCall = useCallback(async (remotePeerId: string, isVideo: boolean) => {
@@ -398,7 +398,7 @@ export function usePeerConnection() {
         // Could implement room-based notification here
       }
     }
-  }, [state.isGroupCall, state.roomId]);
+  }, [state.isGroupCall, state.roomId, endCall]);
 
   // End the current call
   const endCall = useCallback(() => {
@@ -422,7 +422,7 @@ export function usePeerConnection() {
       isGroupCall: false,
       roomId: null
     }));
-  }, []);
+  }, [state.localStream]);
   
   // Helper to properly close and clean up a call with a specific peer
   const closeCallWithPeer = (peerId: string) => {
@@ -493,7 +493,7 @@ export function usePeerConnection() {
       toast.error('Could not fetch organization members');
       return [];
     }
-  }, [user]);
+  }, [user, organizationRef]);
 
   return {
     ...state,

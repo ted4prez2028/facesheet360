@@ -2,6 +2,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 
+interface DbUser {
+  id: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  specialty?: string;
+  license_number?: string;
+  profile_image?: string;
+  care_coins_balance?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 /**
  * Checks if a user session exists
  * @returns Promise that resolves to a boolean indicating if a session exists
@@ -45,7 +58,7 @@ export const checkSession = async (): Promise<boolean> => {
 /**
  * Formats user data from database format to application format
  */
-export const formatUserData = (userData: any): User => {
+export const formatUserData = (userData: DbUser): User => {
   return {
     id: userData.id,
     name: userData.name || '',

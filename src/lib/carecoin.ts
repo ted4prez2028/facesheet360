@@ -64,18 +64,18 @@ export const connectMetaMask = async () => {
       return accounts[0];
     }
     return null;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error connecting to MetaMask:', error);
     
     // Handle different MetaMask errors
-    if (error.code === 4001) {
+    if (error instanceof Error && error.code === 4001) {
       // User rejected the request
       toast.error('Connection request was rejected. Please try again.');
-    } else if (error.code === -32002) {
+    } else if (error instanceof Error && error.code === -32002) {
       // Request already pending
       toast.error('A connection request is already pending. Please check MetaMask.');
     } else {
-      toast.error('Failed to connect to MetaMask. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to connect to MetaMask. Please try again.');
     }
     
     return null;
@@ -170,9 +170,9 @@ export const issueDataEntryReward = async (
       });
       return false;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error issuing CareCoins:', error);
-    toast.error(error.message || 'Failed to issue CareCoins. Please try again.');
+    toast.error(error instanceof Error ? error.message : 'Failed to issue CareCoins. Please try again.');
     return false;
   }
 };
@@ -221,16 +221,16 @@ export const sendTransaction = async (toAddress: string, amount: string) => {
       });
       return false;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending transaction:', error);
     
     // Handle specific errors
-    if (error.code === 4001) {
+    if (error instanceof Error && error.code === 4001) {
       toast.error('Transaction was rejected by the user');
-    } else if (error.code === -32603) {
+    } else if (error instanceof Error && error.code === -32603) {
       toast.error('Transaction underpriced. Consider increasing gas limit or price');
     } else {
-      toast.error(error.message || 'Failed to send transaction. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to send transaction. Please try again.');
     }
     
     return false;
@@ -280,13 +280,13 @@ export const transferCareCoinsToken = async (
       });
       return false;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending CareCoins:', error);
     
-    if (error.code === 4001) {
+    if (error instanceof Error && error.code === 4001) {
       toast.error('Transaction was rejected by the user');
     } else {
-      toast.error(error.message || 'Failed to send CareCoins. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to send CareCoins. Please try again.');
     }
     
     return false;
@@ -307,9 +307,9 @@ export const switchNetwork = async (chainId: string) => {
     });
     
     return true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // This error code indicates that the chain has not been added to MetaMask
-    if (error.code === 4902) {
+    if (error instanceof Error && error.code === 4902) {
       toast.error('This network is not available in your MetaMask, please add it manually');
     } else {
       console.error('Error switching network:', error);
@@ -384,6 +384,10 @@ export const removeMetaMaskListeners = () => {
 // Add environment declarations for TypeScript
 declare global {
   interface Window {
-    ethereum: any;
+    ethereum: import("ethers").providers.ExternalProvider & {
+      on?: (event: string, callback: (...args: unknown[]) => void) => void;
+      removeListener?: (event: string, callback: (...args: unknown[]) => void) => void;
+      removeAllListeners?: (event: string) => void;
+    };
   }
 }

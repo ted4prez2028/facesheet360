@@ -26,7 +26,7 @@ const Analytics = () => {
         
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Performance Metrics</h2>
-          <Select value={timeframe} onValueChange={(value) => setTimeframe(value as any)}>
+          <Select value={timeframe} onValueChange={(value) => setTimeframe(value as 'week' | 'month' | 'quarter' | 'year')}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>

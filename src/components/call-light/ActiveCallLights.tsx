@@ -74,7 +74,7 @@ const ActiveCallLights: React.FC<ActiveCallLightsProps> = ({
     <ScrollArea className="h-[400px] pr-3">
       <div className="space-y-3">
         {callLights.map((callLight) => {
-          const patient = (callLight as any).patients;
+          const patient = callLight.patients;
           const patientName = patient 
             ? `${patient.first_name} ${patient.last_name}` 
             : 'Unknown Patient';

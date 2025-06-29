@@ -23,6 +23,30 @@ interface DbUser {
   updated_at: string;
 }
 
+interface GroupCallPayload {
+  id: string;
+  room_id: string;
+  initiator_id: string;
+  is_video_call: boolean;
+  participants: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+interface ActiveCallPayload {
+  id: string;
+  caller_id: string;
+  receiver_id: string;
+  is_video_call: boolean;
+  call_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface WindowWithAudio extends Window {
+  incomingCallAudio?: HTMLAudioElement;
+}
+
 export function useCommunicationService() {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
@@ -152,7 +176,7 @@ export function useCommunicationService() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'group_calls' },
         async (payload) => {
-          const groupCall = payload.new as any;
+          const groupCall = payload.new as GroupCallPayload;
           const participants = groupCall.participants || [];
           
           // Check if current user is a participant but not the initiator
@@ -283,7 +307,7 @@ export function useCommunicationService() {
         { event: '*', schema: 'public', table: 'active_calls' },
         async (payload) => {
           if (payload.eventType === 'INSERT') {
-            const call = payload.new as any;
+            const call = payload.new as ActiveCallPayload;
             
             // If the current user is the receiver, show incoming call
             if (call.receiver_id === user.id) {
@@ -314,10 +338,10 @@ export function useCommunicationService() {
               audio.play().catch(e => console.log('Could not play ringtone', e));
               
               // Store audio element in window to be able to stop it later
-              (window as any).incomingCallAudio = audio;
+              (window as WindowWithAudio).incomingCallAudio = audio;
             }
           } else if (payload.eventType === 'UPDATE') {
-            const call = payload.new as any;
+            const call = payload.new as ActiveCallPayload;
             
             // Update call status if user is part of this call
             if (call.caller_id === user.id || call.receiver_id === user.id) {
@@ -336,9 +360,9 @@ export function useCommunicationService() {
                 setIsCallIncoming(false);
                 
                 // Stop ringtone if playing
-                if ((window as any).incomingCallAudio) {
-                  (window as any).incomingCallAudio.pause();
-                  (window as any).incomingCallAudio = null;
+                if ((window as WindowWithAudio).incomingCallAudio) {
+                  (window as WindowWithAudio).incomingCallAudio.pause();
+                  (window as WindowWithAudio).incomingCallAudio = null;
                 }
               }
             }
@@ -354,7 +378,7 @@ export function useCommunicationService() {
   
   // Listen for group call join events
   useEffect(() => {
-    const handleJoinGroupCall = (event: any) => {
+    const handleJoinGroupCall = (event: CustomEvent<{ roomId: string; participants: string[]; isVideo: boolean }>) => {
       const { roomId, participants, isVideo } = event.detail;
       
       // Dispatch join group call event to be handled by the context
@@ -527,9 +551,9 @@ export function useCommunicationService() {
       setIsCallActive(true);
       
       // Stop ringtone if playing
-      if ((window as any).incomingCallAudio) {
-        (window as any).incomingCallAudio.pause();
-        (window as any).incomingCallAudio = null;
+      if ((window as WindowWithAudio).incomingCallAudio) {
+        (window as WindowWithAudio).incomingCallAudio.pause();
+        (window as WindowWithAudio).incomingCallAudio = null;
       }
       
       toast("Call Connected", {
@@ -559,9 +583,9 @@ export function useCommunicationService() {
       if (error) throw error;
       
       // Stop ringtone if playing
-      if ((window as any).incomingCallAudio) {
-        (window as any).incomingCallAudio.pause();
-        (window as any).incomingCallAudio = null;
+      if ((window as WindowWithAudio).incomingCallAudio) {
+        (window as WindowWithAudio).incomingCallAudio.pause();
+        (window as WindowWithAudio).incomingCallAudio = null;
       }
       
       setActiveCall(null);

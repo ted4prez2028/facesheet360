@@ -4,8 +4,19 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTimeSlot } from "@/utils/dateUtils";
 
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  notes: string;
+  duration: number;
+  patients: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
 interface AppointmentCalendarProps {
-  appointments: any[];
+  appointments: Appointment[];
   days: Date[];
   timeSlots: number[];
 }

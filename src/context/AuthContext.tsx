@@ -2,10 +2,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
+import { Session } from '@supabase/supabase-js';
 
 export interface AuthContextType {
   user: User | null;
-  session: any | null;
+  session: Session | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   logout: () => Promise<void>; // Add alias for signOut for backward compatibility
@@ -19,7 +20,7 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const initialUser = (userData: any): User => ({
+const initialUser = (userData: Partial<User>): User => ({
   id: userData.id,
   name: userData.name || userData.email?.split('@')[0] || 'User',
   email: userData.email || '',
@@ -36,7 +37,7 @@ const initialUser = (userData: any): User => ({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -151,8 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } as User);
       setSession(data.session);
       setIsAuthenticated(true);
-    } catch (error: any) {
-      console.error('Sign-in error:', error.message);
+    } catch (error: unknown) {
+      console.error('Sign-in error:', error instanceof Error ? error.message : error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -169,8 +170,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setSession(null);
       setIsAuthenticated(false);
-    } catch (error: any) {
-      console.error('Sign-out error:', error.message);
+    } catch (error: unknown) {
+      console.error('Sign-out error:', error instanceof Error ? error.message : error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -204,8 +205,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (profileError) throw profileError;
       }
-    } catch (error: any) {
-      console.error('Sign-up error:', error.message);
+    } catch (error: unknown) {
+      console.error('Sign-up error:', error instanceof Error ? error.message : error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -216,7 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user?.id) throw new Error("User is not authenticated");
     
     try {
-      const dbData: any = {};
+      const dbData: Partial<User> = {};
       if (userData.name) dbData.name = userData.name;
       if (userData.email) dbData.email = userData.email;
       if (userData.specialty) dbData.specialty = userData.specialty;
@@ -234,8 +235,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       setUser(prevUser => prevUser ? { ...prevUser, ...userData } : null);
-    } catch (error: any) {
-      console.error('Error updating user profile:', error.message);
+    } catch (error: unknown) {
+      console.error('Error updating user profile:', error instanceof Error ? error.message : error);
       throw error;
     }
   };
@@ -267,10 +268,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+

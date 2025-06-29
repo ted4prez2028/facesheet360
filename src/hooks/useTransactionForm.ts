@@ -49,9 +49,9 @@ export const useTransactionForm = () => {
       setAmount(0);
       
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Transfer error:", error);
-      toast.error(error.message || "Failed to send CareCoins. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to send CareCoins. Please try again.");
       return false;
     } finally {
       setIsLoading(false);
@@ -87,9 +87,9 @@ export const useTransactionForm = () => {
         return true;
       }
       return false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Blockchain transfer error:", error);
-      toast.error(error.message || "Failed to send CareCoins. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to send CareCoins. Please try again.");
       return false;
     } finally {
       setIsLoading(false);

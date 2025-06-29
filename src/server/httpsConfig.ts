@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Server } from 'http';
 import https from 'https';
+import { RequestListener } from 'http';
 
 /**
  * Configures HTTPS for the server using SSL certificates
@@ -9,7 +10,7 @@ import https from 'https';
  * @param app The Express app or HTTP server to secure
  * @returns An HTTPS server instance
  */
-export const setupHttps = (app: any): Server => {
+export const setupHttps = (app: RequestListener): Server => {
   try {
     // Use the localhost certificate files in project root
     const keyPath = path.join(process.cwd(), 'localhost-key.pem');

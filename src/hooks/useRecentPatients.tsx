@@ -3,6 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface PatientInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+}
+
 export interface RecentPatient {
   id: string;
   name: string;
@@ -49,7 +56,7 @@ export const useRecentPatients = (limit: number = 5) => {
         return chartRecords
           .filter(record => record.patients) // Filter out any records with missing patient data
           .map(record => {
-            const patient = record.patients as any;
+            const patient = record.patients as PatientInfo;
             
             // Calculate age
             const birthDate = new Date(patient.date_of_birth);

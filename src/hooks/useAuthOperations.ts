@@ -29,11 +29,11 @@ export const useAuthOperations = (
       
       return Promise.resolve();
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       toast({
         title: "Authentication failed",
-        description: error.message || "Invalid email or password. Please try again.",
+        description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",
         variant: "destructive",
       });
       return Promise.reject(error);
@@ -64,11 +64,11 @@ export const useAuthOperations = (
       
       return Promise.resolve();
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
       toast({
         title: "Registration failed",
-        description: error.message || "Failed to create account. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to create account. Please try again.",
         variant: "destructive",
       });
       return Promise.reject(error);
@@ -149,7 +149,7 @@ export const useAuthOperations = (
           id: userData.id,
           name: userData.name,
           email: userData.email,
-          role: userData.role as any,
+          role: userData.role,
           specialty: userData.specialty || undefined,
           license_number: userData.license_number || undefined,
           profile_image: userData.profile_image || undefined,

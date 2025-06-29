@@ -6,10 +6,16 @@ import { Sparkles, LoaderCircle } from "lucide-react";
 import { useCarePlanGenerator } from "@/hooks/useCarePlanGenerator";
 import { PatientNotesForCarePlan } from './PatientNotesForCarePlan';
 
+import { Patient } from "@/types";
+
+interface PatientDataForCarePlan extends Patient {
+  selectedNotes?: string[];
+}
+
 interface GenerateCarePlanButtonProps {
   patientId: string;
   onPlanGenerated: (plan: string) => void;
-  patientData: any;
+  patientData: PatientDataForCarePlan;
 }
 
 export function GenerateCarePlanButton({ 

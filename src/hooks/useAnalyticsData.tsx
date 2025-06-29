@@ -213,7 +213,7 @@ function processTimeSeriesData(dates: string[], timeframe: string): AnalyticsDat
   // Initialize with zero counts
   const startDate = getStartDateForTimeframe(timeframe);
   const now = new Date();
-  let current = new Date(startDate);
+  const current = new Date(startDate);
   
   while (current <= now) {
     const key = timeframe === 'week' 

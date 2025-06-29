@@ -55,17 +55,17 @@ const Dashboard = () => {
           </p>
         </div>
         
-        <StatisticsCards />
+        <StatisticsCards className="shadow-custom-light rounded-xl" />
         
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h2 className="text-2xl font-bold">Patient Analytics</h2>
+        <div className="flex flex-col space-y-4 p-6 bg-card rounded-2xl shadow-custom-medium border border-border/50">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">Patient Analytics</h2>
             <div className="flex gap-4 items-center">
               <Select value={timeframe} onValueChange={setTimeframe}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-32 rounded-lg shadow-sm border-border/70">
                   <SelectValue placeholder="Timeframe" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-lg shadow-custom-light">
                   <SelectItem value="week">Last Week</SelectItem>
                   <SelectItem value="month">Last Month</SelectItem>
                   <SelectItem value="quarter">Last Quarter</SelectItem>
@@ -77,10 +77,10 @@ const Dashboard = () => {
                 value={selectedPatientId} 
                 onValueChange={setSelectedPatientId}
               >
-                <SelectTrigger className="w-56">
+                <SelectTrigger className="w-56 rounded-lg shadow-sm border-border/70">
                   <SelectValue placeholder="Select patient for metrics" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-lg shadow-custom-light">
                   {patientsList?.map(patient => (
                     <SelectItem key={patient.id} value={patient.id}>
                       {patient.first_name} {patient.last_name}
@@ -104,8 +104,8 @@ const Dashboard = () => {
         </div>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} />
-          <QuickActions />
+          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} className="shadow-custom-light rounded-xl border border-border/50" />
+          <QuickActions className="shadow-custom-light rounded-xl border border-border/50" />
         </div>
       </div>
     </DashboardLayout>

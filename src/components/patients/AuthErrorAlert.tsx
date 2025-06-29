@@ -49,7 +49,7 @@ const AuthErrorAlert = ({ isAuthenticated, error, refetch }: AuthErrorAlertProps
                      errorMessage.includes('token') || 
                      errorMessage.includes('login');
 
-  let variant: "default" | "destructive" = "destructive";
+  const variant: "default" | "destructive" = "destructive";
   let title = "An error occurred";
   let icon = <AlertCircle className="h-4 w-4" />;
   

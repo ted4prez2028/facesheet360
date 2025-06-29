@@ -5,12 +5,16 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { BillPaymentResult } from '@/types/health-predictions';
 
+interface BillInfo {
+  [key: string]: unknown; // Allow any properties for now, can be refined later
+}
+
 export const useBillPayment = () => {
   const [billType, setBillType] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
   const [recipientName, setRecipientName] = useState<string>('');
   const [recipientAccount, setRecipientAccount] = useState<string>('');
-  const [billInfo, setBillInfo] = useState<any>({});
+  const [billInfo, setBillInfo] = useState<BillInfo>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
 
@@ -49,9 +53,9 @@ export const useBillPayment = () => {
         toast.error(result.message || "Failed to process bill payment");
         return false;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Bill payment error:", error);
-      toast.error(error.message || "An error occurred during bill payment");
+      toast.error(error instanceof Error ? error.message : "An error occurred during bill payment");
       return false;
     } finally {
       setIsProcessing(false);

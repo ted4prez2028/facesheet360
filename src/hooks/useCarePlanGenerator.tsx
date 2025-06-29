@@ -5,6 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { usePatientNotes } from '@/hooks/usePatientNotes';
 
+interface PatientDataForCarePlan {
+  [key: string]: unknown; // Adjust this interface based on the actual structure of patientData
+}
+
 interface CarePlanGeneratorProps {
   patientId: string;
 }
@@ -14,7 +18,7 @@ export const useCarePlanGenerator = ({ patientId }: CarePlanGeneratorProps) => {
   const { notes } = usePatientNotes(patientId);
 
   const generateCarePlan = useMutation({
-    mutationFn: async (patientData: any) => {
+    mutationFn: async (patientData: PatientDataForCarePlan) => {
       setIsGenerating(true);
       
       try {

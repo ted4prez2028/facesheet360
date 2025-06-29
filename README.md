@@ -1,69 +1,97 @@
-# Welcome to your Lovable project
+# Facesheet360: Modern Healthcare Management System
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505
+Facesheet360 is an innovative healthcare management system designed to streamline patient care for healthcare professionals. It provides a secure, efficient, and integrated platform for managing patient data, charting, and now, a novel CareCoin blockchain integration for incentivizing and tracking healthcare activities.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### Core Healthcare Management
+*   **Patient Charting:** Comprehensive tools for recording vital signs, medications, lab results, imaging, and patient notes.
+*   **Patient Management:** Efficiently manage patient profiles, appointments, and care plans.
+*   **Dashboard & Analytics:** Overview of key patient statistics, pending tasks, and recent activities.
+*   **Communication Tools:** Integrated features for communication within the healthcare team.
+*   **User Authentication:** Secure login and user role management.
 
-**Use Lovable**
+### AI-Powered Enhancements
+*   **AI-Assisted Care Plan Generation:** Leverages artificial intelligence to suggest personalized care plans based on patient data, medical history, and best practices, aiding healthcare professionals in creating comprehensive and effective treatment strategies.
+*   **Wound Analysis and Monitoring:** Utilizes AI for advanced image analysis of wounds, assisting in accurate assessment, tracking healing progress, and identifying potential complications early.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505) and start prompting.
+### Advanced Blockchain Integration (CareCoin)
+Facesheet360 leverages a custom, private Proof-of-Stake (PoS) blockchain network to introduce **CareCoins**, a digital incentive for healthcare activities.
 
-Changes made via Lovable will be committed automatically to this repo.
+*   **MetaMask Integration:** Seamlessly connect your MetaMask wallet to manage your CareCoins directly within the application.
+*   **CareCoin (ERC-20 Token):** A custom digital token designed to reward healthcare providers for their charting activities and enable new functionalities.
+*   **Staking Functionality:** Users can stake their CareCoins on the blockchain, participating in the network's security and potentially earning rewards (requires a deployed CareCoin smart contract with staking capabilities).
+*   **Backend-Driven Minting for Charting:**
+    *   CareCoins are minted and awarded to healthcare providers whenever they chart patient data in the system.
+    *   This minting process is securely handled by a dedicated backend service.
+    *   **Anonymized On-Chain Data:** To ensure patient privacy, only anonymized metadata (e.g., a cryptographic hash of non-identifiable charting details, creator ID, amount, timestamp) is recorded on the public ledger. Sensitive patient identifiable information (PII) remains securely off-chain in your primary database.
+    *   This approach ensures that the blockchain acts as a transparent, immutable record of activity without compromising patient confidentiality.
 
-**Use your preferred IDE**
+### Enhanced User Interface
+*   **Modern Design Aesthetics:** The application features a refreshed, clean, and intuitive user interface.
+*   **Improved Visuals:** Enhanced use of shadows, borders, and subtle animations for a more polished and engaging user experience on both the homepage and dashboard.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Technologies Used
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+This project is built with a modern web development stack:
 
-Follow these steps:
+*   **Frontend:**
+    *   **React:** A declarative, component-based JavaScript library for building user interfaces.
+    *   **Vite:** A fast and opinionated build tool for modern web projects.
+    *   **TypeScript:** A typed superset of JavaScript that compiles to plain JavaScript.
+    *   **Tailwind CSS:** A utility-first CSS framework for rapidly building custom designs.
+    *   **shadcn/ui:** A collection of re-usable components built with Radix UI and Tailwind CSS.
+    *   **Ethers.js:** A complete and compact library for interacting with the Ethereum blockchain and its ecosystem.
+*   **Backend (Conceptual - Requires separate implementation):**
+    *   A secure backend service (e.g., Node.js, Python) for handling sensitive operations like CareCoin minting, database interactions, and API integrations.
+*   **Blockchain (Conceptual - Requires separate setup):**
+    *   A private Ethereum-compatible Proof-of-Stake (PoS) network for the CareCoin blockchain.
+
+## Setup and Running the Project
+
+To get a local copy up and running, follow these steps:
+
+### Prerequisites
+
+*   Node.js & npm (recommended to install with [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
+*   **Conceptual:** A running instance of your private Ethereum-compatible PoS blockchain network.
+*   **Conceptual:** Your CareCoin ERC-20 smart contract deployed on your private network.
+*   **Conceptual:** A backend service configured to interact with your private blockchain for minting.
+
+### Installation
+
+1.  **Clone the repository:**
+    ```sh
+    git clone <YOUR_GIT_URL>
+    cd facesheet360
+    ```
+2.  **Install dependencies:**
+    ```sh
+    npm install
+    ```
+3.  **Update Blockchain Configuration:**
+    *   Open `src/lib/web3.ts` and replace `"0xYourCareCoinContractAddressHere"` with the actual address of your deployed CareCoin smart contract. Ensure the `contractABI` matches your contract's ABI, including `stake`, `unstake`, and `mint` functions.
+
+### Running the Development Server
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+This will start the development server with auto-reloading and an instant preview.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Important Notes for Blockchain Functionality
 
-**Use GitHub Codespaces**
+*   **MetaMask:** Ensure you have the MetaMask browser extension installed and configured to connect to your private blockchain network.
+*   **CareCoin Contract:** The CareCoin contract must be deployed to your private network for the blockchain features (staking, transfers, balance display) to function.
+*   **Backend for Minting:** The minting of CareCoins upon charting is designed to be handled by a secure backend service. The frontend currently simulates this interaction by making a `fetch` call to a hypothetical `/api/mint-carecoin` endpoint. You will need to implement this backend service separately.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## How to Contribute
 
-## What technologies are used for this project?
+(Add your contribution guidelines here)
 
-This project is built with .
+## Deployment
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/33c9bb3a-5418-47b4-9598-9cd6b1504505) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+(Add your deployment instructions here)

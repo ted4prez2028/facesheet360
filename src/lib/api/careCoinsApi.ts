@@ -138,7 +138,7 @@ export const cashOutCareCoins = async (
   userId: string, 
   amount: number, 
   paymentMethod: string, 
-  accountInfo: any
+  accountInfo: { accountName: string; accountNumber: string; routingNumber: string; bankName?: string; }
 ): Promise<CashOutResult> => {
   try {
     // This is a placeholder implementation
@@ -163,7 +163,7 @@ export const payBillWithCareCoins = async (
   amount: number,
   recipientName: string,
   recipientAccount: string,
-  billInfo: any
+  billInfo: { [key: string]: unknown; }
 ): Promise<BillPaymentResult> => {
   try {
     // This is a placeholder implementation

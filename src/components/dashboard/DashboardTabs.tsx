@@ -7,14 +7,47 @@ import TodayAppointments from "./TodayAppointments";
 import PendingTasks from "./PendingTasks";
 import DashboardCharts from "./DashboardCharts";
 
+interface PatientStatistic {
+  name: string;
+  newPatients: number;
+  activePatients: number;
+}
+
+interface HealthMetric {
+  name: string;
+  heartRate: number;
+  bloodPressure: number;
+}
+
+interface RecentPatient {
+  id: string;
+  name: string;
+  lastVisit: string;
+  status: string;
+}
+
+interface TodayAppointment {
+  id: string;
+  patientName: string;
+  time: string;
+  type: string;
+}
+
+interface PendingTask {
+  id: string;
+  description: string;
+  dueDate: string;
+  priority: string;
+}
+
 interface DashboardTabsProps {
-  patientStatistics: any[];
-  healthMetrics: any[];
-  recentPatients?: any[];
+  patientStatistics: PatientStatistic[];
+  healthMetrics: HealthMetric[];
+  recentPatients?: RecentPatient[];
   isRecentPatientsLoading?: boolean;
-  todayAppointments?: any[];
+  todayAppointments?: TodayAppointment[];
   isAppointmentsLoading?: boolean;
-  pendingTasks?: any[];
+  pendingTasks?: PendingTask[];
   isTasksLoading?: boolean;
 }
 

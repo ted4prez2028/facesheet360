@@ -29,6 +29,11 @@ const WalletDashboard = () => {
         </div>
         
         <CareCoinsDashboard />
+
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">CareCoin Staking</h2>
+          <StakingForm tokenBalance={tokenBalance} />
+        </div>
       </div>
     </DashboardLayout>
   );

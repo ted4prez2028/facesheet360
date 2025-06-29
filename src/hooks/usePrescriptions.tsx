@@ -61,7 +61,7 @@ export const useAddPrescription = () => {
         // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("prescriptions")
-          .insert(prescription as any)
+          .insert(prescription)
           .select()
           .single();
 
@@ -99,7 +99,7 @@ export const useAdministerPrescription = () => {
             status: "administered",
             administered_by: user.id,
             administered_at: new Date().toISOString()
-          } as any)
+          })
           .eq("id", prescriptionId)
           .select()
           .single();
@@ -129,7 +129,7 @@ export const useUpdatePrescriptionStatus = () => {
   return useMutation({
     mutationFn: async ({ id, status, administeredBy }: { id: string; status: Prescription["status"]; administeredBy?: string }) => {
       try {
-        const updateData: any = { status };
+        const updateData: Partial<Prescription> = { status };
         
         if (administeredBy) {
           updateData.administered_by = administeredBy;

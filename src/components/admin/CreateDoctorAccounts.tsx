@@ -9,11 +9,18 @@ import { sampleDoctors } from '@/lib/api/sampleDoctors';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
+interface Result {
+  email: string;
+  success: boolean;
+  error?: string;
+  emailSent?: boolean;
+}
+
 const CreateDoctorAccounts = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoctors, setSelectedDoctors] = useState<string[]>([]);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Result[]>([]);
 
   const handleToggleDoctor = (id: string) => {
     setSelectedDoctors(prev => {
@@ -60,7 +67,7 @@ const CreateDoctorAccounts = () => {
       setResults(data.results);
       
       // Count successes
-      const successCount = data.results.filter((r: any) => r.success).length;
+      const successCount = data.results.filter((r: Result) => r.success).length;
       
       toast({
         title: "Account creation complete",

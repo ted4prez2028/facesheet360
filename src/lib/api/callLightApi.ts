@@ -73,7 +73,14 @@ export const createCallLight = async (callLight: Omit<CallLightRequest, "id" | "
  */
 export const updateCallLightStatus = async (id: string, status: 'in_progress' | 'completed'): Promise<CallLightRequest | null> => {
   try {
-    const updateData: any = {
+    interface CallLightUpdate {
+      status: 'in_progress' | 'completed';
+      updated_at: string;
+      completed_at?: string;
+      completed_by?: string;
+    }
+
+    const updateData: CallLightUpdate = {
       status,
       updated_at: new Date().toISOString()
     };

@@ -9,11 +9,12 @@ import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 interface AddPatientSheetProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  user: any;
+  user: User | null;
 }
 
 const AddPatientSheet: React.FC<AddPatientSheetProps> = ({

@@ -35,7 +35,7 @@ const CashAppPayment: React.FC<CashAppPaymentProps> = ({
     // Format is: cash.app/$USERNAME/$AMOUNT/optional-note
     const paymentUrl = `https://cash.app/${cashAppHandle}/${amount}/${paymentId}-${purchaseType}`;
     setQrValue(paymentUrl);
-  }, [amount, purchaseType]);
+  }, [amount, purchaseType, paymentId]);
   
   const copyPaymentInfo = () => {
     navigator.clipboard.writeText(`${cashAppHandle} $${amount} Ref: ${paymentId}`);

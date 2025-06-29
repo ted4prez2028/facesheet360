@@ -4,6 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
+interface PatientInfo {
+  first_name: string;
+  last_name: string;
+}
+
 export interface PendingTask {
   id: string;
   task: string;
@@ -48,7 +53,7 @@ export const usePendingTasks = () => {
         // Add chart records that need completion
         if (chartRecords && chartRecords.length > 0) {
           for (const record of chartRecords) {
-            const patient = record.patients as any;
+            const patient = record.patients as PatientInfo;
             const recordDate = new Date(record.record_date);
             const now = new Date();
             
@@ -104,7 +109,7 @@ export const usePendingTasks = () => {
         // Add flagged lab results
         if (labResults && labResults.length > 0) {
           for (const result of labResults) {
-            const patient = result.patients as any;
+            const patient = result.patients as PatientInfo;
             
             tasks.push({
               id: result.id,

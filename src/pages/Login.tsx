@@ -74,7 +74,7 @@ const Login = () => {
         registerData.password, 
         {
           name: registerData.name,
-          role: registerData.role as any,
+          role: registerData.role,
         }
       );
       

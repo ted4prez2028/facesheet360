@@ -128,7 +128,7 @@ export const usePatientForm = (onSuccess: () => void) => {
       try {
         console.log("Using direct patient API method");
         result = await addPatientDirect(patientData);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Direct API method failed:", error);
         // Fall back to the regular method
         console.log("Falling back to regular API method");
@@ -144,27 +144,27 @@ export const usePatientForm = (onSuccess: () => void) => {
       resetForm();
       onSuccess();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error in submitForm:", error);
       
-      if (error?.message?.includes('Authentication required') || 
-          error?.message?.includes('auth')) {
+      if (error instanceof Error && (error?.message?.includes('Authentication required') || 
+          error?.message?.includes('auth'))) {
         toast.error("Authentication Required", {
           description: "You must be logged in to add patients.",
         });
-      } else if (error?.message?.includes('infinite recursion') || 
-                error?.code === '42P17') {
+      } else if (error instanceof Error && (error?.message?.includes('infinite recursion') || 
+                (error as { code?: string })?.code === '42P17')) {
         toast.error("Database Permission Error", {
           description: "There's an issue with database permissions. Please try logging out and logging back in.",
         });
-      } else if (error?.message?.includes('permission') || 
-                error?.code === '42501') {
+      } else if (error instanceof Error && (error?.message?.includes('permission') || 
+                (error as { code?: string })?.code === '42501')) {
         toast.error("Database Permission Error", {
           description: "You don't have permission to add patients. Please contact your administrator.",
         });
       } else {
         toast.error("Error Adding Patient", {
-          description: error?.message || "Failed to add patient.",
+          description: error instanceof Error ? error?.message : "Failed to add patient.",
         });
       }
       return false;

@@ -1,5 +1,5 @@
 
-import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
 	darkMode: ["class"],
@@ -79,7 +79,17 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				xl: 'calc(var(--radius) + 4px)',
+				'2xl': 'calc(var(--radius) + 8px)',
+				'3xl': 'calc(var(--radius) + 12px)',
+			},
+			boxShadow: {
+				'custom-light': '0 4px 15px rgba(0, 0, 0, 0.05)',
+				'custom-medium': '0 8px 30px rgba(0, 0, 0, 0.1)',
+				'custom-dark': '0 12px 40px rgba(0, 0, 0, 0.15)',
+				'inner-glow': 'inset 0 0 10px rgba(255, 255, 255, 0.5)',
+				'button-glow': '0 0 15px rgba(0, 123, 255, 0.4)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -113,7 +123,16 @@ export default {
 				'pulse-subtle': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.8' }
-				}
+				},
+				shimmer: {
+					from: { backgroundPosition: '-200% 0' },
+					to: { backgroundPosition: '200% 0' },
+				},
+				'border-beam': {
+					'100%': {
+						'offset-distance': '100%',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -123,9 +142,14 @@ export default {
 				'scale-in': 'scale-in 0.2s ease-out',
 				'slide-in': 'slide-in 0.3s ease-out',
 				'slide-out': 'slide-out 0.3s ease-out',
-				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite'
-			}
+				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+				shimmer: 'shimmer 2s infinite linear',
+				'border-beam': 'border-beam 15s infinite linear',
+			},
+			transitionProperty: {
+				'box-shadow': 'box-shadow',
+			},
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [tailwindcssAnimate],
 } satisfies Config;

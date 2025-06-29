@@ -3,9 +3,10 @@ import React, { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Bell } from "lucide-react";
+import { Notification } from "@/lib/api/notificationApi";
 
 interface NotificationSoundProps {
-  notifications?: any[];
+  notifications?: Notification[];
   soundEnabled?: boolean;
 }
 

@@ -3,6 +3,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { FoodOrder, MenuItem, OrderItem } from '@/types/foodOrder';
 import { toast } from 'sonner';
 
+interface DbMenuItem {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  dietary_info?: {
+    calories?: number;
+    protein?: string;
+    allergies?: string[];
+    diet_types?: string[];
+    kosher?: boolean;
+    halal?: boolean;
+    vegan?: boolean;
+    vegetarian?: boolean;
+    gluten_free?: boolean;
+    dairy_free?: boolean;
+  };
+  is_available?: boolean;
+  brand?: string;
+  ingredients?: string;
+  serving_size?: string;
+  preparation_instructions?: string;
+  allergen_warnings?: string[];
+  nutrition_facts?: Record<string, unknown>;
+  image_url?: string;
+  unit_size?: string;
+  unit_price?: number;
+  usfoods_id?: string;
+}
+
 export function useFoodOrders(patientId?: string) {
   const queryClient = useQueryClient();
 
@@ -20,7 +50,7 @@ export function useFoodOrders(patientId?: string) {
         throw error;
       }
       
-      return data.map((item: any): MenuItem => ({
+      return data.map((item: DbMenuItem): MenuItem => ({
         id: item.id,
         name: item.name,
         description: item.description || '',

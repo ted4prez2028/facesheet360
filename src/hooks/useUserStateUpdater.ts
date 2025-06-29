@@ -21,7 +21,7 @@ export const updateUserState = async (currentSession: Session | null): Promise<U
         id: userData.id,
         name: userData.name,
         email: userData.email,
-        role: userData.role as any,
+        role: userData.role,
         specialty: userData.specialty || undefined,
         license_number: userData.license_number || undefined,
         profile_image: userData.profile_image || undefined,

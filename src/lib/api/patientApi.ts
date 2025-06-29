@@ -130,7 +130,11 @@ export const updatePatient = async (id: string, data: Partial<Patient>) => {
     
     const { date_of_birth, ...rest } = data;
     
-    const updateData: any = { ...rest };
+    interface PatientUpdate extends Partial<Patient> {
+      date_of_birth?: string;
+    }
+
+    const updateData: PatientUpdate = { ...rest };
     if (date_of_birth) {
       updateData.date_of_birth = date_of_birth;
     }

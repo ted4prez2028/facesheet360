@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +14,13 @@ const NotificationCenter = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    
+    const data = await getNotifications(user.id);
+    setNotifications(data);
+  }, [user]);
   
   useEffect(() => {
     if (!user) return;
@@ -40,21 +47,7 @@ const NotificationCenter = () => {
       clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
-  }, [user]);
-  
-  const fetchNotifications = async () => {
-    if (!user) return;
-    
-    const data = await getNotifications(user.id);
-    setNotifications(data);
-  };
-  
-  const handleRead = async (id: string) => {
-    await markNotificationAsRead(id);
-    setNotifications(notifications.map(notif => 
-      notif.id === id ? { ...notif, read: true } : notif
-    ));
-  };
+  }, [user, fetchNotifications]);
   
   const getNotificationIcon = (type: string) => {
     switch(type) {

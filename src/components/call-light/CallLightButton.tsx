@@ -85,7 +85,7 @@ const CallLightButton: React.FC<CallLightButtonProps> = ({
                 <Label>What do you need help with?</Label>
                 <RadioGroup 
                   value={requestType} 
-                  onValueChange={(value) => setRequestType(value as any)}
+                  onValueChange={(value) => setRequestType(value as 'assistance' | 'emergency' | 'pain' | 'bathroom' | 'water' | 'other')}
                   className="grid grid-cols-2 gap-2"
                 >
                   <div className="flex items-center space-x-2 border rounded-md p-2">

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CallLightRequest } from '@/types';
@@ -26,14 +26,14 @@ export function useCallLights() {
   const [lastNotificationId, setLastNotificationId] = useState<string | null>(null);
   
   // Sound effect for new call lights
-  const callLightSound = new Howl({
+  const callLightSound = useMemo(() => new Howl({
     src: ['/notification.mp3'],
     volume: 0.7,
     preload: true
-  });
+  }), []);
 
   // Fetch active call lights
-  const fetchCallLights = async () => {
+  const fetchCallLights = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -57,7 +57,37 @@ export function useCallLights() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  // Handle responding to a call light
+  const handleRespond = useCallback(async (id: string) => {
+    try {
+      await updateCallLightStatus(id, 'in_progress');
+      toast.success("You are responding to this call");
+      // Refresh the list
+      fetchCallLights();
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['callLights'] });
+    } catch (err) {
+      toast.error("Failed to update call light status");
+      console.error(err);
+    }
+  }, [fetchCallLights, queryClient]);
+
+  // Handle completing a call light
+  const handleComplete = useCallback(async (id: string) => {
+    try {
+      await updateCallLightStatus(id, 'completed');
+      toast.success("Call light marked as completed");
+      // Refresh the list
+      fetchCallLights();
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['callLights'] });
+    } catch (err) {
+      toast.error("Failed to complete call light");
+      console.error(err);
+    }
+  }, [fetchCallLights, queryClient]);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -121,37 +151,7 @@ export function useCallLights() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
-
-  // Handle responding to a call light
-  const handleRespond = async (id: string) => {
-    try {
-      await updateCallLightStatus(id, 'in_progress');
-      toast.success("You are responding to this call");
-      // Refresh the list
-      fetchCallLights();
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['callLights'] });
-    } catch (err) {
-      toast.error("Failed to update call light status");
-      console.error(err);
-    }
-  };
-
-  // Handle completing a call light
-  const handleComplete = async (id: string) => {
-    try {
-      await updateCallLightStatus(id, 'completed');
-      toast.success("Call light marked as completed");
-      // Refresh the list
-      fetchCallLights();
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['callLights'] });
-    } catch (err) {
-      toast.error("Failed to complete call light");
-      console.error(err);
-    }
-  };
+  }, [user, fetchCallLights, lastNotificationId, callLightSound, handleRespond]);
 
   return {
     activeCallLights,

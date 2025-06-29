@@ -28,86 +28,86 @@ export const useRolePermissions = () => {
   const [error, setError] = useState<Error | null>(null);
 
   // Fetch user roles
-  useEffect(() => {
-    const fetchUserRoles = async () => {
-      if (!user?.id) {
-        setUserRoles([]);
-        setIsLoading(false);
-        return;
+  const fetchUserRoles = useCallback(async () => {
+    if (!user?.id) {
+      setUserRoles([]);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Check if the user is authenticated
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
       }
+      
+      // Use the Edge Function to fetch user roles
+      const { data, error } = await supabase.functions.invoke('get-user-roles', {
+        body: { userId: user.id }
+      });
 
-      try {
-        setIsLoading(true);
-        setError(null);
+      if (error) {
+        console.error("Edge function error:", error);
         
-        // Check if the user is authenticated
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !sessionData.session) {
-          throw new Error(`Authentication error: ${sessionError?.message || 'No active session'}`);
-        }
-        
-        // Use the Edge Function to fetch user roles
-        const { data, error } = await supabase.functions.invoke('get-user-roles', {
-          body: { userId: user.id }
-        });
-
-        if (error) {
-          console.error("Edge function error:", error);
+        // Fall back to direct query as a backup method
+        try {
+          console.log("Falling back to direct query for user roles");
           
-          // Fall back to direct query as a backup method
-          try {
-            console.log("Falling back to direct query for user roles");
-            
-            // We'll try to get the user's role from the users table
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('role')
-              .eq('id', user.id)
-              .single();
-                
-            if (userError) {
-              throw userError;
-            }
-            
-            // If user has a role in the users table, use that
-            if (userData?.role) {
-              setUserRoles([userData.role as HealthcareRole]);
-              setIsLoading(false);
-              return;
-            }
-            
-            throw new Error("Could not retrieve user roles");
-          } catch (directErr) {
-            console.error("Direct query fallback failed:", directErr);
-            // If user is logged in but we can't retrieve roles, default to basic role
-            setUserRoles(['doctor']); // Assume doctor role as fallback
+          // We'll try to get the user's role from the users table
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+              
+          if (userError) {
+            throw userError;
+          }
+          
+          // If user has a role in the users table, use that
+          if (userData?.role) {
+            setUserRoles([userData.role as HealthcareRole]);
             setIsLoading(false);
             return;
           }
-        }
-
-        // Extract roles from the data
-        const roles = data?.roles || [];
-        setUserRoles(roles);
-      } catch (err) {
-        console.error('Error fetching user roles:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
-        // Default to basic role if there's an error but user is logged in
-        if (user) {
+          
+          throw new Error("Could not retrieve user roles");
+        } catch (directErr: unknown) {
+          console.error("Direct query fallback failed:", directErr);
+          // If user is logged in but we can't retrieve roles, default to basic role
           setUserRoles(['doctor']); // Assume doctor role as fallback
+          setIsLoading(false);
+          return;
         }
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    fetchUserRoles();
+      // Extract roles from the data
+      const roles = data?.roles || [];
+      setUserRoles(roles);
+    } catch (err: unknown) {
+      console.error('Error fetching user roles:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
+      // Default to basic role if there's an error but user is logged in
+      if (user) {
+        setUserRoles(['doctor']); // Assume doctor role as fallback
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    fetchUserRoles();
+  }, [user?.id, fetchUserRoles]);
 
   // Check if user has a specific role
   const hasRole = useCallback((role: HealthcareRole): boolean => {
     return userRoles.includes(role);
-  }, [userRoles]);
+  }, [userRoles, user]);
 
   // Check if user has any of the specified roles
   const hasAnyRole = useCallback((roles: HealthcareRole[]): boolean => {
@@ -146,7 +146,7 @@ export const useRolePermissions = () => {
       }
 
       return !!data?.isAssigned;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error checking patient assignment:', err);
       return false;
     }
@@ -193,7 +193,7 @@ export const useRolePermissions = () => {
       
       toast.success(`Staff member assigned to patient successfully`);
       return funcData;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error assigning staff to patient:', err);
       toast.error('Failed to assign staff to patient');
       return null;
@@ -232,7 +232,7 @@ export const useRolePermissions = () => {
       
       toast.success('Staff member removed from care team');
       return true;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error removing staff from care team:', err);
       toast.error('Failed to remove staff from care team');
       return false;

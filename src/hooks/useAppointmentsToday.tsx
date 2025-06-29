@@ -57,7 +57,7 @@ export const useAppointmentsToday = () => {
         
         // Format the data
         return appointments.map(appointment => {
-          const patient = appointment.patients as any;
+          const patient: { first_name: string; last_name: string } = appointment.patients;
           const appointmentDate = new Date(appointment.appointment_date);
           
           // Determine appointment type and duration based on notes or status

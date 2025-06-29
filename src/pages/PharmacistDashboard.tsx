@@ -13,6 +13,25 @@ import { PrescriptionCard } from "@/components/pharmacy/PrescriptionCard";
 import { PharmacyStats } from "@/components/pharmacy/PharmacyStats";
 import { Card, CardContent } from "@/components/ui/card";
 
+interface DbPrescription {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date?: string;
+  instructions?: string;
+  status: string;
+  administered_by?: string;
+  administered_at?: string;
+  created_at: string;
+  updated_at: string;
+  patients?: { first_name: string; last_name: string; };
+  providers?: { name: string; };
+}
+
 const PharmacistDashboard = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,7 +53,7 @@ const PharmacistDashboard = () => {
       if (error) throw error;
       
       // Transform the data to match Prescription type
-      const transformedData = data.map((item: any) => ({
+      const transformedData = data.map((item: DbPrescription) => ({
         ...item,
         patients: item.patients || { first_name: '', last_name: '' },
         providers: item.providers ? { name: item.providers.name || '' } : { name: '' }

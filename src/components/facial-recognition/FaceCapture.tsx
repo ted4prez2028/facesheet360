@@ -40,7 +40,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hasVideoStream, setHasVideoStream] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
-  const [animationFrameId, setAnimationFrameId] = useState<number | null>(null);
+  const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
     const checkCamera = async () => {
@@ -55,8 +55,8 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     
     // Cleanup animation frame on unmount
     return () => {
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
+      if (animationFrameId.current !== null) {
+        cancelAnimationFrame(animationFrameId.current);
       }
     };
   }, []);
@@ -90,7 +90,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
         
         // Continue the loop
         const id = requestAnimationFrame(detectFacesLoop);
-        setAnimationFrameId(id);
+        animationFrameId.current = id;
       }
     };
     
@@ -104,9 +104,9 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       setIsCaptured(true);
       
       // Stop detection loop on capture
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-        setAnimationFrameId(null);
+      if (animationFrameId.current !== null) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = null;
       }
     } else {
       setError("Failed to capture image. Please try again.");

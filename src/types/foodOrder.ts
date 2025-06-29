@@ -21,7 +21,7 @@ export interface MenuItem {
   serving_size?: string;
   preparation_instructions?: string;
   allergen_warnings?: string[];
-  nutrition_facts?: Record<string, any>;
+  nutrition_facts?: Record<string, unknown>;
   image_url?: string;
   unit_size?: string;
   unit_price?: number;

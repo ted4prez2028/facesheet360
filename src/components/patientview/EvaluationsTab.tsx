@@ -8,6 +8,19 @@ import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
 import { useEvaluations } from '@/hooks/useEvaluations';
 import { useAuth } from '@/hooks/useAuth';
 
+interface Evaluation {
+  id: string;
+  patient_id: string;
+  created_by: string;
+  description: string;
+  type?: string;
+  category?: string;
+  score?: string;
+  status: string;
+  created_at: string;
+  revised_by?: string;
+}
+
 interface EvaluationsTabProps {
   patientId: string;
 }
@@ -25,7 +38,7 @@ const EvaluationsTab: React.FC<EvaluationsTabProps> = ({ patientId }) => {
   const { evaluations, isLoading, addEvaluation, updateEvaluation, deleteEvaluation } = useEvaluations(patientId);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedEvaluation, setSelectedEvaluation] = useState<any>(null);
+  const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleExportExcel = () => {
@@ -63,7 +76,7 @@ const EvaluationsTab: React.FC<EvaluationsTabProps> = ({ patientId }) => {
     setSelectedEvaluation(null);
   };
 
-  const handleDeleteClick = (evaluation: any) => {
+  const handleDeleteClick = (evaluation: Evaluation) => {
     setSelectedEvaluation(evaluation);
     setIsDeleteDialogOpen(true);
   };

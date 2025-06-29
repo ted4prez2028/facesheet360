@@ -68,9 +68,9 @@ export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElemen
       });
     }
     return false;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Camera access error:", err);
-    toast.error(err.message || "Failed to access camera.");
+    toast.error(err instanceof Error ? err.message : "Failed to access camera.");
     return false;
   }
 };
@@ -165,9 +165,9 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
       toast.error("No matching patient found.");
       return null;
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Facial recognition error:", err);
-    toast.error(err.message || "Failed to identify patient.");
+    toast.error(err instanceof Error ? err.message : "Failed to identify patient.");
     return null;
   }
 };
@@ -194,9 +194,9 @@ export const registerFace = async (
     toast.success("Image captured successfully");
     
     return faceDataString;
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Facial recognition error:", err);
-    toast.error(err.message || "Failed to register face.");
+    toast.error(err instanceof Error ? err.message : "Failed to register face.");
     return null;
   }
 };

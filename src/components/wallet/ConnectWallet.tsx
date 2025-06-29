@@ -91,7 +91,7 @@ const ConnectWallet = () => {
             <Button 
               onClick={handleConnect} 
               className="flex-1"
-              disabled={isProcessing || !window.ethereum}
+              disabled={isProcessing || !getProvider()}
             >
               {isProcessing ? "Connecting..." : "Connect MetaMask"}
             </Button>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CareCoinsTransaction } from "@/types";
 import { useAuth } from "@/context/AuthContext";
@@ -10,7 +10,7 @@ export function useCareCoinsTransactions() {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!user?.id) return;
     
     setIsLoading(true);
@@ -61,11 +61,11 @@ export function useCareCoinsTransactions() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     fetchTransactions();
-  }, [user?.id]);
+  }, [user?.id, fetchTransactions]);
 
   return {
     transactions,

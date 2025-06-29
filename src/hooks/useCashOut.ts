@@ -65,9 +65,9 @@ export const useCashOut = () => {
         toast.error(result.message || "Failed to cash out CareCoins");
         return false;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Cash out error:", error);
-      toast.error(error.message || "An error occurred during cash out");
+      toast.error(error instanceof Error ? error.message : "An error occurred during cash out");
       return false;
     } finally {
       setIsProcessing(false);

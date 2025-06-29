@@ -39,15 +39,7 @@ const CommunicationContext = createContext<CommunicationContextType | undefined>
   undefined
 );
 
-export const useCommunication = () => {
-  const context = useContext(CommunicationContext);
-  if (!context) {
-    throw new Error(
-      "useCommunication must be used within a CommunicationProvider"
-    );
-  }
-  return context;
-};
+
 
 interface CommunicationProviderProps {
   children: React.ReactNode;

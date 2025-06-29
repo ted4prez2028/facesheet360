@@ -160,10 +160,10 @@ const Patients = () => {
       setIsAddPatientOpen(false);
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Uh oh! Something went wrong.",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       })
     },
@@ -187,10 +187,10 @@ const Patients = () => {
       })
       queryClient.invalidateQueries({ queryKey: ['patients'] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast({
         title: "Uh oh! Something went wrong.",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       })
     },

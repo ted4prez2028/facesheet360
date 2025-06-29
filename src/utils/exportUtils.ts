@@ -1,20 +1,54 @@
 
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
+interface DataItem {
+  [key: string]: unknown;
+}
+
+interface TableNode {
+  table: {
+    body: unknown[][];
+    widths: unknown[];
+  };
+}
+
 // Set up the fonts for pdfMake correctly
-// @ts-ignore - Ignoring type error as pdfMake expects this assignment
+// @ts-expect-error - Ignoring type error as pdfMake expects this assignment
 pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
 
-export const exportToExcel = (data: any[], fileName: string) => {
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  XLSX.writeFile(wb, `${fileName}.xlsx`);
+export const exportToExcel = async (data: DataItem[], fileName: string) => {
+  if (!data.length) {
+    console.error('No data to export');
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Sheet1');
+
+  // Add headers
+  const headers = Object.keys(data[0]);
+  worksheet.columns = headers.map(header => ({ header, key: header, width: 20 }));
+
+  // Add rows
+  worksheet.addRows(data);
+
+  // Style the header
+  worksheet.getRow(1).font = { bold: true };
+
+  // Write to buffer and trigger download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${fileName}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
-export const exportToPdf = (title: string, data: any[]) => {
+export const exportToPdf = (title: string, data: DataItem[]) => {
   if (!data.length) {
     console.error('No data to export');
     return;
@@ -46,10 +80,10 @@ export const exportToPdf = (title: string, data: any[]) => {
           ]
         },
         layout: {
-          hLineWidth: function(i: number, node: any) {
+          hLineWidth: function(i: number, node: TableNode) {
             return (i === 0 || i === node.table.body.length) ? 1 : 0.5;
           },
-          vLineWidth: function(i: number, node: any) {
+          vLineWidth: function(i: number, node: TableNode) {
             return (i === 0 || i === node.table.widths.length) ? 1 : 0.5;
           },
           hLineColor: function(i: number) {
@@ -81,7 +115,7 @@ export const exportToPdf = (title: string, data: any[]) => {
         color: '#333333'
       }
     }
-  } as any; // Type assertion to avoid complex typing
+  }; // Type assertion to avoid complex typing
 
   pdfMake.createPdf(docDefinition).download(`${title}.pdf`);
 };

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
+import { ChatWindow as ChatWindowType, Message } from '@/types';
 
 const ChatWindows = () => {
   const { chatWindows } = useCommunication();
@@ -22,7 +23,7 @@ const ChatWindows = () => {
   );
 };
 
-const ChatWindow = ({ window }: { window: any }) => {
+const ChatWindow = ({ window }: { window: ChatWindowType }) => {
   const { user } = useAuth();
   const { minimizeChatWindow, closeChatWindow, sendMessage, startCall } = useCommunication();
   const [message, setMessage] = useState('');
@@ -119,7 +120,7 @@ const ChatWindow = ({ window }: { window: any }) => {
               <p>No messages yet. Start a conversation!</p>
             </div>
           ) : (
-            window.messages.map((msg: any) => {
+            window.messages.map((msg: Message) => {
               const isCurrentUser = msg.sender_id === user?.id;
               return (
                 <div 

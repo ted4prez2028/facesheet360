@@ -29,7 +29,7 @@ export const useHealthPredictions = (patientId?: string) => {
       
       const { data, error } = await supabase.rpc('assess_health_risks', {
         patient_id_param: patientId,
-        assessment_data: assessmentData as any // Cast to any to bypass strict type checking
+        assessment_data: assessmentData
       });
 
       if (error) throw error;

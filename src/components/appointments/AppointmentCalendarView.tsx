@@ -3,12 +3,21 @@ import { format, isSameDay, isToday } from "date-fns";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
+import { Appointment } from "./AppointmentCalendar";
+
+interface ViewAppointment {
+  id: string;
+  type: string;
+  date: Date;
+  duration: number;
+  patientName: string;
+}
 
 interface AppointmentCalendarViewProps {
   days: Date[];
   timeSlots: number[];
   formatTimeSlot: (hour: number) => string;
-  getAppointmentForTimeSlot: (day: Date, hour: number) => any[];
+  getAppointmentForTimeSlot: (day: Date, hour: number) => ViewAppointment[];
   getAppointmentTypeColor: (type: string) => string;
 }
 

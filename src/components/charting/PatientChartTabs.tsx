@@ -15,10 +15,24 @@ import MedicationsPanel from "@/components/charting/MedicationsPanel";
 import LabResultsPanel from "@/components/charting/LabResultsPanel";
 import PatientNotes from "@/components/charting/PatientNotes";
 import ImagingPanel from "@/components/charting/ImagingPanel";
+import { Patient } from "@/types";
+
+interface ChartData {
+  vitalSigns?: {
+    bloodPressure?: string;
+    heartRate?: number;
+    temperature?: number;
+    oxygenSaturation?: number;
+  }[];
+  medications?: { medication_name: string }[];
+  history?: string[];
+  diagnosis?: string;
+  allergies?: string[];
+}
 
 interface PatientChartTabsProps {
-  patient: any;
-  chartData: any;
+  patient: Patient;
+  chartData: ChartData;
   patientId: string;
   userId?: string;
 }

@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import NotificationSound from "@/components/notifications/NotificationSound";
 import MedicationReminders from "@/components/notifications/MedicationReminders";
-import { Helmet } from "react-helmet";
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -49,9 +49,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <Helmet>
+      <head>
         <title>Facesheet360</title>
-      </Helmet>
+      </head>
       <div className="min-h-screen w-full flex bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-h-screen">

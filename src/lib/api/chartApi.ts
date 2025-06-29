@@ -14,8 +14,8 @@ export interface ChartRecord {
   treatment_plan: string | null;
   record_type: string; // Make this required
   record_date?: string;
-  vital_signs?: any;
-  medications?: any;
+  vital_signs?: { [key: string]: unknown; };
+  medications?: { [key: string]: unknown; };
   updated_at?: string;
 }
 

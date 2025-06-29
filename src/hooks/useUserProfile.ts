@@ -26,7 +26,7 @@ export const useUpdateUser = () => {
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string, updates: Partial<User> }) => {
       // Convert user updates to database field names
-      const dbData: any = {};
+      const dbData: Partial<User> = {};
       if (updates.name) dbData.name = updates.name;
       if (updates.email) dbData.email = updates.email;
       if (updates.specialty) dbData.specialty = updates.specialty;

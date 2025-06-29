@@ -86,7 +86,7 @@ export const useGenerateAICarePlan = () => {
             content: data.carePlan,
             is_ai_generated: true,
             status: "draft"
-          } as any)
+          })
           .select()
           .single();
 
@@ -122,7 +122,7 @@ export const useAddCarePlan = () => {
         // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("care_plans")
-          .insert(carePlan as any)
+          .insert(carePlan)
           .select()
           .single();
 
@@ -153,7 +153,7 @@ export const useUpdateCarePlanStatus = () => {
         // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("care_plans")
-          .update({ status } as any)
+          .update({ status })
           .eq("id", id)
           .select()
           .single();

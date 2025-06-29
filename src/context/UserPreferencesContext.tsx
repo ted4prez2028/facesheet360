@@ -100,10 +100,4 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
   );
 };
 
-export const useUserPreferences = (): UserPreferencesContextProps => {
-  const context = useContext(UserPreferencesContext);
-  if (!context) {
-    throw new Error('useUserPreferences must be used within a UserPreferencesProvider');
-  }
-  return context;
-};
+

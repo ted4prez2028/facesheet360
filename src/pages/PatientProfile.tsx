@@ -142,7 +142,7 @@ export default function PatientProfile() {
               <div className="flex flex-col rounded-lg border p-3">
                 <dt className="text-sm font-medium text-muted-foreground">Status</dt>
                 <dd className="mt-1 text-lg font-semibold">
-                  {/* @ts-ignore - Checking for possibly non-existent property */}
+                  {/* @ts-expect-error - Checking for possibly non-existent property */}
                   {patient.status || 'Unknown'}
                 </dd>
               </div>
@@ -160,7 +160,7 @@ export default function PatientProfile() {
               <div className="flex flex-col rounded-lg border p-3">
                 <dt className="text-sm font-medium text-muted-foreground">Condition</dt>
                 <dd className="mt-1 text-lg font-semibold">
-                  {/* @ts-ignore - Checking for possibly non-existent property */}
+                  {/* @ts-expect-error - Checking for possibly non-existent property */}
                   {patient.condition || 'Not specified'}
                 </dd>
               </div>
@@ -268,7 +268,6 @@ export default function PatientProfile() {
         )}
 
         {/* Display Vital Signs */}
-        {/* @ts-ignore - Checking for possibly non-existent property */}
         {patient && patient.vitalSigns && (
           <Card className="mt-6">
             <CardHeader>
@@ -279,19 +278,16 @@ export default function PatientProfile() {
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 <div className="flex flex-col rounded-lg border p-3">
                   <span className="text-sm font-medium text-muted-foreground">Heart Rate</span>
-                  {/* @ts-ignore - Accessing possibly non-existent property */}
                   <span className="mt-1 text-lg font-semibold">{patient.vitalSigns.heartRate || 'N/A'} bpm</span>
                 </div>
 
                 <div className="flex flex-col rounded-lg border p-3">
                   <span className="text-sm font-medium text-muted-foreground">Blood Pressure</span>
-                  {/* @ts-ignore - Accessing possibly non-existent property */}
                   <span className="mt-1 text-lg font-semibold">{patient.vitalSigns.bloodPressure || 'N/A'}</span>
                 </div>
 
                 <div className="flex flex-col rounded-lg border p-3">
                   <span className="text-sm font-medium text-muted-foreground">Temperature</span>
-                  {/* @ts-ignore - Accessing possibly non-existent property */}
                   <span className="mt-1 text-lg font-semibold">{patient.vitalSigns.temperature || 'N/A'} °C</span>
                 </div>
               </div>
@@ -300,7 +296,6 @@ export default function PatientProfile() {
         )}
 
         {/* Display Medications */}
-        {/* @ts-ignore - Checking for possibly non-existent property */}
         {patient && patient.medications && patient.medications.length > 0 && (
           <Card className="mt-6">
             <CardHeader>
@@ -308,7 +303,6 @@ export default function PatientProfile() {
             </CardHeader>
             <CardContent>
               <ul className="list-disc pl-5 space-y-2">
-                {/* @ts-ignore - Accessing possibly non-existent property */}
                 {patient.medications.map((med, index) => (
                   <li key={index}>{med}</li>
                 ))}
@@ -318,7 +312,6 @@ export default function PatientProfile() {
         )}
 
         {/* Display Medical History */}
-        {/* @ts-ignore - Checking for possibly non-existent property */}
         {patient && patient.medicalHistory && patient.medicalHistory.length > 0 && (
           <Card className="mt-6">
             <CardHeader>
@@ -326,7 +319,6 @@ export default function PatientProfile() {
             </CardHeader>
             <CardContent>
               <ul className="list-disc pl-5 space-y-2">
-                {/* @ts-ignore - Accessing possibly non-existent property */}
                 {patient.medicalHistory.map((history, index) => (
                   <li key={index}>{history}</li>
                 ))}
@@ -336,7 +328,6 @@ export default function PatientProfile() {
         )}
 
         {/* Display Allergies */}
-        {/* @ts-ignore - Checking for possibly non-existent property */}
         {patient && patient.allergies && patient.allergies.length > 0 && (
           <Card className="mt-6">
             <CardHeader>
@@ -344,7 +335,6 @@ export default function PatientProfile() {
             </CardHeader>
             <CardContent>
               <ul className="list-disc pl-5 space-y-2">
-                {/* @ts-ignore - Accessing possibly non-existent property */}
                 {patient.allergies.map((allergy, index) => (
                   <li key={index}>{allergy}</li>
                 ))}

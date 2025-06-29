@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -20,7 +20,7 @@ export function useAllergies(patientId: string) {
   const [allergies, setAllergies] = useState<Allergy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchAllergies = async () => {
+  const fetchAllergies = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('allergies')
@@ -36,11 +36,11 @@ export function useAllergies(patientId: string) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [patientId]);
 
   useEffect(() => {
     fetchAllergies();
-  }, [patientId]);
+  }, [patientId, fetchAllergies]);
 
   const addAllergy = async (newAllergy: Omit<Allergy, 'id' | 'created_at' | 'updated_at'>) => {
     try {

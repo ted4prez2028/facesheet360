@@ -48,7 +48,7 @@ const LandingPage = () => {
           </p>
           <div className="flex flex-wrap gap-4">
             <Button size="lg" variant="default">Learn More</Button>
-            <Button size="lg" variant="outline">Request Demo</Button>
+            <Button size="lg" variant="outline" className="border-2 border-primary/50">Request Demo</Button>
           </div>
         </div>
         

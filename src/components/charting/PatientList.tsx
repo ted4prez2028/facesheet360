@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import GoToEhrButton from "@/components/patientview/GoToEhrButton";
 import { useNavigate } from "react-router-dom";
+import { User } from "@supabase/supabase-js";
 
 interface Patient {
   id: string;
@@ -24,7 +25,7 @@ interface PatientListProps {
   selectedPatient: string | null;
   setSelectedPatient: (id: string) => void;
   setIsAddPatientOpen: (isOpen: boolean) => void;
-  user: any;
+  user: User | null;
   patients?: Patient[];
   isLoading: boolean;
 }

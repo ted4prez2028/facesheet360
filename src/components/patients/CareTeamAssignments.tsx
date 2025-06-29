@@ -47,6 +47,13 @@ import { useRolePermissions, HealthcareRole } from '@/hooks/useRolePermissions';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { useCallback } from 'react';
+
+interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface CareTeamMember {
   id: string;
@@ -68,7 +75,7 @@ const formSchema = z.object({
 
 export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patientId }) => {
   const [careTeam, setCareTeam] = useState<CareTeamMember[]>([]);
-  const [availableStaff, setAvailableStaff] = useState<any[]>([]);
+  const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { hasRole, assignToPatient, removeFromPatient } = useRolePermissions();
@@ -83,7 +90,7 @@ export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patien
   });
 
   // Fetch care team
-  const fetchCareTeam = async () => {
+  const fetchCareTeam = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -100,10 +107,10 @@ export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patien
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [patientId]);
 
   // Fetch available staff that aren't already assigned
-  const fetchAvailableStaff = async () => {
+  const fetchAvailableStaff = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -119,19 +126,19 @@ export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patien
       console.error('Error fetching available staff:', error);
       toast.error('Failed to load available staff');
     }
-  };
+  }, [careTeam]);
 
   useEffect(() => {
     if (patientId) {
       fetchCareTeam();
     }
-  }, [patientId]);
+  }, [patientId, fetchCareTeam]);
 
   useEffect(() => {
     if (isAddDialogOpen) {
       fetchAvailableStaff();
     }
-  }, [isAddDialogOpen, careTeam]);
+  }, [isAddDialogOpen, careTeam, fetchAvailableStaff]);
 
   const handleAddStaff = async (values: z.infer<typeof formSchema>) => {
     const result = await assignToPatient(values.staffId, patientId, values.role);

@@ -52,8 +52,8 @@ export const useCreateAppointment = () => {
       queryClient.invalidateQueries({ queryKey: [todayAppointmentsKey] });
       toast.success("Appointment scheduled successfully");
     },
-    onError: (error: any) => {
-      toast.error(`Failed to schedule appointment: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Failed to schedule appointment: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   });
 };
@@ -70,8 +70,8 @@ export const useUpdateAppointment = () => {
       queryClient.invalidateQueries({ queryKey: [todayAppointmentsKey] });
       toast.success("Appointment updated successfully");
     },
-    onError: (error: any) => {
-      toast.error(`Failed to update appointment: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Failed to update appointment: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   });
 };
@@ -87,8 +87,8 @@ export const useDeleteAppointment = () => {
       queryClient.invalidateQueries({ queryKey: [todayAppointmentsKey] });
       toast.success("Appointment cancelled successfully");
     },
-    onError: (error: any) => {
-      toast.error(`Failed to cancel appointment: ${error.message}`);
+    onError: (error: unknown) => {
+      toast.error(`Failed to cancel appointment: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   });
 };

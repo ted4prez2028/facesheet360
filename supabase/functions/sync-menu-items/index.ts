@@ -45,8 +45,32 @@ serve(async (req) => {
       throw deleteError;
     }
 
+    interface USFoodsMenuItem {
+      name: string;
+      description?: string;
+      category?: string;
+      nutritionalInfo?: {
+        calories?: number;
+        protein?: string;
+        allergies?: string[];
+        dietaryAttributes?: string[];
+      };
+      allergens?: string[];
+      dietaryAttributes?: string[];
+      available?: boolean;
+      brand?: string;
+      ingredients?: string;
+      servingSize?: string;
+      preparationInstructions?: string;
+      allergenWarnings?: string[];
+      imageUrl?: string;
+      unitSize?: string;
+      unitPrice?: number;
+      id: string;
+    }
+
     // Transform and insert new menu items
-    const transformedItems = menuItems.map((item: any) => ({
+    const transformedItems = menuItems.map((item: USFoodsMenuItem) => ({
       name: item.name,
       description: item.description,
       category: item.category || 'Uncategorized',

@@ -3,6 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface DbPatientStatistic {
+  month: string;
+  newpatients: number;
+  activepatients: number;
+}
+
+interface DbVitalSign {
+  date_recorded: string;
+  heart_rate?: number;
+  blood_pressure?: string;
+  oxygen_saturation?: number;
+}
+
 export interface PatientStatistic {
   name: string;
   newPatients: number;
@@ -27,7 +40,7 @@ export const usePatientStatistics = (timeframe: string = 'year') => {
         
         if (error) throw error;
         
-        return data.map((item: any) => ({
+        return data.map((item: DbPatientStatistic) => ({
           name: item.month,
           newPatients: item.newpatients,
           activePatients: item.activepatients,
@@ -68,7 +81,7 @@ export const usePatientHealthMetrics = (patientId?: string) => {
         }
         
         // Convert to the format needed for charts
-        return vitalSignsData.map((item: any) => {
+        return vitalSignsData.map((item: DbVitalSign) => {
           const date = new Date(item.date_recorded);
           return {
             name: date.toLocaleString('default', { month: 'short' }),

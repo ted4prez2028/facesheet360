@@ -32,9 +32,9 @@ export const useVirtualCard = () => {
       toast.success(`Successfully requested a new ${cardType} card. It will be processed shortly.`);
       refetchCards();
       return card;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Card request error:", error);
-      toast.error(error.message || "Failed to request card");
+      toast.error(error instanceof Error ? error.message : "Failed to request card");
     } finally {
       setIsRequestingCard(false);
     }

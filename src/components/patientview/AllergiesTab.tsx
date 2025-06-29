@@ -12,6 +12,17 @@ import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
 import { useAllergies } from '@/hooks/useAllergies';
 import AllergyForm from './AllergyForm';
 
+interface Allergy {
+  id: string;
+  allergen: string;
+  type: string;
+  category: string;
+  reaction: string;
+  severity: string;
+  date_identified: string;
+  status: string;
+}
+
 interface AllergiesTabProps {
   patientId: string;
 }
@@ -19,7 +30,7 @@ interface AllergiesTabProps {
 const AllergiesTab: React.FC<AllergiesTabProps> = ({ patientId }) => {
   const { allergies, isLoading, addAllergy, updateAllergy, deleteAllergy } = useAllergies(patientId);
   const [isAddAllergyOpen, setIsAddAllergyOpen] = useState(false);
-  const [selectedAllergy, setSelectedAllergy] = useState<any>(null);
+  const [selectedAllergy, setSelectedAllergy] = useState<Allergy | null>(null);
   const [isEditAllergyOpen, setIsEditAllergyOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -31,12 +42,12 @@ const AllergiesTab: React.FC<AllergiesTabProps> = ({ patientId }) => {
     exportToPdf('Patient Allergies Report', allergies);
   };
 
-  const handleEditClick = (allergy: any) => {
+  const handleEditClick = (allergy: Allergy) => {
     setSelectedAllergy(allergy);
     setIsEditAllergyOpen(true);
   };
 
-  const handleDeleteClick = (allergy: any) => {
+  const handleDeleteClick = (allergy: Allergy) => {
     setSelectedAllergy(allergy);
     setIsDeleteDialogOpen(true);
   };
