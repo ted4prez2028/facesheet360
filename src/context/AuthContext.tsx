@@ -14,6 +14,7 @@ export interface AuthContextType {
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authError: string | null; // Added to track authentication errors
   updateUserProfile: (userData: Partial<User>) => Promise<void>;
   updateCurrentUser?: (userData: Partial<User>) => void;
 }
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSession = async () => {
@@ -63,13 +65,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Error loading session:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('Error loading session:', errorMessage);
         setUser(null);
         setSession(null);
         setIsAuthenticated(false);
+        setAuthError(errorMessage);
       } finally {
         setIsLoading(false);
-      }
+      };
     };
 
     loadSession();
@@ -153,7 +157,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(data.session);
       setIsAuthenticated(true);
     } catch (error: unknown) {
-      console.error('Sign-in error:', error instanceof Error ? error.message : error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Sign-in error:', errorMessage);
+      setAuthError(errorMessage);
       throw error;
     } finally {
       setIsLoading(false);
