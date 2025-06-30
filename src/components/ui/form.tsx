@@ -19,8 +19,7 @@ import { Form } from "@/lib/form";
 
 
 import { FormFieldContext, FormItemContext } from "@/lib/form-context";
-export { Form } from '@/lib/form'; // ✅
-export { FormField } from './FormField'; // ✅ ensure this exists
-export { FormItem } from './FormItem'; // etc.
+export { Form } from '@/lib/form'; 
+export { FormItem } from './FormItem'; 
 export { FormLabel } from './FormLabel';
 export { FormControl } from './FormControl';
