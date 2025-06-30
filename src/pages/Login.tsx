@@ -20,15 +20,16 @@ const Login = () => {
     role: "doctor",
   });
   const { toast } = useToast();
-  const { login, signUp, isAuthenticated, isLoading } = useAuth();
+  const { login, signUp, isAuthenticated, isLoading, authError } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Login page auth state:", { isAuthenticated, isLoading, authError });
     if (!isLoading && isAuthenticated) {
       console.log("User is authenticated, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, authError]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -117,6 +118,11 @@ const Login = () => {
         </div>
         
         <Tabs defaultValue="login" className="w-full">
+          {authError && (
+            <div className="mb-4 text-center text-red-500">
+              <p>Error: {authError}</p>
+            </div>
+          )}
           <TabsList className="grid grid-cols-2 w-full mb-6">
             <TabsTrigger value="login" data-value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
