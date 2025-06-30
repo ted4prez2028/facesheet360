@@ -49,23 +49,23 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="flex flex-col gap-6 animate-fade-in">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-muted-foreground dark:text-gray-400">
             Welcome back, {firstName}. Here's what's happening today.
           </p>
         </div>
         
-        <StatisticsCards className="shadow-custom-light rounded-xl" />
+        <StatisticsCards className="shadow-custom-light rounded-xl border border-gray-200 dark:border-gray-700" />
         
-        <div className="flex flex-col space-y-4 p-6 bg-card rounded-2xl shadow-custom-medium border border-border/50">
+        <div className="flex flex-col space-y-4 p-6 bg-card rounded-2xl shadow-custom-medium border border-border/50 dark:bg-gray-800 dark:border-gray-700">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Patient Analytics</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Patient Analytics</h2>
             <div className="flex gap-4 items-center">
               <Select value={timeframe} onValueChange={setTimeframe}>
-                <SelectTrigger className="w-32 rounded-lg shadow-sm border-border/70">
+                <SelectTrigger className="w-32 rounded-lg shadow-sm border-border/70 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <SelectValue placeholder="Timeframe" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg shadow-custom-light">
+                <SelectContent className="rounded-lg shadow-custom-light dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <SelectItem value="week">Last Week</SelectItem>
                   <SelectItem value="month">Last Month</SelectItem>
                   <SelectItem value="quarter">Last Quarter</SelectItem>
@@ -77,10 +77,10 @@ const Dashboard = () => {
                 value={selectedPatientId} 
                 onValueChange={setSelectedPatientId}
               >
-                <SelectTrigger className="w-56 rounded-lg shadow-sm border-border/70">
+                <SelectTrigger className="w-56 rounded-lg shadow-sm border-border/70 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <SelectValue placeholder="Select patient for metrics" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg shadow-custom-light">
+                <SelectContent className="rounded-lg shadow-custom-light dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   {patientsList?.map(patient => (
                     <SelectItem key={patient.id} value={patient.id}>
                       {patient.first_name} {patient.last_name}
@@ -104,8 +104,8 @@ const Dashboard = () => {
         </div>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} className="shadow-custom-light rounded-xl border border-border/50" />
-          <QuickActions className="shadow-custom-light rounded-xl border border-border/50" />
+          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} className="shadow-custom-light rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
+          <QuickActions className="shadow-custom-light rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
         </div>
       </div>
     </DashboardLayout>

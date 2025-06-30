@@ -51,29 +51,9 @@ export function AppSidebar() {
           path: "/dashboard",
         },
         {
-          title: "Patients",
-          icon: Users,
-          path: "/patients",
-        },
-        {
-          title: "Charting",
+          title: "Charts",
           icon: ClipboardList,
           path: "/charting",
-        },
-        {
-          title: "Appointments",
-          icon: Calendar,
-          path: "/appointments",
-        },
-      ],
-    },
-    {
-      group: "Analysis",
-      items: [
-        {
-          title: "Analytics",
-          icon: Activity,
-          path: "/analytics",
         },
       ],
     },

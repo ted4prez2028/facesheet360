@@ -66,9 +66,7 @@ const PatientListPage = () => {
           handleDeletePatient={handleDeletePatient}
         />
         
-        {/* Add patient drawer should go here */}
-        {/* <AddPatientDrawer open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen} /> */}
-        
+        <AddPatientDrawer open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen} onPatientAdded={() => { /* TODO: Invalidate patients query */ }} />
         {/* Face ID dialog should go here */}
         {/* <FaceIdentificationDialog open={isFaceIdDialogOpen} onOpenChange={setIsFaceIdDialogOpen} /> */}
       </div>

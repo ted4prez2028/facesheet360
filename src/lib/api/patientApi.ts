@@ -93,7 +93,8 @@ export const addPatient = async (patient: Partial<Patient>) => {
         medical_record_number: patient.medical_record_number,
         insurance_provider: patient.insurance_provider,
         policy_number: patient.policy_number,
-        facial_data: patient.facial_data
+        facial_data: patient.facial_data,
+        user_id: session.user.id
       })
       .select()
       .single();
