@@ -96,11 +96,49 @@ const MedicationsPanel: React.FC<MedicationsPanelProps> = ({ patientId }) => {
       setFormValues(initialValues);
       setIsAdding(false);
       refetch();
+
+      // Mint CareCoins for the provider
+      mintCareCoin(user.id, patientId, {
+        medication: formValues,
+      });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to record medication",
         variant: "destructive"
+      });
+    }
+  };
+
+  interface MedicationChartData {
+  medication: MedicationFormValues;
+}
+
+  const mintCareCoin = async (providerId: string, patientId: string, chartData: MedicationChartData) => {
+    try {
+      const response = await fetch("/api/mint-carecoin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ providerId, patientId, chartData }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mint CareCoins");
+      }
+
+      const data = await response.json();
+      toast({
+        title: "CareCoins Minted",
+        description: `You have been awarded ${data.amount} CareCoins!`,
+      });
+    } catch (error) {
+      console.error("Error minting CareCoins:", error);
+      toast({
+        title: "Minting Error",
+        description: "Could not mint CareCoins at this time.",
+        variant: "destructive",
       });
     }
   };

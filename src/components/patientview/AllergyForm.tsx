@@ -3,7 +3,11 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
+import { Form } from '@/lib/form';
+import { FormField } from '@/components/ui/FormField';
+import { FormItem } from '@/components/ui/FormItem';
+import { FormLabel } from '@/components/ui/FormLabel';
+import { FormControl } from '@/components/ui/FormControl';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAllergies, Allergy } from '@/hooks/useAllergies';
 

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Label } from "@/components/ui/label";
-import { useFormField } from "@/lib/form-context";
+import { useFormField } from "@/lib/use-form-field";
 
 const FormLabel = ({ className, ...props }: React.ComponentProps<typeof Label>) => {
   const { error, formItemId } = useFormField();

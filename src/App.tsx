@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import Index from './pages/Index';
 import Dashboard from './pages/Dashboard';
@@ -10,33 +10,29 @@ import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
 import WoundCare from './pages/WoundCare';
 import { Toaster } from "@/components/ui/toaster"
-import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
 import CommunicationContainer from '@/components/communication/CommunicationContainer';
 import ContactsList from '@/components/communication/ContactsList';
 
+const queryClient = new QueryClient();
+
+const RequireAuth = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" />;
+  }
+
+  return <>{children}</>;
+};
+
 function App() {
-  const queryClient = new QueryClient();
-
-  // Custom hook to check authentication status
-  const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-    const { isAuthenticated, isLoading } = useAuth();
-
-    // Show a loading indicator while checking authentication status
-    if (isLoading) {
-      return <div>Loading...</div>;
-    }
-
-    // Redirect to landing page if not authenticated
-    if (!isAuthenticated) {
-      return <Navigate to="/" />;
-    }
-
-    return <>{children}</>;
-  };
-
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>

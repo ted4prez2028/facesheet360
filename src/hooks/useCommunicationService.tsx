@@ -351,9 +351,9 @@ export function useCommunicationService() {
                 setIsCallIncoming(false);
                 
                 // Stop ringtone if playing
-                if ((window as any).incomingCallAudio) {
-                  (window as any).incomingCallAudio.pause();
-                  (window as any).incomingCallAudio = null;
+                if ((window as WindowWithAudio).incomingCallAudio) {
+                  (window as WindowWithAudio).incomingCallAudio.pause();
+                  (window as WindowWithAudio).incomingCallAudio = null;
                 }
               } else if (call.call_status === 'ongoing') {
                 setActiveCall(prev => prev ? { ...prev, status: 'ongoing' } : null);

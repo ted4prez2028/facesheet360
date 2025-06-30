@@ -49,7 +49,7 @@ export const useWallet = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, updateCurrentUser]);
+  }, [user, updateCurrentUser, updateBalances]);
 
   const updateBalances = useCallback(async (address: string) => {
     try {
@@ -269,5 +269,7 @@ export const useWallet = () => {
     sendCareCoins,
     stakeCareCoins,
     unstakeCareCoins,
-    refreshBalances
+    refreshBalances,
+    mintCareCoins
   };
+};

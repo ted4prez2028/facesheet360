@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
 import { VariantProps, cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";

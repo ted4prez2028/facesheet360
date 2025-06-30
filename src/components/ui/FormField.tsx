@@ -8,7 +8,7 @@ import {
 
 import { Label } from "./label";
 import { Input } from "./input";
-import { FormMessage } from "./form-message";
+import { FormMessage } from "@/lib/form-message";
 
 type FormFieldProps<T extends FieldValues> = {
   name: Path<T>;

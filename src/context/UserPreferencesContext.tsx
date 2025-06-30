@@ -100,4 +100,7 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
   );
 };
 
+// Hook for easy access to preferences
+export const useUserPreferences = () => useContext(UserPreferencesContext);
+
 

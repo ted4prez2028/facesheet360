@@ -51,20 +51,51 @@ const PatientNotes = ({ patientId, userId }: PatientNotesProps) => {
       noteType
     }, {
       onSuccess: async () => {
-        setIsCreatingNote(false);
         setNoteText("");
         setNoteType("Progress Note");
 
-        // Mint CareCoin for charting activity
-        if (walletAddress) {
-          // In a real application, generate a robust hash of anonymized charting data.
-          // For demonstration, we'll use a simple hash of the note content and timestamp.
-          const metadata = `${noteText}-${Date.now()}`;
-          const metadataHash = btoa(metadata).substring(0, 32); // Simple base64 hash
-          await mintCareCoins(walletAddress, "1", metadataHash); // Mint 1 CareCoin
-        }
+        // Mint CareCoins for the provider
+        mintCareCoin(userId, patientId, {
+          note: { noteText, noteType },
+        });
       }
     });
+  };
+
+  interface NoteChartData {
+  note: {
+    noteText: string;
+    noteType: string;
+  };
+}
+
+  const mintCareCoin = async (providerId: string, patientId: string, chartData: NoteChartData) => {
+    try {
+      const response = await fetch("/api/mint-carecoin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ providerId, patientId, chartData }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mint CareCoins");
+      }
+
+      const data = await response.json();
+      toast({
+        title: "CareCoins Minted",
+        description: `You have been awarded ${data.amount} CareCoins!`,
+      });
+    } catch (error) {
+      console.error("Error minting CareCoins:", error);
+      toast({
+        title: "Minting Error",
+        description: "Could not mint CareCoins at this time.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleFileUpload = () => {

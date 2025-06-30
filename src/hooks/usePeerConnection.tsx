@@ -64,7 +64,7 @@ export function usePeerConnection() {
   }, [user]);
 
   // Initialize peer connection
-  useEffect(() => {
+  useEffect(() => { // eslint-disable-next-line react-hooks/exhaustive-deps
     if (!peerId) return;
 
     const initPeer = () => {
@@ -168,23 +168,24 @@ export function usePeerConnection() {
       }
     };
 
-    const newPeer = initPeer();
+    const newPeerInstance = initPeer();
     
     // Cleanup function
     return () => {
+      const currentCalls = callsRef.current;
       if (state.localStream) {
         state.localStream.getTracks().forEach(track => track.stop());
       }
       
-      callsRef.current.forEach(call => {
+      currentCalls.forEach(call => {
         call.close();
       });
       
-      if (state.peer) {
-        state.peer.destroy();
+      if (newPeerInstance) {
+        newPeerInstance.destroy();
       }
     };
-  }, [peerId, state.localStream, state.peer, callsRef]);
+  }, [peerId, state.localStream]);
 
   // Start a call to another peer
   const startCall = useCallback(async (remotePeerId: string, isVideo: boolean) => {

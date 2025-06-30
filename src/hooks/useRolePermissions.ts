@@ -107,7 +107,7 @@ export const useRolePermissions = () => {
   // Check if user has a specific role
   const hasRole = useCallback((role: HealthcareRole): boolean => {
     return userRoles.includes(role);
-  }, [userRoles, user]);
+  }, [userRoles]);
 
   // Check if user has any of the specified roles
   const hasAnyRole = useCallback((roles: HealthcareRole[]): boolean => {
