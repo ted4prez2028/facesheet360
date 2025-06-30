@@ -74,3 +74,9 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
     </CommunicationContext.Provider>
   );
 };
+
+export const useCommunication = () => {
+  const context = useContext(CommunicationContext);
+  if (!context) throw new Error('useCommunication must be used within a CommunicationProvider');
+  return context;
+};

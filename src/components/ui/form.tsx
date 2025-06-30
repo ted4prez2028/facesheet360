@@ -19,14 +19,7 @@ import { Form } from "@/lib/form";
 
 
 import { FormFieldContext, FormItemContext } from "@/lib/form-context";
-
-export {
-  useFormField,
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  FormField,
-}
+export { Form } from './FormField'; 
+export { FormItem } from './FormItem'; 
+export { FormLabel } from './FormLabel';
+export { FormControl } from './FormControl';
