@@ -74,3 +74,4 @@ export const CommunicationProvider = ({ children }: CommunicationProviderProps) 
     </CommunicationContext.Provider>
   );
 };
+export { useCommunication };
