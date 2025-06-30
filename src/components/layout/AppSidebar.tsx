@@ -1,5 +1,6 @@
 
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 import {
   Activity,
   Calendar,
@@ -10,6 +11,8 @@ import {
   LogOut,
   Settings,
   Users,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,7 +34,8 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
-  
+  const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -39,6 +43,13 @@ export function AppSidebar() {
     } catch (error) {
       console.error("Logout error:", error);
     }
+  };
+
+  const toggleSubMenu = (title: string) => {
+    setOpenSubMenus((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
   };
 
   const menuItems = [
@@ -54,6 +65,16 @@ export function AppSidebar() {
           title: "Charts",
           icon: ClipboardList,
           path: "/charting",
+          subItems: [
+            {
+              title: "Patient List",
+              path: "/patients",
+            },
+            {
+              title: "Patient Details",
+              path: "/patients/:id",
+            },
+          ],
         },
       ],
     },
@@ -87,18 +108,45 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      className={cn(
-                        location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground"
-                      )}
-                      onClick={() => navigate(item.path)}
-                    >
-                      <item.icon className="h-5 w-5 mr-2" />
-                      <span>{item.title}</span>
-                      <ChevronRight className="h-4 w-4 ml-auto opacity-50" />
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={item.title}>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        className={cn(
+                          location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground"
+                        )}
+                        onClick={() => item.subItems ? toggleSubMenu(item.title) : navigate(item.path)}
+                      >
+                        <item.icon className="h-5 w-5 mr-2" />
+                        <span>{item.title}</span>
+                        {item.subItems ? (
+                          openSubMenus[item.title] ? (
+                            <ChevronUp className="h-4 w-4 ml-auto opacity-50" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 ml-auto opacity-50" />
+                          )
+                        ) : (
+                          <ChevronRight className="h-4 w-4 ml-auto opacity-50" />
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    {item.subItems && openSubMenus[item.title] && (
+                      <div className="ml-8 border-l border-gray-200 dark:border-gray-700">
+                        {item.subItems.map((subItem) => (
+                          <SidebarMenuItem key={subItem.title}>
+                            <SidebarMenuButton
+                              className={cn(
+                                "pl-4", // Indent sub-items
+                                location.pathname === subItem.path && "bg-sidebar-accent text-sidebar-accent-foreground"
+                              )}
+                              onClick={() => navigate(subItem.path)}
+                            >
+                              <span>{subItem.title}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>

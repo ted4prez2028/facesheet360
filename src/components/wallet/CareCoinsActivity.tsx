@@ -93,7 +93,7 @@ export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({ onViewAll 
   };
   
   return (
-    <Card>
+    <Card className="shadow-custom-medium rounded-xl border border-gray-200 dark:border-gray-700">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />

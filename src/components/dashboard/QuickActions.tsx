@@ -15,7 +15,7 @@ export const QuickActions = () => {
 
   return (
     <>
-      <Card>
+      <Card className="shadow-custom-medium rounded-xl border border-gray-200 dark:border-gray-700">
         <CardHeader className="pb-3">
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>

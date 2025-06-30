@@ -364,39 +364,40 @@ const Patients = () => {
                     <FormItem className="space-y-3">
                       <FormLabel>Gender</FormLabel>
                       <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="radio"
-                            id="male"
-                            value="male"
-                            checked={field.value === "male"}
-                            onChange={field.onChange}
-                          />
-                          <Label htmlFor="male">Male</Label>
-                        </div>
-                      </FormControl>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="radio"
-                            id="female"
-                            value="female"
-                            checked={field.value === "female"}
-                            onChange={field.onChange}
-                          />
-                          <Label htmlFor="female">Female</Label>
-                        </div>
-                      </FormControl>
-                      <FormControl>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="radio"
-                            id="other"
-                            value="other"
-                            checked={field.value === "other"}
-                            onChange={field.onChange}
-                          />
-                          <Label htmlFor="other">Other</Label>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="male"
+                              value="male"
+                              checked={field.value === "male"}
+                              onChange={() => field.onChange("male")}
+                              className="h-4 w-4"
+                            />
+                            <Label htmlFor="male">Male</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="female"
+                              value="female"
+                              checked={field.value === "female"}
+                              onChange={() => field.onChange("female")}
+                              className="h-4 w-4"
+                            />
+                            <Label htmlFor="female">Female</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="other"
+                              value="other"
+                              checked={field.value === "other"}
+                              onChange={() => field.onChange("other")}
+                              className="h-4 w-4"
+                            />
+                            <Label htmlFor="other">Other</Label>
+                          </div>
                         </div>
                       </FormControl>
                       <FormMessage />

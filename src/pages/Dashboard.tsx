@@ -104,8 +104,8 @@ const Dashboard = () => {
         </div>
         
         <div className="grid gap-6 md:grid-cols-2">
-          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} className="shadow-custom-light rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
-          <QuickActions className="shadow-custom-light rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
+          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} className="shadow-custom-medium rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
+          <QuickActions className="shadow-custom-medium rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
         </div>
       </div>
     </DashboardLayout>

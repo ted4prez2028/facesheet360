@@ -10,7 +10,7 @@ const StatisticsCards = () => {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="shadow-sm hover:shadow transition-shadow">
+      <Card className="shadow-custom-medium hover:shadow-custom-dark transition-shadow rounded-xl border border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Active Patients</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
@@ -29,7 +29,7 @@ const StatisticsCards = () => {
         </CardContent>
       </Card>
       
-      <Card className="shadow-sm hover:shadow transition-shadow">
+      <Card className="shadow-custom-medium hover:shadow-custom-dark transition-shadow rounded-xl border border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
           <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -48,7 +48,7 @@ const StatisticsCards = () => {
         </CardContent>
       </Card>
       
-      <Card className="shadow-sm hover:shadow transition-shadow">
+      <Card className="shadow-custom-medium hover:shadow-custom-dark transition-shadow rounded-xl border border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Tasks Pending</CardTitle>
           <ClipboardList className="h-4 w-4 text-muted-foreground" />
@@ -67,7 +67,7 @@ const StatisticsCards = () => {
         </CardContent>
       </Card>
       
-      <Card className="shadow-sm hover:shadow transition-shadow">
+      <Card className="shadow-custom-medium hover:shadow-custom-dark transition-shadow rounded-xl border border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">CareCoins Earned</CardTitle>
           <Activity className="h-4 w-4 text-muted-foreground" />
