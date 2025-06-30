@@ -34,6 +34,10 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },build: {
+    rollupOptions: {
+      external: ['three'], // Add this line
+    }
   },
   server: {
     port: 8080,
