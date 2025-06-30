@@ -12,6 +12,7 @@ import {
   Pill,
   LogOut
 } from 'lucide-react';
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -79,6 +80,7 @@ const TopNav: React.FC<TopNavProps> = ({ toggleSidebar }) => {
         >
           <MessageSquare className="h-5 w-5" />
         </Button>
+        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
