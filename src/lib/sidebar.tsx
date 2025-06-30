@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { useSidebar } from "@/lib/sidebar-provider";
+import { useSidebar } from "@/lib/sidebar-context";
 
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
