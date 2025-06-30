@@ -55,21 +55,6 @@ export function AppSidebar() {
           icon: ClipboardList,
           path: "/charting",
         },
-        {
-          title: "Appointments",
-          icon: Calendar,
-          path: "/appointments",
-        },
-      ],
-    },
-    {
-      group: "Analysis",
-      items: [
-        {
-          title: "Analytics",
-          icon: Activity,
-          path: "/analytics",
-        },
       ],
     },
     {

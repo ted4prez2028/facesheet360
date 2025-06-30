@@ -106,7 +106,7 @@ export const usePatientForm = (onSuccess: () => void) => {
     setFormState((prev) => ({ ...prev, isLoading: true }));
     
     try {
-      console.log("Submitting patient data...");
+      console.log("Submitting patient data:", patientData);
       
       // Convert form state to patient object for API
       const patientData: Partial<Patient> = {
