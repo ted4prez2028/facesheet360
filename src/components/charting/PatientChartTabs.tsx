@@ -48,7 +48,7 @@ interface LocalPatientDataForCarePlan {
   email: string;
   address: string;
   insurance_provider: string;
-  insurance_number: string; // Made required to match PatientDataForCarePlan
+  insurance_number: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
@@ -63,6 +63,7 @@ interface LocalPatientDataForCarePlan {
   lastVisit?: string;
   imgUrl?: string;
   created_at?: string;
+  updated_at?: string;
   provider_id?: string;
   vitalSigns?: any[];
   medicalHistory?: string[];
@@ -107,7 +108,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       email: patient.email || 'Not provided',
       address: patient.address || 'Not provided',
       insurance_provider: patient.insurance_provider || 'Not provided',
-      insurance_number: patient.insurance_number || 'Not provided', // Ensure this is always a string
+      insurance_number: patient.insurance_number || 'Not provided',
       emergency_contact_name: patient.emergency_contact_name,
       emergency_contact_phone: patient.emergency_contact_phone,
       emergency_contact_relation: patient.emergency_contact_relation,
@@ -122,6 +123,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       lastVisit: patient.lastVisit,
       imgUrl: patient.imgUrl,
       created_at: patient.created_at,
+      updated_at: patient.updated_at,
       provider_id: patient.provider_id,
       vitalSigns: chartData?.vitalSigns,
       medicalHistory: chartData?.history || [],

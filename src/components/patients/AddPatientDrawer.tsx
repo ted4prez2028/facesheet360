@@ -1,86 +1,60 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { Check, AlertTriangle } from "lucide-react";
-import PatientFormFields from "./PatientFormFields";
-import PatientFacialCapture from "./PatientFacialCapture";
-import { usePatientForm } from "@/hooks/usePatientForm";
-import { useAuth } from "@/context/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { AlertTriangle } from "lucide-react";
+import PatientFormFields from "./PatientFormFields";
+import { usePatientForm } from "@/hooks/usePatientForm";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface AddPatientDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onPatientAdded: () => void;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
 }
 
-export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
-  open,
+const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
+  isOpen,
   onOpenChange,
-  onPatientAdded,
 }) => {
-  const { user, isAuthenticated } = useAuth();
-  const [isAuthChecked, setIsAuthChecked] = useState<boolean>(false);
-  
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!open) return;
-      
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-          toast.error("Authentication Required", {
-            description: "You must be logged in to add patients."
-          });
-        }
-        setIsAuthChecked(true);
-      } catch (error) {
-        console.error("Auth check error:", error);
-        setIsAuthChecked(true);
-      }
-    };
-    
-    checkAuth();
-  }, [open]);
+  const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   
   const {
     formState,
     updateField,
-    handleFacialDataCapture,
     resetForm,
     submitForm,
   } = usePatientForm(() => {
-    onPatientAdded();
     onOpenChange(false);
+    toast({
+      title: "Patient added",
+      description: "Patient has been added successfully",
+    });
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmitPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      toast.error("Authentication Required", {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
         description: "You must be logged in to add patients."
       });
       return;
     }
     
+    console.log("Submitting patient form with data:", formState);
     await submitForm();
   };
   
   const handleSavePatient = () => {
     if (!isAuthenticated) {
-      toast.error("Authentication Required", {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
         description: "You must be logged in to add patients."
       });
       return;
@@ -95,9 +69,9 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   };
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh] overflow-auto">
-        <DrawerHeader>
+    <Drawer open={isOpen} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[90vh] overflow-y-auto">
+        <DrawerHeader className="pb-4">
           <DrawerTitle>Add New Patient</DrawerTitle>
           <DrawerDescription>
             Fill in the patient details below. Fields marked with * are required.
@@ -115,7 +89,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="px-4">
+        <form onSubmit={handleSubmitPatient} className="px-4 space-y-6">
           <PatientFormFields
             formData={formState}
             onChange={updateField}
@@ -123,24 +97,22 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
             isLoading={formState.isLoading}
           />
           
-          <PatientFacialCapture
-            facialData={formState.facialData}
-            onCapture={handleFacialDataCapture}
-          />
-          
-          <DrawerFooter className="flex flex-col sm:flex-row gap-3 mt-6">
-            <DrawerClose asChild>
-              <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">
-                Cancel
-              </Button>
-            </DrawerClose>
-            
-            <Button 
-              type="submit" 
-              className="w-full sm:w-auto"
+          <DrawerFooter className="flex flex-col gap-3 mt-6">
+            <Button
+              type="submit"
+              className="w-full"
               disabled={!isAuthenticated || formState.isLoading}
             >
               {formState.isLoading ? "Saving..." : "Save Patient"}
+            </Button>
+            
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={handleClose} 
+              className="w-full"
+            >
+              Cancel
             </Button>
           </DrawerFooter>
         </form>
@@ -148,3 +120,5 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
     </Drawer>
   );
 };
+
+export default AddPatientDrawer;

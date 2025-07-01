@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import PatientFormFields from "@/components/patients/PatientFormFields";
-import PatientFacialCapture from "@/components/patients/PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +51,6 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
   const {
     formState,
     updateField,
-    handleFacialDataCapture,
     resetForm,
     submitForm,
   } = usePatientForm(() => {
@@ -124,11 +122,6 @@ const AddPatientSheet: React.FC<AddPatientSheetProps> = ({
             onChange={updateField}
             onSave={isAuthenticated ? handleSavePatient : undefined}
             isLoading={formState.isLoading}
-          />
-          
-          <PatientFacialCapture
-            facialData={formState.facialData}
-            onCapture={handleFacialDataCapture}
           />
           
           <SheetFooter className="flex flex-col sm:flex-row gap-3 mt-6">

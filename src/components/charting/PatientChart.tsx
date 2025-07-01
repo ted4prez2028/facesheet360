@@ -73,7 +73,9 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     age: patientData.age,
     status: patientData.status,
     lastVisit: patientData.lastVisit,
-    imgUrl: patientData.imgUrl
+    imgUrl: patientData.imgUrl,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   } : undefined;
 
   if (!selectedPatient) {

@@ -34,7 +34,6 @@ export interface Patient {
   allergies?: string;
   medications?: string;
   notes?: string;
-  facial_data?: string;
   created_at: string;
   updated_at: string;
   user_id?: string;
@@ -118,6 +117,11 @@ export interface Prescription {
   administered_at?: string;
   created_at: string;
   updated_at: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+    medical_record_number: string;
+  };
 }
 
 export interface Task {
@@ -249,6 +253,7 @@ export interface RecentPatient {
   lastVisit: string;
   age: number;
   condition: string;
+  status: string;
 }
 
 export interface TodayAppointment {

@@ -14,7 +14,14 @@ export const usePrescriptions = (patientId?: string) => {
       try {
         const query = supabase
           .from("prescriptions")
-          .select("*")
+          .select(`
+            *,
+            patients!inner(
+              first_name,
+              last_name,
+              medical_record_number
+            )
+          `)
           .order("created_at", { ascending: false });
 
         if (patientId) {
