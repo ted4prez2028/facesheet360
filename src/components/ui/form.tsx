@@ -14,11 +14,24 @@ import {
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { FormFieldContext, FormItemContext } from "@/lib/form-context";
- 
+
+// Export the proper FormField component
+export const FormField = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({
+  ...props
+}: ControllerProps<TFieldValues, TName>) => {
+  return (
+    <FormFieldContext.Provider value={{ name: props.name }}>
+      <Controller {...props} />
+    </FormFieldContext.Provider>
+  );
+};
+
 export { FormItem } from './FormItem'; 
 export { FormLabel } from './FormLabel';
 export { FormControl } from './FormControl';
-export { FormField } from './FormField';
 
 const Form = FormProvider
 

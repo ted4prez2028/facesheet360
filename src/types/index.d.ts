@@ -22,6 +22,12 @@ export interface Patient {
   medications: string | null;
   notes: string | null;
   provider_id: string | null;
+  date_of_birth?: string;
+  medical_record_number?: string;
+  first_name?: string;
+  last_name?: string;
+  age?: number;
+  condition?: string;
 }
 
 export interface Appointment {
@@ -32,6 +38,18 @@ export interface Appointment {
   patient_id: string | null;
   provider_id: string | null;
   notes: string | null;
+  patientId?: string;
+  patientName?: string;
+  doctor_id?: string;
+  duration?: number;
+  status?: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  date?: string;
+  patient?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+    medical_record_number: string;
+  };
 }
 
 export interface ChartRecord {
@@ -97,4 +115,52 @@ export interface CareCoinsTransaction {
   created_at: string;
   description: string | null;
   otherUserName?: string;
+}
+
+export interface CallLightRequest {
+  id: string;
+  room_number: string;
+  request_type: string;
+  status: 'active' | 'in_progress' | 'completed';
+  message?: string;
+  created_at: string;
+  completed_at?: string;
+  patient_id?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+export interface RecentPatient {
+  id: string;
+  name: string;
+  lastVisit: string;
+  age: number;
+  condition: string;
+}
+
+export interface TodayAppointment {
+  id: string;
+  time: string;
+  patient: string;
+  type: string;
+  duration: number;
+}
+
+export interface PendingTask {
+  id: string;
+  task: string;
+  priority: 'high' | 'medium' | 'low';
+  due: string;
+}
+
+export interface CarePlan {
+  id: string;
+  patient_id: string;
+  content: string;
+  status: 'active' | 'completed' | 'draft';
+  is_ai_generated: boolean;
+  created_at: string;
+  updated_at: string;
 }

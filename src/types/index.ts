@@ -35,6 +35,8 @@ export interface Patient {
   insurance_policy_number?: string;
   created_at?: string;
   updated_at?: string;
+  age?: number;
+  condition?: string;
 }
 
 export interface Appointment {
@@ -54,6 +56,7 @@ export interface Appointment {
     last_name: string;
     medical_record_number: string;
   };
+  patient?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -80,8 +83,57 @@ export interface CallLightRequest {
   status: 'active' | 'in_progress' | 'completed';
   message?: string;
   created_at: string;
+  completed_at?: string;
+  patient_id?: string;
   patients?: {
     first_name: string;
     last_name: string;
   };
+}
+
+export interface Message {
+  id: string;
+  created_at: string;
+  from_user_id: string | null;
+  to_user_id: string | null;
+  content: string | null;
+}
+
+export interface ChatWindow {
+  userId: string;
+  userName: string;
+  minimized: boolean;
+}
+
+export interface RecentPatient {
+  id: string;
+  name: string;
+  lastVisit: string;
+  age: number;
+  condition: string;
+}
+
+export interface TodayAppointment {
+  id: string;
+  time: string;
+  patient: string;
+  type: string;
+  duration: number;
+}
+
+export interface PendingTask {
+  id: string;
+  task: string;
+  priority: 'high' | 'medium' | 'low';
+  due: string;
+}
+
+export interface CarePlan {
+  id: string;
+  patient_id: string;
+  content: string;
+  status: 'active' | 'completed' | 'draft';
+  is_ai_generated: boolean;
+  created_at: string;
+  updated_at: string;
 }
