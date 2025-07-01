@@ -19,6 +19,8 @@ export interface Patient {
   id: string;
   first_name: string;
   last_name: string;
+  name?: string;
+  age?: number;
   date_of_birth: string;
   gender: string;
   phone?: string;
@@ -36,6 +38,9 @@ export interface Patient {
   notes?: string;
   facial_data?: string;
   user_id?: string;
+  status?: string;
+  lastVisit?: string;
+  imgUrl?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +54,29 @@ export interface Appointment {
   notes?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface TodayAppointment {
+  id: string;
+  time: string;
+  patient: string;
+  type: string;
+  duration: number;
+}
+
+export interface RecentPatient {
+  id: string;
+  name: string;
+  lastVisit: string;
+  age: number;
+  condition: string;
+}
+
+export interface PendingTask {
+  id: string;
+  task: string;
+  priority: 'high' | 'medium' | 'low';
+  due: string;
 }
 
 export interface Message {
@@ -84,6 +112,59 @@ export interface CareCoinsCard {
   card_type: 'virtual' | 'physical';
   status: 'pending' | 'active' | 'suspended';
   limit_amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CallLightRequest {
+  id: string;
+  room_number: string;
+  request_type: string;
+  status: 'active' | 'in_progress' | 'completed';
+  message?: string;
+  created_at: string;
+  completed_at?: string;
+  patient_id?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+export interface Prescription {
+  id: string;
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  start_date: string;
+  end_date?: string;
+  instructions?: string;
+  status: 'prescribed' | 'administered' | 'discontinued';
+  patient_id: string;
+  provider_id: string;
+  administered_at?: string;
+  administered_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CareCoinsTransaction {
+  id: string;
+  amount: number;
+  from_user_id: string | null;
+  to_user_id: string | null;
+  transaction_type: "transfer" | "reward" | "purchase";
+  created_at: string;
+  description: string | null;
+  otherUserName?: string;
+}
+
+export interface CarePlan {
+  id: string;
+  patient_id: string;
+  content: string;
+  status: 'active' | 'completed' | 'draft';
+  is_ai_generated: boolean;
   created_at: string;
   updated_at: string;
 }

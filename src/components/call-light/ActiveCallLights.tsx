@@ -1,6 +1,6 @@
+
 import React from 'react';
 import { CallLightRequest } from '@/types';
-import { CallLight } from '@/lib/api/callLightApi';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

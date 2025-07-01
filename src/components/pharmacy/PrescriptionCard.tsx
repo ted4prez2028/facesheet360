@@ -1,119 +1,92 @@
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Clock, User, AlertCircle } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { Prescription } from "@/types";
-import { useAdministerPrescription } from "@/hooks/usePrescriptions";
-import { useToast } from "@/hooks/use-toast";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock, Calendar, User } from 'lucide-react';
+import { format } from 'date-fns';
+import { Prescription } from '@/types';
 
 interface PrescriptionCardProps {
   prescription: Prescription;
+  onAdminister?: () => void;
+  onViewDetails?: () => void;
 }
 
-const PrescriptionCard: React.FC<PrescriptionCardProps> = ({ prescription }) => {
-  const { toast } = useToast();
-  const administerMutation = useAdministerPrescription();
-
-  const patientName = prescription.patients 
-    ? `${prescription.patients.first_name} ${prescription.patients.last_name}`
-    : "Unknown Patient";
-  
-  const medicalRecordNumber = prescription.patients?.medical_record_number || "N/A";
-
-  const handleAdminister = async () => {
-    try {
-      await administerMutation.mutateAsync(prescription.id);
-      toast({
-        title: "Success",
-        description: "Medication administered successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to administer medication",
-        variant: "destructive",
-      });
-    }
-  };
-
+const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
+  prescription,
+  onAdminister,
+  onViewDetails
+}) => {
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "prescribed":
-        return <Badge variant="outline" className="bg-blue-50">Prescribed</Badge>;
-      case "administered":
-        return <Badge variant="outline" className="bg-green-50">Administered</Badge>;
-      case "cancelled":
-        return <Badge variant="outline" className="bg-red-50">Cancelled</Badge>;
+      case 'prescribed':
+        return <Badge variant="secondary">Prescribed</Badge>;
+      case 'administered':
+        return <Badge variant="default" className="bg-green-500">Administered</Badge>;
+      case 'discontinued':
+        return <Badge variant="destructive">Discontinued</Badge>;
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">
-            {prescription.medication_name}
-          </CardTitle>
+          <CardTitle className="text-lg">{prescription.medication_name}</CardTitle>
           {getStatusBadge(prescription.status)}
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <User className="h-4 w-4" />
-          <span>{patientName} (MRN: {medicalRecordNumber})</span>
-        </div>
       </CardHeader>
-      
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
+          <div className="flex items-center gap-2">
             <span className="font-medium">Dosage:</span>
-            <p className="text-muted-foreground">{prescription.dosage}</p>
+            <span>{prescription.dosage}</span>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <span className="font-medium">Frequency:</span>
-            <p className="text-muted-foreground">{prescription.frequency}</p>
+            <span>{prescription.frequency}</span>
           </div>
         </div>
-
-        {prescription.instructions && (
-          <div className="text-sm">
-            <span className="font-medium">Instructions:</span>
-            <p className="text-muted-foreground mt-1">{prescription.instructions}</p>
-          </div>
-        )}
-
+        
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
+          <Calendar className="h-4 w-4" />
           <span>
-            Prescribed {formatDistanceToNow(new Date(prescription.created_at), { addSuffix: true })}
+            {format(new Date(prescription.start_date), 'MMM d, yyyy')}
+            {prescription.end_date && ` - ${format(new Date(prescription.end_date), 'MMM d, yyyy')}`}
           </span>
         </div>
-
-        {prescription.status === "prescribed" && (
-          <div className="pt-2">
-            <Button 
-              onClick={handleAdminister}
-              disabled={administerMutation.isPending}
-              className="w-full"
-              size="sm"
-            >
-              {administerMutation.isPending ? "Administering..." : "Mark as Administered"}
-            </Button>
+        
+        {prescription.instructions && (
+          <div className="text-sm">
+            <span className="font-medium">Instructions: </span>
+            <span className="text-muted-foreground">{prescription.instructions}</span>
           </div>
         )}
-
+        
         {prescription.administered_at && (
-          <div className="text-sm text-green-600 flex items-center gap-1">
-            <AlertCircle className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-sm text-green-600">
+            <Clock className="h-4 w-4" />
             <span>
-              Administered {formatDistanceToNow(new Date(prescription.administered_at), { addSuffix: true })}
+              Administered {format(new Date(prescription.administered_at), 'MMM d, yyyy h:mm a')}
             </span>
           </div>
         )}
+        
+        <div className="flex gap-2 pt-2">
+          {prescription.status === 'prescribed' && onAdminister && (
+            <Button onClick={onAdminister} size="sm">
+              Administer
+            </Button>
+          )}
+          {onViewDetails && (
+            <Button onClick={onViewDetails} variant="outline" size="sm">
+              View Details
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,6 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+export interface CallLight {
+  id: string;
+  room_number: string;
+  patient_name: string;
+  urgency_level: 'low' | 'medium' | 'high' | 'emergency';
+  description?: string;
+  status: 'pending' | 'acknowledged' | 'resolved';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CallLightRequest {
   id: string;
   room_number: string;
@@ -57,4 +68,30 @@ export const callLightApi = {
       ...updates
     };
   }
+};
+
+export const getActiveCallLights = async (): Promise<CallLight[]> => {
+  return callLightApi.getRequests();
+};
+
+export const updateCallLightStatus = async (id: string, status: string): Promise<void> => {
+  await callLightApi.updateRequest(id, { status: status as any });
+};
+
+export const createCallLight = async (data: {
+  patient_id: string;
+  room_number: string;
+  request_type: string;
+  message?: string;
+}): Promise<CallLight> => {
+  return callLightApi.createRequest({
+    room_number: data.room_number,
+    patient_name: 'Patient',
+    urgency_level: 'medium',
+    description: data.message
+  });
+};
+
+export const getPatientCallLightHistory = async (patientId: string): Promise<CallLightRequest[]> => {
+  return callLightApi.getRequests();
 };

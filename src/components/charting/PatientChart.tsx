@@ -54,7 +54,6 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     id: patientData.id,
     first_name: patientData.name?.split(' ')[0] || '',
     last_name: patientData.name?.split(' ').slice(1).join(' ') || '',
-    name: patientData.name,
     date_of_birth: patientData.date_of_birth || '1990-01-01',
     gender: patientData.gender || 'Not specified',
     phone: '',
@@ -91,11 +90,15 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     );
   }
 
+  const displayName = enhancedPatientData 
+    ? `${enhancedPatientData.first_name} ${enhancedPatientData.last_name}`.trim()
+    : '';
+
   return (
     <Card className="shadow-sm flex-1 flex flex-col">
       <CardHeader className="pb-0">
         <PatientDetailHeader
-          patientName={enhancedPatientData?.name}
+          patientName={displayName}
           patientId={enhancedPatientData?.id}
           patientAge={enhancedPatientData?.age}
         />

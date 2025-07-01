@@ -8,7 +8,9 @@ import { toast } from 'sonner';
 export const useVirtualCard = () => {
   const { user } = useAuth();
   const [card, setCard] = useState<CareCoinsCard | null>(null);
+  const [cards, setCards] = useState<CareCoinsCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRequestingCard, setIsRequestingCard] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -23,14 +25,16 @@ export const useVirtualCard = () => {
       const { data, error } = await supabase
         .from('care_coins_cards')
         .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
-      setCard(data);
+      if (data && data.length > 0) {
+        setCard(data[0]);
+        setCards(data);
+      }
     } catch (error) {
       console.error('Error fetching card:', error);
     } finally {
@@ -59,6 +63,7 @@ export const useVirtualCard = () => {
       if (error) throw error;
 
       setCard(data);
+      setCards(prev => [...prev, data]);
       toast.success('Virtual card created successfully');
     } catch (error) {
       console.error('Error creating card:', error);
@@ -66,10 +71,22 @@ export const useVirtualCard = () => {
     }
   };
 
+  const requestNewCard = async (cardType: string, limitAmount: number) => {
+    setIsRequestingCard(true);
+    try {
+      await createCard();
+    } finally {
+      setIsRequestingCard(false);
+    }
+  };
+
   return {
     card,
+    cards,
     isLoading,
     createCard,
-    fetchCard
+    fetchCard,
+    requestNewCard,
+    isRequestingCard
   };
 };

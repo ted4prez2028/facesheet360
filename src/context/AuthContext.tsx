@@ -16,6 +16,8 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  authError: string | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     // Get initial session
@@ -100,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: data.id,
           email: data.email || '',
           name: data.name || '',
-          role: data.role || 'doctor',
+          role: (data.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
           specialty: data.specialty,
           care_coins_balance: data.care_coins_balance || 0,
           organization: data.organization,
@@ -145,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
+    setAuthError(null);
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -155,7 +159,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast.success('Signed in successfully');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      const errorMessage = error.message || 'Failed to sign in';
+      setAuthError(errorMessage);
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsLoading(false);
@@ -164,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData?: any) => {
     setIsLoading(true);
+    setAuthError(null);
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -177,7 +184,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       toast.success('Account created successfully');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign up');
+      const errorMessage = error.message || 'Failed to sign up';
+      setAuthError(errorMessage);
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsLoading(false);
@@ -199,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = signOut; // Alias for signOut
+  const login = signIn; // Alias for signIn
 
   const updateProfile = async (updates: Partial<User>) => {
     if (!user) throw new Error('No user logged in');
@@ -232,6 +242,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     updateProfile,
     updateUserProfile,
+    login,
+    authError
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

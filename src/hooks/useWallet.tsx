@@ -8,6 +8,9 @@ export const useWallet = () => {
   const { user } = useAuth();
   const [balance, setBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [tokenBalance, setTokenBalance] = useState<string>('0');
 
   const updateBalances = async () => {
     if (!user) return;
@@ -94,11 +97,49 @@ export const useWallet = () => {
     }
   };
 
+  const connectWallet = async () => {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        setWalletAddress(accounts[0]);
+        setIsWalletConnected(true);
+        setTokenBalance('100'); // Mock token balance
+        toast.success('Wallet connected successfully');
+      }
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      toast.error('Failed to connect wallet');
+    }
+  };
+
+  const stakeCareCoins = async (amount: string): Promise<boolean> => {
+    toast.info('Staking feature coming soon');
+    return false;
+  };
+
+  const unstakeCareCoins = async (amount: string): Promise<boolean> => {
+    toast.info('Unstaking feature coming soon');
+    return false;
+  };
+
+  const refreshBalances = async () => {
+    await updateBalances();
+  };
+
   return {
     balance,
     isLoading,
     addFunds,
     withdrawFunds,
-    updateBalances
+    updateBalances,
+    isWalletConnected,
+    walletAddress,
+    tokenBalance,
+    connectWallet,
+    stakeCareCoins,
+    unstakeCareCoins,
+    refreshBalances
   };
 };

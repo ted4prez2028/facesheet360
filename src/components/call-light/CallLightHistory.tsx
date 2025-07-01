@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CallLightRequest } from '@/types';
-import { CallLight, getPatientCallLightHistory } from '@/lib/api/callLightApi';
+import { getPatientCallLightHistory } from '@/lib/api/callLightApi';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, formatDistanceToNow } from 'date-fns';
