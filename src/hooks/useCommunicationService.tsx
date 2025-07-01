@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { User, Message, Call, ChatWindow } from '@/types';
 import { toast } from 'sonner';
-import { sampleDoctors } from '@/lib/api/sampleDoctors';
 
 export function useCommunicationService() {
   const { user } = useAuth();
@@ -18,16 +17,37 @@ export function useCommunicationService() {
     if (!user) return;
     
     try {
-      // Use sample doctors as mock online users
-      const mockUsers = sampleDoctors.map(doctor => ({
-        ...doctor,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        care_coins_balance: 0,
-        careCoinsBalance: 0,
-        online_status: Math.random() > 0.5, // Randomly set some as online
-        organization: doctor.organization || 'Default Organization'
-      })) as User[];
+      // Mock users data
+      const mockUsers: User[] = [
+        {
+          id: '1',
+          name: 'Dr. Smith',
+          email: 'dr.smith@example.com',
+          role: 'doctor',
+          specialty: 'Cardiology',
+          license_number: 'LIC001',
+          profile_image: '',
+          care_coins_balance: 0,
+          careCoinsBalance: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          organization: 'General Hospital'
+        },
+        {
+          id: '2',
+          name: 'Dr. Johnson',
+          email: 'dr.johnson@example.com',
+          role: 'doctor',
+          specialty: 'Neurology',
+          license_number: 'LIC002',
+          profile_image: '',
+          care_coins_balance: 0,
+          careCoinsBalance: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          organization: 'General Hospital'
+        }
+      ];
       
       setOnlineUsers(mockUsers);
     } catch (error) {
@@ -126,7 +146,13 @@ export function useCommunicationService() {
           : window
         );
       }
-      return [...prev, { userId, userName, isMinimized: false, isOpen: true, messages: [] }];
+      return [...prev, { 
+        userId, 
+        userName, 
+        isMinimized: false, 
+        isOpen: true, 
+        messages: [] 
+      }];
     });
   }, []);
   
@@ -176,16 +202,22 @@ export function useCommunicationService() {
     if (!user) return;
     
     try {
-      // Mock call setup
-      setActiveCall({
+      // Create a properly structured Call object
+      const mockCall: Call = {
+        id: `call-${Date.now()}`,
+        caller_id: user.id,
+        callee_id: userId,
+        is_video_call: isVideo,
+        status: 'pending',
+        created_at: new Date().toISOString(),
         callerId: user.id,
         callerName: user.name,
         receiverId: userId,
         receiverName: userName,
-        isVideoCall: isVideo,
-        status: 'pending' // Use valid status instead of 'ringing'
-      });
+        isVideoCall: isVideo
+      };
       
+      setActiveCall(mockCall);
       setIsCallActive(true);
       setIsCallIncoming(false);
       

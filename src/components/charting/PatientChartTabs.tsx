@@ -41,7 +41,7 @@ interface PatientChartTabsProps {
 interface LocalPatientDataForCarePlan {
   id: string;
   first_name: string; // Made required to match PatientDataForCarePlan
-  last_name?: string;
+  last_name: string; // Made required to match PatientDataForCarePlan
   date_of_birth: string; // Made required to match PatientDataForCarePlan
   gender?: string;
   phone?: string;
@@ -104,8 +104,8 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     return {
       id: patient.id,
       first_name: patient.first_name || patient.name?.split(' ')[0] || 'Unknown', // Provide default value
-      last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || '',
-      date_of_birth: patient.date_of_birth || '', // Provide default value
+      last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || 'Patient', // Provide default value
+      date_of_birth: patient.date_of_birth || '1990-01-01', // Provide default value
       gender: patient.gender,
       phone: patient.phone,
       email: patient.email,

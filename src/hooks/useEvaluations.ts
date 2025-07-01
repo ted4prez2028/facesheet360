@@ -79,7 +79,7 @@ export function useEvaluations(patientId: string) {
 
   const updateEvaluation = useMutation({
     mutationFn: async ({ id, ...evaluation }: Partial<Evaluation> & { id: string }) => {
-      // Mock implementation
+      // Mock implementation - ensure all required fields are present
       const mockUpdatedEvaluation: Evaluation = {
         id,
         patient_id: patientId,
