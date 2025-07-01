@@ -143,12 +143,12 @@ const ContactsList = () => {
                     const isOnline = user.online_status === true;
                     return (
                       <ContactCard 
-                        key={user.id} 
+                        key={String(user.id)} 
                         user={user}
                         isOnline={isOnline}
-                        onChat={() => openChatWindow(user.id as string, user.name as string)}
-                        onVideoCall={() => startCall(user.id as string, user.name as string, true)}
-                        onAudioCall={() => startCall(user.id as string, user.name as string, false)}
+                        onChat={() => openChatWindow(String(user.id), String(user.name))}
+                        onVideoCall={() => startCall(String(user.id), String(user.name), true)}
+                        onAudioCall={() => startCall(String(user.id), String(user.name), false)}
                       />
                     );
                   })}
@@ -177,7 +177,7 @@ interface ContactCardProps {
 
 const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
   const userInitials = user.name
-    ? (user.name as string)
+    ? String(user.name)
         .split(" ")
         .map((n) => n[0])
         .join("")
@@ -196,11 +196,11 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
           <Circle className="absolute bottom-0 right-0 h-3 w-3 fill-green-500 text-green-500 translate-x-1/4 translate-y-1/4" />
         )}
         <div>
-          <p className="font-medium text-sm">{user.name as string}</p>
+          <p className="font-medium text-sm">{String(user.name)}</p>
           <div className="flex flex-col">
-            <p className="text-xs text-muted-foreground capitalize">{user.role as string}</p>
+            <p className="text-xs text-muted-foreground capitalize">{String(user.role)}</p>
             {user.organization && (
-              <p className="text-xs text-muted-foreground">{user.organization as string}</p>
+              <p className="text-xs text-muted-foreground">{String(user.organization)}</p>
             )}
           </div>
         </div>

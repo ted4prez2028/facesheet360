@@ -123,13 +123,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: data.id,
         name: data.name,
         email: data.email,
-        role: data.role,
-        specialty: data.specialty,
-        license_number: data.license_number,
-        profile_image: data.profile_image,
-        care_coins_balance: data.care_coins_balance || 0,
-        online_status: data.online_status,
-        organization: data.organization,
+        role: data.role || 'doctor',
+        specialty: data.specialty || '',
+        license_number: data.license_number || '',
+        profile_image: data.profile_image || '',
+        care_coins_balance: data.care_coins_balance || data.credits || 0,
+        online_status: data.online_status || false,
+        organization: data.organization || '',
         created_at: data.created_at,
         updated_at: data.updated_at
       } as User;
@@ -228,7 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user?.id) throw new Error("User is not authenticated");
     
     try {
-      const dbData: Partial<User> = {};
+      const dbData: any = {};
       if (userData.name) dbData.name = userData.name;
       if (userData.email) dbData.email = userData.email;
       if (userData.specialty) dbData.specialty = userData.specialty;
@@ -241,7 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase
         .from('users')
         .update(dbData)
-        .eq('id', user.id);
+        .eq('user_id', user.id);
         
       if (error) throw error;
       

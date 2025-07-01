@@ -1,4 +1,3 @@
-
 export interface User {
   id?: string;
   name?: string;
@@ -255,4 +254,17 @@ export interface Order {
   created_at: string;
   updated_at: string;
   [key: string]: any; // Index signature for DataItem compatibility
+}
+
+export interface CareCoinsTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  transaction_type: 'reward' | 'transfer' | 'purchase' | 'expense';
+  description: string;
+  created_at: string;
+  updated_at: string;
+  status: 'pending' | 'completed' | 'failed';
+  metadata?: Record<string, any>;
+  [key: string]: any;
 }
