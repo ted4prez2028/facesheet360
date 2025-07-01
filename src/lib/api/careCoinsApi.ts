@@ -23,9 +23,14 @@ export const careCoinsApi = {
   },
 
   async createTransaction(transaction: Omit<CareCoinsTransaction, 'id' | 'created_at'>): Promise<CareCoinsTransaction> {
+    const transactionData = {
+      ...transaction,
+      metadata: transaction.metadata ? JSON.stringify(transaction.metadata) : null
+    };
+
     const { data, error } = await supabase
       .from('care_coins_transactions')
-      .insert(transaction)
+      .insert(transactionData)
       .select()
       .single();
 
@@ -37,7 +42,7 @@ export const careCoinsApi = {
     return {
       ...data,
       transaction_type: data.transaction_type as CareCoinsTransaction['transaction_type'],
-      metadata: data.metadata as Record<string, unknown> || {}
+      metadata: data.metadata ? JSON.parse(data.metadata as string) : {}
     };
   },
 
@@ -63,7 +68,7 @@ export const careCoinsApi = {
   async createBillPayment(payment: Omit<CareCoinsBillPayment, 'id' | 'created_at' | 'updated_at'>): Promise<CareCoinsBillPayment> {
     const paymentData = {
       ...payment,
-      bill_info: payment.bill_info as any
+      bill_info: payment.bill_info ? JSON.stringify(payment.bill_info) : null
     };
 
     const { data, error } = await supabase
@@ -80,7 +85,7 @@ export const careCoinsApi = {
     return {
       ...data,
       status: data.status as CareCoinsBillPayment['status'],
-      bill_info: data.bill_info as Record<string, unknown> || {}
+      bill_info: data.bill_info ? JSON.parse(data.bill_info as string) : {}
     };
   },
 

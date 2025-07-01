@@ -1,8 +1,9 @@
+
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CallLightRequest } from '@/types';
-import { CallLight, getActiveCallLights, updateCallLightStatus } from '@/lib/api/callLightApi';
+import { getActiveCallLights, updateCallLightStatus } from '@/lib/api/callLightApi';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { Howl } from 'howler';
@@ -44,12 +45,12 @@ export function useCallLights() {
       const mockCallLights: CallLightWithPatient[] = [
         {
           id: '1',
+          patient_id: 'patient-1',
           room_number: '101',
           request_type: 'assistance',
           status: 'active',
           message: 'Need help with medication',
           created_at: new Date().toISOString(),
-          patient_id: 'patient-1',
           patients: {
             first_name: 'John',
             last_name: 'Doe'
@@ -132,7 +133,7 @@ export function useCallLights() {
               toast(
                 `Call Light: ${newCallLight.request_type}`,
                 {
-                  description: `Room ${newCallLight.room_number} needs assistance`,
+                  description: `Room ${newCallLight.room_number || 'Unknown'} needs assistance`,
                   duration: 8000,
                   action: {
                     label: "Respond",

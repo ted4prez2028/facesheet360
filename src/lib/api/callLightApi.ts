@@ -4,8 +4,13 @@ import { CallLightRequest } from '@/types';
 
 export interface CallLightRequestPayload {
   patient_id: string;
+  room_number?: string;
   request_type: string;
   message?: string;
+}
+
+export interface CallLight extends CallLightRequest {
+  room_number: string;
 }
 
 export const createCallLightRequest = async (requestData: CallLightRequestPayload): Promise<CallLightRequest> => {
@@ -13,6 +18,7 @@ export const createCallLightRequest = async (requestData: CallLightRequestPayloa
   const mockRequest: CallLightRequest = {
     id: `req_${Date.now()}`,
     patient_id: requestData.patient_id,
+    room_number: requestData.room_number,
     request_type: requestData.request_type,
     message: requestData.message,
     status: 'active',
@@ -23,12 +29,16 @@ export const createCallLightRequest = async (requestData: CallLightRequestPayloa
   return mockRequest;
 };
 
+// Alias for backward compatibility
+export const createCallLight = createCallLightRequest;
+
 export const getPatientCallLightHistory = async (patientId: string): Promise<CallLightRequest[]> => {
   // Mock implementation
   return [
     {
       id: `req_${Date.now()}_1`,
       patient_id: patientId,
+      room_number: '101',
       request_type: 'bathroom',
       message: 'Need assistance to bathroom',
       status: 'completed',
@@ -39,6 +49,7 @@ export const getPatientCallLightHistory = async (patientId: string): Promise<Cal
     {
       id: `req_${Date.now()}_2`,
       patient_id: patientId,
+      room_number: '102',
       request_type: 'pain',
       message: 'Pain level 7/10',
       status: 'in_progress', 
@@ -47,12 +58,13 @@ export const getPatientCallLightHistory = async (patientId: string): Promise<Cal
   ];
 };
 
-export const getActiveCallLightRequests = async (): Promise<CallLightRequest[]> => {
+export const getActiveCallLights = async (): Promise<CallLightRequest[]> => {
   // Mock implementation
   return [
     {
       id: `req_${Date.now()}_active_1`,
       patient_id: 'patient_123',
+      room_number: '101',
       request_type: 'emergency',
       message: 'Urgent assistance needed',
       status: 'active',
@@ -69,6 +81,7 @@ export const updateCallLightRequest = async (
   const mockUpdatedRequest: CallLightRequest = {
     id: requestId,
     patient_id: updates.patient_id || 'patient_123',
+    room_number: updates.room_number || '101',
     request_type: updates.request_type || 'general',
     message: updates.message,
     status: updates.status || 'completed',
@@ -79,4 +92,9 @@ export const updateCallLightRequest = async (
   
   console.log('Mock call light request updated:', mockUpdatedRequest);
   return mockUpdatedRequest;
+};
+
+// Alias for backward compatibility
+export const updateCallLightStatus = async (requestId: string, status: CallLightRequest['status']) => {
+  return updateCallLightRequest(requestId, { status });
 };

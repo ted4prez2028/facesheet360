@@ -120,12 +120,17 @@ export interface CareCoinsCard {
 export interface CallLightRequest {
   id: string;
   patient_id: string;
+  room_number?: string;
   request_type: string;
   message?: string;
   status: 'active' | 'in_progress' | 'completed';
   created_at: string;
   completed_at?: string;
   completed_by?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 export interface Prescription {

@@ -78,6 +78,7 @@ const ActiveCallLights: React.FC<ActiveCallLightsProps> = ({
           const patientName = patient 
             ? `${patient.first_name} ${patient.last_name}` 
             : 'Unknown Patient';
+          const roomNumber = callLight.room_number || 'Unknown Room';
             
           return (
             <Card key={callLight.id} className={`
@@ -86,7 +87,7 @@ const ActiveCallLights: React.FC<ActiveCallLightsProps> = ({
             `}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center justify-between">
-                  <span>Room {callLight.room_number}</span>
+                  <span>Room {roomNumber}</span>
                   {getRequestTypeBadge(callLight.request_type)}
                 </CardTitle>
               </CardHeader>

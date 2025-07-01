@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+// Mock notification API since notifications table doesn't exist in Supabase
 
 export interface Notification {
   id: string;
@@ -16,74 +16,58 @@ export interface Notification {
 export type CreateNotificationInput = Omit<Notification, "id" | "created_at">;
 
 /**
- * Get all notifications for a user
+ * Get all notifications for a user (Mock implementation)
  */
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data as Notification[];
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    throw error;
-  }
+  console.log('Mock: Getting notifications for user:', userId);
+  
+  // Return mock notifications
+  return [
+    {
+      id: '1',
+      user_id: userId,
+      title: 'Medication Reminder',
+      message: 'Time to take your medication',
+      type: 'medication',
+      read: false,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: '2',
+      user_id: userId,
+      title: 'Appointment Scheduled',
+      message: 'Your appointment has been scheduled for tomorrow',
+      type: 'appointment',
+      read: true,
+      created_at: new Date(Date.now() - 86400000).toISOString()
+    }
+  ];
 };
 
 /**
- * Mark a notification as read
+ * Mark a notification as read (Mock implementation)
  */
 export const markNotificationAsRead = async (notificationId: string): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId);
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    throw error;
-  }
+  console.log('Mock: Marking notification as read:', notificationId);
 };
 
 /**
- * Create a new notification
+ * Create a new notification (Mock implementation)
  */
 export const createNotification = async (notification: CreateNotificationInput): Promise<Notification> => {
-  try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert(notification)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Notification;
-  } catch (error) {
-    console.error('Error creating notification:', error);
-    throw error;
-  }
+  const mockNotification: Notification = {
+    id: `notif_${Date.now()}`,
+    ...notification,
+    created_at: new Date().toISOString()
+  };
+  
+  console.log('Mock: Creating notification:', mockNotification);
+  return mockNotification;
 };
 
 /**
- * Mark all notifications as read for a user
+ * Mark all notifications as read for a user (Mock implementation)
  */
 export const markAllNotificationsAsRead = async (userId: string): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', userId)
-      .eq('read', false);
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error marking all notifications as read:', error);
-    throw error;
-  }
+  console.log('Mock: Marking all notifications as read for user:', userId);
 };
