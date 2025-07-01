@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 
@@ -99,4 +98,16 @@ export const getCurrentUser = async (): Promise<User | null> => {
     console.error("Error getting current user:", error);
     return null;
   }
+};
+
+export const createMockUser = (email: string): User => {
+  return {
+    id: 'mock-user-id',
+    email: email,
+    name: 'Mock User',
+    role: 'doctor' as const,
+    care_coins_balance: 100,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
 };

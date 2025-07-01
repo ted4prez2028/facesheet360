@@ -1,348 +1,249 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { CalendarIcon, CaretSortIcon, ChevronDown, DotsHorizontalIcon, EyeNoneIcon, FileTextIcon, FilterIcon, HomeIcon, PlusCircle, PlusIcon, RefreshCwIcon, SearchIcon, Share2Icon, StarIcon, Trash2Icon, UserIcon, UsersIcon } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { CalendarIcon, FileText, X } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { usePatient } from '@/hooks/usePatient';
-import { Skeleton } from '@/components/ui/skeleton';
-import CarePlanList from '@/components/care-plan/CarePlanList';
-import CarePlanForm from '@/components/care-plan/CarePlanForm';
-import PrescriptionList from '@/components/prescriptions/PrescriptionList';
-import PrescriptionForm from '@/components/prescriptions/PrescriptionForm';
-import { useAuth } from '@/context/AuthContext';
-import AuthErrorAlert from '@/components/patients/AuthErrorAlert';
-import { CareTeamAssignments } from '@/components/patients/CareTeamAssignments';
-import { useRolePermissions } from '@/hooks/useRolePermissions';
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from 'sonner';
+import { getPatientById } from '@/lib/api/patientApi';
+import { Patient } from '@/types';
+import PrescriptionList from '@/components/pharmacy/PrescriptionList';
 
 export default function PatientProfile() {
-  const { patientId } = useParams<{ patientId: string }>();
-  const { patient, isLoading, error } = usePatient(patientId || "");
-  const { user, isAuthenticated } = useAuth();
-  const { hasRole } = useRolePermissions();
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [isCarePlanFormOpen, setIsCarePlanFormOpen] = useState(false);
-  const [isPrescriptionFormOpen, setIsPrescriptionFormOpen] = useState(false);
+  const router = useRouter();
+  const { patientId } = router.query;
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
 
-  const refetchPatient = useCallback(() => {
-    // This will trigger the useEffect in usePatient to run again
-    window.location.reload();
-  }, []);
+  useEffect(() => {
+    const fetchPatient = async () => {
+      if (!patientId) return;
+      
+      setIsLoading(true);
+      try {
+        const patientData = await getPatientById(patientId as string);
+        if (patientData) {
+          setPatient(patientData);
+        } else {
+          setError(new Error('Patient not found'));
+        }
+      } catch (err) {
+        console.error('Error fetching patient:', err);
+        setError(new Error(err instanceof Error ? err.message : 'Failed to fetch patient'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPatient();
+  }, [patientId]);
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="container py-6 space-y-8">
-          <Skeleton className="h-10 w-[200px]" />
-          <Skeleton className="h-4 w-[300px]" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <Skeleton className="h-6 w-[100px]" />
-                </CardTitle>
-                <CardDescription>
-                  <Skeleton className="h-4 w-[200px]" />
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-24 w-full" />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <Skeleton className="h-6 w-[100px]" />
-                </CardTitle>
-                <CardDescription>
-                  <Skeleton className="h-4 w-[200px]" />
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-24 w-full" />
-              </CardContent>
-            </Card>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <Skeleton className="h-6 w-[100px]" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-40 w-full" />
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
+    return <div className="text-center p-6">Loading patient data...</div>;
   }
 
-  if (!isAuthenticated || error) {
-    return (
-      <DashboardLayout>
-        <div className="container py-6 space-y-8">
-          <AuthErrorAlert 
-            isAuthenticated={isAuthenticated} 
-            error={error} 
-            refetch={refetchPatient} 
-          />
-          
-          {error && (
-            <Button variant="outline" asChild>
-              <Link to="/patients">Back to Patients</Link>
-            </Button>
-          )}
-        </div>
-      </DashboardLayout>
-    );
+  if (error) {
+    return <div className="text-center p-6 text-red-500">Error: {error.message}</div>;
   }
 
-  const patientName = patient ? `${patient.first_name} ${patient.last_name}` : "";
-
-  const canManageTreatment = hasRole('doctor') || hasRole('admin');
+  if (!patient) {
+    return <div>Patient not found</div>;
+  }
 
   return (
-    <DashboardLayout>
-      <div className="container py-6 space-y-8">
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <div className="flex justify-between">
-            <h1 className="text-3xl font-bold tracking-tight">{patientName}</h1>
-            <Badge variant="secondary">
-              {patient?.insurance_provider}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground">
-            View and manage patient information, appointments, and medical records
-          </p>
+          <h1 className="text-2xl font-bold">{patient.first_name} {patient.last_name}</h1>
+          <p className="text-gray-500">Medical Record Number: {patient.medical_record_number}</p>
         </div>
+        <div>
+          <Button variant="outline">Edit Profile</Button>
+        </div>
+      </div>
 
-        {patient && (
-          <div className="mt-6">
-            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col rounded-lg border p-3">
-                <dt className="text-sm font-medium text-muted-foreground">Status</dt>
-                <dd className="mt-1 text-lg font-semibold">
-                  {/* @ts-expect-error - Checking for possibly non-existent property */}
-                  {patient.status || 'Unknown'}
-                </dd>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="appointments">Appointments</TabsTrigger>
+          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+          <TabsTrigger value="vitals">Vital Signs</TabsTrigger>
+          <TabsTrigger value="history">Medical History</TabsTrigger>
+          <TabsTrigger value="care-plan">Care Plan</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patient Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-600">Date of Birth</p>
+                  <p className="font-medium">{patient.date_of_birth}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Gender</p>
+                  <p className="font-medium">{patient.gender}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Contact Number</p>
+                  <p className="font-medium">{patient.phone}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Address</p>
+                  <p className="font-medium">{patient.address}</p>
+                </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-              <div className="flex flex-col rounded-lg border p-3">
-                <dt className="text-sm font-medium text-muted-foreground">Date of Birth</dt>
-                <dd className="mt-1 text-lg font-semibold">{patient.date_of_birth}</dd>
-              </div>
+        <TabsContent value="appointments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appointments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>No appointments scheduled.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-              <div className="flex flex-col rounded-lg border p-3">
-                <dt className="text-sm font-medium text-muted-foreground">Gender</dt>
-                <dd className="mt-1 text-lg font-semibold">{patient.gender}</dd>
-              </div>
-
-              <div className="flex flex-col rounded-lg border p-3">
-                <dt className="text-sm font-medium text-muted-foreground">Condition</dt>
-                <dd className="mt-1 text-lg font-semibold">
-                  {/* @ts-expect-error - Checking for possibly non-existent property */}
-                  {patient.condition || 'Not specified'}
-                </dd>
-              </div>
-
-              <div className="flex flex-col rounded-lg border p-3">
-                <dt className="text-sm font-medium text-muted-foreground">Contact Number</dt>
-                <dd className="mt-1 text-lg font-semibold">{patient.phone}</dd>
-              </div>
-
-              <div className="flex flex-col rounded-lg border p-3">
-                <dt className="text-sm font-medium text-muted-foreground">Address</dt>
-                <dd className="mt-1 text-lg font-semibold">{patient.address}</dd>
-              </div>
-            </dl>
-          </div>
-        )}
-
-        {patient && patientId && (
-          <CareTeamAssignments patientId={patientId} />
-        )}
-
-        {patient && (
-          <Tabs defaultValue="care-plan" className="w-full">
-            <TabsList className="grid grid-cols-3 w-full md:w-auto">
-              <TabsTrigger value="care-plan">Care Plans</TabsTrigger>
-              <TabsTrigger value="medications">Medications</TabsTrigger>
-              <TabsTrigger value="appointments">Appointments</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="care-plan" className="py-4">
-              <Dialog open={isCarePlanFormOpen} onOpenChange={setIsCarePlanFormOpen}>
-                <DialogContent className="max-w-3xl">
-                  <CarePlanForm 
-                    patientId={patient.id} 
-                    onClose={() => setIsCarePlanFormOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
-              
-              <CarePlanList 
-                patient={patient} 
-                onAddNew={() => canManageTreatment ? setIsCarePlanFormOpen(true) : null}
-              />
-            </TabsContent>
-            
-            <TabsContent value="medications" className="py-4">
-              <Dialog open={isPrescriptionFormOpen} onOpenChange={setIsPrescriptionFormOpen}>
-                <DialogContent className="max-w-3xl">
-                  <PrescriptionForm 
-                    patientId={patient.id} 
-                    onClose={() => setIsPrescriptionFormOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
-              
+        <TabsContent value="prescriptions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Prescriptions</CardTitle>
+            </CardHeader>
+            <CardContent>
               <PrescriptionList 
-                patientId={patient.id} 
-                onAddNew={() => canManageTreatment ? setIsPrescriptionFormOpen(true) : null}
+                patient_id={patient.id}
+                onAddNew={() => setShowPrescriptionForm(true)} 
               />
-            </TabsContent>
-            
-            <TabsContent value="appointments" className="py-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Appointments</CardTitle>
-                  <CardDescription>Schedule and manage appointments</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                  <div className="relative">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[280px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={setDate}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                  <div>
-                    <Label htmlFor="note">Note</Label>
-                    <Textarea id="note" placeholder="Appointment notes..." />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
-
-        {/* Display Vital Signs */}
-        {patient && patient.vitalSigns && (
-          <Card className="mt-6">
+        <TabsContent value="vitals" className="space-y-4">
+          <Card>
             <CardHeader>
               <CardTitle>Vital Signs</CardTitle>
-              <CardDescription>Latest readings</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                <div className="flex flex-col rounded-lg border p-3">
-                  <span className="text-sm font-medium text-muted-foreground">Heart Rate</span>
-                  <span className="mt-1 text-lg font-semibold">{patient.vitalSigns.heartRate || 'N/A'} bpm</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-red-50 rounded-lg">
+                  <div className="text-sm text-gray-600">Temperature</div>
+                  <div className="text-xl font-semibold">98.6°F</div>
                 </div>
-
-                <div className="flex flex-col rounded-lg border p-3">
-                  <span className="text-sm font-medium text-muted-foreground">Blood Pressure</span>
-                  <span className="mt-1 text-lg font-semibold">{patient.vitalSigns.bloodPressure || 'N/A'}</span>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="text-sm text-gray-600">Blood Pressure</div>
+                  <div className="text-xl font-semibold">120/80</div>
                 </div>
-
-                <div className="flex flex-col rounded-lg border p-3">
-                  <span className="text-sm font-medium text-muted-foreground">Temperature</span>
-                  <span className="mt-1 text-lg font-semibold">{patient.vitalSigns.temperature || 'N/A'} °C</span>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="text-sm text-gray-600">Heart Rate</div>
+                  <div className="text-xl font-semibold">72 bpm</div>
+                </div>
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="text-sm text-gray-600">O2 Saturation</div>
+                  <div className="text-xl font-semibold">98%</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {/* Display Medications */}
-        {patient && patient.medications && patient.medications.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Current Medications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 space-y-2">
-                {patient.medications.map((med, index) => (
-                  <li key={index}>{med}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Display Medical History */}
-        {patient && patient.medicalHistory && patient.medicalHistory.length > 0 && (
-          <Card className="mt-6">
+        <TabsContent value="history" className="space-y-4">
+          <Card>
             <CardHeader>
               <CardTitle>Medical History</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="list-disc pl-5 space-y-2">
-                {patient.medicalHistory.map((history, index) => (
-                  <li key={index}>{history}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
+              <div className="space-y-4">
+                {patient.medical_history ? (
+                  <p className="text-gray-700">{patient.medical_history}</p>
+                ) : (
+                  <p className="text-gray-500 italic">No medical history available</p>
+                )}
+              </div>
 
-        {/* Display Allergies */}
-        {patient && patient.allergies && patient.allergies.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Allergies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 space-y-2">
-                {patient.allergies.map((allergy, index) => (
-                  <li key={index}>{allergy}</li>
-                ))}
-              </ul>
+              <div className="mt-6">
+                <h4 className="font-medium mb-2">Allergies</h4>
+                {patient.allergies ? (
+                  <div className="flex flex-wrap gap-2">
+                    {patient.allergies.split(',').map((allergy, index) => (
+                      <Badge key={index} variant="outline" className="bg-red-50">
+                        {allergy.trim()}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic">No known allergies</p>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <h4 className="font-medium mb-2">Current Medications</h4>
+                {patient.medications ? (
+                  <div className="space-y-2">
+                    {patient.medications.split(',').map((medication, index) => (
+                      <div key={index} className="p-2 bg-gray-50 rounded">
+                        {medication.trim()}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic">No current medications</p>
+                )}
+              </div>
             </CardContent>
           </Card>
-        )}
-      </div>
-    </DashboardLayout>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={showPrescriptionForm} onOpenChange={setShowPrescriptionForm}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Prescription</DialogTitle>
+            <DialogDescription>
+              Create a new prescription for the patient.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Medication Name
+              </Label>
+              <Input id="name" defaultValue="" className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dosage" className="text-right">
+                Dosage
+              </Label>
+              <Input id="dosage" defaultValue="" className="col-span-3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit">Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

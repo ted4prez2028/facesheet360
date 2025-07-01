@@ -1,115 +1,114 @@
+import React from 'react';
+import StatisticsCards from '@/components/dashboard/StatisticsCards';
+import DashboardCharts from '@/components/dashboard/DashboardCharts';
+import RecentPatients from '@/components/dashboard/RecentPatients';
+import TodayAppointments from '@/components/dashboard/TodayAppointments';
+import PendingTasks from '@/components/dashboard/PendingTasks';
+import QuickActions from '@/components/dashboard/QuickActions';
+import { useAppointmentsToday } from '@/hooks/useAppointmentsToday';
+import { usePendingTasks } from '@/hooks/usePendingTasks';
+import { useRecentPatients } from '@/hooks/useRecentPatients';
 
-import { useState, useEffect } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import StatisticsCards from "@/components/dashboard/StatisticsCards";
-import DashboardTabs from "@/components/dashboard/DashboardTabs";
-import CareCoinsActivity from "@/components/wallet/CareCoinsActivity";
-import { QuickActions } from "@/components/dashboard/QuickActions";
-import { usePatientStatistics, usePatientHealthMetrics } from "@/hooks/usePatientStatistics";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usePatients } from "@/hooks/usePatients";
-import { useRecentPatients } from "@/hooks/useRecentPatients";
-import { useAppointmentsToday } from "@/hooks/useAppointmentsToday";
-import { usePendingTasks } from "@/hooks/usePendingTasks";
-import { Patient } from "@/types";
-
-const Dashboard = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [timeframe, setTimeframe] = useState("year");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | undefined>();
-  
-  const { data: patientsList } = usePatients();
-  const { data: patientStatistics = [], isLoading: isStatsLoading } = usePatientStatistics(timeframe);
-  const { data: healthMetrics = [], isLoading: isMetricsLoading } = usePatientHealthMetrics(selectedPatientId);
-  
-  // Fetch dynamic data
-  const { data: recentPatients, isLoading: isRecentPatientsLoading } = useRecentPatients();
-  const { data: todayAppointments, isLoading: isAppointmentsLoading } = useAppointmentsToday();
-  const { data: pendingTasks, isLoading: isTasksLoading } = usePendingTasks();
-  
-  const firstName = user?.name ? user.name.split(' ')[0] : "Doctor";
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      toast({
-        title: "Dashboard updated",
-        description: "All patient data is now up to date",
-      });
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  return (
-    <DashboardLayout>
-      <div className="flex flex-col gap-6 animate-fade-in">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-muted-foreground dark:text-gray-400">
-            Welcome back, {firstName}. Here's what's happening today.
-          </p>
-        </div>
-        
-        <StatisticsCards className="shadow-custom-light rounded-xl border border-gray-200 dark:border-gray-700" />
-        
-        <div className="flex flex-col space-y-4 p-6 bg-card rounded-2xl shadow-custom-medium border border-border/50 dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Patient Analytics</h2>
-            <div className="flex gap-4 items-center">
-              <Select value={timeframe} onValueChange={setTimeframe}>
-                <SelectTrigger className="w-32 rounded-lg shadow-sm border-border/70 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                  <SelectValue placeholder="Timeframe" />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg shadow-custom-light dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                  <SelectItem value="week">Last Week</SelectItem>
-                  <SelectItem value="month">Last Month</SelectItem>
-                  <SelectItem value="quarter">Last Quarter</SelectItem>
-                  <SelectItem value="year">Last Year</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select 
-                value={selectedPatientId} 
-                onValueChange={setSelectedPatientId}
-              >
-                <SelectTrigger className="w-56 rounded-lg shadow-sm border-border/70 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                  <SelectValue placeholder="Select patient for metrics" />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg shadow-custom-light dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                  {patientsList?.map(patient => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.first_name} {patient.last_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DashboardTabs 
-            patientStatistics={patientStatistics}
-            healthMetrics={healthMetrics}
-            recentPatients={recentPatients}
-            isRecentPatientsLoading={isRecentPatientsLoading}
-            todayAppointments={todayAppointments}
-            isAppointmentsLoading={isAppointmentsLoading}
-            pendingTasks={pendingTasks}
-            isTasksLoading={isTasksLoading}
-          />
-        </div>
-        
-        <div className="grid gap-6 md:grid-cols-2">
-          <CareCoinsActivity onViewAll={() => navigate("/settings?tab=wallet")} className="shadow-custom-medium rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
-          <QuickActions className="shadow-custom-medium rounded-xl border border-border/50 dark:bg-gray-800 dark:border-gray-700" />
-        </div>
-      </div>
-    </DashboardLayout>
-  );
+const mockData = {
+  totalPatients: 120,
+  totalAppointments: 30,
+  completedTasks: 15,
+  pendingTasks: 5,
+  todayAppointments: [
+    {
+      id: '1',
+      time: '9:00 AM',
+      patient: 'John Doe',
+      type: 'Checkup',
+      duration: '30',
+    },
+    {
+      id: '2',
+      time: '10:30 AM',
+      patient: 'Jane Smith',
+      type: 'Follow-up',
+      duration: '60',
+    },
+  ],
+  pendingTasks: [
+    {
+      id: '1',
+      task: 'Review lab results',
+      priority: 'high',
+      due: 'Today',
+    },
+    {
+      id: '2',
+      task: 'Schedule follow-up',
+      priority: 'medium',
+      due: 'Tomorrow',
+    },
+  ],
+  recentPatients: [
+    {
+      id: '1',
+      name: 'John Doe',
+      lastVisit: 'Yesterday',
+      age: 45,
+      condition: 'Hypertension',
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastVisit: '2 days ago',
+      age: 32,
+      condition: 'Diabetes',
+    },
+  ],
 };
 
-export default Dashboard;
+export default function Dashboard() {
+  const appointments = useAppointmentsToday();
+  const pendingTasks = usePendingTasks();
+  const recentPatients = useRecentPatients();
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div className="flex gap-2">
+          <QuickActions />
+        </div>
+      </div>
+
+      <StatisticsCards 
+        data={{
+          totalPatients: mockData.totalPatients,
+          totalAppointments: mockData.totalAppointments,
+          completedTasks: mockData.completedTasks,
+          pendingTasks: mockData.pendingTasks
+        }} 
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <DashboardCharts />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TodayAppointments 
+              appointments={mockData.todayAppointments.map(apt => ({
+                ...apt,
+                duration: parseInt(apt.duration) || 30
+              }))} 
+            />
+            <PendingTasks 
+              tasks={mockData.pendingTasks.map(task => ({
+                ...task,
+                priority: (task.priority as 'high' | 'medium' | 'low') || 'medium'
+              }))} 
+            />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <RecentPatients patients={mockData.recentPatients} />
+        </div>
+      </div>
+    </div>
+  );
+}

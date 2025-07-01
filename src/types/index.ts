@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -28,6 +29,7 @@ export interface Patient {
   medical_record_number?: string;
   insurance_provider?: string;
   insurance_number?: string;
+  policy_number?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
