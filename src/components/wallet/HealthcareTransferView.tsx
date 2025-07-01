@@ -1,105 +1,126 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTransactionForm } from '@/hooks/useTransactionForm';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-const HealthcareTransferView = () => {
-  const { sendTransaction, isLoading } = useTransactionForm();
-  const [formData, setFormData] = useState({
-    recipientEmail: '',
-    amount: '',
-    description: '',
-    transferType: 'colleague'
-  });
+const HealthcareTransferView: React.FC = () => {
+  const { user } = useAuth();
+  const [recipientType, setRecipientType] = useState<string>('');
+  const [recipientId, setRecipientId] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    await sendTransaction({
-      amount: parseFloat(formData.amount),
-      recipientEmail: formData.recipientEmail,
-      description: formData.description
-    });
-    setFormData({
-      recipientEmail: '',
-      amount: '',
-      description: '',
-      transferType: 'colleague'
-    });
-  };
+    if (!user || !recipientId || !amount) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const transferAmount = parseInt(amount);
+    if (transferAmount <= 0) {
+      toast.error('Transfer amount must be positive');
+      return;
+    }
+
+    if (transferAmount > (user.care_coins_balance || 0)) {
+      toast.error('Insufficient balance');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Create the transaction
+      const { error } = await supabase
+        .from('care_coins_transactions')
+        .insert({
+          from_user_id: user.id,
+          to_user_id: recipientId,
+          amount: transferAmount,
+          transaction_type: 'transfer',
+          description: description || 'Healthcare transfer'
+        });
+
+      if (error) throw error;
+
+      toast.success('Transfer completed successfully');
+      
+      // Reset form
+      setRecipientId('');
+      setAmount('');
+      setDescription('');
+    } catch (error) {
+      console.error('Transfer error:', error);
+      toast.error('Transfer failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Healthcare Transfer</CardTitle>
-        <CardDescription>
-          Transfer CareCoins to colleagues or patients
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleTransfer} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="transferType">Transfer Type</Label>
-            <Select
-              value={formData.transferType}
-              onValueChange={(value) => handleInputChange('transferType', value)}
-            >
+            <Label htmlFor="recipientType">Recipient Type</Label>
+            <Select value={recipientType} onValueChange={setRecipientType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select transfer type" />
+                <SelectValue placeholder="Select recipient type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="colleague">To Colleague</SelectItem>
-                <SelectItem value="patient">To Patient</SelectItem>
-                <SelectItem value="reward">Team Reward</SelectItem>
+                <SelectItem value="healthcare_provider">Healthcare Provider</SelectItem>
+                <SelectItem value="patient">Patient</SelectItem>
+                <SelectItem value="facility">Healthcare Facility</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="recipientEmail">Recipient Email</Label>
+            <Label htmlFor="recipientId">Recipient ID</Label>
             <Input
-              id="recipientEmail"
-              type="email"
-              placeholder="colleague@hospital.com"
-              value={formData.recipientEmail}
-              onChange={(e) => handleInputChange('recipientEmail', e.target.value)}
+              id="recipientId"
+              value={recipientId}
+              onChange={(e) => setRecipientId(e.target.value)}
+              placeholder="Enter recipient ID"
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (CareCoins)</Label>
             <Input
               id="amount"
               type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Enter amount"
               min="1"
-              placeholder="0"
-              value={formData.amount}
-              onChange={(e) => handleInputChange('amount', e.target.value)}
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description (Optional)</Label>
             <Input
               id="description"
-              placeholder="What's this transfer for?"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              required
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Transfer description"
             />
           </div>
-          
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Sending...' : 'Send CareCoins'}
+
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? 'Processing...' : 'Send Transfer'}
           </Button>
         </form>
       </CardContent>

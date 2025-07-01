@@ -70,6 +70,7 @@ export interface RecentPatient {
   lastVisit: string;
   age: number;
   condition: string;
+  status: string;
 }
 
 export interface PendingTask {
@@ -167,6 +168,61 @@ export interface CarePlan {
   is_ai_generated: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface VitalSigns {
+  id: string;
+  patient_id: string;
+  temperature?: number;
+  blood_pressure?: string;
+  heart_rate?: number;
+  respiratory_rate?: number;
+  oxygen_saturation?: number;
+  weight?: number;
+  height?: number;
+  date_recorded: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChartRecord {
+  id: string;
+  patient_id: string;
+  provider_id: string;
+  record_type: string;
+  record_date: string;
+  diagnosis?: string;
+  treatment_plan?: string;
+  notes?: string;
+  vital_signs?: Record<string, unknown>;
+  vitals?: Record<string, unknown>;
+  medications?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CareCoinsBillPayment {
+  id: string;
+  user_id: string;
+  bill_type: string;
+  recipient_name: string;
+  recipient_account: string;
+  amount: number;
+  status: 'pending' | 'completed' | 'failed';
+  bill_info?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CareCoinsAchievement {
+  id: string;
+  user_id: string;
+  achievement_type: string;
+  title: string;
+  description?: string;
+  reward_amount: number;
+  achieved_at: string;
+  created_at: string;
 }
 
 export * from './auth';

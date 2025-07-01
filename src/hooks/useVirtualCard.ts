@@ -32,8 +32,9 @@ export const useVirtualCard = () => {
       }
 
       if (data && data.length > 0) {
-        setCard(data[0]);
-        setCards(data);
+        const cardData = data[0] as CareCoinsCard;
+        setCard(cardData);
+        setCards(data as CareCoinsCard[]);
       }
     } catch (error) {
       console.error('Error fetching card:', error);
@@ -53,8 +54,8 @@ export const useVirtualCard = () => {
         .from('care_coins_cards')
         .insert({
           user_id: user.id,
-          card_type: 'virtual',
-          status: 'active',
+          card_type: 'virtual' as const,
+          status: 'active' as const,
           limit_amount: 1000
         })
         .select()
@@ -62,8 +63,9 @@ export const useVirtualCard = () => {
 
       if (error) throw error;
 
-      setCard(data);
-      setCards(prev => [...prev, data]);
+      const cardData = data as CareCoinsCard;
+      setCard(cardData);
+      setCards(prev => [...prev, cardData]);
       toast.success('Virtual card created successfully');
     } catch (error) {
       console.error('Error creating card:', error);

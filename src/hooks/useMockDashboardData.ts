@@ -1,90 +1,80 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { RecentPatient, TodayAppointment, PendingTask } from '@/types';
+import { RecentPatient, TodayAppointment, PendingTask } from "@/types";
 
-export function useMockRecentPatients() {
-  return useQuery({
-    queryKey: ['mock-recent-patients'],
-    queryFn: (): RecentPatient[] => [
-      {
-        id: '1',
-        name: 'John Smith',
-        lastVisit: '2024-01-15',
-        age: 45,
-        condition: 'Hypertension',
-        status: 'stable'
-      },
-      {
-        id: '2',
-        name: 'Sarah Johnson',
-        lastVisit: '2024-01-14',
-        age: 32,
-        condition: 'Diabetes',
-        status: 'monitoring'
-      },
-      {
-        id: '3',
-        name: 'Michael Brown',
-        lastVisit: '2024-01-13',
-        age: 67,
-        condition: 'Heart Disease',
-        status: 'critical'
-      }
-    ]
-  });
-}
+export const useMockRecentPatients = (): RecentPatient[] => {
+  return [
+    {
+      id: "1",
+      name: "John Doe",
+      age: 65,
+      condition: "Hypertension",
+      lastVisit: "2 days ago",
+      status: "Stable"
+    },
+    {
+      id: "2", 
+      name: "Jane Smith",
+      age: 42,
+      condition: "Diabetes",
+      lastVisit: "1 week ago",
+      status: "Follow-up"
+    },
+    {
+      id: "3",
+      name: "Bob Johnson", 
+      age: 58,
+      condition: "Asthma",
+      lastVisit: "3 days ago",
+      status: "Critical"
+    }
+  ];
+};
 
-export function useMockTodayAppointments() {
-  return useQuery({
-    queryKey: ['mock-today-appointments'],
-    queryFn: (): TodayAppointment[] => [
-      {
-        id: '1',
-        time: '09:00 AM',
-        patient: 'Alice Wilson',
-        type: 'Check-up',
-        duration: 30
-      },
-      {
-        id: '2',
-        time: '10:30 AM',
-        patient: 'Robert Davis',
-        type: 'Follow-up',
-        duration: 45
-      },
-      {
-        id: '3',
-        time: '02:00 PM',
-        patient: 'Emma Martinez',
-        type: 'Consultation',
-        duration: 60
-      }
-    ]
-  });
-}
+export const useMockTodayAppointments = (): TodayAppointment[] => {
+  return [
+    {
+      id: "1",
+      time: "9:00 AM",
+      patient: "Alice Brown",
+      type: "Consultation",
+      duration: 30
+    },
+    {
+      id: "2", 
+      time: "10:30 AM",
+      patient: "Charlie Wilson",
+      type: "Follow-up",
+      duration: 15
+    },
+    {
+      id: "3",
+      time: "2:00 PM",
+      patient: "Diana Miller",
+      type: "Physical Exam",
+      duration: 45
+    }
+  ];
+};
 
-export function useMockPendingTasks() {
-  return useQuery({
-    queryKey: ['mock-pending-tasks'],
-    queryFn: (): PendingTask[] => [
-      {
-        id: '1',
-        task: 'Review lab results for John Smith',
-        priority: 'high',
-        due: '2024-01-16'
-      },
-      {
-        id: '2',
-        task: 'Update medication list for Sarah Johnson',
-        priority: 'medium',
-        due: '2024-01-17'
-      },
-      {
-        id: '3',
-        task: 'Schedule follow-up for Michael Brown',
-        priority: 'low',
-        due: '2024-01-20'
-      }
-    ]
-  });
-}
+export const useMockPendingTasks = (): PendingTask[] => {
+  return [
+    {
+      id: "1",
+      task: "Review lab results for Patient #1234",
+      priority: "high",
+      due: "Today"
+    },
+    {
+      id: "2",
+      task: "Update medication list for Patient #5678",
+      priority: "medium", 
+      due: "Tomorrow"
+    },
+    {
+      id: "3",
+      task: "Schedule follow-up appointment",
+      priority: "low",
+      due: "This week"
+    }
+  ];
+};
