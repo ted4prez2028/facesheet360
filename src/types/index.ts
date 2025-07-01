@@ -17,6 +17,8 @@ export interface User {
 export interface Patient {
   id: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
   date_of_birth: string;
   gender: string;
   medical_record_number: string;
@@ -38,11 +40,20 @@ export interface Patient {
 export interface Appointment {
   id: string;
   patient_id: string;
+  patientId: string;
+  patientName: string;
   doctor_id: string;
   appointment_date: string;
+  date?: string;
   appointment_time: string;
+  duration?: number;
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
   notes?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+    medical_record_number: string;
+  };
   created_at?: string;
   updated_at?: string;
 }
@@ -60,4 +71,17 @@ export interface Prescription {
   status: 'active' | 'completed' | 'discontinued';
   created_at?: string;
   updated_at?: string;
+}
+
+export interface CallLightRequest {
+  id: string;
+  room_number: string;
+  request_type: string;
+  status: 'active' | 'in_progress' | 'completed';
+  message?: string;
+  created_at: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+  };
 }
