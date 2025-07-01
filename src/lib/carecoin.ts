@@ -7,6 +7,33 @@ declare global {
   }
 }
 
+// CareCoin rewards distribution configuration
+export const CARECOIN_REWARDS = {
+  PROVIDER_PERCENTAGE: 70,
+  PATIENT_PERCENTAGE: 20,
+  PLATFORM_PERCENTAGE: 10
+};
+
+// Helper function to check if MetaMask is installed
+export const isMetaMaskInstalled = (): boolean => {
+  return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
+};
+
+// Helper function to get connected account
+export const getConnectedAccount = async (): Promise<string | null> => {
+  if (!isMetaMaskInstalled()) {
+    return null;
+  }
+  
+  try {
+    const accounts = await window.ethereum!.request({ method: 'eth_accounts' });
+    return accounts.length > 0 ? accounts[0] : null;
+  } catch (error) {
+    console.error('Error getting connected account:', error);
+    return null;
+  }
+};
+
 // Simplified ethers v6 compatible implementation
 export const connectToMetaMask = async () => {
   try {
@@ -25,6 +52,12 @@ export const connectToMetaMask = async () => {
     console.error('MetaMask connection error:', error);
     throw new Error(`Failed to connect to MetaMask: ${error.message}`);
   }
+};
+
+// Alias for backward compatibility
+export const connectMetaMask = async (): Promise<string> => {
+  const result = await connectToMetaMask();
+  return result.address;
 };
 
 export const getCareCoinBalance = async (address: string) => {

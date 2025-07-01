@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useState,
@@ -12,6 +13,8 @@ interface SidebarContextProps {
   closeSidebar: () => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  isMobile: boolean;
+  state: 'expanded' | 'collapsed';
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(
@@ -27,14 +30,18 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
         setIsSidebarOpen(false);
       }
     };
 
+    handleResize(); // Check initial size
     window.addEventListener("resize", handleResize);
 
     return () => {
@@ -50,6 +57,8 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
     setIsSidebarOpen(false);
   };
 
+  const state = isSidebarOpen ? 'expanded' : 'collapsed';
+
   return (
     <SidebarContext.Provider
       value={{
@@ -58,6 +67,8 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
         closeSidebar,
         activeTab,
         setActiveTab,
+        isMobile,
+        state,
       }}
     >
       {children}

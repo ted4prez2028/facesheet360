@@ -12,16 +12,6 @@ import { PharmacyStats } from '@/components/pharmacy/PharmacyStats';
 import { toast } from 'sonner';
 import { Prescription } from '@/types';
 
-interface DbPrescription extends Prescription {
-  patients?: {
-    first_name: string;
-    last_name: string;
-  };
-  providers?: {
-    name: string;
-  };
-}
-
 export default function PharmacistDashboard() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +100,11 @@ export default function PharmacistDashboard() {
         </div>
       </div>
 
-      <PharmacyStats />
+      <PharmacyStats 
+        pendingCount={filteredPrescriptions.filter(p => p.status === 'prescribed').length}
+        filledCount={filteredPrescriptions.filter(p => p.status === 'administered').length}
+        totalPatients={prescriptions.length}
+      />
 
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
@@ -130,7 +124,7 @@ export default function PharmacistDashboard() {
                   <PrescriptionCard
                     key={prescription.id}
                     prescription={prescription}
-                    onAdminister={handleAdminister}
+                    onAdminister={() => handleAdminister(prescription.id)}
                   />
                 ))
             ) : (
@@ -149,7 +143,7 @@ export default function PharmacistDashboard() {
                 <PrescriptionCard
                   key={prescription.id}
                   prescription={prescription}
-                  onAdminister={handleAdminister}
+                  onAdminister={() => handleAdminister(prescription.id)}
                 />
               ))}
           </div>
@@ -163,7 +157,7 @@ export default function PharmacistDashboard() {
                 <PrescriptionCard
                   key={prescription.id}
                   prescription={prescription}
-                  onAdminister={handleAdminister}
+                  onAdminister={() => handleAdminister(prescription.id)}
                 />
               ))}
           </div>

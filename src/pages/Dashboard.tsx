@@ -1,3 +1,4 @@
+
 import React from 'react';
 import StatisticsCards from '@/components/dashboard/StatisticsCards';
 import DashboardCharts from '@/components/dashboard/DashboardCharts';
@@ -20,27 +21,27 @@ const mockData = {
       time: '9:00 AM',
       patient: 'John Doe',
       type: 'Checkup',
-      duration: '30',
+      duration: 30,
     },
     {
       id: '2',
       time: '10:30 AM',
       patient: 'Jane Smith',
       type: 'Follow-up',
-      duration: '60',
+      duration: 60,
     },
   ],
-  pendingTasks: [
+  pendingTasksList: [
     {
       id: '1',
       task: 'Review lab results',
-      priority: 'high',
+      priority: 'high' as const,
       due: 'Today',
     },
     {
       id: '2',
       task: 'Schedule follow-up',
-      priority: 'medium',
+      priority: 'medium' as const,
       due: 'Tomorrow',
     },
   ],
@@ -51,6 +52,7 @@ const mockData = {
       lastVisit: 'Yesterday',
       age: 45,
       condition: 'Hypertension',
+      status: 'stable',
     },
     {
       id: '2',
@@ -58,6 +60,7 @@ const mockData = {
       lastVisit: '2 days ago',
       age: 32,
       condition: 'Diabetes',
+      status: 'stable',
     },
   ],
 };
@@ -76,32 +79,31 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <StatisticsCards 
-        data={{
-          totalPatients: mockData.totalPatients,
-          totalAppointments: mockData.totalAppointments,
-          completedTasks: mockData.completedTasks,
-          pendingTasks: mockData.pendingTasks
-        }} 
+      <StatisticsCards
+        totalPatients={mockData.totalPatients}
+        totalAppointments={mockData.totalAppointments}
+        completedTasks={mockData.completedTasks}
+        pendingTasks={mockData.pendingTasks}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <DashboardCharts />
+          <DashboardCharts 
+            patientStatistics={{
+              totalPatients: mockData.totalPatients,
+              newPatients: 12,
+              activePatients: 108
+            }}
+            healthMetrics={{
+              averageVitals: 95,
+              riskPatients: 5,
+              improvementRate: 78
+            }}
+          />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TodayAppointments 
-              appointments={mockData.todayAppointments.map(apt => ({
-                ...apt,
-                duration: parseInt(apt.duration) || 30
-              }))} 
-            />
-            <PendingTasks 
-              tasks={mockData.pendingTasks.map(task => ({
-                ...task,
-                priority: (task.priority as 'high' | 'medium' | 'low') || 'medium'
-              }))} 
-            />
+            <TodayAppointments appointments={mockData.todayAppointments} />
+            <PendingTasks tasks={mockData.pendingTasksList} />
           </div>
         </div>
 

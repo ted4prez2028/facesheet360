@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { CalendarIcon, CaretSortIcon, ChevronDown, DotsHorizontalIcon, EyeNoneIcon, FileTextIcon, FilterIcon, HomeIcon, PlusCircle, PlusIcon, RefreshCwIcon, SearchIcon, Share2Icon, StarIcon, Trash2Icon, UserIcon, UsersIcon } from 'lucide-react';
+import { CalendarIcon, ChevronDown, MoreHorizontal, EyeOff, FileTextIcon, Filter, Home, PlusCircle, Plus, RefreshCw, Search, Share2, Star, Trash2, User, Users } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from "@/components/ui/command"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -21,11 +22,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from 'sonner';
 import { getPatientById } from '@/lib/api/patientApi';
 import { Patient } from '@/types';
-import PrescriptionList from '@/components/pharmacy/PrescriptionList';
 
 export default function PatientProfile() {
-  const router = useRouter();
-  const { patientId } = router.query;
+  const { patientId } = useParams<{ patientId: string }>();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -37,7 +36,7 @@ export default function PatientProfile() {
       
       setIsLoading(true);
       try {
-        const patientData = await getPatientById(patientId as string);
+        const patientData = await getPatientById(patientId);
         if (patientData) {
           setPatient(patientData);
         } else {
@@ -133,10 +132,7 @@ export default function PatientProfile() {
               <CardTitle>Prescriptions</CardTitle>
             </CardHeader>
             <CardContent>
-              <PrescriptionList 
-                patient_id={patient.id}
-                onAddNew={() => setShowPrescriptionForm(true)} 
-              />
+              <p>No prescriptions found.</p>
             </CardContent>
           </Card>
         </TabsContent>

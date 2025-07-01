@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 
@@ -58,11 +59,17 @@ export const checkSession = async (): Promise<boolean> => {
  * Formats user data from database format to application format
  */
 export const formatUserData = (userData: DbUser): User => {
+  // Ensure role is a valid type, default to 'doctor' if invalid
+  const validRoles: User['role'][] = ['doctor', 'nurse', 'therapist', 'cna'];
+  const role = validRoles.includes(userData.role as User['role']) 
+    ? (userData.role as User['role']) 
+    : 'doctor';
+
   return {
     id: userData.id,
     name: userData.name || '',
     email: userData.email || '',
-    role: userData.role || 'doctor',
+    role,
     specialty: userData.specialty || undefined,
     license_number: userData.license_number || undefined,
     profile_image: userData.profile_image || undefined,
