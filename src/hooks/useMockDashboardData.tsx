@@ -11,14 +11,16 @@ export const useMockRecentPatients = () => {
         name: 'John Doe',
         lastVisit: '2024-01-15',
         age: 45,
-        condition: 'Hypertension'
+        condition: 'Hypertension',
+        status: 'stable'
       },
       {
         id: '2',
         name: 'Jane Smith',
         lastVisit: '2024-01-14',
         age: 32,
-        condition: 'Diabetes'
+        condition: 'Diabetes',
+        status: 'follow-up'
       }
     ]
   });

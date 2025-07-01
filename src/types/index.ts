@@ -50,6 +50,8 @@ export interface Patient {
   respiratory_rate?: number;
   oxygen_saturation?: number;
   weight?: number;
+  address?: string;
+  policy_number?: string;
   [key: string]: any; // Index signature for compatibility
 }
 
@@ -134,6 +136,7 @@ export interface RecentPatient {
   lastVisit: string;
   age: number;
   condition: string;
+  status: string;
   [key: string]: any; // Index signature for compatibility
 }
 
@@ -174,6 +177,9 @@ export interface Allergy {
   severity: 'mild' | 'moderate' | 'severe';
   type: string;
   notes?: string;
+  date_identified?: string;
+  status?: string;
+  category?: string;
   [key: string]: any; // Index signature for DataItem compatibility
 }
 
@@ -188,4 +194,65 @@ export interface CensusEntry {
 
 export interface DataItem {
   [key: string]: any;
+}
+
+// Additional interfaces for missing types
+export interface Evaluation {
+  id: string;
+  patient_id: string;
+  type?: string;
+  category?: string;
+  score?: string;
+  status: string;
+  description: string;
+  created_by?: string;
+  revised_by?: string;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any; // Index signature for DataItem compatibility
+}
+
+export interface Immunization {
+  id?: string;
+  patient_id?: string;
+  vaccine: string;
+  cvxCode: string;
+  cvx_code?: string;
+  dateAdministered?: string;
+  date_administered?: string;
+  status: string;
+  source: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any; // Index signature for DataItem compatibility
+}
+
+export interface Diagnosis {
+  id?: string;
+  patient_id?: string;
+  code: string;
+  description: string;
+  category: string;
+  clinical_category?: string;
+  date: string;
+  rank: string;
+  classification: string;
+  pdmp_comorbidities?: string;
+  createdDate: string;
+  createdBy: string;
+  created_at?: string;
+  updated_at?: string;
+  status?: string;
+  [key: string]: any; // Index signature for DataItem compatibility
+}
+
+export interface Order {
+  id: string;
+  patient_id: string;
+  type: string;
+  description: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }

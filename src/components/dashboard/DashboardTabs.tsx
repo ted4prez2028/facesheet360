@@ -1,9 +1,9 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RecentPatients } from "./RecentPatients";
-import { TodayAppointments } from "./TodayAppointments";
-import { PendingTasks } from "./PendingTasks";
+import RecentPatients from "./RecentPatients";
+import TodayAppointments from "./TodayAppointments";
+import PendingTasks from "./PendingTasks";
 import { useMockRecentPatients, useMockTodayAppointments, useMockPendingTasks } from "@/hooks/useMockDashboardData";
 
 export const DashboardTabs = () => {

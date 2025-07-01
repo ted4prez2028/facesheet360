@@ -3,10 +3,9 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
-import { useAppointmentsToday, TodayAppointment } from "@/hooks/useAppointmentsToday";
+import { TodayAppointment } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 interface TodayAppointmentsProps {
@@ -14,13 +13,8 @@ interface TodayAppointmentsProps {
   isLoading?: boolean;
 }
 
-const TodayAppointments = ({ appointments: propAppointments, isLoading: propIsLoading }: TodayAppointmentsProps) => {
+const TodayAppointments = ({ appointments = [], isLoading = false }: TodayAppointmentsProps) => {
   const navigate = useNavigate();
-  const { data: fetchedAppointments, isLoading, refetch } = useAppointmentsToday();
-  
-  // Use provided appointments if available, otherwise use fetched data
-  const appointments = propAppointments || fetchedAppointments || [];
-  const loading = propIsLoading !== undefined ? propIsLoading : isLoading;
   
   const handleReschedule = (id: string) => {
     // For now, we'll just show a toast since the rescheduling UI isn't ready
@@ -29,16 +23,7 @@ const TodayAppointments = ({ appointments: propAppointments, isLoading: propIsLo
   
   const handleStartAppointment = async (id: string, patient: string) => {
     try {
-      // Update the appointment status to "in-progress"
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'in-progress' })
-        .eq('id', id);
-        
-      if (error) throw error;
-      
       toast.success(`Started appointment with ${patient}`);
-      refetch(); // Refresh the data
       
       // Navigate to the charting page
       navigate('/charting');
@@ -54,7 +39,7 @@ const TodayAppointments = ({ appointments: propAppointments, isLoading: propIsLo
         <CardTitle>Today's Appointments</CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
@@ -81,7 +66,7 @@ const TodayAppointments = ({ appointments: propAppointments, isLoading: propIsLo
                     <span className="h-1 w-1 rounded-full bg-muted-foreground inline-block"></span>
                     <span>{appointment.type}</span>
                     <span className="h-1 w-1 rounded-full bg-muted-foreground inline-block"></span>
-                    <span>{appointment.duration}</span>
+                    <span>{appointment.duration} min</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
