@@ -94,6 +94,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // If profile doesn't exist, create one
         if (error.code === 'PGRST116') {
           await createUserProfile(userId);
+          return;
+        }
+        // If other error, create a basic user from auth data
+        const { data: authUser } = await supabase.auth.getUser();
+        if (authUser.user) {
+          const basicUser: User = {
+            id: authUser.user.id,
+            email: authUser.user.email || '',
+            name: authUser.user.user_metadata?.name || authUser.user.email || 'User',
+            role: 'doctor',
+            care_coins_balance: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          setUser(basicUser);
         }
         return;
       }
@@ -116,6 +131,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      // Fallback to basic user from auth session
+      const { data: authUser } = await supabase.auth.getUser();
+      if (authUser.user) {
+        const basicUser: User = {
+          id: authUser.user.id,
+          email: authUser.user.email || '',
+          name: authUser.user.user_metadata?.name || authUser.user.email || 'User',
+          role: 'doctor',
+          care_coins_balance: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setUser(basicUser);
+      }
     }
   };
 
