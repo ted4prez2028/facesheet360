@@ -47,14 +47,14 @@ const ContactsList = () => {
   // Get unique organizations from users
   const organizations = ['all', ...new Set(
     contacts.onlineUsers
-      .map(user => user.organization || 'No Organization')
+      .map(user => (user.organization as string) || 'No Organization')
       .filter(Boolean)
   )];
   
   const filteredUsers = contacts.onlineUsers.filter(contact => {
     const matchesSearch = 
-      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.role.toLowerCase().includes(searchTerm.toLowerCase());
+      (contact.name as string).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (contact.role as string).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesOrganization = 
       organizationFilter === 'all' || 
@@ -146,9 +146,9 @@ const ContactsList = () => {
                         key={user.id} 
                         user={user}
                         isOnline={isOnline}
-                        onChat={() => openChatWindow(user.id, user.name)}
-                        onVideoCall={() => startCall(user.id, user.name, true)}
-                        onAudioCall={() => startCall(user.id, user.name, false)}
+                        onChat={() => openChatWindow(user.id as string, user.name as string)}
+                        onVideoCall={() => startCall(user.id as string, user.name as string, true)}
+                        onAudioCall={() => startCall(user.id as string, user.name as string, false)}
                       />
                     );
                   })}
@@ -177,7 +177,7 @@ interface ContactCardProps {
 
 const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
   const userInitials = user.name
-    ? user.name
+    ? (user.name as string)
         .split(" ")
         .map((n) => n[0])
         .join("")
@@ -187,7 +187,7 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
     <div className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
       <div className="flex items-center space-x-3 relative">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={user.profile_image} />
+          <AvatarImage src={user.profile_image as string} />
           <AvatarFallback className="bg-health-600 text-white">
             {userInitials}
           </AvatarFallback>
@@ -196,11 +196,11 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
           <Circle className="absolute bottom-0 right-0 h-3 w-3 fill-green-500 text-green-500 translate-x-1/4 translate-y-1/4" />
         )}
         <div>
-          <p className="font-medium text-sm">{user.name}</p>
+          <p className="font-medium text-sm">{user.name as string}</p>
           <div className="flex flex-col">
-            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+            <p className="text-xs text-muted-foreground capitalize">{user.role as string}</p>
             {user.organization && (
-              <p className="text-xs text-muted-foreground">{user.organization}</p>
+              <p className="text-xs text-muted-foreground">{user.organization as string}</p>
             )}
           </div>
         </div>

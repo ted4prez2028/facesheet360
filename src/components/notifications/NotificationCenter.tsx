@@ -22,6 +22,20 @@ const NotificationCenter = () => {
     setNotifications(data);
   }, [user]);
   
+  const handleRead = useCallback(async (notificationId: string) => {
+    if (!user) return;
+    
+    try {
+      await markNotificationAsRead(notificationId);
+      // Update local state
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, read: true } : n
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }, [user]);
+  
   useEffect(() => {
     if (!user) return;
     

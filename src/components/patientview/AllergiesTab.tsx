@@ -12,7 +12,7 @@ import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
 import { useAllergies } from '@/hooks/useAllergies';
 import AllergyForm from './AllergyForm';
 
-interface Allergy {
+interface LocalAllergy {
   id: string;
   allergen: string;
   type: string;
@@ -21,6 +21,7 @@ interface Allergy {
   severity: string;
   date_identified: string;
   status: string;
+  [key: string]: any;
 }
 
 interface AllergiesTabProps {
@@ -30,7 +31,7 @@ interface AllergiesTabProps {
 const AllergiesTab: React.FC<AllergiesTabProps> = ({ patientId }) => {
   const { allergies, isLoading, addAllergy, updateAllergy, deleteAllergy } = useAllergies(patientId);
   const [isAddAllergyOpen, setIsAddAllergyOpen] = useState(false);
-  const [selectedAllergy, setSelectedAllergy] = useState<Allergy | null>(null);
+  const [selectedAllergy, setSelectedAllergy] = useState<LocalAllergy | null>(null);
   const [isEditAllergyOpen, setIsEditAllergyOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -42,13 +43,33 @@ const AllergiesTab: React.FC<AllergiesTabProps> = ({ patientId }) => {
     exportToPdf('Patient Allergies Report', allergies);
   };
 
-  const handleEditClick = (allergy: Allergy) => {
-    setSelectedAllergy(allergy);
+  const handleEditClick = (allergy: any) => {
+    const localAllergy: LocalAllergy = {
+      id: allergy.id,
+      allergen: allergy.allergen,
+      type: allergy.type || 'Allergy',
+      category: allergy.category || 'Drug',
+      reaction: allergy.reaction,
+      severity: allergy.severity,
+      date_identified: allergy.date_identified,
+      status: allergy.status
+    };
+    setSelectedAllergy(localAllergy);
     setIsEditAllergyOpen(true);
   };
 
-  const handleDeleteClick = (allergy: Allergy) => {
-    setSelectedAllergy(allergy);
+  const handleDeleteClick = (allergy: any) => {
+    const localAllergy: LocalAllergy = {
+      id: allergy.id,
+      allergen: allergy.allergen,
+      type: allergy.type || 'Allergy',
+      category: allergy.category || 'Drug',
+      reaction: allergy.reaction,
+      severity: allergy.severity,
+      date_identified: allergy.date_identified,
+      status: allergy.status
+    };
+    setSelectedAllergy(localAllergy);
     setIsDeleteDialogOpen(true);
   };
 
@@ -162,7 +183,10 @@ const AllergiesTab: React.FC<AllergiesTabProps> = ({ patientId }) => {
           {selectedAllergy && (
             <AllergyForm 
               patientId={patientId}
-              allergy={selectedAllergy}
+              allergy={{
+                ...selectedAllergy,
+                patient_id: patientId
+              }}
               onSuccess={handleEditSuccess}
             />
           )}

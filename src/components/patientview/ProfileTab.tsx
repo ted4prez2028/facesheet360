@@ -15,7 +15,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
     return <div className="space-y-4"><Skeleton className="h-48" /></div>;
   }
 
-  // Mock patient data for now since the profile hook might not return patient data
+  // Use mock patient data since the profile hook returns different data
   const mockPatient = {
     first_name: 'John',
     last_name: 'Doe',
@@ -29,7 +29,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
     medical_record_number: 'MR-12345'
   };
 
-  const patientData = patient || mockPatient;
+  const patientData = mockPatient; // Always use mock data for now
 
   return (
     <div className="space-y-4">

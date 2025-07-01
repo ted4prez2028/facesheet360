@@ -119,7 +119,7 @@ export function MenuCategory({ category, items, onAddItem }: MenuCategoryProps) 
                             )}
                             {item.nutrition_facts && Object.entries(item.nutrition_facts).map(([key, value]) => (
                               <p key={key} className="text-xs">
-                                {key.replace(/_/g, ' ')}: {value}
+                                {key.replace(/_/g, ' ')}: {String(value)}
                               </p>
                             ))}
                           </div>

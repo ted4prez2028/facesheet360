@@ -21,6 +21,7 @@ interface Immunization {
   dateAdministered?: string;
   status: string;
   source: string;
+  [key: string]: any;
 }
 
 interface ImmunizationsTabProps {
