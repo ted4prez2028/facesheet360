@@ -11,9 +11,11 @@ export interface Allergy {
   severity: string;
   date_identified: string;
   status: string;
+  type: string;
   category?: string;
   created_at?: string;
   updated_at?: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 export function useAllergies(patientId: string) {
@@ -48,7 +50,8 @@ export function useAllergies(patientId: string) {
         .from('allergies')
         .insert({
           ...newAllergy,
-          patient_id: patientId
+          patient_id: patientId,
+          type: newAllergy.type || 'Allergy'
         })
         .select()
         .single();

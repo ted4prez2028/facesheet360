@@ -8,11 +8,14 @@ interface Immunization {
   patient_id: string;
   vaccine: string;
   cvx_code?: string;
+  cvxCode?: string;
   status: string;
   source?: string;
   date_administered?: string;
+  dateAdministered?: string;
   created_at: string;
   updated_at: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 export function useImmunizations(patientId: string) {

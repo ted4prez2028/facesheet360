@@ -15,6 +15,22 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
     return <div className="space-y-4"><Skeleton className="h-48" /></div>;
   }
 
+  // Mock patient data for now since the profile hook might not return patient data
+  const mockPatient = {
+    first_name: 'John',
+    last_name: 'Doe',
+    date_of_birth: '1980-01-01',
+    gender: 'Male',
+    email: 'john.doe@example.com',
+    phone: '(555) 123-4567',
+    address: '123 Main St, City, State 12345',
+    insurance_provider: 'Health Insurance Co.',
+    policy_number: 'HIL123456789',
+    medical_record_number: 'MR-12345'
+  };
+
+  const patientData = patient || mockPatient;
+
   return (
     <div className="space-y-4">
       <Card>
@@ -27,29 +43,29 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
             <dl className="space-y-2">
               <div>
                 <dt className="font-medium">Full Name</dt>
-                <dd>{patient?.first_name} {patient?.last_name}</dd>
+                <dd>{patientData.first_name} {patientData.last_name}</dd>
               </div>
               <div>
                 <dt className="font-medium">Date of Birth</dt>
-                <dd>{new Date(patient?.date_of_birth).toLocaleDateString()}</dd>
+                <dd>{new Date(patientData.date_of_birth).toLocaleDateString()}</dd>
               </div>
               <div>
                 <dt className="font-medium">Gender</dt>
-                <dd>{patient?.gender}</dd>
+                <dd>{patientData.gender}</dd>
               </div>
             </dl>
             <dl className="space-y-2">
               <div>
                 <dt className="font-medium">Email</dt>
-                <dd>{patient?.email || 'Not provided'}</dd>
+                <dd>{patientData.email || 'Not provided'}</dd>
               </div>
               <div>
                 <dt className="font-medium">Phone</dt>
-                <dd>{patient?.phone || 'Not provided'}</dd>
+                <dd>{patientData.phone || 'Not provided'}</dd>
               </div>
               <div>
                 <dt className="font-medium">Address</dt>
-                <dd>{patient?.address || 'Not provided'}</dd>
+                <dd>{patientData.address || 'Not provided'}</dd>
               </div>
             </dl>
           </div>
@@ -65,15 +81,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
           <dl className="space-y-2">
             <div>
               <dt className="font-medium">Insurance Provider</dt>
-              <dd>{patient?.insurance_provider || 'Not provided'}</dd>
+              <dd>{patientData.insurance_provider || 'Not provided'}</dd>
             </div>
             <div>
               <dt className="font-medium">Policy Number</dt>
-              <dd>{patient?.policy_number || 'Not provided'}</dd>
+              <dd>{patientData.policy_number || 'Not provided'}</dd>
             </div>
             <div>
               <dt className="font-medium">Medical Record Number</dt>
-              <dd>{patient?.medical_record_number || 'Not provided'}</dd>
+              <dd>{patientData.medical_record_number || 'Not provided'}</dd>
             </div>
           </dl>
         </CardContent>

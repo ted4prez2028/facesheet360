@@ -22,6 +22,81 @@ const MedicationReminders = () => {
   const { user } = useAuth();
   const { mutate: updatePrescriptionStatus } = useUpdatePrescriptionStatus();
   
+  const fetchDueMedications = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      // The fetch logic is now handled by the Edge Function
+      // This function is kept mainly for subscription setup
+      console.log('Waiting for medication notifications...');
+    } catch (error) {
+      console.error('Error in medication reminders:', error);
+    }
+  }, [user]);
+  
+  const showMedicationToast = useCallback((notification: NotificationPayload) => {
+    // Extract medication ID from event_id if it exists
+    const medicationId = notification.event_id;
+    
+    toast(
+      <div className="flex flex-col space-y-1">
+        <div className="font-medium">{notification.title}</div>
+        <div className="text-sm">{notification.message}</div>
+        {medicationId && (
+          <div className="flex mt-2 space-x-2">
+            <Button 
+              size="sm" 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => handleAdministerMedication(medicationId)}
+            >
+              <CheckCircle className="mr-1 h-3 w-3" />
+              Mark as Administered
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => toast.dismiss()}
+            >
+              <Clock className="mr-1 h-3 w-3" />
+              Remind Later
+            </Button>
+          </div>
+        )}
+      </div>,
+      {
+        duration: 30000,
+        icon: <Bell className="h-5 w-5 text-amber-500" />
+      }
+    );
+  }, []);
+  
+  const handleAdministerMedication = useCallback((prescriptionId: string) => {
+    if (!user?.id) return;
+    
+    updatePrescriptionStatus({
+      id: prescriptionId,
+      status: 'administered',
+      administeredBy: user.id
+    }, {
+      onSuccess: () => {
+        toast.success('Medication marked as administered');
+        
+        // Create a notification for this action
+        createNotification({
+          user_id: user.id,
+          title: 'Medication Administered',
+          message: 'You have successfully administered this medication',
+          type: 'medication',
+          read: false,
+          event_id: prescriptionId
+        }).catch(err => console.error('Error creating notification:', err));
+      },
+      onError: (error) => {
+        toast.error(`Failed to update medication status: ${(error as Error).message}`);
+      }
+    });
+  }, [user, updatePrescriptionStatus]);
+  
   useEffect(() => {
     if (!user) return;
     
@@ -81,82 +156,7 @@ const MedicationReminders = () => {
       supabase.removeChannel(medicationChannel);
       supabase.removeChannel(notificationChannel);
     };
-  }, [user, fetchDueMedications, showMedicationToast]);
-  
-  const fetchDueMedications = useCallback(async () => {
-    if (!user) return;
-    
-    try {
-      // The fetch logic is now handled by the Edge Function
-      // This function is kept mainly for subscription setup
-      console.log('Waiting for medication notifications...');
-    } catch (error) {
-      console.error('Error in medication reminders:', error);
-    }
-  }, [user]);
-  
-  const showMedicationToast = useCallback((notification: NotificationPayload) => {
-    // Extract medication ID from event_id if it exists
-    const medicationId = notification.event_id;
-    
-    toast(
-      <div className="flex flex-col space-y-1">
-        <div className="font-medium">{notification.title}</div>
-        <div className="text-sm">{notification.message}</div>
-        {medicationId && (
-          <div className="flex mt-2 space-x-2">
-            <Button 
-              size="sm" 
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => handleAdministerMedication(medicationId)}
-            >
-              <CheckCircle className="mr-1 h-3 w-3" />
-              Mark as Administered
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => toast.dismiss()}
-            >
-              <Clock className="mr-1 h-3 w-3" />
-              Remind Later
-            </Button>
-          </div>
-        )}
-      </div>,
-      {
-        duration: 30000,
-        icon: <Bell className="h-5 w-5 text-amber-500" />
-      }
-    );
-  }, [handleAdministerMedication]);
-  
-  const handleAdministerMedication = useCallback((prescriptionId: string) => {
-    if (!user?.id) return;
-    
-    updatePrescriptionStatus({
-      id: prescriptionId,
-      status: 'administered',
-      administeredBy: user.id
-    }, {
-      onSuccess: () => {
-        toast.success('Medication marked as administered');
-        
-        // Create a notification for this action
-        createNotification({
-          user_id: user.id,
-          title: 'Medication Administered',
-          message: 'You have successfully administered this medication',
-          type: 'medication',
-          read: false,
-          event_id: prescriptionId
-        }).catch(err => console.error('Error creating notification:', err));
-      },
-      onError: (error) => {
-        toast.error(`Failed to update medication status: ${(error as Error).message}`);
-      }
-    });
-  }, [user, updatePrescriptionStatus]);
+  }, [user, fetchDueMedications, showMedicationToast, handleAdministerMedication]);
   
   // This component doesn't render anything visible
   // It just handles medication reminders in the background

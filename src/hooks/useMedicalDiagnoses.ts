@@ -10,12 +10,17 @@ interface MedicalDiagnosis {
   code: string;
   description: string;
   clinical_category?: string;
+  category?: string;
   rank?: string;
   classification?: string;
   pdpm_comorbidities?: string;
+  date?: string;
   status: string;
   created_at: string;
   updated_at: string;
+  createdDate?: string;
+  createdBy?: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 export function useMedicalDiagnoses(patientId: string) {

@@ -11,10 +11,11 @@ interface Evaluation {
   score?: string;
   status: string;
   description: string;
-  created_by?: string;
+  created_by: string;
   revised_by?: string;
   created_at: string;
   updated_at: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 export function useEvaluations(patientId: string) {

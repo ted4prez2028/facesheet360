@@ -11,6 +11,7 @@ interface Immunization {
   dateAdministered?: string;
   status: string;
   source: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 interface ImmunizationsProps {

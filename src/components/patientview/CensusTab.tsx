@@ -14,6 +14,7 @@ interface CensusEntry {
   hipps: string;
   careLevel: string;
   location: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 interface CensusTabProps {

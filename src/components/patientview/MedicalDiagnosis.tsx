@@ -14,6 +14,7 @@ interface Diagnosis {
   classification: string;
   createdDate: string;
   createdBy: string;
+  [key: string]: any; // Index signature for DataItem compatibility
 }
 
 interface MedicalDiagnosisProps {

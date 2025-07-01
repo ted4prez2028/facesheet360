@@ -43,6 +43,8 @@ export interface Patient {
   condition?: string;
   email?: string;
   phone?: string;
+  address?: string;
+  policy_number?: string;
   // Additional patient properties for compatibility
   blood_pressure?: string;
   temperature?: number;
@@ -50,8 +52,6 @@ export interface Patient {
   respiratory_rate?: number;
   oxygen_saturation?: number;
   weight?: number;
-  address?: string;
-  policy_number?: string;
   [key: string]: any; // Index signature for compatibility
 }
 
