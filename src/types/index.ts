@@ -99,7 +99,7 @@ export interface Call {
   receiverName?: string;
   is_video_call: boolean;
   isVideoCall?: boolean; // Add alias for compatibility
-  status: 'pending' | 'active' | 'ended';
+  status: 'pending' | 'active' | 'ended' | 'ongoing'; // Add ongoing status
   created_at: string;
   updated_at: string;
   otherUserName?: string;
@@ -161,6 +161,7 @@ export interface RecentPatient {
   lastVisit: string;
   age: number;
   condition: string;
+  status: string; // Add required status property
 }
 
 export interface TodayAppointment {
@@ -200,6 +201,13 @@ export interface Prescription {
   created_at: string;
   start_date: string;
   end_date?: string;
+  patients?: {
+    first_name: string;
+    last_name: string;
+  };
+  providers?: {
+    name: string;
+  };
 }
 
 export interface Appointment {
@@ -249,7 +257,7 @@ export interface MedicationReminder {
 }
 
 export interface PatientDataForCarePlan {
-  id?: string;
+  id: string; // Make id required
   first_name?: string;
   last_name?: string;
   date_of_birth?: string;

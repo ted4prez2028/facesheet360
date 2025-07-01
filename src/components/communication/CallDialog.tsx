@@ -53,12 +53,12 @@ const CallDialog = () => {
   
   if (!isCallActive || !activeCall) return null;
   
-  const otherPersonName = activeCall?.callerId === 'current-user' 
+  const otherPersonName = activeCall?.caller_id === 'current-user' 
     ? activeCall?.receiverName 
     : activeCall?.callerName;
   
-  const isVideoCall = activeCall?.isVideoCall;
-  const isOngoing = activeCall?.status === 'ongoing';
+  const isVideoCall = activeCall?.is_video_call;
+  const isOngoing = activeCall?.status === 'active'; // Use 'active' instead of 'ongoing'
   
   return (
     <Dialog open={isCallActive} onOpenChange={() => {}}>

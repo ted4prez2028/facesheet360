@@ -10,8 +10,9 @@ import {
   useImagingRecords 
 } from "@/hooks/useChartData";
 import { useState, useEffect } from "react";
+import { Patient } from "@/types";
 
-interface Patient {
+interface LocalPatient {
   id: string;
   name: string;
   age: number;
@@ -25,7 +26,7 @@ interface Patient {
 
 interface PatientChartProps {
   selectedPatient: string | null;
-  patientData: Patient | undefined;
+  patientData: LocalPatient | undefined;
   userId: string | undefined;
 }
 
@@ -48,12 +49,31 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     allergies: []
   };
 
-  // Ensure patient data has required properties
-  const enhancedPatientData = patientData ? {
-    ...patientData,
+  // Convert local patient data to full Patient type
+  const enhancedPatientData: Patient | undefined = patientData ? {
+    id: patientData.id,
+    first_name: patientData.name?.split(' ')[0] || '',
+    last_name: patientData.name?.split(' ').slice(1).join(' ') || '',
+    name: patientData.name,
     date_of_birth: patientData.date_of_birth || '1990-01-01',
     gender: patientData.gender || 'Not specified',
-    medical_record_number: patientData.medical_record_number || `MR-${patientData.id.slice(0, 8)}`
+    phone: '',
+    email: '',
+    address: '',
+    insurance_provider: '',
+    insurance_number: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    emergency_contact_relation: '',
+    medical_history: '',
+    allergies: '',
+    medications: '',
+    notes: '',
+    medical_record_number: patientData.medical_record_number || `MR-${patientData.id.slice(0, 8)}`,
+    age: patientData.age,
+    status: patientData.status,
+    lastVisit: patientData.lastVisit,
+    imgUrl: patientData.imgUrl
   } : undefined;
 
   if (!selectedPatient) {

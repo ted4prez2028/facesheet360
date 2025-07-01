@@ -24,10 +24,10 @@ const VideoCall = () => {
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   
-  const isDialogOpen = activeCall !== null && activeCall.status === 'ongoing';
+  const isDialogOpen = activeCall !== null && activeCall.status === 'active'; // Use 'active' instead of 'ongoing'
   
   // Get the remote stream (there should be only one for a 1-on-1 call)
-  const remotePeerId = activeCall && (activeCall.callerId === activeCall.receiverId 
+  const remotePeerId = activeCall && (activeCall.caller_id === activeCall.callee_id 
     ? activeCall.callerName 
     : activeCall.receiverName);
   
@@ -92,7 +92,7 @@ const VideoCall = () => {
   
   if (!activeCall) return null;
   
-  const remoteUserName = activeCall.callerId === activeCall.receiverId 
+  const remoteUserName = activeCall.caller_id === activeCall.callee_id 
     ? activeCall.callerName 
     : activeCall.receiverName;
   
@@ -104,7 +104,7 @@ const VideoCall = () => {
     <Dialog open={isDialogOpen} onOpenChange={() => endCall()}>
       <DialogContent className="sm:max-w-lg p-0 gap-0">
         <div className="relative bg-black rounded-t-lg overflow-hidden h-[400px] flex items-center justify-center">
-          {activeCall.isVideoCall ? (
+          {activeCall.is_video_call ? (
             <>
               {/* Remote video (large) */}
               <video
@@ -162,7 +162,7 @@ const VideoCall = () => {
           </Button>
           
           {/* Video toggle (only for video calls) */}
-          {activeCall.isVideoCall && (
+          {activeCall.is_video_call && (
             <Button 
               variant="outline" 
               size="icon" 

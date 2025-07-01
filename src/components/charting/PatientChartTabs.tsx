@@ -55,12 +55,15 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     if (!patient) return null;
     
     return {
+      id: patient.id, // Ensure id is always present
       ...patient,
       vitalSigns: chartData?.vitalSigns,
       medications: chartData?.medications?.map(med => med.medication_name),
       medicalHistory: chartData?.history || [],
       condition: chartData?.diagnosis,
-      allergies: chartData?.allergies?.join(', ') || '', // Convert array to string
+      allergies: Array.isArray(chartData?.allergies) 
+        ? chartData.allergies.join(', ') 
+        : (chartData?.allergies || ''), // Handle both string and array types
     };
   };
 
