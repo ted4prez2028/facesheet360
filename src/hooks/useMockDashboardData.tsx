@@ -8,7 +8,7 @@ export const useMockRecentPatients = () => {
     queryFn: (): RecentPatient[] => [
       {
         id: '1',
-        name: 'John Doe',
+        name: 'John Smith',
         lastVisit: '2024-01-15',
         age: 45,
         condition: 'Hypertension',
@@ -16,11 +16,19 @@ export const useMockRecentPatients = () => {
       },
       {
         id: '2',
-        name: 'Jane Smith',
+        name: 'Sarah Johnson',
         lastVisit: '2024-01-14',
         age: 32,
         condition: 'Diabetes',
-        status: 'follow-up'
+        status: 'monitoring'
+      },
+      {
+        id: '3',
+        name: 'Michael Brown',
+        lastVisit: '2024-01-13',
+        age: 67,
+        condition: 'Heart Disease',
+        status: 'critical'
       }
     ]
   });
@@ -32,17 +40,24 @@ export const useMockTodayAppointments = () => {
     queryFn: (): TodayAppointment[] => [
       {
         id: '1',
-        time: '09:00',
-        patient: 'John Doe',
+        time: '09:00 AM',
+        patient: 'Alice Wilson',
         type: 'Check-up',
         duration: 30
       },
       {
         id: '2',
-        time: '10:30',
-        patient: 'Jane Smith',
+        time: '10:30 AM',
+        patient: 'Robert Davis',
         type: 'Follow-up',
         duration: 45
+      },
+      {
+        id: '3',
+        time: '02:00 PM',
+        patient: 'Emma Martinez',
+        type: 'Consultation',
+        duration: 60
       }
     ]
   });
@@ -54,15 +69,21 @@ export const useMockPendingTasks = () => {
     queryFn: (): PendingTask[] => [
       {
         id: '1',
-        task: 'Review lab results for John Doe',
-        priority: 'high' as const,
+        task: 'Review lab results for John Smith',
+        priority: 'high',
         due: '2024-01-16'
       },
       {
         id: '2',
-        task: 'Schedule follow-up for Jane Smith',
-        priority: 'medium' as const,
+        task: 'Update medication list for Sarah Johnson',
+        priority: 'medium',
         due: '2024-01-17'
+      },
+      {
+        id: '3',
+        task: 'Schedule follow-up for Michael Brown',
+        priority: 'low',
+        due: '2024-01-20'
       }
     ]
   });

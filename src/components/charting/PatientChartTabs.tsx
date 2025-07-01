@@ -55,15 +55,36 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     if (!patient) return null;
     
     return {
-      id: patient.id, // Ensure id is always present
-      ...patient,
-      vitalSigns: chartData?.vitalSigns,
-      medications: chartData?.medications?.map(med => med.medication_name),
-      medicalHistory: chartData?.history || [],
-      condition: chartData?.diagnosis,
+      id: patient.id,
+      first_name: patient.first_name || patient.name?.split(' ')[0] || '',
+      last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || '',
+      date_of_birth: patient.date_of_birth,
+      gender: patient.gender,
+      phone: patient.phone,
+      email: patient.email,
+      address: patient.address,
+      insurance_provider: patient.insurance_provider,
+      insurance_number: patient.insurance_number,
+      emergency_contact_name: patient.emergency_contact_name,
+      emergency_contact_phone: patient.emergency_contact_phone,
+      emergency_contact_relation: patient.emergency_contact_relation,
+      medical_history: patient.medical_history,
       allergies: Array.isArray(chartData?.allergies) 
         ? chartData.allergies.join(', ') 
-        : (chartData?.allergies || ''), // Handle both string and array types
+        : (chartData?.allergies || ''),
+      medications: patient.medications,
+      notes: patient.notes,
+      medical_record_number: patient.medical_record_number,
+      age: patient.age,
+      name: patient.name,
+      status: patient.status,
+      lastVisit: patient.lastVisit,
+      imgUrl: patient.imgUrl,
+      created_at: patient.created_at,
+      provider_id: patient.provider_id,
+      vitalSigns: chartData?.vitalSigns,
+      medicalHistory: chartData?.history || [],
+      condition: chartData?.diagnosis
     };
   };
 

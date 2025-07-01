@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 // Define types for analytics data
 interface AnalyticsDataPoint {
@@ -22,17 +21,9 @@ export const usePatientStatistics = (timeframe: string = 'year') => {
   return useQuery({
     queryKey: ['patientStatistics', timeframe],
     queryFn: async () => {
-      const startDate = getStartDateForTimeframe(timeframe);
-      const { data, error } = await supabase
-        .from('patients')
-        .select('created_at')
-        .gte('created_at', startDate.toISOString());
-      
-      if (error) throw error;
-      
-      // Process data for patient statistics
-      const processedData = processTimeSeriesData(data.map(item => item.created_at), timeframe);
-      return processedData.map(item => ({
+      // Mock data since patients table doesn't exist in current schema
+      const mockData = generateMockTimeSeriesData(timeframe);
+      return mockData.map(item => ({
         ...item,
         newPatients: Math.floor(item.count * 0.7) // Simulated new patients data
       }));
@@ -44,32 +35,8 @@ export const useAppointmentStatistics = (timeframe: string = 'year') => {
   return useQuery({
     queryKey: ['appointmentStatistics', timeframe],
     queryFn: async () => {
-      const startDate = getStartDateForTimeframe(timeframe);
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('appointment_date, status')
-        .gte('appointment_date', startDate.toISOString());
-      
-      if (error) throw error;
-      
-      // Group by date and status
-      const dateMap = new Map();
-      data.forEach(item => {
-        const dateKey = timeframe === 'week' 
-          ? new Date(item.appointment_date).toISOString().split('T')[0]
-          : `${new Date(item.appointment_date).getFullYear()}-${String(new Date(item.appointment_date).getMonth() + 1).padStart(2, '0')}`;
-        
-        if (!dateMap.has(dateKey)) {
-          dateMap.set(dateKey, { date: dateKey, completed: 0, scheduled: 0, cancelled: 0 });
-        }
-        
-        const entry = dateMap.get(dateKey);
-        if (item.status === 'completed') entry.completed++;
-        else if (item.status === 'scheduled') entry.scheduled++;
-        else if (item.status === 'cancelled') entry.cancelled++;
-      });
-      
-      return Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      // Mock data since appointments table doesn't exist in current schema
+      return generateMockAppointmentData(timeframe);
     }
   });
 };
@@ -78,8 +45,7 @@ export const usePatientDemographics = () => {
   return useQuery({
     queryKey: ['patientDemographics'],
     queryFn: async () => {
-      // In a real application, this would fetch from your database
-      // Returning mock data for now
+      // Mock demographic data
       return [
         { ageGroup: '0-17', male: 45, female: 42, other: 3 },
         { ageGroup: '18-30', male: 78, female: 82, other: 5 },
@@ -95,64 +61,26 @@ export const useCareCoinsAnalytics = (timeframe: string = 'year') => {
   return useQuery({
     queryKey: ['careCoinsAnalytics', timeframe],
     queryFn: async () => {
-      const startDate = getStartDateForTimeframe(timeframe);
-      const { data, error } = await supabase
-        .from('care_coins_transactions')
-        .select('created_at, amount, transaction_type')
-        .gte('created_at', startDate.toISOString());
-      
-      if (error) throw error;
-      
-      // Group by date and transaction type
-      const dateMap = new Map();
-      data.forEach(item => {
-        const dateKey = timeframe === 'week' 
-          ? new Date(item.created_at).toISOString().split('T')[0]
-          : `${new Date(item.created_at).getFullYear()}-${String(new Date(item.created_at).getMonth() + 1).padStart(2, '0')}`;
-        
-        if (!dateMap.has(dateKey)) {
-          dateMap.set(dateKey, { date: dateKey, earned: 0, spent: 0 });
-        }
-        
-        const entry = dateMap.get(dateKey);
-        if (item.transaction_type === 'reward') {
-          entry.earned += item.amount;
-        } else if (item.transaction_type === 'purchase') {
-          entry.spent += item.amount;
-        }
-      });
-      
-      return Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      // Mock data since care_coins_transactions table doesn't exist in current schema
+      return generateMockCareCoinsData(timeframe);
     }
   });
 };
 
 // Original useAnalyticsData hook
 export const useAnalyticsData = (timeframe: string = 'year') => {
-  // Query for patient visits over time
+  // Mock patient visits data
   const { data: patientVisits, isLoading: isVisitsLoading } = useQuery({
     queryKey: ['analytics', 'patient-visits', timeframe],
     queryFn: async () => {
-      const startDate = getStartDateForTimeframe(timeframe);
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('appointment_date')
-        .gte('appointment_date', startDate.toISOString())
-        .order('appointment_date', { ascending: true });
-      
-      if (error) throw error;
-      
-      // Process data into a format suitable for charts
-      return processTimeSeriesData(data.map(item => item.appointment_date), timeframe);
+      return generateMockTimeSeriesData(timeframe);
     }
   });
 
-  // Query for key metrics
+  // Mock key metrics
   const { data: keyMetrics, isLoading: isMetricsLoading } = useQuery({
     queryKey: ['analytics', 'key-metrics', timeframe],
     queryFn: async () => {
-      // This would typically come from multiple queries aggregated together
-      // For now, returning mock data
       return [
         {
           title: 'Total Patients',
@@ -205,12 +133,9 @@ function getStartDateForTimeframe(timeframe: string): Date {
   }
 }
 
-// Helper function to process time series data
-function processTimeSeriesData(dates: string[], timeframe: string): AnalyticsDataPoint[] {
-  const dateMap = new Map<string, number>();
-  const format = timeframe === 'week' ? 'yyyy-MM-dd' : 'yyyy-MM';
-
-  // Initialize with zero counts
+// Helper function to generate mock time series data
+function generateMockTimeSeriesData(timeframe: string): AnalyticsDataPoint[] {
+  const data: AnalyticsDataPoint[] = [];
   const startDate = getStartDateForTimeframe(timeframe);
   const now = new Date();
   const current = new Date(startDate);
@@ -220,7 +145,10 @@ function processTimeSeriesData(dates: string[], timeframe: string): AnalyticsDat
       ? current.toISOString().split('T')[0] 
       : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
     
-    dateMap.set(key, 0);
+    data.push({
+      date: key,
+      count: Math.floor(Math.random() * 50) + 10 // Random count between 10-60
+    });
     
     if (timeframe === 'week') {
       current.setDate(current.getDate() + 1);
@@ -229,23 +157,64 @@ function processTimeSeriesData(dates: string[], timeframe: string): AnalyticsDat
     }
   }
   
-  // Count actual appointments
-  dates.forEach(dateStr => {
-    const date = new Date(dateStr);
-    const key = timeframe === 'week'
-      ? date.toISOString().split('T')[0]
-      : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    
-    if (dateMap.has(key)) {
-      dateMap.set(key, dateMap.get(key)! + 1);
-    }
-  });
+  return data.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// Helper function to generate mock appointment data
+function generateMockAppointmentData(timeframe: string) {
+  const data = [];
+  const startDate = getStartDateForTimeframe(timeframe);
+  const now = new Date();
+  const current = new Date(startDate);
   
-  // Convert map to array
-  return Array.from(dateMap).map(([date, count]) => ({
-    date,
-    count
-  })).sort((a, b) => a.date.localeCompare(b.date));
+  while (current <= now) {
+    const key = timeframe === 'week' 
+      ? current.toISOString().split('T')[0] 
+      : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+    
+    data.push({
+      date: key,
+      completed: Math.floor(Math.random() * 20) + 5,
+      scheduled: Math.floor(Math.random() * 15) + 3,
+      cancelled: Math.floor(Math.random() * 5) + 1
+    });
+    
+    if (timeframe === 'week') {
+      current.setDate(current.getDate() + 1);
+    } else {
+      current.setMonth(current.getMonth() + 1);
+    }
+  }
+  
+  return data.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// Helper function to generate mock care coins data
+function generateMockCareCoinsData(timeframe: string) {
+  const data = [];
+  const startDate = getStartDateForTimeframe(timeframe);
+  const now = new Date();
+  const current = new Date(startDate);
+  
+  while (current <= now) {
+    const key = timeframe === 'week' 
+      ? current.toISOString().split('T')[0] 
+      : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+    
+    data.push({
+      date: key,
+      earned: Math.floor(Math.random() * 500) + 100,
+      spent: Math.floor(Math.random() * 300) + 50
+    });
+    
+    if (timeframe === 'week') {
+      current.setDate(current.getDate() + 1);
+    } else {
+      current.setMonth(current.getMonth() + 1);
+    }
+  }
+  
+  return data.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export default useAnalyticsData;

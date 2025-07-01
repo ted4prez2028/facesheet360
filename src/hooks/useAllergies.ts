@@ -71,6 +71,14 @@ export function useAllergies(patientId: string) {
       const mockAllergy: Allergy = {
         ...newAllergy,
         id: Date.now().toString(),
+        patient_id: newAllergy.patient_id || patientId,
+        allergen: newAllergy.allergen || '',
+        reaction: newAllergy.reaction || '',
+        severity: newAllergy.severity || 'mild',
+        date_identified: newAllergy.date_identified || new Date().toISOString().split('T')[0],
+        status: newAllergy.status || 'active',
+        type: newAllergy.type || 'Unknown',
+        category: newAllergy.category,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
