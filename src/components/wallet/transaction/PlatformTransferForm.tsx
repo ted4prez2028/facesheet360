@@ -75,7 +75,7 @@ export const PlatformTransferForm: React.FC<PlatformTransferFormProps> = ({
           />
         </div>
         <div className="p-1 border rounded flex items-center mb-4">
-          <span className="text-sm font-medium px-3">Balance: {user?.careCoinsBalance || 0} CC</span>
+          <span className="text-sm font-medium px-3">Balance: {user?.care_coins_balance || user?.credits || 0} CC</span>
         </div>
       </div>
       <DialogFooter>

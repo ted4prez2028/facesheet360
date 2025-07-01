@@ -15,7 +15,7 @@ import MedicationsPanel from "@/components/charting/MedicationsPanel";
 import LabResultsPanel from "@/components/charting/LabResultsPanel";
 import PatientNotes from "@/components/charting/PatientNotes";
 import ImagingPanel from "@/components/charting/ImagingPanel";
-import { Patient } from "@/types";
+import { Patient, PatientDataForCarePlan } from "@/types";
 
 interface ChartData {
   vitalSigns?: {
@@ -51,7 +51,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
   };
   
   // Prepare patient data for AI care plan generation
-  const preparePatientDataForAI = () => {
+  const preparePatientDataForAI = (): PatientDataForCarePlan | null => {
     if (!patient) return null;
     
     return {
@@ -60,7 +60,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       medications: chartData?.medications?.map(med => med.medication_name),
       medicalHistory: chartData?.history || [],
       condition: chartData?.diagnosis,
-      allergies: chartData?.allergies || [],
+      allergies: chartData?.allergies?.join(', ') || '', // Convert array to string
     };
   };
 

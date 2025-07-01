@@ -52,7 +52,7 @@ const ContactsList = () => {
   )];
   
   const filteredUsers = contacts.onlineUsers.filter(contact => {
-    const contactName = String(contact.name || '');
+    const contactName = String(contact.name || contact.first_name || '');
     const contactRole = String(contact.role || '');
     
     const matchesSearch = 
@@ -128,8 +128,8 @@ const ContactsList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {organizations.map(org => (
-                    <SelectItem key={org} value={org}>
-                      {org === 'all' ? 'All Organizations' : org}
+                    <SelectItem key={String(org)} value={String(org)}>
+                      {org === 'all' ? 'All Organizations' : String(org)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -147,7 +147,7 @@ const ContactsList = () => {
                   {filteredUsers.map((contact) => {
                     const isOnline = contact.online_status === true;
                     const contactId = String(contact.id || '');
-                    const contactName = String(contact.name || 'Unknown');
+                    const contactName = String(contact.name || contact.first_name || 'Unknown');
                     
                     return (
                       <ContactCard 
@@ -184,7 +184,7 @@ interface ContactCardProps {
 }
 
 const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
-  const userName = String(user.name || '');
+  const userName = String(user.name || user.first_name || '');
   const userInitials = userName
     .split(" ")
     .map((n) => n[0])
