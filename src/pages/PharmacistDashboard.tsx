@@ -1,16 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Package, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import PrescriptionCard from '@/components/pharmacy/PrescriptionCard';
-import { PharmacyStats } from '@/components/pharmacy/PharmacyStats';
-import { toast } from 'sonner';
-import { Prescription } from '@/types';
+import { EnhancedPharmacyDashboard } from '@/components/pharmacy/EnhancedPharmacyDashboard';
+
+export default function PharmacistDashboard() {
+  return <EnhancedPharmacyDashboard />;
+}
 
 export default function PharmacistDashboard() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
