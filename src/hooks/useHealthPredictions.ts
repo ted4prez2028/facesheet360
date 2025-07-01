@@ -20,6 +20,7 @@ export const useHealthPredictions = (patientId?: string) => {
           prediction_data: { risk_score: 0.75, factors: ['age', 'weight', 'family_history'] },
           confidence_score: 0.85,
           status: 'pending',
+          model_version: '1.0',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         },
@@ -30,6 +31,7 @@ export const useHealthPredictions = (patientId?: string) => {
           prediction_data: { risk_score: 0.45, factors: ['blood_pressure', 'cholesterol'] },
           confidence_score: 0.78,
           status: 'verified',
+          model_version: '1.0',
           created_at: new Date(Date.now() - 86400000).toISOString(),
           updated_at: new Date(Date.now() - 86400000).toISOString()
         }

@@ -40,12 +40,12 @@ interface PatientChartTabsProps {
 // Define a local interface that matches the expected type from GenerateCarePlanButton
 interface LocalPatientDataForCarePlan {
   id: string;
-  first_name: string; // Required to match PatientDataForCarePlan
-  last_name: string; // Required to match PatientDataForCarePlan
-  date_of_birth: string; // Required to match PatientDataForCarePlan
-  gender: string; // Required to match PatientDataForCarePlan
-  phone: string; // Required to match PatientDataForCarePlan
-  email?: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: string;
+  phone: string;
+  email: string;
   address?: string;
   insurance_provider?: string;
   insurance_number?: string;
@@ -103,12 +103,12 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     
     return {
       id: patient.id,
-      first_name: patient.first_name || patient.name?.split(' ')[0] || 'Unknown', // Provide default value
-      last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || 'Patient', // Provide default value
-      date_of_birth: patient.date_of_birth || '1990-01-01', // Provide default value
-      gender: patient.gender || 'Not specified', // Provide default value
-      phone: patient.phone || 'Not provided', // Provide default value
-      email: patient.email,
+      first_name: patient.first_name || patient.name?.split(' ')[0] || 'Unknown',
+      last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || 'Patient',
+      date_of_birth: patient.date_of_birth || '1990-01-01',
+      gender: patient.gender || 'Not specified',
+      phone: patient.phone || 'Not provided',
+      email: patient.email || 'Not provided',
       address: patient.address,
       insurance_provider: patient.insurance_provider,
       insurance_number: patient.insurance_number,
@@ -169,7 +169,6 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
           {userId && <PatientNotes patientId={patientId} userId={userId} />}
         </TabsContent>
         
-        {/* Add the AI Care Plan generator button to the care plans tab */}
         <TabsContent value="care-plans" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="md:col-span-1">

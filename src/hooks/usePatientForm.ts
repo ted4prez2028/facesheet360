@@ -106,8 +106,6 @@ export const usePatientForm = (onSuccess: () => void) => {
     setFormState((prev) => ({ ...prev, isLoading: true }));
     
     try {
-      console.log("Submitting patient data:", patientData);
-      
       // Convert form state to patient object for API
       const patientData: Partial<Patient> = {
         first_name: formState.firstName,
@@ -118,10 +116,12 @@ export const usePatientForm = (onSuccess: () => void) => {
         gender: formState.gender,
         medical_record_number: formState.medicalRecordNumber || null,
         insurance_provider: formState.insuranceProvider || null,
-        policy_number: formState.policyNumber || null,
+        insurance_number: formState.policyNumber || null, // Map to insurance_number
         address: formState.address || null,
         facial_data: formState.facialData || null,
       };
+      
+      console.log("Submitting patient data:", patientData);
       
       // Try with direct method first
       let result;

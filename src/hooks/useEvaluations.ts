@@ -61,6 +61,10 @@ export function useEvaluations(patientId: string) {
       const mockEvaluation: Evaluation = {
         ...evaluation,
         id: Date.now().toString(),
+        patient_id: evaluation.patient_id,
+        status: evaluation.status,
+        description: evaluation.description,
+        created_by: evaluation.created_by,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -83,9 +87,9 @@ export function useEvaluations(patientId: string) {
       const mockUpdatedEvaluation: Evaluation = {
         id,
         patient_id: patientId,
-        status: 'updated',
-        description: 'Updated evaluation',
-        created_by: 'Mock Provider',
+        status: evaluation.status || 'updated',
+        description: evaluation.description || 'Updated evaluation',
+        created_by: evaluation.created_by || 'Mock Provider',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         ...evaluation

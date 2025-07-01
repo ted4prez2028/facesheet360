@@ -76,6 +76,10 @@ export function useMedicalDiagnoses(patientId: string) {
       const mockDiagnosis: MedicalDiagnosis = {
         ...diagnosis,
         id: Date.now().toString(),
+        patient_id: diagnosis.patient_id,
+        code: diagnosis.code,
+        description: diagnosis.description,
+        status: diagnosis.status,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -98,9 +102,9 @@ export function useMedicalDiagnoses(patientId: string) {
       const mockUpdatedDiagnosis: MedicalDiagnosis = {
         id,
         patient_id: patientId,
-        code: 'Updated Code',
-        description: 'Updated diagnosis',
-        status: 'active',
+        code: diagnosis.code || 'Updated Code',
+        description: diagnosis.description || 'Updated diagnosis',
+        status: diagnosis.status || 'active',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         ...diagnosis
@@ -129,7 +133,7 @@ export function useMedicalDiagnoses(patientId: string) {
     },
     onError: (error) => {
       toast.error('Failed to delete diagnosis');
-      console.error('Error deleting diagnosis');
+      console.error('Error deleting diagnosis:', error);
     }
   });
 

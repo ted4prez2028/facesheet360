@@ -63,6 +63,9 @@ export function useImmunizations(patientId: string) {
       const mockImmunization: Immunization = {
         ...immunization,
         id: Date.now().toString(),
+        patient_id: immunization.patient_id,
+        vaccine: immunization.vaccine,
+        status: immunization.status,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -85,8 +88,8 @@ export function useImmunizations(patientId: string) {
       const mockUpdatedImmunization: Immunization = {
         id,
         patient_id: patientId,
-        vaccine: 'Updated Vaccine',
-        status: 'administered',
+        vaccine: immunization.vaccine || 'Updated Vaccine',
+        status: immunization.status || 'administered',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         ...immunization
