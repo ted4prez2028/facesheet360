@@ -24,3 +24,17 @@ export const formatDateTime = (date: string | Date): string => {
     return '';
   }
 };
+
+export const formatTimeSlot = (time: string): string => {
+  if (!time) return '';
+  
+  try {
+    const [hours, minutes] = time.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
+    return format(date, 'h:mm a');
+  } catch (error) {
+    console.error('Error formatting time slot:', error);
+    return time;
+  }
+};

@@ -1,59 +1,94 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { CareCoinsTransaction } from "@/types";
-import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
-export function useCareCoinsTransactions() {
+export interface CareCoinsTransaction {
+  id: string;
+  amount: number;
+  transaction_type: string;
+  description: string;
+  created_at: string;
+  from_user_id?: string;
+  to_user_id?: string;
+  from_user?: {
+    name: string;
+  };
+  to_user?: {
+    name: string;
+  };
+}
+
+export const useCareCoinsTransactions = () => {
   const [transactions, setTransactions] = useState<CareCoinsTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchTransactions = useCallback(async () => {
-    if (!user?.id) return;
-    
-    setIsLoading(true);
-    try {
-      // Mock data since care_coins_transactions table doesn't exist
-      const mockTransactions: CareCoinsTransaction[] = [
-        {
-          id: '1',
-          user_id: user.id,
-          transaction_type: 'reward',
-          amount: 100,
-          description: 'Patient care reward',
-          created_at: new Date().toISOString(),
-          status: 'completed',
-          otherUserName: 'System'
-        },
-        {
-          id: '2',
-          user_id: user.id,
-          transaction_type: 'transfer',
-          amount: -50,
-          description: 'Transfer to colleague',
-          created_at: new Date().toISOString(),
-          status: 'completed',
-          otherUserName: 'Dr. Smith'
-        }
-      ];
-      
-      setTransactions(mockTransactions);
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-      toast.error("Failed to load CareCoins transactions");
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (user?.id) {
+      fetchTransactions();
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [user?.id, fetchTransactions]);
+  const fetchTransactions = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('care_coins_transactions')
+        .select(`
+          *,
+          from_user:from_user_id(name),
+          to_user:to_user_id(name)
+        `)
+        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      
+      setTransactions(data || []);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createTransaction = async (transactionData: {
+    amount: number;
+    transaction_type: string;
+    description: string;
+    to_user_id?: string;
+  }) => {
+    if (!user?.id) throw new Error('User not authenticated');
+
+    const newTransaction = {
+      amount: transactionData.amount,
+      transaction_type: transactionData.transaction_type,
+      description: transactionData.description,
+      from_user_id: user.id,
+      to_user_id: transactionData.to_user_id
+    };
+
+    const { data, error } = await supabase
+      .from('care_coins_transactions')
+      .insert([newTransaction])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Refresh transactions after creating a new one
+    await fetchTransactions();
+    
+    return data;
+  };
 
   return {
     transactions,
     isLoading,
+    createTransaction,
     refreshTransactions: fetchTransactions
   };
-}
+};

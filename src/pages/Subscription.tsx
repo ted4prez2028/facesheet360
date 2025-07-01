@@ -1,215 +1,178 @@
 
 import React, { useState } from 'react';
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SubscriptionCard from "@/components/subscription/SubscriptionCard";
-import CashAppPayment from "@/components/subscription/CashAppPayment";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Check, Star } from 'lucide-react';
+import SubscriptionCard from '@/components/subscription/SubscriptionCard';
+import { useAuth } from '@/context/AuthContext';
 
-// Define subscription plans
-const SUBSCRIPTION_PLANS = [
+interface SubscriptionPlan {
+  id: string;
+  title: string;
+  role: 'doctor' | 'nurse' | 'therapist' | 'cna';
+  price: number;
+  features: string[];
+  popular?: boolean;
+}
+
+const subscriptionPlans: SubscriptionPlan[] = [
   {
-    id: 'doctor',
-    title: 'Doctor',
-    role: 'doctor' as const,
-    price: 250,
+    id: 'doctor-basic',
+    title: 'Doctor Basic',
+    role: 'doctor',
+    price: 49,
     features: [
-      'Full patient access',
-      'Diagnosis and treatment planning',
-      'Prescription management',
-      'Advanced analytics',
-      'Unlimited charting'
+      'Up to 50 patients',
+      'Basic charting tools',
+      'Appointment scheduling',
+      'Email support',
+      '5GB storage'
     ]
   },
   {
-    id: 'nurse',
-    title: 'Nurse',
-    role: 'nurse' as const,
-    price: 100,
+    id: 'doctor-pro',
+    title: 'Doctor Pro',
+    role: 'doctor',
+    price: 99,
+    popular: true,
     features: [
-      'Patient vitals tracking',
-      'Medication administration',
-      'Basic charting access',
-      'Patient education tools',
-      'Care plan implementation'
+      'Unlimited patients',
+      'Advanced charting & analytics',
+      'Telemedicine integration',
+      'Priority support',
+      '50GB storage',
+      'Custom templates',
+      'API access'
     ]
   },
   {
-    id: 'therapist',
-    title: 'Therapist',
-    role: 'therapist' as const,
-    price: 150,
+    id: 'nurse-standard',
+    title: 'Nurse Standard',
+    role: 'nurse',
+    price: 29,
     features: [
-      'Therapy session notes',
-      'Treatment plan creation',
-      'Patient progress tracking',
-      'Assessment tools',
-      'Exercise prescription'
+      'Patient care management',
+      'Medication tracking',
+      'Shift scheduling',
+      'Team collaboration',
+      '10GB storage'
     ]
   },
   {
-    id: 'cna',
-    title: 'CNA',
-    role: 'cna' as const,
-    price: 80,
+    id: 'therapist-pro',
+    title: 'Therapist Pro',
+    role: 'therapist',
+    price: 69,
     features: [
-      'Basic patient care notes',
-      'Vital signs recording',
-      'Activity logging',
-      'Care task management',
-      'Shift reporting'
+      'Session management',
+      'Progress tracking',
+      'Treatment plans',
+      'Insurance billing',
+      '25GB storage',
+      'Video sessions'
     ]
   }
 ];
 
-enum SubscriptionStep {
-  SELECT_PLAN,
-  PAYMENT,
-  CONFIRMATION
-}
-
 const Subscription = () => {
-  const { user, updateUserProfile } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  const [selectedPlan, setSelectedPlan] = useState(SUBSCRIPTION_PLANS[0]);
-  const [currentStep, setCurrentStep] = useState<SubscriptionStep>(SubscriptionStep.SELECT_PLAN);
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  const handleSelectPlan = (plan: typeof SUBSCRIPTION_PLANS[0]) => {
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const { user } = useAuth();
+
+  const handleSelectPlan = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
   };
-  
-  const handleProceedToPayment = () => {
-    setCurrentStep(SubscriptionStep.PAYMENT);
-  };
-  
-  const handleCancelPayment = () => {
-    setCurrentStep(SubscriptionStep.SELECT_PLAN);
-  };
-  
-  const handlePaymentComplete = async () => {
-    setIsProcessing(true);
-    
-    try {
-      // Update user's role based on the selected plan
-      if (user) {
-        await updateUserProfile({
-          role: selectedPlan.role
-        });
-        
-        toast({
-          title: "Subscription updated",
-          description: `Your account has been updated to ${selectedPlan.title} role`,
-        });
-        
-        setCurrentStep(SubscriptionStep.CONFIRMATION);
-      }
-    } catch (error) {
-      console.error("Error updating subscription:", error);
-      toast({
-        title: "Update failed",
-        description: "There was an error updating your subscription. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
+
+  const handleSubscribe = () => {
+    if (selectedPlan) {
+      // Implement subscription logic here
+      console.log('Subscribing to:', selectedPlan);
     }
   };
-  
-  const handleReturnToDashboard = () => {
-    navigate('/dashboard');
-  };
-  
+
   return (
-    <DashboardLayout>
-      <div className="container py-6 space-y-8">
-        <div className="flex items-center">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Subscription</h1>
-            <p className="text-muted-foreground">
-              Choose your subscription plan and access level
-            </p>
-          </div>
-        </div>
-        
-        {user?.role && currentStep === SubscriptionStep.SELECT_PLAN && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Current Role: {user.role.charAt(0).toUpperCase() + user.role.slice(1)}</AlertTitle>
-            <AlertDescription>
-              Your current role will be changed when you complete the subscription process.
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {currentStep === SubscriptionStep.SELECT_PLAN && (
-          <>
-            <Tabs defaultValue="monthly" className="w-full">
-              <TabsList className="grid w-[200px] grid-cols-2 mb-8">
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                <TabsTrigger value="annual" disabled>Annual</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="monthly">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {SUBSCRIPTION_PLANS.map((plan) => (
-                    <SubscriptionCard
-                      key={plan.id}
-                      plan={plan}
-                      onSelect={handleSelectPlan}
-                      isSelected={selectedPlan.id === plan.id}
-                    />
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            <div className="flex justify-center mt-8">
-              <Button size="lg" onClick={handleProceedToPayment}>
-                Continue with {selectedPlan.title} Plan
-              </Button>
-            </div>
-          </>
-        )}
-        
-        {currentStep === SubscriptionStep.PAYMENT && (
-          <div className="max-w-xl mx-auto">
-            <CashAppPayment
-              amount={selectedPlan.price}
-              purchaseType={selectedPlan.title}
-              onComplete={handlePaymentComplete}
-              onCancel={handleCancelPayment}
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          Choose Your Plan
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Select a subscription plan that fits your healthcare practice needs
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {subscriptionPlans.map((plan) => (
+          <div key={plan.id} className="relative">
+            {plan.popular && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                  <Star className="h-4 w-4" />
+                  Most Popular
+                </span>
+              </div>
+            )}
+            <SubscriptionCard
+              plan={plan}
+              onSelect={handleSelectPlan}
+              isSelected={selectedPlan?.id === plan.id}
             />
           </div>
-        )}
-        
-        {currentStep === SubscriptionStep.CONFIRMATION && (
-          <div className="max-w-md mx-auto text-center space-y-6">
-            <div className="flex justify-center">
-              <CheckCircle2 className="h-16 w-16 text-green-500" />
-            </div>
-            <h2 className="text-2xl font-bold">Subscription Confirmed!</h2>
-            <p className="text-muted-foreground">
-              Your account has been updated to {selectedPlan.title} role. You now have access to all features included in your plan.
-            </p>
-            <Button size="lg" onClick={handleReturnToDashboard}>
-              Return to Dashboard
-            </Button>
-          </div>
-        )}
+        ))}
       </div>
-    </DashboardLayout>
+
+      {selectedPlan && (
+        <Card className="max-w-md mx-auto border-2 border-primary bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-gray-900 dark:text-gray-100">
+              You've Selected
+            </CardTitle>
+            <CardDescription className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+              {selectedPlan.title} - ${selectedPlan.price}/month
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Plan includes:</h4>
+              <ul className="space-y-2">
+                {selectedPlan.features.slice(0, 3).map((feature, index) => (
+                  <li key={index} className="flex items-center justify-center text-gray-700 dark:text-gray-300">
+                    <Check className="mr-2 h-4 w-4 text-green-500" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+                {selectedPlan.features.length > 3 && (
+                  <li className="text-gray-600 dark:text-gray-400">
+                    +{selectedPlan.features.length - 3} more features
+                  </li>
+                )}
+              </ul>
+            </div>
+            <Button 
+              onClick={handleSubscribe}
+              size="lg"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+            >
+              Subscribe Now
+            </Button>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+              Cancel anytime. No long-term contracts.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="mt-16 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          Need a Custom Solution?
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+          For large healthcare organizations or unique requirements, we offer custom enterprise solutions.
+        </p>
+        <Button variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-white">
+          Contact Sales
+        </Button>
+      </div>
+    </div>
   );
 };
 

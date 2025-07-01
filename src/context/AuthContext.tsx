@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
 import { toast } from 'sonner';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   supabaseUser: SupabaseUser | null;
   isAuthenticated: boolean;
@@ -13,10 +13,12 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, userData?: any) => Promise<void>;
   signOut: () => Promise<void>;
+  logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock user for testing
 const mockUser: User = {
@@ -124,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .insert({
           id: userId,
+          user_id: userId,
           email: authUser.user?.email || '',
           name: authUser.user?.user_metadata?.name || 'User',
           role: 'doctor',
@@ -197,6 +200,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const logout = signOut; // Alias for signOut
+
   const updateProfile = async (updates: Partial<User>) => {
     if (!user) throw new Error('No user logged in');
 
@@ -216,6 +221,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserProfile = updateProfile; // Alias for updateProfile
+
   const value = {
     user,
     supabaseUser,
@@ -224,7 +231,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
+    logout,
     updateProfile,
+    updateUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
