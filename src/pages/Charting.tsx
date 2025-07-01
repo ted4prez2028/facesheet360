@@ -34,7 +34,7 @@ const Charting = () => {
               selectedPatient={selectedPatient}
               setSelectedPatient={(id) => setSelectedPatient(id)}
               setIsAddPatientOpen={setIsAddPatientOpen}
-              user={user}
+              user={user as any}
               patients={patients}
               isLoading={isLoading}
             />
@@ -53,7 +53,7 @@ const Charting = () => {
       <AddPatientSheet 
         isOpen={isAddPatientOpen}
         onOpenChange={setIsAddPatientOpen}
-        user={user}
+        user={user as any}
       />
     </>
   );

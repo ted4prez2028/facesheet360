@@ -52,7 +52,7 @@ const mockData = {
       lastVisit: 'Yesterday',
       age: 45,
       condition: 'Hypertension',
-      status: 'stable',
+      status: 'stable' as const,
     },
     {
       id: '2',
@@ -60,10 +60,22 @@ const mockData = {
       lastVisit: '2 days ago',
       age: 32,
       condition: 'Diabetes',
-      status: 'stable',
+      status: 'stable' as const,
     },
   ],
 };
+
+const mockPatientStatistics = [
+  { name: 'Jan', newPatients: 12, activePatients: 108 },
+  { name: 'Feb', newPatients: 15, activePatients: 115 },
+  { name: 'Mar', newPatients: 18, activePatients: 125 },
+];
+
+const mockHealthMetrics = [
+  { name: 'Heart Rate', heartRate: 72, bloodPressure: 120 },
+  { name: 'Blood Pressure', heartRate: 75, bloodPressure: 118 },
+  { name: 'Temperature', heartRate: 70, bloodPressure: 122 },
+];
 
 export default function Dashboard() {
   const appointments = useAppointmentsToday();
@@ -79,26 +91,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <StatisticsCards
-        totalPatients={mockData.totalPatients}
-        totalAppointments={mockData.totalAppointments}
-        completedTasks={mockData.completedTasks}
-        pendingTasks={mockData.pendingTasks}
-      />
+      <StatisticsCards />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <DashboardCharts 
-            patientStatistics={{
-              totalPatients: mockData.totalPatients,
-              newPatients: 12,
-              activePatients: 108
-            }}
-            healthMetrics={{
-              averageVitals: 95,
-              riskPatients: 5,
-              improvementRate: 78
-            }}
+            patientStatistics={mockPatientStatistics}
+            healthMetrics={mockHealthMetrics}
           />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

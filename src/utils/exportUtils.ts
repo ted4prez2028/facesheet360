@@ -54,16 +54,14 @@ export const exportToPdf = (title: string, data: DataItem[]) => {
     return;
   }
 
-  const headers = Object.keys(data[0]).map(key => ({
-    text: key.charAt(0).toUpperCase() + key.slice(1),
-    style: 'tableHeader'
-  }));
+  const headers = Object.keys(data[0]).map(key => 
+    key.charAt(0).toUpperCase() + key.slice(1)
+  );
   
   const rows = data.map(item => 
-    Object.values(item).map(value => ({
-      text: value === null || value === undefined ? '-' : String(value),
-      style: 'tableCell'
-    }))
+    Object.values(item).map(value => 
+      value === null || value === undefined ? '-' : String(value)
+    )
   );
 
   const docDefinition = {
@@ -73,7 +71,7 @@ export const exportToPdf = (title: string, data: DataItem[]) => {
         style: 'tableExample',
         table: {
           headerRows: 1,
-          widths: Array(headers.length).fill('*'),
+          widths: Array(headers.length).fill('*') as any[],
           body: [
             headers,
             ...rows
@@ -99,23 +97,13 @@ export const exportToPdf = (title: string, data: DataItem[]) => {
       header: {
         fontSize: 18,
         bold: true,
-        margin: [0, 0, 0, 10]
+        margin: [0, 0, 0, 10] as [number, number, number, number]
       },
       tableExample: {
-        margin: [0, 5, 0, 15]
-      },
-      tableHeader: {
-        bold: true,
-        fontSize: 12,
-        color: 'black',
-        fillColor: '#eeeeee'
-      },
-      tableCell: {
-        fontSize: 10,
-        color: '#333333'
+        margin: [0, 5, 0, 15] as [number, number, number, number]
       }
     }
-  }; // Type assertion to avoid complex typing
+  } as any;
 
   pdfMake.createPdf(docDefinition).download(`${title}.pdf`);
 };
