@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink, AlertTriangle } from "lucide-react";
@@ -8,21 +7,31 @@ import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ConnectWallet = () => {
-  const { isWalletConnected, walletAddress, connectWallet } = useWallet();
-  const { setupWallet, isProcessing } = useWalletSetup();
-  const [showHelp, setShowHelp] = useState(false);
-  
+  const { connectWallet, disconnectWallet, isConnected, account, isLoading } = useWallet();
+
   const handleConnect = async () => {
-    if (isWalletConnected) return;
-    
-    // First try the regular connect
-    const success = await connectWallet();
-    
-    // If successful, also setup the welcome bonus
-    if (success) {
-      await setupWallet();
+    try {
+      // Check if MetaMask is installed
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask to connect your wallet');
+        return;
+      }
+      
+      await connectWallet();
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
     }
   };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnectWallet();
+    } catch (error) {
+      console.error('Failed to disconnect wallet:', error);
+    }
+  };
+
+  const [showHelp, setShowHelp] = useState(false);
   
   return (
     <Card>
@@ -36,10 +45,10 @@ const ConnectWallet = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isWalletConnected ? (
+        {isConnected ? (
           <div className="bg-muted rounded-lg p-4">
             <p className="text-sm font-medium mb-1">Connected Wallet</p>
-            <p className="font-mono text-xs break-all">{walletAddress}</p>
+            <p className="font-mono text-xs break-all">{account}</p>
           </div>
         ) : (
           <>
@@ -55,8 +64,8 @@ const ConnectWallet = () => {
                 <AlertDescription className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Don't have MetaMask?</p>
                   <p className="mb-2">
-                    MetaMask is a digital wallet that allows you to interact with
-                    blockchain applications. You'll need it to use CareCoins.
+                    MetaMask is a digital wallet that allows you to interact
+                    with blockchain applications. You'll need it to use CareCoins.
                   </p>
                   <a 
                     href="https://metamask.io/download/" 
@@ -82,7 +91,7 @@ const ConnectWallet = () => {
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
-        {isWalletConnected ? (
+        {isConnected ? (
           <Button disabled className="w-full" variant="outline">
             Wallet Connected
           </Button>
@@ -91,9 +100,9 @@ const ConnectWallet = () => {
             <Button 
               onClick={handleConnect} 
               className="flex-1"
-              disabled={isProcessing || !getProvider()}
+              disabled={isLoading || !getProvider()}
             >
-              {isProcessing ? "Connecting..." : "Connect MetaMask"}
+              {isLoading ? "Connecting..." : "Connect MetaMask"}
             </Button>
             <Button 
               variant="outline" 

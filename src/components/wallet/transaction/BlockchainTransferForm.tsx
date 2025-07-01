@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
 interface BlockchainTransferFormProps {
+  isWalletConnected: boolean;
   ethereumAddress: string;
   amount: number;
   tokenBalance: string;

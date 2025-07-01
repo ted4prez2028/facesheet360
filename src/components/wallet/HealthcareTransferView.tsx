@@ -54,9 +54,23 @@ export const HealthcareTransferView = () => {
     },
   });
 
+  // Mock providers data since database doesn't have role/specialty columns
+  const mockProviders = [
+    { id: '1', name: 'Dr. Smith', role: 'doctor', specialty: 'cardiology' },
+    { id: '2', name: 'Nurse Johnson', role: 'nurse', specialty: 'emergency' },
+    { id: '3', name: 'Dr. Wilson', role: 'doctor', specialty: 'pediatrics' }
+  ];
+
   const { data: providers = [], isLoading: isSearching } = useQuery({
     queryKey: ['searchProviders', searchTerm],
-    queryFn: () => searchProviders(searchTerm),
+    queryFn: async () => {
+      // Return mock data filtered by search term
+      return mockProviders.filter(provider => 
+        provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        provider.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        provider.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    },
     enabled: searchTerm.length > 1,
   });
 

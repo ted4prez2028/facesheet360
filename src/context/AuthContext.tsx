@@ -206,11 +206,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data.user) {
         const { error: profileError } = await supabase.from('users').insert({
-          id: data.user.id,
+          user_id: data.user.id,
           name: userData.name,
           email: email,
-          role: userData.role || 'doctor',
-          care_coins_balance: 0
+          credits: 0
         });
         
         if (profileError) throw profileError;
