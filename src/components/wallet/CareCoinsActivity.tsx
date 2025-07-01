@@ -1,135 +1,125 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, ArrowUpRight, ArrowDownLeft, Clock } from "lucide-react";
-import { useAuth } from '@/context/AuthContext';
-import { useCareCoinsTransactions } from '@/hooks/useCareCoinsTransactions';
-import { format } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CareCoinsTransaction } from '@/types';
+import { ArrowUpRight, ArrowDownLeft, ExternalLink } from "lucide-react";
+import { useCareCoinsTransactions } from "@/hooks/useCareCoinsTransactions";
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface CareCoinsActivityProps {
   onViewAll?: () => void;
+  className?: string;
 }
 
-export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({ onViewAll }) => {
-  const { user } = useAuth();
-  const { transactions, isLoading } = useCareCoinsTransactions();
-  const balance = user?.care_coins_balance || 0;
+export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({ 
+  onViewAll, 
+  className 
+}) => {
+  const { data: transactions = [], isLoading } = useCareCoinsTransactions();
 
-  const TransactionItem: React.FC<{ transaction: CareCoinsTransaction }> = ({ transaction }) => {
-    const isOutgoing = transaction.from_user_id === user?.id;
-    const transactionIcon = renderTransactionIcon(transaction);
-    const [showDetails, setShowDetails] = React.useState(false);
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case "transfer":
+      case "reward":
+        return <ArrowUpRight className="h-4 w-4 text-green-600" />;
+      case "purchase":
+      case "spent":
+        return <ArrowDownLeft className="h-4 w-4 text-red-600" />;
+      default:
+        return <ArrowUpRight className="h-4 w-4 text-gray-600" />;
+    }
+  };
 
-    const handleClick = () => {
-      setShowDetails(!showDetails);
-    };
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case "transfer":
+      case "reward":
+        return "text-green-600";
+      case "purchase":
+      case "spent":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
+    }
+  };
 
+  const formatAmount = (amount: number, type: string) => {
+    const prefix = ["transfer", "reward"].includes(type) ? "+" : "-";
+    return `${prefix}${amount}`;
+  };
+
+  if (isLoading) {
     return (
-      <div onClick={handleClick} className="flex flex-col gap-2 p-3 hover:bg-muted/50 rounded-lg cursor-pointer transition-colors">
-        <div className="flex items-center gap-3">
-          <div className={`rounded-full p-2 ${getTransactionColor(transaction)}`}>
-            {transactionIcon}
-          </div>
-          <div className="space-y-1 flex-1">
-            <p className="text-sm font-medium leading-none">{formatTransactionMessage(transaction)}</p>
-            <p className="text-xs text-muted-foreground">
-              {format(new Date(transaction.created_at), 'MMM d, yyyy h:mm a')}
-            </p>
-          </div>
-          <div className={`font-semibold ${isOutgoing ? 'text-red-500' : 'text-green-500'}`}>
-            {isOutgoing ? '-' : '+'} {transaction.amount}
-            <span className="inline-flex items-center"><Coins className="h-3 w-3 inline ml-1" /></span>
-          </div>
-        </div>
-        
-        {showDetails && transaction.description && (
-          <div className="ml-11 text-sm text-muted-foreground">
-            <p>{transaction.description}</p>
-            {transaction.reward_category && (
-              <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full mt-1">
-                {transaction.reward_category}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderTransactionIcon = (transaction: CareCoinsTransaction) => {
-    if (transaction.transaction_type === 'reward') {
-      return <Coins className="h-4 w-4 text-yellow-500" />;
-    }
-    const isOutgoing = transaction.from_user_id === user?.id;
-    return isOutgoing ? (
-      <ArrowDownLeft className="h-4 w-4" />
-    ) : (
-      <ArrowUpRight className="h-4 w-4" />
-    );
-  };
-
-  const getTransactionColor = (transaction: CareCoinsTransaction) => {
-    if (transaction.transaction_type === 'reward') {
-      return 'bg-yellow-100';
-    }
-    return transaction.from_user_id === user?.id ? 'bg-red-100' : 'bg-green-100';
-  };
-
-  const formatTransactionMessage = (transaction: CareCoinsTransaction) => {
-    const otherUserName = transaction.otherUserName || 'Unknown User';
-
-    if (transaction.transaction_type === 'reward') {
-      return `Reward: ${transaction.description || 'CareCoins Reward'}`;
-    } else if (transaction.transaction_type === 'transfer') {
-      return transaction.from_user_id === user?.id ? 
-        `Sent to ${otherUserName}` : 
-        `Received from ${otherUserName}`;
-    } else {
-      return 'CareCoins Transaction';
-    }
-  };
-  
-  return (
-    <Card className="shadow-custom-medium rounded-xl border border-gray-200 dark:border-gray-700">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Recent Activity
-        </CardTitle>
-        <CardDescription>
-          Your current balance: <span className="font-semibold">{balance} <Coins className="h-3.5 w-3.5 inline" /></span>
-        </CardDescription>
-      </CardHeader>
-      <ScrollArea className="h-[350px]">
-        <CardContent className="space-y-1">
-          {isLoading ? (
-            Array(3).fill(0).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-3 w-2/3" />
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Care Coins Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4 animate-pulse">
+                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                 </div>
-                <Skeleton className="h-5 w-16" />
+                <div className="h-4 bg-gray-200 rounded w-16"></div>
               </div>
-            ))
-          ) : transactions && transactions.length > 0 ? (
-            transactions.map((transaction) => (
-              <TransactionItem key={transaction.id} transaction={transaction} />
-            ))
-          ) : (
-            <p className="text-center text-muted-foreground py-8">No recent transactions</p>
-          )}
+            ))}
+          </div>
         </CardContent>
-      </ScrollArea>
-      <CardFooter className="border-t pt-4">
-        <Button variant="outline" size="sm" onClick={onViewAll} className="w-full">
-          View All Transactions
-        </Button>
-      </CardFooter>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={className}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-xl font-semibold">Care Coins Activity</CardTitle>
+        {onViewAll && (
+          <Button variant="ghost" size="sm" onClick={onViewAll}>
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[300px] pr-4">
+          {transactions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No transactions yet
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {transactions.slice(0, 10).map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between space-x-4 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-full bg-gray-100">
+                      {getTransactionIcon(transaction.transaction_type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {transaction.description || 
+                         `${transaction.transaction_type.charAt(0).toUpperCase() + transaction.transaction_type.slice(1)} Transaction`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={cn("text-sm font-semibold", getTransactionColor(transaction.transaction_type))}>
+                    {formatAmount(transaction.amount, transaction.transaction_type)} CC
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </CardContent>
     </Card>
   );
 };

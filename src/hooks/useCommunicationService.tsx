@@ -1,298 +1,278 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { User, Message, Call, ChatWindow } from '@/types';
 import { toast } from 'sonner';
+import { User, Message, Call, ChatWindow } from '@/types';
 
-export function useCommunicationService() {
+export const useCommunicationService = () => {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
   const [chatWindows, setChatWindows] = useState<ChatWindow[]>([]);
-  const [activeCall, setActiveCall] = useState<Call | null>(null);
-  const [isCallActive, setIsCallActive] = useState<boolean>(false);
-  const [isCallIncoming, setIsCallIncoming] = useState<boolean>(false);
-  
-  // Load online users - use mock data since database tables don't exist
-  const fetchOnlineUsers = useCallback(async () => {
-    if (!user) return;
-    
+  const [activeCalls, setActiveCalls] = useState<Call[]>([]);
+
+  // Fetch online users
+  const fetchOnlineUsers = async () => {
     try {
-      // Mock users data
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          name: 'Dr. Smith',
-          email: 'dr.smith@example.com',
-          role: 'doctor',
-          specialty: 'Cardiology',
-          license_number: 'LIC001',
-          profile_image: '',
-          care_coins_balance: 0,
-          careCoinsBalance: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          organization: 'General Hospital'
-        },
-        {
-          id: '2',
-          name: 'Dr. Johnson',
-          email: 'dr.johnson@example.com',
-          role: 'doctor',
-          specialty: 'Neurology',
-          license_number: 'LIC002',
-          profile_image: '',
-          care_coins_balance: 0,
-          careCoinsBalance: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          organization: 'General Hospital'
-        }
-      ];
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('online_status', true)
+        .neq('id', user?.id);
+
+      if (error) throw error;
       
-      setOnlineUsers(mockUsers);
+      const usersWithBalance = data.map(u => ({
+        ...u,
+        care_coins_balance: u.care_coins_balance || 0
+      }));
+      
+      setOnlineUsers(usersWithBalance);
     } catch (error) {
       console.error('Error fetching online users:', error);
-      toast.error('Failed to load contacts');
     }
-  }, [user]);
-  
-  // Update user online status - mock implementation
-  useEffect(() => {
-    if (!user) return;
-    
-    fetchOnlineUsers();
-    
-    // Mock cleanup
-    return () => {
-      // Mock setting user as offline
-    };
-  }, [user, fetchOnlineUsers]);
-  
-  // Mock group calls subscription
-  useEffect(() => {
-    if (!user) return;
-    
-    // Mock subscription cleanup
-    return () => {
-      // Mock cleanup
-    };
-  }, [user]);
-  
-  // Mock messages subscription
-  useEffect(() => {
-    if (!user || chatWindows.length === 0) return;
-    
-    // Mock message loading for chat windows
-    chatWindows.forEach(async (window) => {
-      if (window.messages.length > 0) return;
-      
-      // Mock messages
-      const mockMessages: Message[] = [
-        {
-          id: '1',
-          sender_id: window.userId,
-          recipient_id: user.id,
-          content: `Hello ${user.name}! How are you today?`,
-          timestamp: new Date().toISOString()
-        }
-      ];
-      
-      setChatWindows(prev => prev.map(w => 
-        w.userId === window.userId 
-          ? { ...w, messages: mockMessages } 
-          : w
-      ));
-    });
-    
-    // Mock cleanup
-    return () => {
-      // Mock cleanup
-    };
-  }, [user, chatWindows]);
-  
-  // Mock active calls listener
-  useEffect(() => {
-    if (!user) return;
-    
-    // Mock cleanup
-    return () => {
-      // Mock cleanup
-    };
-  }, [user]);
-  
-  // Mock group call join events
-  useEffect(() => {
-    const handleJoinGroupCall = (event: CustomEvent<{ roomId: string; participants: string[]; isVideo: boolean }>) => {
-      const { roomId, participants, isVideo } = event.detail;
-      
-      // Mock implementation
-      console.log('Mock join group call:', { roomId, participants, isVideo });
-    };
-    
-    window.addEventListener('join-group-call', handleJoinGroupCall);
-    
-    return () => {
-      window.removeEventListener('join-group-call', handleJoinGroupCall);
-    };
-  }, []);
-  
-  // Open chat window with a user
-  const openChatWindow = useCallback(async (userId: string, userName: string) => {
-    setChatWindows(prev => {
-      // Check if window already exists
-      if (prev.find(window => window.userId === userId)) {
-        return prev.map(window => window.userId === userId 
-          ? { ...window, isMinimized: false } 
-          : window
-        );
-      }
-      return [...prev, { 
-        userId, 
-        userName, 
-        isMinimized: false, 
-        isOpen: true, 
-        messages: [] 
-      }];
-    });
-  }, []);
-  
-  // Close chat window
-  const closeChatWindow = useCallback((userId: string) => {
-    setChatWindows(prev => prev.filter(window => window.userId !== userId));
-  }, []);
-  
-  // Minimize chat window
-  const minimizeChatWindow = useCallback((userId: string) => {
-    setChatWindows(prev => prev.map(window => 
-      window.userId === userId 
-        ? { ...window, isMinimized: !window.isMinimized } 
-        : window
-    ));
-  }, []);
-  
-  // Send message - mock implementation
-  const sendMessage = useCallback(async (recipientId: string, content: string) => {
-    if (!user) return;
-    
+  };
+
+  // Send message
+  const sendMessage = async (toUserId: string, content: string) => {
+    if (!user?.id) return;
+
     try {
-      // Mock message sending
-      const tempMessage: Message = {
-        id: `temp-${Date.now()}`,
-        sender_id: user.id,
-        recipient_id: recipientId,
-        content,
-        timestamp: new Date().toISOString()
+      const messageData = {
+        from_user_id: user.id,
+        to_user_id: toUserId,
+        content: content,
+        created_at: new Date().toISOString()
       };
-      
-      setChatWindows(prev => prev.map(window => 
-        window.userId === recipientId 
-          ? { ...window, messages: [...window.messages, tempMessage] } 
-          : window
-      ));
+
+      const { error } = await supabase
+        .from('messages')
+        .insert(messageData);
+
+      if (error) throw error;
+
+      // Update chat window with new message
+      const message: Message = {
+        id: crypto.randomUUID(),
+        from_user_id: user.id,
+        to_user_id: toUserId,
+        content: content,
+        created_at: new Date().toISOString()
+      };
+
+      updateChatWindow(toUserId, message);
       
       toast.success('Message sent');
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     }
-  }, [user]);
-  
-  // Start call - mock implementation
-  const startCall = useCallback(async (userId: string, userName: string, isVideo: boolean) => {
-    if (!user) return;
-    
+  };
+
+  // Update chat window with new message
+  const updateChatWindow = (userId: string, message: Message) => {
+    setChatWindows(prev => 
+      prev.map(window => 
+        window.userId === userId 
+          ? { ...window }
+          : window
+      )
+    );
+  };
+
+  // Open chat window
+  const openChatWindow = (userId: string, userName: string) => {
+    setChatWindows(prev => {
+      const existing = prev.find(w => w.userId === userId);
+      if (existing) {
+        return prev.map(w => 
+          w.userId === userId 
+            ? { ...w, minimized: false }
+            : w
+        );
+      }
+      
+      return [...prev, {
+        userId,
+        userName,
+        minimized: false
+      }];
+    });
+  };
+
+  // Close chat window
+  const closeChatWindow = (userId: string) => {
+    setChatWindows(prev => prev.filter(w => w.userId !== userId));
+  };
+
+  // Minimize/restore chat window
+  const toggleChatWindow = (userId: string) => {
+    setChatWindows(prev => 
+      prev.map(w => 
+        w.userId === userId 
+          ? { ...w, minimized: !w.minimized }
+          : w
+      )
+    );
+  };
+
+  // Initialize call
+  const initializeCall = async (toUserId: string, isVideo: boolean = false) => {
+    if (!user?.id) return;
+
     try {
-      // Create a properly structured Call object
-      const mockCall: Call = {
-        id: `call-${Date.now()}`,
-        caller_id: user.id,
-        callee_id: userId,
-        is_video_call: isVideo,
-        status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        callerId: user.id,
-        callerName: user.name,
-        receiverId: userId,
-        receiverName: userName,
-        isVideoCall: isVideo
+      const callData = {
+        from_user_id: user.id,
+        to_user_id: toUserId,
+        isVideo: isVideo,
+        accepted: false,
+        created_at: new Date().toISOString()
       };
+
+      const { data, error } = await supabase
+        .from('calls')
+        .insert(callData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const call: Call = {
+        id: data.id,
+        from_user_id: user.id,
+        to_user_id: toUserId,
+        isVideo: isVideo,
+        accepted: false,
+        ended_at: null,
+        created_at: data.created_at
+      };
+
+      setActiveCalls(prev => [...prev, call]);
       
-      setActiveCall(mockCall);
-      setIsCallActive(true);
-      setIsCallIncoming(false);
-      
-      toast("Calling...", {
-        description: `Calling ${userName}...`,
-      });
+      toast.success(`${isVideo ? 'Video' : 'Audio'} call initiated`);
+      return call;
     } catch (error) {
-      console.error('Error starting call:', error);
-      toast.error('Failed to start call');
+      console.error('Error initiating call:', error);
+      toast.error('Failed to initiate call');
     }
-  }, [user]);
-  
-  // Send group call invitation - mock implementation
-  const sendGroupCallInvitation = useCallback(async (userId: string, roomId: string, isVideo: boolean) => {
-    if (!user) return;
-    
+  };
+
+  // Accept call
+  const acceptCall = async (callId: string) => {
     try {
-      // Mock group call invitation
-      toast.success('Group call invitation sent');
-    } catch (error) {
-      console.error('Error sending group call invitation:', error);
-    }
-  }, [user]);
-  
-  // Accept call - mock implementation
-  const acceptCall = useCallback(async () => {
-    if (!user || !activeCall) return;
-    
-    try {
-      setActiveCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
-      setIsCallIncoming(false);
-      setIsCallActive(true);
-      
-      toast("Call Connected", {
-        description: `Call connected with ${activeCall.callerName || activeCall.receiverName}`,
-      });
+      const { error } = await supabase
+        .from('calls')
+        .update({ accepted: true })
+        .eq('id', callId);
+
+      if (error) throw error;
+
+      setActiveCalls(prev => 
+        prev.map(call => 
+          call.id === callId 
+            ? { ...call, accepted: true }
+            : call
+        )
+      );
+
+      toast.success('Call accepted');
     } catch (error) {
       console.error('Error accepting call:', error);
       toast.error('Failed to accept call');
     }
-  }, [user, activeCall]);
-  
-  // Reject/end call - mock implementation
-  const endCall = useCallback(async () => {
-    if (!user || !activeCall) return;
-    
+  };
+
+  // End call
+  const endCall = async (callId: string) => {
     try {
-      setActiveCall(null);
-      setIsCallIncoming(false);
-      setIsCallActive(false);
+      const { error } = await supabase
+        .from('calls')
+        .update({ ended_at: new Date().toISOString() })
+        .eq('id', callId);
+
+      if (error) throw error;
+
+      setActiveCalls(prev => prev.filter(call => call.id !== callId));
       
-      toast("Call Ended", {
-        description: `Call ended with ${activeCall.callerName || activeCall.receiverName}`,
-      });
+      toast.success('Call ended');
     } catch (error) {
       console.error('Error ending call:', error);
       toast.error('Failed to end call');
     }
-  }, [user, activeCall]);
-  
+  };
+
+  // Update user online status
+  const updateOnlineStatus = async (isOnline: boolean) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          online_status: isOnline,
+          last_seen: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating online status:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchOnlineUsers();
+      updateOnlineStatus(true);
+
+      // Set up real-time subscriptions
+      const messagesChannel = supabase
+        .channel('messages')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `to_user_id=eq.${user.id}`
+        }, (payload) => {
+          const message = payload.new as Message;
+          updateChatWindow(message.from_user_id!, message);
+        })
+        .subscribe();
+
+      const callsChannel = supabase
+        .channel('calls')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'calls',
+          filter: `to_user_id=eq.${user.id}`
+        }, (payload) => {
+          const call = payload.new as Call;
+          setActiveCalls(prev => [...prev, call]);
+          toast.info(`Incoming ${call.isVideo ? 'video' : 'audio'} call`);
+        })
+        .subscribe();
+
+      // Cleanup on unmount
+      return () => {
+        updateOnlineStatus(false);
+        messagesChannel.unsubscribe();
+        callsChannel.unsubscribe();
+      };
+    }
+  }, [user?.id]);
+
   return {
     onlineUsers,
     chatWindows,
-    activeCall,
-    isCallActive,
-    isCallIncoming,
+    activeCalls,
+    sendMessage,
     openChatWindow,
     closeChatWindow,
-    minimizeChatWindow,
-    sendMessage,
-    startCall,
+    toggleChatWindow,
+    initializeCall,
     acceptCall,
     endCall,
-    fetchOnlineUsers,
-    sendGroupCallInvitation
+    fetchOnlineUsers
   };
-}
+};

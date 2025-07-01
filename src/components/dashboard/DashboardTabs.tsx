@@ -4,13 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import RecentPatients from "./RecentPatients";
 import TodayAppointments from "./TodayAppointments";
 import PendingTasks from "./PendingTasks";
-import { useMockRecentPatients, useMockTodayAppointments, useMockPendingTasks } from "@/hooks/useMockDashboardData";
+import { RecentPatient, TodayAppointment, PendingTask } from "@/types";
 
-export const DashboardTabs = () => {
-  const { data: recentPatients = [] } = useMockRecentPatients();
-  const { data: todayAppointments = [] } = useMockTodayAppointments();
-  const { data: pendingTasks = [] } = useMockPendingTasks();
+interface DashboardTabsProps {
+  patientStatistics?: any[];
+  healthMetrics?: any[];
+  recentPatients?: RecentPatient[];
+  isRecentPatientsLoading?: boolean;
+  todayAppointments?: TodayAppointment[];
+  isAppointmentsLoading?: boolean;
+  pendingTasks?: PendingTask[];
+  isTasksLoading?: boolean;
+}
 
+const DashboardTabs = ({ 
+  recentPatients = [], 
+  todayAppointments = [], 
+  pendingTasks = [] 
+}: DashboardTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList>
@@ -143,3 +154,5 @@ export const DashboardTabs = () => {
     </Tabs>
   );
 };
+
+export default DashboardTabs;

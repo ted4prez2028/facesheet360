@@ -37,38 +37,18 @@ interface PatientChartTabsProps {
   userId?: string;
 }
 
-// Define a local interface that matches the expected type from GenerateCarePlanButton
-interface LocalPatientDataForCarePlan {
+// Simplified patient data interface for care plan generation
+interface PatientDataForCarePlan {
   id: string;
   first_name: string;
   last_name: string;
   date_of_birth: string;
   gender: string;
-  phone: string;
-  email: string;
-  address: string;
-  insurance_provider: string;
-  insurance_number: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  emergency_contact_relation?: string;
   medical_history?: string;
   allergies?: string;
   medications?: string;
-  notes?: string;
-  medical_record_number?: string;
-  age?: number;
-  name?: string;
-  status?: string;
-  lastVisit?: string;
-  imgUrl?: string;
-  created_at?: string;
-  updated_at?: string;
-  provider_id?: string;
   vitalSigns?: any[];
-  medicalHistory?: string[];
   condition?: string;
-  selectedNotes?: string[];
 }
 
 export function PatientChartTabs({ patient, chartData, patientId, userId }: PatientChartTabsProps) {
@@ -82,7 +62,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     // Additional logic if needed
   };
   
-  const preparePatientDataForAI = (): LocalPatientDataForCarePlan | null => {
+  const preparePatientDataForAI = (): PatientDataForCarePlan | null => {
     if (!patient) return null;
     
     let allergiesString = '';
@@ -104,29 +84,10 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || 'Patient',
       date_of_birth: patient.date_of_birth || '1990-01-01',
       gender: patient.gender || 'Not specified',
-      phone: patient.phone || 'Not provided',
-      email: patient.email || 'Not provided',
-      address: patient.address || 'Not provided',
-      insurance_provider: patient.insurance_provider || 'Not provided',
-      insurance_number: patient.insurance_number || 'Not provided',
-      emergency_contact_name: patient.emergency_contact_name,
-      emergency_contact_phone: patient.emergency_contact_phone,
-      emergency_contact_relation: patient.emergency_contact_relation,
       medical_history: patient.medical_history,
       allergies: allergiesString,
       medications: patient.medications,
-      notes: patient.notes,
-      medical_record_number: patient.medical_record_number,
-      age: patient.age,
-      name: patient.name,
-      status: patient.status,
-      lastVisit: patient.lastVisit,
-      imgUrl: patient.imgUrl,
-      created_at: patient.created_at,
-      updated_at: patient.updated_at,
-      provider_id: patient.provider_id,
       vitalSigns: chartData?.vitalSigns,
-      medicalHistory: chartData?.history || [],
       condition: chartData?.diagnosis
     };
   };
