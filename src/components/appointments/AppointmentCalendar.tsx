@@ -2,7 +2,6 @@
 import { format, eachDayOfInterval, isToday, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatTimeSlot } from "@/utils/dateUtils";
 
 export interface Appointment {
   id: string;
@@ -58,6 +57,12 @@ const AppointmentCalendar = ({
       return isSameDay(appointmentDate, day) && 
         appointmentDate.getHours() === hour;
     });
+  };
+
+  const formatTimeSlot = (hour: number): string => {
+    const date = new Date();
+    date.setHours(hour, 0, 0, 0);
+    return format(date, 'h:mm a');
   };
 
   return (

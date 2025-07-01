@@ -1,118 +1,119 @@
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter,
-  DialogDescription
-} from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useCommunication } from '@/context/communication/CommunicationContext';
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Video, Phone } from 'lucide-react';
 
-interface GroupCallModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface Contact {
+  id: string;
+  name: string;
+  online: boolean;
 }
 
-const GroupCallModal: React.FC<GroupCallModalProps> = ({ open, onOpenChange }) => {
-  const { 
-    contacts,
-    selectedContacts,
-    toggleContactSelection,
-    startGroupCall
-  } = useCommunication();
-  
-  const [callType, setCallType] = useState<'video' | 'audio'>('video');
-  
-  // Filter contacts to only show those from the same organization
-  const organizationContacts = contacts.onlineUsers.filter(
-    contact => contact.online_status
-  );
+interface GroupCallModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  contacts: Contact[];
+}
+
+const GroupCallModal: React.FC<GroupCallModalProps> = ({
+  isOpen,
+  onClose,
+  contacts
+}) => {
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [callTitle, setCallTitle] = useState('');
+  const [isVideoCall, setIsVideoCall] = useState(true);
+
+  const handleContactToggle = (contactId: string) => {
+    setSelectedContacts(prev => 
+      prev.includes(contactId) 
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
+    );
+  };
+
+  const handleStartCall = () => {
+    if (selectedContacts.length === 0) return;
+
+    // Mock call start - in real implementation, this would integrate with WebRTC
+    console.log('Starting group call:', {
+      participants: selectedContacts,
+      title: callTitle,
+      isVideo: isVideoCall
+    });
+
+    onClose();
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Start a Group Call</DialogTitle>
-          <DialogDescription>
-            Select contacts to add to your group call
-          </DialogDescription>
+          <DialogTitle>Start Group Call</DialogTitle>
         </DialogHeader>
         
-        <div className="max-h-[300px] overflow-y-auto py-2">
-          {organizationContacts.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">
-              No online contacts available
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {organizationContacts.map((contact) => (
-                <div 
-                  key={contact.id}
-                  className="flex items-center space-x-3 p-2 rounded-md border hover:bg-accent/50"
-                >
-                  <Checkbox 
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="call-title">Call Title (Optional)</Label>
+            <Input
+              id="call-title"
+              placeholder="Team Meeting"
+              value={callTitle}
+              onChange={(e) => setCallTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="video-call"
+              checked={isVideoCall}
+              onCheckedChange={(checked) => setIsVideoCall(checked as boolean)}
+            />
+            <Label htmlFor="video-call" className="flex items-center gap-2">
+              {isVideoCall ? <Video className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
+              {isVideoCall ? 'Video Call' : 'Audio Only'}
+            </Label>
+          </div>
+
+          <div>
+            <Label>Select Participants</Label>
+            <div className="max-h-48 overflow-y-auto space-y-2 mt-2">
+              {contacts.map((contact) => (
+                <div key={contact.id} className="flex items-center space-x-2">
+                  <Checkbox
                     id={`contact-${contact.id}`}
                     checked={selectedContacts.includes(contact.id)}
-                    onCheckedChange={() => toggleContactSelection(contact.id)}
+                    onCheckedChange={() => handleContactToggle(contact.id)}
                   />
                   <Label 
-                    htmlFor={`contact-${contact.id}`}
-                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                    htmlFor={`contact-${contact.id}`} 
+                    className="flex items-center gap-2 flex-1"
                   >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={contact.profile_image} />
-                      <AvatarFallback>
-                        {contact.name.split(" ").map(n => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{contact.name}</p>
-                      <p className="text-xs text-muted-foreground">{contact.role}</p>
-                    </div>
+                    <div className={`w-2 h-2 rounded-full ${contact.online ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    {contact.name}
                   </Label>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleStartCall}
+              disabled={selectedContacts.length === 0}
+              className="flex-1"
+            >
+              Start Call ({selectedContacts.length})
+            </Button>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex justify-center gap-4 py-2">
-          <Button
-            variant={callType === 'video' ? "default" : "outline"}
-            className="flex gap-2"
-            onClick={() => setCallType('video')}
-          >
-            <Video className="h-4 w-4" />
-            Video Call
-          </Button>
-          <Button
-            variant={callType === 'audio' ? "default" : "outline"}
-            className="flex gap-2"
-            onClick={() => setCallType('audio')}
-          >
-            <Phone className="h-4 w-4" />
-            Audio Call
-          </Button>
-        </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => startGroupCall(callType === 'video')}
-            disabled={selectedContacts.length === 0}
-          >
-            Start Call ({selectedContacts.length} selected)
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,118 +1,67 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { transferCareCoins } from '@/lib/supabaseApi';
-import { transferCareCoinsToken } from '@/lib/carecoin';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const CARE_COIN_CONTRACT_ADDRESS = '0x123456789abcdef123456789abcdef123456789a';
-
 export const useTransactionForm = () => {
-  const [recipient, setRecipient] = useState("");
-  const [recipientName, setRecipientName] = useState("");
-  const [amount, setAmount] = useState(0);
-  const [ethereumAddress, setEthereumAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user, updateCurrentUser } = useAuth();
+  const { user } = useAuth();
 
-  const handlePlatformTransfer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) return;
-    
-    if (amount <= 0) {
-      toast.error("Please enter an amount greater than 0.");
+  const sendTransaction = async (data: {
+    amount: number;
+    recipientEmail: string;
+    description: string;
+  }) => {
+    if (!user) {
+      toast.error('User not authenticated');
       return;
     }
-    
-    if (amount > (user.care_coins_balance || 0)) {
-      toast.error("Insufficient balance for this transaction.");
-      return;
-    }
-    
+
     setIsLoading(true);
-    
     try {
-      await transferCareCoins(user.id, recipient, amount);
-      
-      if (updateCurrentUser) {
-        updateCurrentUser({
-          care_coins_balance: (user.care_coins_balance || 0) - amount
+      // Find recipient by email
+      const { data: recipient, error: recipientError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', data.recipientEmail)
+        .single();
+
+      if (recipientError || !recipient) {
+        toast.error('Recipient not found');
+        return;
+      }
+
+      // Check if user has enough balance
+      if (data.amount > (user.care_coins_balance || 0)) {
+        toast.error('Insufficient balance');
+        return;
+      }
+
+      // Create transaction
+      const { error: transactionError } = await supabase
+        .from('care_coins_transactions')
+        .insert({
+          amount: -data.amount,
+          from_user_id: user.id,
+          to_user_id: recipient.id,
+          transaction_type: 'transfer',
+          description: data.description
         });
-      }
-      
-      toast.success(`You have sent ${amount} CareCoins to ${recipientName}.`);
-      
-      // Reset form
-      setRecipient("");
-      setRecipientName("");
-      setAmount(0);
-      
-      return true;
-    } catch (error: unknown) {
-      console.error("Transfer error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to send CareCoins. Please try again.");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleBlockchainTransfer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (amount <= 0) {
-      toast.error("Please enter an amount greater than 0.");
-      return false;
-    }
-    
-    if (!ethereumAddress || !ethereumAddress.startsWith('0x')) {
-      toast.error("Please enter a valid Ethereum address");
-      return false;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      const success = await transferCareCoinsToken(
-        CARE_COIN_CONTRACT_ADDRESS,
-        ethereumAddress,
-        amount.toString()
-      );
+      if (transactionError) throw transactionError;
 
-      if (success) {
-        // Reset form
-        setEthereumAddress("");
-        setAmount(0);
-        return true;
-      }
-      return false;
-    } catch (error: unknown) {
-      console.error("Blockchain transfer error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to send CareCoins. Please try again.");
-      return false;
+      toast.success('Transaction sent successfully');
+    } catch (error) {
+      console.error('Transaction error:', error);
+      toast.error('Transaction failed');
     } finally {
       setIsLoading(false);
     }
   };
 
   return {
-    formState: {
-      recipient,
-      recipientName,
-      amount,
-      ethereumAddress,
-      isLoading
-    },
-    setters: {
-      setRecipient,
-      setRecipientName,
-      setAmount,
-      setEthereumAddress
-    },
-    handlers: {
-      handlePlatformTransfer,
-      handleBlockchainTransfer
-    }
+    sendTransaction,
+    isLoading
   };
 };

@@ -1,60 +1,75 @@
 
-import { useState } from 'react';
-import { requestVirtualCard, getUserCards } from '@/lib/api/careCoinsApi';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { CareCoinsCard } from '@/types';
+import { toast } from 'sonner';
 
 export const useVirtualCard = () => {
-  const [isRequestingCard, setIsRequestingCard] = useState(false);
   const { user } = useAuth();
-  
-  const { 
-    data: cards, 
-    isLoading: isLoadingCards, 
-    refetch: refetchCards 
-  } = useQuery({
-    queryKey: ['userCards', user?.id],
-    queryFn: () => user?.id ? getUserCards(user.id) : Promise.resolve([]),
-    enabled: !!user?.id,
-  });
+  const [card, setCard] = useState<CareCoinsCard | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const requestNewCard = async (cardType: 'virtual' | 'physical' = 'virtual', limitAmount: number = 1000) => {
-    if (!user?.id) {
-      toast.error("You must be logged in to request a card");
+  useEffect(() => {
+    if (user) {
+      fetchCard();
+    }
+  }, [user]);
+
+  const fetchCard = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('care_coins_cards')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      setCard(data);
+    } catch (error) {
+      console.error('Error fetching card:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createCard = async () => {
+    if (!user) {
+      toast.error('User not authenticated');
       return;
     }
 
-    setIsRequestingCard(true);
     try {
-      const card = await requestVirtualCard(user.id, cardType, limitAmount);
-      toast.success(`Successfully requested a new ${cardType} card. It will be processed shortly.`);
-      refetchCards();
-      return card;
-    } catch (error: unknown) {
-      console.error("Card request error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to request card");
-    } finally {
-      setIsRequestingCard(false);
+      const { data, error } = await supabase
+        .from('care_coins_cards')
+        .insert({
+          user_id: user.id,
+          card_type: 'virtual',
+          status: 'active',
+          limit_amount: 1000
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCard(data);
+      toast.success('Virtual card created successfully');
+    } catch (error) {
+      console.error('Error creating card:', error);
+      toast.error('Failed to create card');
     }
   };
 
-  const getPendingCards = (): CareCoinsCard[] => {
-    return cards?.filter(card => card.status === 'pending') || [];
-  };
-
-  const getActiveCards = (): CareCoinsCard[] => {
-    return cards?.filter(card => card.status === 'active') || [];
-  };
-
   return {
-    cards,
-    pendingCards: getPendingCards(),
-    activeCards: getActiveCards(),
-    isLoading: isLoadingCards,
-    isRequestingCard,
-    requestNewCard,
-    refetchCards,
+    card,
+    isLoading,
+    createCard,
+    fetchCard
   };
 };

@@ -1,102 +1,115 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Patient } from '@/types';
-import { toast } from 'sonner';
-import { useRolePermissions } from './useRolePermissions';
 
-export const usePatient = (patientId: string) => {
+export const usePatient = (patientId?: string) => {
   const [patient, setPatient] = useState<Patient | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const { hasRole, isAssignedToPatient } = useRolePermissions();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPatient = async () => {
-      if (!patientId) {
-        setIsLoading(false);
-        return;
-      }
+    if (patientId) {
+      fetchPatient();
+    }
+  }, [patientId]);
 
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        console.log("Attempting to fetch patient with ID:", patientId);
-        
-        // Since we don't have a real patients table, we'll create mock data
-        const mockPatient: Patient = {
-          id: patientId,
-          first_name: 'John',
-          last_name: 'Doe',
-          name: 'John Doe',
-          date_of_birth: '1980-01-15',
-          gender: 'Male',
-          phone: '555-0123',
-          email: 'john.doe@example.com',
-          address: '123 Main St, Anytown, USA',
-          medical_record_number: `MR-${patientId.slice(0, 8)}`,
-          insurance_provider: 'Blue Cross Blue Shield',
-          insurance_number: 'BCBS123456',
-          emergency_contact_name: 'Jane Doe',
-          emergency_contact_phone: '555-0124',
-          emergency_contact_relation: 'Spouse',
-          medical_history: 'Hypertension, controlled with medication',
-          allergies: 'Penicillin',
-          medications: 'Lisinopril 10mg daily',
-          notes: 'Patient is compliant with medication regimen',
-          age: 44,
-          status: 'Active',
-          lastVisit: new Date().toISOString(),
-          imgUrl: null,
-          created_at: new Date().toISOString(),
-          provider_id: 'mock-provider-id'
-        };
-        
-        setPatient(mockPatient);
-      } catch (err) {
-        console.error("Error fetching patient:", err);
-        setError(err instanceof Error ? err : new Error("Failed to fetch patient"));
-        
-        // Display a user-friendly error message
-        toast.error("Unable to load patient data. Using mock data instead.");
-        
-        // Set mock data as fallback
-        const fallbackPatient: Patient = {
-          id: patientId,
-          first_name: 'Unknown',
-          last_name: 'Patient',
-          name: 'Unknown Patient',
-          date_of_birth: '1990-01-01',
-          gender: 'Not specified',
-          phone: 'Not provided',
-          email: 'Not provided',
-          address: 'Not provided',
-          medical_record_number: `MR-${patientId.slice(0, 8)}`,
-          insurance_provider: 'Not provided',
-          insurance_number: 'Not provided',
-          emergency_contact_name: 'Not provided',
-          emergency_contact_phone: 'Not provided',
-          emergency_contact_relation: 'Not provided',
-          medical_history: 'Not available',
-          allergies: 'Not available',
-          medications: 'Not available',
-          notes: 'Not available',
-          age: 0,
-          status: 'Unknown',
-          lastVisit: new Date().toISOString(),
-          imgUrl: null,
-          created_at: new Date().toISOString(),
-          provider_id: 'mock-provider-id'
-        };
-        
-        setPatient(fallbackPatient);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchPatient = async () => {
+    if (!patientId) return;
 
-    fetchPatient();
-  }, [patientId, hasRole, isAssignedToPatient]);
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('id', patientId)
+        .single();
 
-  return { patient, isLoading, error };
+      if (error) throw error;
+
+      // Transform data to match Patient interface
+      const transformedPatient: Patient = {
+        id: data.id,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        medical_record_number: data.medical_record_number,
+        insurance_provider: data.insurance_provider,
+        insurance_number: data.insurance_number,
+        emergency_contact_name: data.emergency_contact_name,
+        emergency_contact_phone: data.emergency_contact_phone,
+        emergency_contact_relation: data.emergency_contact_relation,
+        allergies: data.allergies,
+        medications: data.medications,
+        medical_history: data.medical_history,
+        notes: data.notes,
+        facial_data: data.facial_data,
+        user_id: data.user_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at || data.created_at
+      };
+
+      setPatient(transformedPatient);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updatePatient = async (updates: Partial<Patient>) => {
+    if (!patientId || !patient) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('patients')
+        .update(updates)
+        .eq('id', patientId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Transform updated data
+      const transformedPatient: Patient = {
+        id: data.id,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        medical_record_number: data.medical_record_number,
+        insurance_provider: data.insurance_provider,
+        insurance_number: data.insurance_number,
+        emergency_contact_name: data.emergency_contact_name,
+        emergency_contact_phone: data.emergency_contact_phone,
+        emergency_contact_relation: data.emergency_contact_relation,
+        allergies: data.allergies,
+        medications: data.medications,
+        medical_history: data.medical_history,
+        notes: data.notes,
+        facial_data: data.facial_data,
+        user_id: data.user_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at || data.created_at
+      };
+
+      setPatient(transformedPatient);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  return {
+    patient,
+    isLoading,
+    error,
+    updatePatient,
+    refetch: fetchPatient
+  };
 };

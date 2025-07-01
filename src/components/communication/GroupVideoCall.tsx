@@ -1,141 +1,119 @@
 
 import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, Users } from 'lucide-react';
-import { useCommunication } from '@/context/communication/CommunicationContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Video, VideoOff, Mic, MicOff, Phone, Users } from 'lucide-react';
 
-export const GroupVideoCall: React.FC = () => {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
-  const { 
-    isGroupCall, 
-    endCall, 
-    toggleAudio, 
-    toggleVideo,
-    localStream,
-    remoteStreams,
-    participants
-  } = useCommunication();
-  
-  const handleToggleMute = () => {
-    const newMuted = !isMuted;
-    setIsMuted(newMuted);
-    toggleAudio(newMuted);
+interface Participant {
+  id: string;
+  name: string;
+  isVideoEnabled: boolean;
+  isAudioEnabled: boolean;
+}
+
+interface GroupVideoCallProps {
+  participants: Participant[];
+  onEndCall: () => void;
+}
+
+const GroupVideoCall: React.FC<GroupVideoCallProps> = ({
+  participants,
+  onEndCall
+}) => {
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+
+  const toggleVideo = () => {
+    setIsVideoEnabled(!isVideoEnabled);
   };
-  
-  const handleToggleVideo = () => {
-    const newVideoOff = !isVideoOff;
-    setIsVideoOff(newVideoOff);
-    toggleVideo(newVideoOff);
+
+  const toggleAudio = () => {
+    setIsAudioEnabled(!isAudioEnabled);
   };
-  
-  const handleEndCall = () => {
-    endCall();
-  };
-  
-  // Calculate grid columns based on number of participants
-  const getGridColumns = () => {
-    const totalStreams = remoteStreams.size + 1; // +1 for local stream
-    if (totalStreams <= 2) return "grid-cols-1";
-    if (totalStreams <= 4) return "grid-cols-2";
-    return "grid-cols-3"; // For 5+ participants
-  };
-  
+
   return (
-    <Dialog open={isGroupCall} onOpenChange={(open) => !open && endCall()}>
-      <DialogContent className="max-w-5xl w-full p-0 h-[90vh] max-h-[90vh] overflow-hidden">
-        <DialogHeader className="p-4 border-b">
-          <DialogTitle className="flex items-center gap-2">
+    <div className="h-screen bg-gray-900 text-white p-4">
+      <div className="h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Group Call ({remoteStreams.size + 1} participants)
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className={`grid ${getGridColumns()} gap-2 p-2 flex-1 overflow-y-auto h-[calc(90vh-10rem)]`}>
-          {/* Local Stream */}
-          <div className="relative rounded-md overflow-hidden bg-black aspect-video flex items-center justify-center">
-            {localStream && !isVideoOff ? (
-              <video 
-                ref={video => {
-                  if (video && localStream) {
-                    video.srcObject = localStream;
-                    video.muted = true; // Mute local video to avoid echo
-                  }
-                }} 
-                autoPlay 
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Avatar className="h-24 w-24">
-                <AvatarFallback className="bg-health-600 text-white text-2xl">
-                  You
-                </AvatarFallback>
-              </Avatar>
-            )}
-            <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 text-white text-sm rounded">
-              You {isMuted && "(Muted)"}
-            </div>
+            <span className="font-semibold">Group Call ({participants.length + 1})</span>
           </div>
-          
-          {/* Remote Streams */}
-          {Array.from(remoteStreams.entries()).map(([peerId, stream]) => (
-            <div 
-              key={peerId} 
-              className="relative rounded-md overflow-hidden bg-black aspect-video flex items-center justify-center"
-            >
-              <video 
-                ref={video => {
-                  if (video && stream) {
-                    video.srcObject = stream;
-                  }
-                }} 
-                autoPlay 
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 text-white text-sm rounded">
-                Participant {peerId.substring(0, 5)}...
+        </div>
+
+        {/* Video Grid */}
+        <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          {/* Local video */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="p-0 aspect-video relative">
+              <div className="absolute inset-0 bg-gray-700 rounded-lg flex items-center justify-center">
+                {isVideoEnabled ? (
+                  <div className="text-gray-400">Your Video</div>
+                ) : (
+                  <div className="text-gray-400">Video Off</div>
+                )}
               </div>
-            </div>
+              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 px-2 py-1 rounded text-sm">
+                You
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Participant videos */}
+          {participants.map((participant) => (
+            <Card key={participant.id} className="bg-gray-800 border-gray-700">
+              <CardContent className="p-0 aspect-video relative">
+                <div className="absolute inset-0 bg-gray-700 rounded-lg flex items-center justify-center">
+                  {participant.isVideoEnabled ? (
+                    <div className="text-gray-400">{participant.name}'s Video</div>
+                  ) : (
+                    <div className="text-gray-400">Video Off</div>
+                  )}
+                </div>
+                <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 px-2 py-1 rounded text-sm">
+                  {participant.name}
+                </div>
+                <div className="absolute bottom-2 right-2 flex gap-1">
+                  {!participant.isVideoEnabled && <VideoOff className="h-4 w-4 text-red-400" />}
+                  {!participant.isAudioEnabled && <MicOff className="h-4 w-4 text-red-400" />}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
-        
-        <div className="p-4 border-t flex items-center justify-center gap-3">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className={`h-12 w-12 rounded-full ${isMuted ? 'bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600' : ''}`}
-            onClick={handleToggleMute}
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            variant={isVideoEnabled ? "secondary" : "destructive"}
+            size="lg"
+            onClick={toggleVideo}
+            className="rounded-full h-12 w-12 p-0"
           >
-            {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            {isVideoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
           </Button>
-          <Button 
-            variant="destructive" 
-            size="icon" 
-            className="h-14 w-14 rounded-full"
-            onClick={handleEndCall}
+
+          <Button
+            variant={isAudioEnabled ? "secondary" : "destructive"}
+            size="lg"
+            onClick={toggleAudio}
+            className="rounded-full h-12 w-12 p-0"
           >
-            <PhoneOff className="h-6 w-6" />
+            {isAudioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
           </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className={`h-12 w-12 rounded-full ${isVideoOff ? 'bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600' : ''}`}
-            onClick={handleToggleVideo}
+
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={onEndCall}
+            className="rounded-full h-12 w-12 p-0"
           >
-            {isVideoOff ? <VideoOff className="h-5 w-5" /> : <VideoIcon className="h-5 w-5" />}
+            <Phone className="h-5 w-5" />
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 

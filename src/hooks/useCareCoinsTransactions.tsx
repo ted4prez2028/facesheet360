@@ -37,9 +37,7 @@ export const useCareCoinsTransactions = () => {
       const { data, error } = await supabase
         .from('care_coins_transactions')
         .select(`
-          *,
-          from_user:from_user_id(name),
-          to_user:to_user_id(name)
+          *
         `)
         .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
@@ -47,7 +45,19 @@ export const useCareCoinsTransactions = () => {
 
       if (error) throw error;
       
-      setTransactions(data || []);
+      const formattedTransactions = (data || []).map(transaction => ({
+        id: transaction.id,
+        amount: transaction.amount,
+        transaction_type: transaction.transaction_type,
+        description: transaction.description || '',
+        created_at: transaction.created_at,
+        from_user_id: transaction.from_user_id,
+        to_user_id: transaction.to_user_id,
+        from_user: { name: 'Unknown User' },
+        to_user: { name: 'Unknown User' }
+      }));
+      
+      setTransactions(formattedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     } finally {

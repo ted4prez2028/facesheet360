@@ -1,104 +1,60 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Json } from "@/integrations/supabase/types";
-
-type PreferenceType = 'theme' | 'calendarView' | 'notification' | 'dashboardLayout';
-type PreferenceValue = string | boolean | number | object;
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
 interface UserPreferences {
-  [key: string]: PreferenceValue;
+  theme: 'light' | 'dark' | 'system';
+  notifications: boolean;
+  autoRefresh: boolean;
 }
 
-interface UserPreferenceRecord {
-  id?: string;
-  user_id: string;
-  preferences: Json;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export function useUserPreferences() {
-  const [preferences, setPreferences] = useState<UserPreferences>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+export const useUserPreferences = () => {
+  const { user } = useAuth();
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    theme: 'system',
+    notifications: true,
+    autoRefresh: true
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadPreferences = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          const { data, error: fetchError } = await supabase
-            .from('user_preferences')
-            .select('preferences')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
-          if (fetchError) throw fetchError;
-          
-          if (data?.preferences) {
-            setPreferences(data.preferences as UserPreferences);
-          }
-        } else {
-          // If not logged in, try to get preferences from local storage
-          const storedPrefs = localStorage.getItem('userPreferences');
-          if (storedPrefs) {
-            setPreferences(JSON.parse(storedPrefs));
-          }
-        }
-      } catch (err) {
-        console.error("Error loading user preferences:", err);
-        setError(err instanceof Error ? err : new Error('Unknown error loading preferences'));
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadPreferences();
-  }, []);
+    if (user) {
+      loadPreferences();
+    }
+    setIsLoading(false);
+  }, [user]);
 
-  const savePreference = async (key: PreferenceType, value: PreferenceValue) => {
+  const loadPreferences = async () => {
+    if (!user) return;
+
     try {
-      const newPreferences = { ...preferences, [key]: value };
-      setPreferences(newPreferences);
-      
-      // Save to local storage in any case
-      localStorage.setItem('userPreferences', JSON.stringify(newPreferences));
-      
-      // If logged in, save to database
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        const preferenceRecord: UserPreferenceRecord = {
-          user_id: session.user.id,
-          preferences: newPreferences as Json
-        };
-
-        const { error: saveError } = await supabase
-          .from('user_preferences')
-          .upsert(preferenceRecord);
-        
-        if (saveError) throw saveError;
+      // Try to load from localStorage as fallback
+      const savedPreferences = localStorage.getItem(`user_preferences_${user.id}`);
+      if (savedPreferences) {
+        setPreferences(JSON.parse(savedPreferences));
       }
-      
-      return true;
-    } catch (err) {
-      console.error("Error saving preference:", err);
-      setError(err instanceof Error ? err : new Error('Unknown error saving preference'));
-      return false;
+    } catch (error) {
+      console.error('Error loading preferences:', error);
     }
   };
-  
-  const getPreference = <T extends PreferenceValue>(key: PreferenceType, defaultValue: T): T => {
-    return (preferences[key] as T) ?? defaultValue;
+
+  const updatePreferences = async (updates: Partial<UserPreferences>) => {
+    if (!user) return;
+
+    try {
+      const newPreferences = { ...preferences, ...updates };
+      setPreferences(newPreferences);
+      
+      // Save to localStorage as fallback
+      localStorage.setItem(`user_preferences_${user.id}`, JSON.stringify(newPreferences));
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+    }
   };
 
-  return { 
-    preferences, 
-    loading, 
-    error, 
-    savePreference, 
-    getPreference 
+  return {
+    preferences,
+    isLoading,
+    updatePreferences
   };
-}
+};

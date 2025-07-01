@@ -102,8 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: data.name || '',
           role: data.role || 'doctor',
           specialty: data.specialty,
-          license_number: data.license_number,
-          profile_image: data.profile_image,
           care_coins_balance: data.care_coins_balance || 0,
           organization: data.organization,
           online_status: data.online_status,
