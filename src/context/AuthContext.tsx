@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: data.user.email,
         name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
         role: data.user.user_metadata?.role || 'doctor',
-        careCoinsBalance: 0
+        care_coins_balance: 0
       } as User);
       setSession(data.session);
       setIsAuthenticated(true);
@@ -268,6 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     isAuthenticated,
     isLoading,
+    authError,
     updateUserProfile,
     updateCurrentUser
   };
@@ -286,5 +287,3 @@ export function useAuth(): AuthContextType {
   }
   return context;
 };
-
-

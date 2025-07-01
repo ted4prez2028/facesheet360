@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -5,6 +6,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import Index from './pages/Index';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
@@ -22,11 +24,15 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse">
+        <p className="text-lg text-muted-foreground">Loading...</p>
+      </div>
+    </div>;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/" />;
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;
@@ -42,6 +48,7 @@ function App() {
               <CommunicationProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<LandingPage />} />
                   <Route
                     path="/dashboard"
                     element={
