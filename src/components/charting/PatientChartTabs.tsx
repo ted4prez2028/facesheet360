@@ -37,11 +37,11 @@ interface PatientChartTabsProps {
   userId?: string;
 }
 
-// Define a local interface that matches the expected type
+// Define a local interface that matches the expected type from GenerateCarePlanButton
 interface LocalPatientDataForCarePlan {
   id: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
   date_of_birth?: string;
   gender?: string;
   phone?: string;
@@ -67,6 +67,7 @@ interface LocalPatientDataForCarePlan {
   vitalSigns?: any[];
   medicalHistory?: string[];
   condition?: string;
+  selectedNotes?: string[];
 }
 
 export function PatientChartTabs({ patient, chartData, patientId, userId }: PatientChartTabsProps) {
@@ -87,15 +88,20 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     if (!patient) return null;
     
     // Handle allergies - ensure it's a string
-    const allergiesString = Array.isArray(chartData?.allergies) 
-      ? chartData.allergies.join(', ') 
-      : (typeof chartData?.allergies === 'string' ? chartData.allergies : patient.allergies || '');
+    let allergiesString = '';
+    if (Array.isArray(chartData?.allergies)) {
+      allergiesString = chartData.allergies.join(', ');
+    } else if (typeof chartData?.allergies === 'string') {
+      allergiesString = chartData.allergies;
+    } else if (patient.allergies) {
+      allergiesString = typeof patient.allergies === 'string' ? patient.allergies : '';
+    }
     
     return {
       id: patient.id,
       first_name: patient.first_name || patient.name?.split(' ')[0] || '',
       last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || '',
-      date_of_birth: patient.date_of_birth,
+      date_of_birth: patient.date_of_birth || '',
       gender: patient.gender,
       phone: patient.phone,
       email: patient.email,

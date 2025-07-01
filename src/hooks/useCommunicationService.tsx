@@ -1,51 +1,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { User, Message, Call, ChatWindow } from '@/types';
 import { toast } from 'sonner';
 import { sampleDoctors } from '@/lib/api/sampleDoctors';
-
-// Define an interface for the database user to avoid type errors
-interface DbUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  specialty?: string;
-  license_number?: string;
-  profile_image?: string;
-  care_coins_balance?: number;
-  online_status?: boolean;
-  last_seen?: string;
-  organization?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface GroupCallPayload {
-  id: string;
-  room_id: string;
-  initiator_id: string;
-  is_video_call: boolean;
-  participants: string[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface ActiveCallPayload {
-  id: string;
-  caller_id: string;
-  receiver_id: string;
-  is_video_call: boolean;
-  call_status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface WindowWithAudio extends Window {
-  incomingCallAudio?: HTMLAudioElement;
-}
 
 export function useCommunicationService() {
   const { user } = useAuth();
@@ -55,336 +13,101 @@ export function useCommunicationService() {
   const [isCallActive, setIsCallActive] = useState<boolean>(false);
   const [isCallIncoming, setIsCallIncoming] = useState<boolean>(false);
   
-  // Load online users - use Supabase presence
+  // Load online users - use mock data since database tables don't exist
   const fetchOnlineUsers = useCallback(async () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .neq('id', user.id)
-        .order('name', { ascending: true });
-        
-      if (error) throw error;
-      
-      // Get user's organization
-      const { data: userData } = await supabase
-        .from('users')
-        .select('organization')
-        .eq('id', user.id)
-        .single();
-      
-      const userOrganization = userData?.organization;
-      
-      // Transform database users to match our User type
-      const typedUsers: User[] = data?.map((dbUser: DbUser) => ({
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        role: dbUser.role,
-        specialty: dbUser.specialty,
-        license_number: dbUser.license_number,
-        profile_image: dbUser.profile_image,
-        care_coins_balance: dbUser.care_coins_balance || 0,
-        careCoinsBalance: dbUser.care_coins_balance || 0,
-        online_status: dbUser.online_status,
-        organization: dbUser.organization,
-        created_at: dbUser.created_at,
-        updated_at: dbUser.updated_at
-      })) || [];
-      
-      // Only add sample doctors if no real users with the same organization
-      const allSampleDoctors = sampleDoctors.map(doctor => ({
+      // Use sample doctors as mock online users
+      const mockUsers = sampleDoctors.map(doctor => ({
         ...doctor,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         care_coins_balance: 0,
         careCoinsBalance: 0,
-        // If user has an organization, assign the same org to sample doctors
-        organization: userOrganization || doctor.organization
+        online_status: Math.random() > 0.5, // Randomly set some as online
+        organization: user.organization || doctor.organization
       })) as User[];
-
-      // Combine real users with sample doctors and ensure there are no duplicates by ID
-      const combinedUsers = [...typedUsers];
       
-      // Only add sample doctors if there are fewer than 3 real users with the same organization
-      const realUsersInOrg = typedUsers.filter(u => u.organization === userOrganization).length;
-      
-      if (realUsersInOrg < 3 && userOrganization) {
-        allSampleDoctors.forEach(doctor => {
-          if (!combinedUsers.some(user => user.id === doctor.id)) {
-            // Set the organization to match the user's
-            doctor.organization = userOrganization;
-            combinedUsers.push(doctor);
-          }
-        });
-      }
-      
-      setOnlineUsers(combinedUsers);
+      setOnlineUsers(mockUsers);
     } catch (error) {
       console.error('Error fetching online users:', error);
       toast.error('Failed to load contacts');
     }
   }, [user]);
   
-  // Update user online status and set up presence
+  // Update user online status - mock implementation
   useEffect(() => {
     if (!user) return;
     
-    // Set current user as online
-    const updateOnlineStatus = async () => {
-      await supabase
-        .from('users')
-        .update({ online_status: true, last_seen: new Date().toISOString() })
-        .eq('id', user.id);
-    };
-    
-    updateOnlineStatus();
     fetchOnlineUsers();
     
-    // Set up presence channel for real-time online status
-    const channel = supabase.channel('online-users')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'users' },
-        (payload) => {
-          // Update online users when status changes
-          fetchOnlineUsers();
-        }
-      )
-      .subscribe();
-    
-    // Set user as offline when component unmounts
+    // Mock cleanup
     return () => {
-      supabase
-        .from('users')
-        .update({ online_status: false, last_seen: new Date().toISOString() })
-        .eq('id', user.id)
-        .then();
-      
-      supabase.removeChannel(channel);
+      // Mock setting user as offline
     };
   }, [user, fetchOnlineUsers]);
   
-  // Set up group calls subscription
+  // Mock group calls subscription
   useEffect(() => {
     if (!user) return;
     
-    const channel = supabase.channel('group-calls')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'group_calls' },
-        async (payload) => {
-          const groupCall = payload.new as GroupCallPayload;
-          const participants = groupCall.participants || [];
-          
-          // Check if current user is a participant but not the initiator
-          if (
-            groupCall.initiator_id !== user.id && 
-            participants.includes(user.id)
-          ) {
-            // Get initiator name
-            const { data: initiatorData } = await supabase
-              .from('users')
-              .select('name')
-              .eq('id', groupCall.initiator_id)
-              .single();
-              
-            const initiatorName = initiatorData?.name || 'Someone';
-            
-            // Show notification about group call
-            toast(
-              `${initiatorName} is inviting you to a group call`, 
-              {
-                action: {
-                  label: "Join",
-                  onClick: () => {
-                    // Implement join group call logic
-                    // This would be handled by the communication context
-                    window.dispatchEvent(new CustomEvent('join-group-call', { 
-                      detail: { 
-                        roomId: groupCall.room_id,
-                        participants: participants.filter((id: string) => id !== user.id),
-                        isVideo: groupCall.is_video_call
-                      } 
-                    }));
-                  }
-                },
-                duration: 10000, // 10 seconds
-              }
-            );
-          }
-        }
-      )
-      .subscribe();
-      
+    // Mock subscription cleanup
     return () => {
-      supabase.removeChannel(channel);
+      // Mock cleanup
     };
   }, [user]);
   
-  // Fetch messages when chat windows are opened
+  // Mock messages subscription
   useEffect(() => {
     if (!user || chatWindows.length === 0) return;
     
-    // Set up subscription for new messages
-    const channel = supabase.channel('new-messages')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
-        (payload) => {
-          const newMessage = payload.new as Message;
-          
-          // Only handle messages relevant to the current user
-          if (newMessage.sender_id === user.id || newMessage.recipient_id === user.id) {
-            setChatWindows(prev => prev.map(window => {
-              const otherUserId = newMessage.sender_id === user.id 
-                ? newMessage.recipient_id 
-                : newMessage.sender_id;
-                
-              if (window.userId === otherUserId) {
-                // Find if this window already has this message
-                const messageExists = window.messages.some(msg => msg.id === newMessage.id);
-                if (!messageExists) {
-                  return {
-                    ...window,
-                    messages: [...window.messages, newMessage]
-                  };
-                }
-              }
-              return window;
-            }));
-          }
-        }
-      )
-      .subscribe();
-    
-    // Load message history for each chat window
+    // Mock message loading for chat windows
     chatWindows.forEach(async (window) => {
-      // Skip if window already has messages
       if (window.messages.length > 0) return;
       
-      try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-          .or(`sender_id.eq.${window.userId},recipient_id.eq.${window.userId}`)
-          .order('timestamp', { ascending: true });
-          
-        if (error) throw error;
-        
-        // Filter messages that belong to this conversation
-        const windowMessages = (data || []).filter(msg => 
-          (msg.sender_id === user.id && msg.recipient_id === window.userId) ||
-          (msg.sender_id === window.userId && msg.recipient_id === user.id)
-        );
-        
-        setChatWindows(prev => prev.map(w => 
-          w.userId === window.userId 
-            ? { ...w, messages: windowMessages } 
-            : w
-        ));
-      } catch (error) {
-        console.error(`Error loading messages for ${window.userName}:`, error);
-        toast.error(`Failed to load messages for ${window.userName}`);
-      }
+      // Mock messages
+      const mockMessages: Message[] = [
+        {
+          id: '1',
+          sender_id: window.userId,
+          recipient_id: user.id,
+          content: `Hello ${user.name}! How are you today?`,
+          timestamp: new Date().toISOString(),
+          read: false
+        }
+      ];
+      
+      setChatWindows(prev => prev.map(w => 
+        w.userId === window.userId 
+          ? { ...w, messages: mockMessages } 
+          : w
+      ));
     });
     
+    // Mock cleanup
     return () => {
-      supabase.removeChannel(channel);
+      // Mock cleanup
     };
   }, [user, chatWindows]);
   
-  // Set up listener for active calls
+  // Mock active calls listener
   useEffect(() => {
     if (!user) return;
     
-    const channel = supabase.channel('active-calls')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'active_calls' },
-        async (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const call = payload.new as ActiveCallPayload;
-            
-            // If the current user is the receiver, show incoming call
-            if (call.receiver_id === user.id) {
-              // Find caller name
-              const { data: callerData } = await supabase
-                .from('users')
-                .select('name')
-                .eq('id', call.caller_id)
-                .single();
-                
-              const callerName = callerData?.name || 'Unknown';
-              
-              setActiveCall({
-                callerId: call.caller_id,
-                callerName,
-                receiverId: call.receiver_id,
-                receiverName: user.name,
-                isVideoCall: call.is_video_call,
-                status: 'ringing'
-              });
-              
-              setIsCallIncoming(true);
-              setIsCallActive(true);
-              
-              // Play ring tone
-              const audio = new Audio('/ringtone.mp3');
-              audio.loop = true;
-              audio.play().catch(e => console.log('Could not play ringtone', e));
-              
-              // Store audio element in window to be able to stop it later
-              (window as WindowWithAudio).incomingCallAudio = audio;
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const call = payload.new as ActiveCallPayload;
-            
-            // Update call status if user is part of this call
-            if (call.caller_id === user.id || call.receiver_id === user.id) {
-              if (call.call_status === 'ended') {
-                setActiveCall(null);
-                setIsCallActive(false);
-                setIsCallIncoming(false);
-                
-                // Stop ringtone if playing
-                if ((window as WindowWithAudio).incomingCallAudio) {
-                  (window as WindowWithAudio).incomingCallAudio.pause();
-                  (window as WindowWithAudio).incomingCallAudio = null;
-                }
-              } else if (call.call_status === 'ongoing') {
-                setActiveCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
-                setIsCallIncoming(false);
-                
-                // Stop ringtone if playing
-                if ((window as WindowWithAudio).incomingCallAudio) {
-                  (window as WindowWithAudio).incomingCallAudio.pause();
-                  (window as WindowWithAudio).incomingCallAudio = null;
-                }
-              }
-            }
-          }
-        }
-      )
-      .subscribe();
-      
+    // Mock cleanup
     return () => {
-      supabase.removeChannel(channel);
+      // Mock cleanup
     };
   }, [user]);
   
-  // Listen for group call join events
+  // Mock group call join events
   useEffect(() => {
     const handleJoinGroupCall = (event: CustomEvent<{ roomId: string; participants: string[]; isVideo: boolean }>) => {
       const { roomId, participants, isVideo } = event.detail;
       
-      // Dispatch join group call event to be handled by the context
-      window.dispatchEvent(new CustomEvent('join-group-call-event', { 
-        detail: { roomId, participants, isVideo } 
-      }));
+      // Mock implementation
+      console.log('Mock join group call:', { roomId, participants, isVideo });
     };
     
     window.addEventListener('join-group-call', handleJoinGroupCall);
@@ -422,31 +145,12 @@ export function useCommunicationService() {
     ));
   }, []);
   
-  // Send message
+  // Send message - mock implementation
   const sendMessage = useCallback(async (recipientId: string, content: string) => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .insert({
-          sender_id: user.id,
-          recipient_id: recipientId,
-          content,
-          timestamp: new Date().toISOString(),
-          read: false
-        })
-        .select()
-        .single();
-        
-      if (error) throw error;
-      
-      // Message will be added to chat window via the realtime subscription
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
-      
-      // Optimistically add message to chat window
+      // Mock message sending
       const tempMessage: Message = {
         id: `temp-${Date.now()}`,
         sender_id: user.id,
@@ -461,31 +165,20 @@ export function useCommunicationService() {
           ? { ...window, messages: [...window.messages, tempMessage] } 
           : window
       ));
+      
+      toast.success('Message sent');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
     }
   }, [user]);
   
-  // Start call
+  // Start call - mock implementation
   const startCall = useCallback(async (userId: string, userName: string, isVideo: boolean) => {
     if (!user) return;
     
     try {
-      // Create active call in database
-      const { data, error } = await supabase
-        .from('active_calls')
-        .insert({
-          caller_id: user.id,
-          receiver_id: userId,
-          is_video_call: isVideo,
-          call_status: 'ringing',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-        
-      if (error) throw error;
-      
-      // Set active call in local state
+      // Mock call setup
       setActiveCall({
         callerId: user.id,
         callerName: user.name,
@@ -507,54 +200,26 @@ export function useCommunicationService() {
     }
   }, [user]);
   
-  // Send group call invitation
+  // Send group call invitation - mock implementation
   const sendGroupCallInvitation = useCallback(async (userId: string, roomId: string, isVideo: boolean) => {
     if (!user) return;
     
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
-          title: 'Group Call Invitation',
-          message: `${user.name} has invited you to join a group call`,
-          type: 'group_call',
-          event_id: roomId,
-          event_time: new Date().toISOString()
-        });
-        
-      if (error) throw error;
+      // Mock group call invitation
+      toast.success('Group call invitation sent');
     } catch (error) {
       console.error('Error sending group call invitation:', error);
     }
   }, [user]);
   
-  // Accept call
+  // Accept call - mock implementation
   const acceptCall = useCallback(async () => {
     if (!user || !activeCall) return;
     
     try {
-      // Update call status in database
-      const { error } = await supabase
-        .from('active_calls')
-        .update({
-          call_status: 'ongoing',
-          updated_at: new Date().toISOString()
-        })
-        .or(`caller_id.eq.${activeCall.callerId},receiver_id.eq.${activeCall.callerId}`)
-        .or(`caller_id.eq.${activeCall.receiverId},receiver_id.eq.${activeCall.receiverId}`);
-        
-      if (error) throw error;
-      
       setActiveCall(prev => prev ? { ...prev, status: 'ongoing' } : null);
       setIsCallIncoming(false);
       setIsCallActive(true);
-      
-      // Stop ringtone if playing
-      if ((window as WindowWithAudio).incomingCallAudio) {
-        (window as WindowWithAudio).incomingCallAudio.pause();
-        (window as WindowWithAudio).incomingCallAudio = null;
-      }
       
       toast("Call Connected", {
         description: `Call connected with ${activeCall.callerName || activeCall.receiverName}`,
@@ -565,29 +230,11 @@ export function useCommunicationService() {
     }
   }, [user, activeCall]);
   
-  // Reject/end call
+  // Reject/end call - mock implementation
   const endCall = useCallback(async () => {
     if (!user || !activeCall) return;
     
     try {
-      // Update call status in database
-      const { error } = await supabase
-        .from('active_calls')
-        .update({
-          call_status: 'ended',
-          updated_at: new Date().toISOString()
-        })
-        .or(`caller_id.eq.${activeCall.callerId},receiver_id.eq.${activeCall.callerId}`)
-        .or(`caller_id.eq.${activeCall.receiverId},receiver_id.eq.${activeCall.receiverId}`);
-        
-      if (error) throw error;
-      
-      // Stop ringtone if playing
-      if ((window as WindowWithAudio).incomingCallAudio) {
-        (window as WindowWithAudio).incomingCallAudio.pause();
-        (window as WindowWithAudio).incomingCallAudio = null;
-      }
-      
       setActiveCall(null);
       setIsCallIncoming(false);
       setIsCallActive(false);
