@@ -47,7 +47,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           setSupabaseUser(session.user);
-          await fetchUserProfile(session.user.id);
+          // Use setTimeout to prevent potential deadlocks
+          setTimeout(async () => {
+            await fetchUserProfile(session.user.id);
+          }, 0);
         } else {
           // For development, use mock user if no session
           console.log('No session found, using mock user for development');
@@ -66,15 +69,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        setIsLoading(true);
         if (session?.user) {
           setSupabaseUser(session.user);
-          await fetchUserProfile(session.user.id);
+          // Use setTimeout to prevent potential deadlocks
+          setTimeout(async () => {
+            await fetchUserProfile(session.user.id);
+            setIsLoading(false);
+          }, 0);
         } else {
           setSupabaseUser(null);
           setUser(null);
+          setIsLoading(false);
         }
-        setIsLoading(false);
       }
     );
 
