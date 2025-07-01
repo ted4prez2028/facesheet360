@@ -123,6 +123,15 @@ const AppointmentList = ({
                       'Unknown Patient',
                     date: appointment.appointment_date,
                     type: appointment.notes?.split(':')[0]?.trim() || "check-up",
+                    notes: appointment.notes || '',
+                    duration: 30,
+                    patients: appointment.patients ? {
+                      first_name: appointment.patients.first_name,
+                      last_name: appointment.patients.last_name
+                    } : {
+                      first_name: 'Unknown',
+                      last_name: 'Patient'
+                    }
                   }}
                   onView={() => onViewDetails?.(appointment)}
                   onReschedule={() => onReschedule?.(appointment)}
@@ -173,6 +182,15 @@ const AppointmentList = ({
                           'Unknown Patient',
                         date: appointment.appointment_date,
                         type: appointment.notes?.split(':')[0]?.trim() || "check-up",
+                        notes: appointment.notes || '',
+                        duration: 30,
+                        patients: appointment.patients ? {
+                          first_name: appointment.patients.first_name,
+                          last_name: appointment.patients.last_name
+                        } : {
+                          first_name: 'Unknown',
+                          last_name: 'Patient'
+                        }
                       }}
                       onView={() => onViewDetails?.(appointment)}
                       onReschedule={() => onReschedule?.(appointment)}

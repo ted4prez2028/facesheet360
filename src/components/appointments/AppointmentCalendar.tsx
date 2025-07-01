@@ -12,7 +12,13 @@ export interface Appointment {
   patients: {
     first_name: string;
     last_name: string;
+    medical_record_number?: string;
   };
+  // Additional properties used by AppointmentCard
+  patientName?: string;
+  patientId?: string;
+  date?: string;
+  type?: string;
 }
 
 interface AppointmentCalendarProps {

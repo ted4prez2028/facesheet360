@@ -12,6 +12,9 @@ export interface User {
   organization?: string;
   created_at?: string;
   updated_at?: string;
+  // Additional properties for compatibility
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface Patient {
@@ -39,6 +42,12 @@ export interface Patient {
   condition?: string;
   email?: string;
   phone?: string;
+  // Additional patient properties for compatibility
+  blood_pressure?: string;
+  temperature?: number;
+  heart_rate?: number;
+  respiratory_rate?: number;
+  oxygen_saturation?: number;
 }
 
 export interface Appointment {
@@ -61,6 +70,7 @@ export interface Appointment {
   patient?: string;
   created_at?: string;
   updated_at?: string;
+  type?: string;
 }
 
 export interface Prescription {
@@ -141,4 +151,29 @@ export interface CarePlan {
   is_ai_generated: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// Additional types for compatibility
+export interface Allergy {
+  id?: string;
+  patient_id?: string;
+  allergen: string;
+  reaction: string;
+  severity: 'mild' | 'moderate' | 'severe';
+  type: string;
+  notes?: string;
+  [key: string]: any; // Index signature for DataItem compatibility
+}
+
+export interface CensusEntry {
+  id: string;
+  name: string;
+  room: string;
+  status: string;
+  admitted: string;
+  [key: string]: any; // Index signature for DataItem compatibility
+}
+
+export interface DataItem {
+  [key: string]: any;
 }
