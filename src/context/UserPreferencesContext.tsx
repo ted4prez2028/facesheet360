@@ -1,9 +1,9 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-import { PreferenceType, UserPreferencesContextProps, defaultPreferences } from '@/types/userPreferences';
+import { PreferenceType, defaultPreferences } from '@/types/userPreferences';
 
 import { UserPreferencesContext } from './UserPreferences';
 

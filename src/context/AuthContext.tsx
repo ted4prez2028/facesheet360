@@ -74,12 +74,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAuthError(errorMessage);
       } finally {
         setIsLoading(false);
+        console.log('AuthContext: Initial load finished. isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
       };
     };
 
     loadSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('AuthContext: Auth state changed:', event, 'session:', session);
       if (event === 'SIGNED_IN' && session) {
         const userData = await getUserProfile(session.user.id);
         setUser(userData ? initialUser(userData) : initialUser({
@@ -90,10 +92,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
         setSession(session);
         setIsAuthenticated(true);
+        console.log('AuthContext: User SIGNED_IN. isAuthenticated:', true);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setSession(null);
         setIsAuthenticated(false);
+        console.log('AuthContext: User SIGNED_OUT. isAuthenticated:', false);
       }
     });
 
