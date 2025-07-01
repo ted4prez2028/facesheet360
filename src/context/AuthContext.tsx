@@ -1,11 +1,10 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType } from '@/types/auth';
-import { User } from '@/types';
 import { Session } from '@supabase/supabase-js';
+import { User } from '@/types';
+import { AuthContextType } from '@/types/auth';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -218,12 +217,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateCurrentUser = (userData: Partial<User>) => {
-    if (user) {
-      setUser(prev => prev ? { ...prev, ...userData } : null);
-    }
-  };
-
   const value: AuthContextType = {
     user,
     session,
@@ -233,7 +226,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     logout,
     updateUserProfile,
-    updateCurrentUser,
+    updateCurrentUser: (userData: Partial<User>) => {
+      if (user) {
+        setUser({ ...user, ...userData });
+      }
+    }
   };
 
   return (
@@ -250,3 +247,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export { AuthContextType };
