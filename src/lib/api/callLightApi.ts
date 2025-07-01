@@ -1,97 +1,82 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { CallLightRequest } from '@/types';
 
-export interface CallLight {
-  id: string;
-  room_number: string;
-  patient_name: string;
-  urgency_level: 'low' | 'medium' | 'high' | 'emergency';
-  description?: string;
-  status: 'pending' | 'acknowledged' | 'resolved';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CallLightRequest {
-  id: string;
-  room_number: string;
-  patient_name: string;
-  urgency_level: 'low' | 'medium' | 'high' | 'emergency';
-  description?: string;
-  status: 'pending' | 'acknowledged' | 'resolved';
-  created_at: string;
-  updated_at: string;
-}
-
-export const callLightApi = {
-  // Mock implementation since call_lights table doesn't exist
-  async getRequests(): Promise<CallLightRequest[]> {
-    // Return mock data for now
-    return [
-      {
-        id: '1',
-        room_number: '101',
-        patient_name: 'John Doe',
-        urgency_level: 'high',
-        description: 'Need assistance with medication',
-        status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-  },
-
-  async createRequest(request: Omit<CallLightRequest, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<CallLightRequest> {
-    // Mock implementation
-    const newRequest: CallLightRequest = {
-      ...request,
-      id: Date.now().toString(),
-      status: 'pending',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    return newRequest;
-  },
-
-  async updateRequest(id: string, updates: Partial<CallLightRequest>): Promise<CallLightRequest> {
-    // Mock implementation
-    return {
-      id,
-      room_number: '101',
-      patient_name: 'John Doe',
-      urgency_level: 'high',
-      description: 'Need assistance with medication',
-      status: 'pending',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      ...updates
-    };
-  }
-};
-
-export const getActiveCallLights = async (): Promise<CallLight[]> => {
-  return callLightApi.getRequests();
-};
-
-export const updateCallLightStatus = async (id: string, status: string): Promise<void> => {
-  await callLightApi.updateRequest(id, { status: status as any });
-};
-
-export const createCallLight = async (data: {
+export interface CallLightRequestPayload {
   patient_id: string;
-  room_number: string;
   request_type: string;
   message?: string;
-}): Promise<CallLight> => {
-  return callLightApi.createRequest({
-    room_number: data.room_number,
-    patient_name: 'Patient',
-    urgency_level: 'medium',
-    description: data.message
-  });
+}
+
+export const createCallLightRequest = async (requestData: CallLightRequestPayload): Promise<CallLightRequest> => {
+  // Mock implementation since we don't have call_light_requests table
+  const mockRequest: CallLightRequest = {
+    id: `req_${Date.now()}`,
+    patient_id: requestData.patient_id,
+    request_type: requestData.request_type,
+    message: requestData.message,
+    status: 'active',
+    created_at: new Date().toISOString()
+  };
+  
+  console.log('Mock call light request created:', mockRequest);
+  return mockRequest;
 };
 
 export const getPatientCallLightHistory = async (patientId: string): Promise<CallLightRequest[]> => {
-  return callLightApi.getRequests();
+  // Mock implementation
+  return [
+    {
+      id: `req_${Date.now()}_1`,
+      patient_id: patientId,
+      request_type: 'bathroom',
+      message: 'Need assistance to bathroom',
+      status: 'completed',
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+      completed_at: new Date(Date.now() - 3000000).toISOString(),
+      completed_by: 'nurse_123'
+    },
+    {
+      id: `req_${Date.now()}_2`,
+      patient_id: patientId,
+      request_type: 'pain',
+      message: 'Pain level 7/10',
+      status: 'in_progress', 
+      created_at: new Date(Date.now() - 1800000).toISOString()
+    }
+  ];
+};
+
+export const getActiveCallLightRequests = async (): Promise<CallLightRequest[]> => {
+  // Mock implementation
+  return [
+    {
+      id: `req_${Date.now()}_active_1`,
+      patient_id: 'patient_123',
+      request_type: 'emergency',
+      message: 'Urgent assistance needed',
+      status: 'active',
+      created_at: new Date().toISOString()
+    }
+  ];
+};
+
+export const updateCallLightRequest = async (
+  requestId: string, 
+  updates: Partial<CallLightRequest>
+): Promise<CallLightRequest> => {
+  // Mock implementation
+  const mockUpdatedRequest: CallLightRequest = {
+    id: requestId,
+    patient_id: updates.patient_id || 'patient_123',
+    request_type: updates.request_type || 'general',
+    message: updates.message,
+    status: updates.status || 'completed',
+    created_at: updates.created_at || new Date().toISOString(),
+    completed_at: updates.completed_at,
+    completed_by: updates.completed_by
+  };
+  
+  console.log('Mock call light request updated:', mockUpdatedRequest);
+  return mockUpdatedRequest;
 };

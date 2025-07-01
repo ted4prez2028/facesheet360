@@ -10,7 +10,7 @@ import { CashOutView } from './CashOutView';
 import { VirtualCardView } from './VirtualCardView';
 import { BillPaymentView } from './BillPaymentView';
 import { AchievementsView } from './AchievementsView';
-import { HealthcareTransferView } from './HealthcareTransferView';
+import HealthcareTransferView from './HealthcareTransferView';
 
 export const CareCoinsDashboard = () => {
   return (

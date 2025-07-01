@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -117,19 +116,16 @@ export interface CareCoinsCard {
   updated_at: string;
 }
 
+// Call Light types
 export interface CallLightRequest {
   id: string;
-  room_number: string;
+  patient_id: string;
   request_type: string;
-  status: 'active' | 'in_progress' | 'completed';
   message?: string;
+  status: 'active' | 'in_progress' | 'completed';
   created_at: string;
   completed_at?: string;
-  patient_id?: string;
-  patients?: {
-    first_name: string;
-    last_name: string;
-  };
+  completed_by?: string;
 }
 
 export interface Prescription {
@@ -149,15 +145,17 @@ export interface Prescription {
   updated_at: string;
 }
 
+// CareCoins types
 export interface CareCoinsTransaction {
   id: string;
   amount: number;
-  from_user_id: string | null;
-  to_user_id: string | null;
-  transaction_type: "transfer" | "reward" | "purchase";
+  transaction_type: 'transfer' | 'reward' | 'purchase' | 'deposit' | 'withdrawal' | 'platform_fee' | 'earned' | 'spent';
+  description?: string;
   created_at: string;
-  description: string | null;
-  otherUserName?: string;
+  from_user_id?: string;
+  to_user_id?: string;
+  reward_category?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CarePlan {
@@ -192,11 +190,11 @@ export interface ChartRecord {
   record_type: string;
   record_date: string;
   diagnosis?: string;
-  treatment_plan?: string;
-  notes?: string;
   vital_signs?: Record<string, unknown>;
   vitals?: Record<string, unknown>;
   medications?: Record<string, unknown>;
+  treatment_plan?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -205,11 +203,11 @@ export interface CareCoinsBillPayment {
   id: string;
   user_id: string;
   bill_type: string;
+  amount: number;
   recipient_name: string;
   recipient_account: string;
-  amount: number;
-  status: 'pending' | 'completed' | 'failed';
   bill_info?: Record<string, unknown>;
+  status: 'completed' | 'pending' | 'failed';
   created_at: string;
   updated_at: string;
 }

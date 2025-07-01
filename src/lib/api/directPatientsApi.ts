@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Patient } from "@/types";
 
-// This API bypasses RLS by using direct SQL for patient operations
+// This API bypasses RLS by using direct queries
 // It still requires authentication but doesn't rely on RLS policies
 
 export const getPatientsDirect = async () => {
@@ -13,8 +13,11 @@ export const getPatientsDirect = async () => {
       throw new Error("Authentication required");
     }
     
-    // Use RPC for direct SQL execution with the custom function
-    const { data, error } = await supabase.rpc('get_all_patients');
+    // Use direct query instead of RPC since function doesn't exist
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .order('created_at', { ascending: false });
     
     if (error) {
       console.error("Direct patient query error:", error);
@@ -36,10 +39,12 @@ export const getPatientByIdDirect = async (patientId: string) => {
       throw new Error("Authentication required");
     }
     
-    // Use RPC for direct SQL execution with the patient ID
-    const { data, error } = await supabase.functions.invoke('get-patient-by-id', {
-      body: { patientId }
-    });
+    // Use direct query instead of edge function
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('id', patientId)
+      .single();
     
     if (error) {
       console.error("Direct patient fetch error:", error);
@@ -70,20 +75,24 @@ export const addPatientDirect = async (patient: Partial<Patient>) => {
       throw new Error("Missing required patient fields");
     }
     
-    // Use RPC for direct SQL execution with the patient data
-    const { data, error } = await supabase.rpc('add_patient', {
-      p_first_name: patient.first_name,
-      p_last_name: patient.last_name,
-      p_date_of_birth: patient.date_of_birth,
-      p_gender: patient.gender,
-      p_email: patient.email || null,
-      p_phone: patient.phone || null,
-      p_address: patient.address || null,
-      p_medical_record_number: patient.medical_record_number || null,
-      p_insurance_provider: patient.insurance_provider || null,
-      p_policy_number: patient.policy_number || null,
-      p_facial_data: patient.facial_data || null
-    });
+    // Use direct insert instead of RPC
+    const { data, error } = await supabase
+      .from('patients')
+      .insert({
+        first_name: patient.first_name,
+        last_name: patient.last_name,
+        date_of_birth: patient.date_of_birth,
+        gender: patient.gender,
+        email: patient.email || null,
+        phone: patient.phone || null,
+        address: patient.address || null,
+        medical_record_number: patient.medical_record_number || null,
+        insurance_provider: patient.insurance_provider || null,
+        insurance_number: patient.insurance_number || null,
+        facial_data: patient.facial_data || null
+      })
+      .select()
+      .single();
     
     if (error) {
       console.error("Direct patient insert error:", error);

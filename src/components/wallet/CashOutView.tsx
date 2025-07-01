@@ -87,7 +87,7 @@ export const CashOutView = () => {
                   </FormControl>
                   <FormDescription>
                     {isLoading || !exchangeRate ? "Loading exchange rate..." : (
-                      `Estimated USD: $${usdAmount?.toFixed(2) || (exchangeRate?.rate_to_usd * (field.value || 0)).toFixed(2)}`
+                      `Estimated USD: $${usdAmount?.toFixed(2) || ((exchangeRate as any)?.rate_to_usd * (field.value || 0)).toFixed(2)}`
                     )}
                   </FormDescription>
                 </FormItem>

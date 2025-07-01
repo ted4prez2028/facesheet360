@@ -15,7 +15,12 @@ export const chartApi = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(record => ({
+      ...record,
+      vital_signs: record.vital_signs as Record<string, unknown> || {},
+      vitals: record.vitals as Record<string, unknown> || {},
+      medications: record.medications as Record<string, unknown> || {}
+    }));
   },
 
   async createChartRecord(record: Omit<ChartRecord, 'created_at' | 'id'>): Promise<ChartRecord> {
@@ -37,7 +42,12 @@ export const chartApi = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      vital_signs: data.vital_signs as Record<string, unknown> || {},
+      vitals: data.vitals as Record<string, unknown> || {},
+      medications: data.medications as Record<string, unknown> || {}
+    };
   },
 
   async updateChartRecord(id: string, updates: Partial<ChartRecord>): Promise<ChartRecord> {
@@ -60,7 +70,12 @@ export const chartApi = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      vital_signs: data.vital_signs as Record<string, unknown> || {},
+      vitals: data.vitals as Record<string, unknown> || {},
+      medications: data.medications as Record<string, unknown> || {}
+    };
   },
 
   async deleteChartRecord(id: string): Promise<void> {
