@@ -210,6 +210,7 @@ export function useCommunicationService() {
         is_video_call: isVideo,
         status: 'pending',
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         callerId: user.id,
         callerName: user.name,
         receiverId: userId,

@@ -43,7 +43,7 @@ interface LocalPatientDataForCarePlan {
   first_name: string; // Made required to match PatientDataForCarePlan
   last_name: string; // Made required to match PatientDataForCarePlan
   date_of_birth: string; // Made required to match PatientDataForCarePlan
-  gender?: string;
+  gender: string; // Made required to match PatientDataForCarePlan
   phone?: string;
   email?: string;
   address?: string;
@@ -106,7 +106,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       first_name: patient.first_name || patient.name?.split(' ')[0] || 'Unknown', // Provide default value
       last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || 'Patient', // Provide default value
       date_of_birth: patient.date_of_birth || '1990-01-01', // Provide default value
-      gender: patient.gender,
+      gender: patient.gender || 'Not specified', // Provide default value
       phone: patient.phone,
       email: patient.email,
       address: patient.address,
