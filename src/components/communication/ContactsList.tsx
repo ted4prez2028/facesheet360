@@ -139,16 +139,19 @@ const ContactsList = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {filteredUsers.map((user) => {
-                    const isOnline = user.online_status === true;
+                  {filteredUsers.map((contact) => {
+                    const isOnline = contact.online_status === true;
+                    const contactId = String(contact.id || '');
+                    const contactName = String(contact.name || 'Unknown');
+                    
                     return (
                       <ContactCard 
-                        key={String(user.id)} 
-                        user={user}
+                        key={contactId} 
+                        user={contact}
                         isOnline={isOnline}
-                        onChat={() => openChatWindow(String(user.id), String(user.name))}
-                        onVideoCall={() => startCall(String(user.id), String(user.name), true)}
-                        onAudioCall={() => startCall(String(user.id), String(user.name), false)}
+                        onChat={() => openChatWindow(contactId, contactName)}
+                        onVideoCall={() => startCall(contactId, contactName, true)}
+                        onAudioCall={() => startCall(contactId, contactName, false)}
                       />
                     );
                   })}

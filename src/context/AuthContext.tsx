@@ -1,4 +1,3 @@
-
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -111,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -121,15 +120,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return {
         id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role || 'doctor',
-        specialty: data.specialty || '',
-        license_number: data.license_number || '',
-        profile_image: data.profile_image || '',
-        care_coins_balance: data.care_coins_balance || data.credits || 0,
-        online_status: data.online_status || false,
-        organization: data.organization || '',
+        name: data.name || '',
+        email: data.email || '',
+        role: 'doctor', // Default role since not in DB
+        specialty: '', // Default since not in DB
+        license_number: '', // Default since not in DB
+        profile_image: '', // Default since not in DB
+        care_coins_balance: data.credits || 0,
+        online_status: false, // Default since not in DB
+        organization: '', // Default since not in DB
         created_at: data.created_at,
         updated_at: data.updated_at
       } as User;
@@ -231,12 +230,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const dbData: any = {};
       if (userData.name) dbData.name = userData.name;
       if (userData.email) dbData.email = userData.email;
-      if (userData.specialty) dbData.specialty = userData.specialty;
-      if (userData.license_number) dbData.license_number = userData.license_number;
-      if (userData.profile_image) dbData.profile_image = userData.profile_image;
-      if (userData.care_coins_balance !== undefined) dbData.care_coins_balance = userData.care_coins_balance;
-      if (userData.role) dbData.role = userData.role;
-      if (userData.organization) dbData.organization = userData.organization;
+      // Only update fields that exist in the database
+      if (userData.care_coins_balance !== undefined) dbData.credits = userData.care_coins_balance;
       
       const { error } = await supabase
         .from('users')

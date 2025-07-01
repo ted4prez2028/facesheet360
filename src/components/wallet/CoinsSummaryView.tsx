@@ -1,88 +1,116 @@
-
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getUserCoinsSummary } from '@/lib/api/careCoinsApi';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Coins } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { Skeleton } from '@/components/ui/skeleton';
-import { CoinsIcon, TrendingUpIcon, TrendingDownIcon, GiftIcon } from 'lucide-react';
-import { CoinsSummary } from '@/types/health-predictions';
+import { useCareCoins } from '@/hooks/useCareCoins';
 
 export const CoinsSummaryView = () => {
   const { user } = useAuth();
+  const { getBalance, getTransactions } = useCareCoins();
+  const [balance, setBalance] = useState<number>(0);
+  const [totalEarned, setTotalEarned] = useState<number>(0);
+  const [usdValue, setUsdValue] = useState<number>(0);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const { data: summary, isLoading } = useQuery({
-    queryKey: ['userCoinsSummary', user?.id],
-    queryFn: () => user?.id ? getUserCoinsSummary(user.id) : Promise.resolve(null),
-    enabled: !!user?.id,
-  });
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (user?.id) {
+        setIsLoading(true);
+        try {
+          const balanceData = await getBalance.mutateAsync(user.id);
+          setBalance(balanceData?.balance || 0);
+          setTotalEarned(balanceData?.totalEarned || 0);
+          setUsdValue(balanceData?.usdValue || 0);
+        } catch (error) {
+          console.error("Failed to fetch balance:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
 
-  if (isLoading) {
-    return (
+    fetchBalance();
+  }, [user?.id, getBalance]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (user?.id) {
+        setIsLoading(true);
+        try {
+          const transactionsData = await getTransactions.mutateAsync(user.id);
+          setTransactions(transactionsData || []);
+        } catch (error) {
+          console.error("Failed to fetch transactions:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchTransactions();
+  }, [user?.id, getTransactions]);
+
+  return (
+    <div className="space-y-6">
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">CareCoins Summary</CardTitle>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5" />
+            CareCoins Summary
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <Skeleton className="h-5 w-full" />
-            <Skeleton className="h-5 w-full" />
-            <Skeleton className="h-5 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-primary/10 rounded-lg">
+              <h3 className="text-2xl font-bold text-primary">{balance || 0}</h3>
+              <p className="text-sm text-muted-foreground">Current Balance</p>
+            </div>
+            <div className="text-center p-4 bg-green-100 rounded-lg">
+              <h3 className="text-2xl font-bold text-green-600">{totalEarned || 0}</h3>
+              <p className="text-sm text-muted-foreground">Total Earned</p>
+            </div>
+            <div className="text-center p-4 bg-blue-100 rounded-lg">
+              <h3 className="text-2xl font-bold text-blue-600">${usdValue?.toFixed(2) || '0.00'}</h3>
+              <p className="text-sm text-muted-foreground">USD Value</p>
+            </div>
           </div>
         </CardContent>
       </Card>
-    );
-  }
 
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <CoinsIcon className="h-4 w-4" />
-          CareCoins Summary
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <TrendingUpIcon className="h-4 w-4 text-green-500" />
-              Total Earned
-            </span>
-            <span className="font-medium">{summary?.total_earned || 0}</span>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <TrendingDownIcon className="h-4 w-4 text-red-500" />
-              Total Spent
-            </span>
-            <span className="font-medium">{summary?.total_spent || 0}</span>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <GiftIcon className="h-4 w-4 text-blue-500" />
-              Rewards
-            </span>
-            <span className="font-medium">{summary?.total_rewards || 0}</span>
-          </div>
-        </div>
-        
-        {summary && summary.rewards_by_category && Object.keys(summary.rewards_by_category).length > 0 && (
-          <div className="mt-4 pt-4 border-t">
-            <div className="text-xs text-muted-foreground mb-2">Rewards by Category:</div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-4">Loading transactions...</div>
+          ) : transactions && transactions.length > 0 ? (
             <div className="space-y-2">
-              {Object.entries(summary.rewards_by_category).map(([category, amount]) => (
-                <div key={category} className="flex items-center justify-between">
-                  <span className="text-xs">{category}</span>
-                  <span className="text-xs font-medium">{amount}</span>
+              {transactions.slice(0, 5).map((transaction: any) => (
+                <div key={transaction.id} className="flex justify-between items-center p-2 border rounded">
+                  <div>
+                    <p className="font-medium">{String(transaction.transaction_type || 'Unknown')}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {String(transaction.description || 'No description')}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {transaction.amount > 0 ? '+' : ''}{transaction.amount} CC
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(transaction.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <p className="text-center text-muted-foreground py-4">No recent transactions</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
