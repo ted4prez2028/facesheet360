@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTimeSlot } from "@/utils/dateUtils";
 
-interface Appointment {
+export interface Appointment {
   id: string;
   appointment_date: string;
   notes: string;

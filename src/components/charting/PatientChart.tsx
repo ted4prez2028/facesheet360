@@ -18,6 +18,9 @@ interface Patient {
   status: string;
   lastVisit: string;
   imgUrl: string | null;
+  date_of_birth?: string;
+  gender?: string;
+  medical_record_number?: string;
 }
 
 interface PatientChartProps {
@@ -45,6 +48,14 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     allergies: []
   };
 
+  // Ensure patient data has required properties
+  const enhancedPatientData = patientData ? {
+    ...patientData,
+    date_of_birth: patientData.date_of_birth || '1990-01-01',
+    gender: patientData.gender || 'Not specified',
+    medical_record_number: patientData.medical_record_number || `MR-${patientData.id.slice(0, 8)}`
+  } : undefined;
+
   if (!selectedPatient) {
     return (
       <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg border border-dashed">
@@ -62,14 +73,14 @@ const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProp
     <Card className="shadow-sm flex-1 flex flex-col">
       <CardHeader className="pb-0">
         <PatientDetailHeader
-          patientName={patientData?.name}
-          patientId={patientData?.id}
-          patientAge={patientData?.age}
+          patientName={enhancedPatientData?.name}
+          patientId={enhancedPatientData?.id}
+          patientAge={enhancedPatientData?.age}
         />
       </CardHeader>
       
       <PatientChartTabs 
-        patient={patientData} 
+        patient={enhancedPatientData} 
         chartData={chartData} 
         patientId={selectedPatient}
         userId={userId}

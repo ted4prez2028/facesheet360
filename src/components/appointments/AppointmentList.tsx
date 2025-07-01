@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { format, isSameDay, isToday } from "date-fns";
 import { MoreHorizontal, Clock } from "lucide-react";
@@ -48,8 +49,9 @@ const AppointmentList = ({
         onSuccess: () => {
           toast.success('Appointment cancelled successfully');
         },
-        onError: (error) => {
-          toast.error(`Error cancelling appointment: ${error.message}`);
+        onError: (error: any) => {
+          const errorMessage = error?.message || 'Failed to cancel appointment';
+          toast.error(`Error cancelling appointment: ${errorMessage}`);
         }
       });
     }

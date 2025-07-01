@@ -37,6 +37,8 @@ export interface Patient {
   updated_at?: string;
   age?: number;
   condition?: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface Appointment {
@@ -97,12 +99,15 @@ export interface Message {
   from_user_id: string | null;
   to_user_id: string | null;
   content: string | null;
+  sender_id?: string;
+  timestamp?: string;
 }
 
 export interface ChatWindow {
   userId: string;
   userName: string;
   minimized: boolean;
+  messages?: Message[];
 }
 
 export interface RecentPatient {
