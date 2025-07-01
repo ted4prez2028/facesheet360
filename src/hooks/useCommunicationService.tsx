@@ -26,7 +26,7 @@ export function useCommunicationService() {
         care_coins_balance: 0,
         careCoinsBalance: 0,
         online_status: Math.random() > 0.5, // Randomly set some as online
-        organization: user.organization || doctor.organization
+        organization: doctor.organization || 'Default Organization'
       })) as User[];
       
       setOnlineUsers(mockUsers);
@@ -73,8 +73,7 @@ export function useCommunicationService() {
           sender_id: window.userId,
           recipient_id: user.id,
           content: `Hello ${user.name}! How are you today?`,
-          timestamp: new Date().toISOString(),
-          read: false
+          timestamp: new Date().toISOString()
         }
       ];
       
@@ -123,11 +122,11 @@ export function useCommunicationService() {
       // Check if window already exists
       if (prev.find(window => window.userId === userId)) {
         return prev.map(window => window.userId === userId 
-          ? { ...window, minimized: false } 
+          ? { ...window, isMinimized: false } 
           : window
         );
       }
-      return [...prev, { userId, userName, minimized: false, messages: [] }];
+      return [...prev, { userId, userName, isMinimized: false, isOpen: true, messages: [] }];
     });
   }, []);
   
@@ -140,7 +139,7 @@ export function useCommunicationService() {
   const minimizeChatWindow = useCallback((userId: string) => {
     setChatWindows(prev => prev.map(window => 
       window.userId === userId 
-        ? { ...window, minimized: !window.minimized } 
+        ? { ...window, isMinimized: !window.isMinimized } 
         : window
     ));
   }, []);
@@ -156,8 +155,7 @@ export function useCommunicationService() {
         sender_id: user.id,
         recipient_id: recipientId,
         content,
-        timestamp: new Date().toISOString(),
-        read: false
+        timestamp: new Date().toISOString()
       };
       
       setChatWindows(prev => prev.map(window => 
@@ -185,7 +183,7 @@ export function useCommunicationService() {
         receiverId: userId,
         receiverName: userName,
         isVideoCall: isVideo,
-        status: 'ringing'
+        status: 'pending' // Use valid status instead of 'ringing'
       });
       
       setIsCallActive(true);

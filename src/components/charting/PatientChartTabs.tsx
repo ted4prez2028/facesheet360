@@ -40,9 +40,9 @@ interface PatientChartTabsProps {
 // Define a local interface that matches the expected type from GenerateCarePlanButton
 interface LocalPatientDataForCarePlan {
   id: string;
-  first_name?: string;
+  first_name: string; // Made required to match PatientDataForCarePlan
   last_name?: string;
-  date_of_birth?: string;
+  date_of_birth: string; // Made required to match PatientDataForCarePlan
   gender?: string;
   phone?: string;
   email?: string;
@@ -94,14 +94,18 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     } else if (typeof chartData?.allergies === 'string') {
       allergiesString = chartData.allergies;
     } else if (patient.allergies) {
-      allergiesString = typeof patient.allergies === 'string' ? patient.allergies : '';
+      if (Array.isArray(patient.allergies)) {
+        allergiesString = patient.allergies.join(', ');
+      } else if (typeof patient.allergies === 'string') {
+        allergiesString = patient.allergies;
+      }
     }
     
     return {
       id: patient.id,
-      first_name: patient.first_name || patient.name?.split(' ')[0] || '',
+      first_name: patient.first_name || patient.name?.split(' ')[0] || 'Unknown', // Provide default value
       last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || '',
-      date_of_birth: patient.date_of_birth || '',
+      date_of_birth: patient.date_of_birth || '', // Provide default value
       gender: patient.gender,
       phone: patient.phone,
       email: patient.email,
