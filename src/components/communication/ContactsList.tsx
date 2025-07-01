@@ -47,24 +47,29 @@ const ContactsList = () => {
   // Get unique organizations from users
   const organizations = ['all', ...new Set(
     contacts.onlineUsers
-      .map(user => (user.organization as string) || 'No Organization')
+      .map(user => String(user.organization || 'No Organization'))
       .filter(Boolean)
   )];
   
   const filteredUsers = contacts.onlineUsers.filter(contact => {
-    const matchesSearch = 
-      (contact.name as string).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (contact.role as string).toLowerCase().includes(searchTerm.toLowerCase());
+    const contactName = String(contact.name || '');
+    const contactRole = String(contact.role || '');
     
+    const matchesSearch = 
+      contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contactRole.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const contactOrganization = String(contact.organization || '');
     const matchesOrganization = 
       organizationFilter === 'all' || 
-      contact.organization === organizationFilter ||
-      (organizationFilter === 'No Organization' && !contact.organization);
+      contactOrganization === organizationFilter ||
+      (organizationFilter === 'No Organization' && !contactOrganization);
     
     // Only show contacts with the same organization as the user
+    const userOrganization = String(user?.organization || '');
     const sameOrganization = 
-      !user?.organization || 
-      user.organization === contact.organization || 
+      !userOrganization || 
+      userOrganization === contactOrganization || 
       organizationFilter !== 'all';
     
     return matchesSearch && matchesOrganization && sameOrganization;
@@ -179,18 +184,18 @@ interface ContactCardProps {
 }
 
 const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: ContactCardProps) => {
-  const userInitials = user.name
-    ? String(user.name)
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-    : "?";
+  const userName = String(user.name || '');
+  const userInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2) || "?";
     
   return (
     <div className="flex items-center justify-between p-3 rounded-md border hover:bg-accent/50 transition-colors">
       <div className="flex items-center space-x-3 relative">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={user.profile_image as string} />
+          <AvatarImage src={String(user.profile_image || '')} />
           <AvatarFallback className="bg-health-600 text-white">
             {userInitials}
           </AvatarFallback>
@@ -199,9 +204,9 @@ const ContactCard = ({ user, isOnline, onChat, onVideoCall, onAudioCall }: Conta
           <Circle className="absolute bottom-0 right-0 h-3 w-3 fill-green-500 text-green-500 translate-x-1/4 translate-y-1/4" />
         )}
         <div>
-          <p className="font-medium text-sm">{String(user.name)}</p>
+          <p className="font-medium text-sm">{userName}</p>
           <div className="flex flex-col">
-            <p className="text-xs text-muted-foreground capitalize">{String(user.role)}</p>
+            <p className="text-xs text-muted-foreground capitalize">{String(user.role || '')}</p>
             {user.organization && (
               <p className="text-xs text-muted-foreground">{String(user.organization)}</p>
             )}

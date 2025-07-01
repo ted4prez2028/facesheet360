@@ -1,13 +1,13 @@
+
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wallet, ExternalLink, AlertTriangle } from "lucide-react";
 import { useWallet } from "@/hooks/useWallet";
-import { useWalletSetup } from "@/hooks/useWalletSetup";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ConnectWallet = () => {
-  const { connectWallet, disconnectWallet, isConnected, account, isLoading } = useWallet();
+  const { connectWallet, isWalletConnected, walletAddress, isLoading } = useWallet();
 
   const handleConnect = async () => {
     try {
@@ -20,14 +20,6 @@ const ConnectWallet = () => {
       await connectWallet();
     } catch (error) {
       console.error('Failed to connect wallet:', error);
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      await disconnectWallet();
-    } catch (error) {
-      console.error('Failed to disconnect wallet:', error);
     }
   };
 
@@ -45,10 +37,10 @@ const ConnectWallet = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isConnected ? (
+        {isWalletConnected ? (
           <div className="bg-muted rounded-lg p-4">
             <p className="text-sm font-medium mb-1">Connected Wallet</p>
-            <p className="font-mono text-xs break-all">{account}</p>
+            <p className="font-mono text-xs break-all">{walletAddress}</p>
           </div>
         ) : (
           <>
@@ -91,7 +83,7 @@ const ConnectWallet = () => {
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
-        {isConnected ? (
+        {isWalletConnected ? (
           <Button disabled className="w-full" variant="outline">
             Wallet Connected
           </Button>
@@ -100,7 +92,7 @@ const ConnectWallet = () => {
             <Button 
               onClick={handleConnect} 
               className="flex-1"
-              disabled={isLoading || !getProvider()}
+              disabled={isLoading || !window.ethereum}
             >
               {isLoading ? "Connecting..." : "Connect MetaMask"}
             </Button>

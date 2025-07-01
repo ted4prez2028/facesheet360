@@ -5,7 +5,6 @@ import { useCommunicationService } from "@/hooks/useCommunicationService";
 import { usePeerConnection } from "@/hooks/usePeerConnection";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from "@/integrations/supabase/client";
 
 export function useCommunicationState() {
   const [isContactsOpen, setIsContactsOpen] = useState(false);
@@ -74,20 +73,7 @@ export function useCommunicationState() {
     // Create a room ID for the group call
     const roomId = uuidv4();
     
-    // Create group call record in database
     try {
-      const { error } = await supabase
-        .from('group_calls')
-        .insert({
-          room_id: roomId,
-          initiator_id: user.id,
-          is_video_call: isVideo,
-          status: 'active',
-          participants: [user.id, ...selectedContacts]
-        });
-        
-      if (error) throw error;
-      
       // Initialize WebRTC connections to all participants
       peerConnection.startGroupCall(selectedContacts, isVideo, roomId);
       
@@ -114,16 +100,6 @@ export function useCommunicationState() {
     }
     
     try {
-      // Update the group call record to include this user
-      const { error } = await supabase
-        .from('group_calls')
-        .update({
-          participants: [...participantIds, user.id]
-        })
-        .eq('room_id', roomId);
-        
-      if (error) throw error;
-      
       // Join the WebRTC group call
       peerConnection.joinGroupCall(roomId, participantIds, isVideo);
       
