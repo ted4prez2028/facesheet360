@@ -40,11 +40,11 @@ interface PatientChartTabsProps {
 // Define a local interface that matches the expected type from GenerateCarePlanButton
 interface LocalPatientDataForCarePlan {
   id: string;
-  first_name: string; // Made required to match PatientDataForCarePlan
-  last_name: string; // Made required to match PatientDataForCarePlan
-  date_of_birth: string; // Made required to match PatientDataForCarePlan
-  gender: string; // Made required to match PatientDataForCarePlan
-  phone?: string;
+  first_name: string; // Required to match PatientDataForCarePlan
+  last_name: string; // Required to match PatientDataForCarePlan
+  date_of_birth: string; // Required to match PatientDataForCarePlan
+  gender: string; // Required to match PatientDataForCarePlan
+  phone: string; // Required to match PatientDataForCarePlan
   email?: string;
   address?: string;
   insurance_provider?: string;
@@ -107,7 +107,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       last_name: patient.last_name || patient.name?.split(' ').slice(1).join(' ') || 'Patient', // Provide default value
       date_of_birth: patient.date_of_birth || '1990-01-01', // Provide default value
       gender: patient.gender || 'Not specified', // Provide default value
-      phone: patient.phone,
+      phone: patient.phone || 'Not provided', // Provide default value
       email: patient.email,
       address: patient.address,
       insurance_provider: patient.insurance_provider,

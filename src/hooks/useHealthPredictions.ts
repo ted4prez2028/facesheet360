@@ -19,7 +19,7 @@ export const useHealthPredictions = (patientId?: string) => {
           prediction_type: 'diabetes_risk',
           prediction_data: { risk_score: 0.75, factors: ['age', 'weight', 'family_history'] },
           confidence_score: 0.85,
-          status: 'active',
+          status: 'pending',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         },
@@ -29,7 +29,7 @@ export const useHealthPredictions = (patientId?: string) => {
           prediction_type: 'cardiovascular_risk',
           prediction_data: { risk_score: 0.45, factors: ['blood_pressure', 'cholesterol'] },
           confidence_score: 0.78,
-          status: 'active',
+          status: 'verified',
           created_at: new Date(Date.now() - 86400000).toISOString(),
           updated_at: new Date(Date.now() - 86400000).toISOString()
         }
