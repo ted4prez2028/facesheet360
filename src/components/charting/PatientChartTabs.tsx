@@ -54,6 +54,11 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
   const preparePatientDataForAI = (): PatientDataForCarePlan | null => {
     if (!patient) return null;
     
+    // Handle allergies - convert to string if it's an array, or use as string
+    const allergiesString = Array.isArray(chartData?.allergies) 
+      ? chartData.allergies.join(', ') 
+      : (chartData?.allergies || patient.allergies || '');
+    
     return {
       id: patient.id,
       first_name: patient.first_name || patient.name?.split(' ')[0] || '',
@@ -69,9 +74,7 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       emergency_contact_phone: patient.emergency_contact_phone,
       emergency_contact_relation: patient.emergency_contact_relation,
       medical_history: patient.medical_history,
-      allergies: Array.isArray(chartData?.allergies) 
-        ? chartData.allergies.join(', ') 
-        : (chartData?.allergies || ''),
+      allergies: allergiesString,
       medications: patient.medications,
       notes: patient.notes,
       medical_record_number: patient.medical_record_number,
