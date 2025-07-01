@@ -47,8 +47,8 @@ interface LocalPatientDataForCarePlan {
   phone: string;
   email: string;
   address: string;
-  insurance_provider: string; // Made required to match PatientDataForCarePlan
-  insurance_number?: string;
+  insurance_provider: string;
+  insurance_number: string; // Made required to match PatientDataForCarePlan
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
@@ -77,17 +77,13 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
     patientId: patientId || '' 
   });
   
-  // Handler for when a care plan is generated
   const handlePlanGenerated = async (carePlan: string) => {
-    // You can add additional logic here if needed
-    // For example, you might want to switch to the care plan tab
+    // Additional logic if needed
   };
   
-  // Prepare patient data for AI care plan generation
   const preparePatientDataForAI = (): LocalPatientDataForCarePlan | null => {
     if (!patient) return null;
     
-    // Handle allergies - ensure it's a string
     let allergiesString = '';
     if (Array.isArray(chartData?.allergies)) {
       allergiesString = chartData.allergies.join(', ');
@@ -110,8 +106,8 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       phone: patient.phone || 'Not provided',
       email: patient.email || 'Not provided',
       address: patient.address || 'Not provided',
-      insurance_provider: patient.insurance_provider || 'Not provided', // Ensure this is always a string
-      insurance_number: patient.insurance_number,
+      insurance_provider: patient.insurance_provider || 'Not provided',
+      insurance_number: patient.insurance_number || 'Not provided', // Ensure this is always a string
       emergency_contact_name: patient.emergency_contact_name,
       emergency_contact_phone: patient.emergency_contact_phone,
       emergency_contact_relation: patient.emergency_contact_relation,

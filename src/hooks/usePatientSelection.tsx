@@ -1,58 +1,39 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from '@/integrations/supabase/client';
 import { Patient } from "@/types";
 import { toast } from "sonner";
 
-/**
- * Hook to manage patient selection and data fetching
- */
+interface PatientForSelection {
+  id: string;
+  name: string;
+  age: number;
+  status: string;
+  lastVisit: string;
+  imgUrl: string | null;
+}
+
 export const usePatientSelection = (userId?: string | null) => {
   const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
   
-  // Fetch patients data with mock implementation since patients table doesn't exist
   const { data: patients, isLoading } = useQuery({
     queryKey: ['charting-patients'],
-    queryFn: async () => {
+    queryFn: async (): Promise<PatientForSelection[]> => {
       try {
-        console.log("Fetching patients for charting with user ID:", userId);
-        
-        // Mock patients data since database table doesn't exist
-        const mockPatients = [
-          {
-            id: '1',
-            first_name: 'John',
-            last_name: 'Doe',
-            date_of_birth: '1980-01-15',
-            gender: 'Male',
-            facial_data: null
-          },
-          {
-            id: '2',
-            first_name: 'Jane',
-            last_name: 'Smith',
-            date_of_birth: '1975-03-22',
-            gender: 'Female',
-            facial_data: null
-          },
-          {
-            id: '3',
-            first_name: 'Robert',
-            last_name: 'Johnson',
-            date_of_birth: '1990-07-08',
-            gender: 'Male',
-            facial_data: null
-          }
-        ];
-        
-        console.log(`Found ${mockPatients.length} patients for charting`);
-        
-        return mockPatients.map(patient => ({
+        const { data, error } = await supabase
+          .from('patients')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map((patient: Patient) => ({
           id: patient.id,
           name: `${patient.first_name} ${patient.last_name}`,
           age: calculateAge(patient.date_of_birth),
           status: "Active",
-          lastVisit: new Date().toISOString().split('T')[0],
+          lastVisit: new Date(patient.updated_at).toISOString().split('T')[0],
           imgUrl: null
         }));
       } catch (error) {
@@ -63,10 +44,9 @@ export const usePatientSelection = (userId?: string | null) => {
     },
     enabled: !!userId,
     retry: 2,
-    staleTime: 60000 // Cache for 1 minute
+    staleTime: 60000
   });
   
-  // Helper function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -78,7 +58,6 @@ export const usePatientSelection = (userId?: string | null) => {
     return age;
   };
 
-  // Get the selected patient's data
   const selectedPatientData = patients?.find(p => p.id === selectedPatient);
   
   return {

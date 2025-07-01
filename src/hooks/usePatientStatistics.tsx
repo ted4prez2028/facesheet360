@@ -1,19 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-
-interface DbPatientStatistic {
-  month: string;
-  newpatients: number;
-  activepatients: number;
-}
-
-interface DbVitalSign {
-  date_recorded: string;
-  heart_rate?: number;
-  blood_pressure?: string;
-  oxygen_saturation?: number;
-}
 
 export interface PatientStatistic {
   name: string;
@@ -34,24 +22,36 @@ export const usePatientStatistics = (timeframe: string = 'year') => {
     queryKey: ['patientStatistics', timeframe],
     queryFn: async (): Promise<PatientStatistic[]> => {
       try {
-        // Mock data since the database tables don't exist
-        const mockStatistics: PatientStatistic[] = [
-          { name: "Jan", newPatients: 12, activePatients: 45, avg: 28 },
-          { name: "Feb", newPatients: 15, activePatients: 52, avg: 33 },
-          { name: "Mar", newPatients: 18, activePatients: 48, avg: 33 },
-          { name: "Apr", newPatients: 22, activePatients: 61, avg: 41 },
-          { name: "May", newPatients: 25, activePatients: 58, avg: 41 },
-          { name: "Jun", newPatients: 20, activePatients: 55, avg: 37 }
-        ];
+        const { data, error } = await supabase
+          .from('patients')
+          .select('created_at')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Process data by month
+        const monthlyData: { [key: string]: number } = {};
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        return mockStatistics;
+        data.forEach(patient => {
+          const date = new Date(patient.created_at);
+          const monthKey = months[date.getMonth()];
+          monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+        });
+
+        return months.slice(0, 6).map(month => ({
+          name: month,
+          newPatients: monthlyData[month] || 0,
+          activePatients: (monthlyData[month] || 0) * 3 + 20, // Simulated active patients
+          avg: Math.round(((monthlyData[month] || 0) + 20) / 2)
+        }));
       } catch (error) {
         console.error("Error fetching patient statistics:", error);
         toast.error("Failed to load patient statistics");
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -60,13 +60,33 @@ export const usePatientHealthMetrics = (patientId?: string) => {
     queryKey: ['healthMetrics', patientId],
     queryFn: async (): Promise<HealthMetric[]> => {
       if (!patientId) {
-        // Return sample data if no patient is selected
         return defaultHealthMetrics;
       }
 
       try {
-        // Mock data since vital_signs table doesn't exist
-        return defaultHealthMetrics;
+        const { data, error } = await supabase
+          .from('vital_signs')
+          .select('*')
+          .eq('patient_id', patientId)
+          .order('date_recorded', { ascending: false })
+          .limit(6);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          return defaultHealthMetrics;
+        }
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        return months.map((month, index) => {
+          const vitalData = data[index];
+          return {
+            name: month,
+            heartRate: vitalData?.heart_rate || 75,
+            bloodPressure: parseInt(vitalData?.blood_pressure?.split('/')[0] || '120'),
+            o2Saturation: vitalData?.oxygen_saturation || 98
+          };
+        });
       } catch (error) {
         console.error("Error fetching patient health metrics:", error);
         toast.error("Failed to load health metrics");
@@ -74,11 +94,10 @@ export const usePatientHealthMetrics = (patientId?: string) => {
       }
     },
     enabled: !!patientId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
 
-// Default health metrics data for fallback
 const defaultHealthMetrics: HealthMetric[] = [
   { name: "Jan", heartRate: 75, bloodPressure: 120, o2Saturation: 98 },
   { name: "Feb", heartRate: 72, bloodPressure: 118, o2Saturation: 97 },

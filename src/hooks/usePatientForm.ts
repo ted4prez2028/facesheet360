@@ -17,7 +17,6 @@ export interface PatientFormState {
   insuranceProvider: string;
   policyNumber: string;
   address: string;
-  facialData: string | null;
   isLoading: boolean;
 }
 
@@ -33,7 +32,6 @@ export const usePatientForm = (onSuccess: () => void) => {
     insuranceProvider: "",
     policyNumber: "",
     address: "",
-    facialData: null,
     isLoading: false,
   };
 
@@ -41,13 +39,6 @@ export const usePatientForm = (onSuccess: () => void) => {
 
   const updateField = (field: keyof Omit<PatientFormState, "isLoading">, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleFacialDataCapture = (data: string) => {
-    setFormState((prev) => ({ ...prev, facialData: data }));
-    toast("Facial data captured", {
-      description: "Facial recognition data has been captured successfully.",
-    });
   };
 
   const resetForm = () => {
@@ -74,12 +65,10 @@ export const usePatientForm = (onSuccess: () => void) => {
         return false;
       }
       
-      // Also refresh the token if it's getting close to expiry
       if (data.session.expires_at) {
         const expiresAt = new Date(data.session.expires_at * 1000);
         const now = new Date();
         
-        // If token expires in less than 5 minutes, refresh it
         if ((expiresAt.getTime() - now.getTime()) < 5 * 60 * 1000) {
           console.log("Token expiring soon, refreshing...");
           await supabase.auth.refreshSession();
@@ -99,38 +88,33 @@ export const usePatientForm = (onSuccess: () => void) => {
   const submitForm = async () => {
     if (!validateForm()) return false;
     
-    // Verify authentication first
     const hasSession = await verifySession();
     if (!hasSession) return false;
 
     setFormState((prev) => ({ ...prev, isLoading: true }));
     
     try {
-      // Convert form state to patient object for API
       const patientData: Partial<Patient> = {
         first_name: formState.firstName,
         last_name: formState.lastName,
-        email: formState.email || null,
-        phone: formState.phone || null,
+        email: formState.email || undefined,
+        phone: formState.phone || undefined,
         date_of_birth: formState.dateOfBirth,
         gender: formState.gender,
-        medical_record_number: formState.medicalRecordNumber || null,
-        insurance_provider: formState.insuranceProvider || null,
-        insurance_number: formState.policyNumber || null, // Map to insurance_number
-        address: formState.address || null,
-        // Remove facial_data as it's not in the Patient type
+        medical_record_number: formState.medicalRecordNumber || undefined,
+        insurance_provider: formState.insuranceProvider || undefined,
+        insurance_number: formState.policyNumber || undefined,
+        address: formState.address || undefined,
       };
       
       console.log("Submitting patient data:", patientData);
       
-      // Try with direct method first
       let result;
       try {
         console.log("Using direct patient API method");
         result = await addPatientDirect(patientData);
       } catch (error: unknown) {
         console.error("Direct API method failed:", error);
-        // Fall back to the regular method
         console.log("Falling back to regular API method");
         result = await addPatient(patientData);
       }
@@ -176,7 +160,6 @@ export const usePatientForm = (onSuccess: () => void) => {
   return {
     formState,
     updateField,
-    handleFacialDataCapture,
     resetForm,
     submitForm,
   };

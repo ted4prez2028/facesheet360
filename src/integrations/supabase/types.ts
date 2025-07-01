@@ -42,6 +42,47 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          provider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_post_settings: {
         Row: {
           created_at: string
@@ -68,6 +109,200 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      care_coins_achievements: {
+        Row: {
+          achieved_at: string
+          achievement_type: string
+          created_at: string
+          description: string | null
+          id: string
+          reward_amount: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          achievement_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reward_amount: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          achievement_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reward_amount?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      care_coins_bill_payments: {
+        Row: {
+          amount: number
+          bill_info: Json | null
+          bill_type: string
+          created_at: string
+          id: string
+          recipient_account: string
+          recipient_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bill_info?: Json | null
+          bill_type: string
+          created_at?: string
+          id?: string
+          recipient_account: string
+          recipient_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bill_info?: Json | null
+          bill_type?: string
+          created_at?: string
+          id?: string
+          recipient_account?: string
+          recipient_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      care_coins_cards: {
+        Row: {
+          card_type: string
+          created_at: string
+          id: string
+          limit_amount: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_type?: string
+          created_at?: string
+          id?: string
+          limit_amount?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_type?: string
+          created_at?: string
+          id?: string
+          limit_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      care_coins_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          from_user_id: string | null
+          id: string
+          metadata: Json | null
+          reward_category: string | null
+          to_user_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          from_user_id?: string | null
+          id?: string
+          metadata?: Json | null
+          reward_category?: string | null
+          to_user_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          from_user_id?: string | null
+          id?: string
+          metadata?: Json | null
+          reward_category?: string | null
+          to_user_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
+      chart_records: {
+        Row: {
+          created_at: string
+          diagnosis: string | null
+          id: string
+          medications: Json | null
+          notes: string | null
+          patient_id: string
+          provider_id: string
+          record_date: string
+          record_type: string
+          treatment_plan: string | null
+          updated_at: string
+          vital_signs: Json | null
+          vitals: Json | null
+        }
+        Insert: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          medications?: Json | null
+          notes?: string | null
+          patient_id: string
+          provider_id: string
+          record_date?: string
+          record_type: string
+          treatment_plan?: string | null
+          updated_at?: string
+          vital_signs?: Json | null
+          vitals?: Json | null
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: string | null
+          id?: string
+          medications?: Json | null
+          notes?: string | null
+          patient_id?: string
+          provider_id?: string
+          record_date?: string
+          record_type?: string
+          treatment_plan?: string | null
+          updated_at?: string
+          vital_signs?: Json | null
+          vitals?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_templates: {
         Row: {
@@ -177,6 +412,150 @@ export type Database = {
         }
         Relationships: []
       }
+      health_predictions: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          id: string
+          model_version: string
+          patient_id: string
+          prediction_data: Json
+          prediction_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          confidence_score: number
+          created_at?: string
+          id?: string
+          model_version: string
+          patient_id: string
+          prediction_data: Json
+          prediction_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          model_version?: string
+          patient_id?: string
+          prediction_data?: Json
+          prediction_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_predictions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immunizations: {
+        Row: {
+          created_at: string
+          cvx_code: string | null
+          date_administered: string | null
+          id: string
+          patient_id: string
+          source: string | null
+          status: string
+          updated_at: string
+          vaccine: string
+        }
+        Insert: {
+          created_at?: string
+          cvx_code?: string | null
+          date_administered?: string | null
+          id?: string
+          patient_id: string
+          source?: string | null
+          status?: string
+          updated_at?: string
+          vaccine: string
+        }
+        Update: {
+          created_at?: string
+          cvx_code?: string | null
+          date_administered?: string | null
+          id?: string
+          patient_id?: string
+          source?: string | null
+          status?: string
+          updated_at?: string
+          vaccine?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immunizations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_diagnoses: {
+        Row: {
+          category: string | null
+          classification: string | null
+          clinical_category: string | null
+          code: string
+          created_at: string
+          date: string | null
+          description: string
+          id: string
+          patient_id: string
+          pdmp_comorbidities: string | null
+          rank: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          classification?: string | null
+          clinical_category?: string | null
+          code: string
+          created_at?: string
+          date?: string | null
+          description: string
+          id?: string
+          patient_id: string
+          pdmp_comorbidities?: string | null
+          rank?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          classification?: string | null
+          clinical_category?: string | null
+          code?: string
+          created_at?: string
+          date?: string | null
+          description?: string
+          id?: string
+          patient_id?: string
+          pdmp_comorbidities?: string | null
+          rank?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_diagnoses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           author: string
@@ -222,6 +601,81 @@ export type Database = {
         }
         Relationships: []
       }
+      patients: {
+        Row: {
+          address: string | null
+          allergies: string | null
+          created_at: string
+          date_of_birth: string
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
+          facial_data: string | null
+          first_name: string
+          gender: string
+          id: string
+          insurance_number: string | null
+          insurance_provider: string | null
+          last_name: string
+          medical_history: string | null
+          medical_record_number: string | null
+          medications: string | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          allergies?: string | null
+          created_at?: string
+          date_of_birth: string
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          facial_data?: string | null
+          first_name: string
+          gender: string
+          id?: string
+          insurance_number?: string | null
+          insurance_provider?: string | null
+          last_name: string
+          medical_history?: string | null
+          medical_record_number?: string | null
+          medications?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          allergies?: string | null
+          created_at?: string
+          date_of_birth?: string
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          facial_data?: string | null
+          first_name?: string
+          gender?: string
+          id?: string
+          insurance_number?: string | null
+          insurance_provider?: string | null
+          last_name?: string
+          medical_history?: string | null
+          medical_record_number?: string | null
+          medications?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string
@@ -263,6 +717,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      prescriptions: {
+        Row: {
+          administered_at: string | null
+          administered_by: string | null
+          created_at: string
+          dosage: string
+          end_date: string | null
+          frequency: string
+          id: string
+          instructions: string | null
+          medication_name: string
+          patient_id: string
+          provider_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          administered_at?: string | null
+          administered_by?: string | null
+          created_at?: string
+          dosage: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medication_name: string
+          patient_id: string
+          provider_id: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          administered_at?: string | null
+          administered_by?: string | null
+          created_at?: string
+          dosage?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medication_name?: string
+          patient_id?: string
+          provider_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_accounts: {
         Row: {
@@ -306,6 +819,53 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          frequency: string | null
+          id: string
+          patient_id: string
+          position: string | null
+          status: string
+          task_description: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          frequency?: string | null
+          id?: string
+          patient_id: string
+          position?: string | null
+          status?: string
+          task_description: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          frequency?: string | null
+          id?: string
+          patient_id?: string
+          position?: string | null
+          status?: string
+          task_description?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_oauth_configs: {
         Row: {
           client_id: string
@@ -338,42 +898,163 @@ export type Database = {
       }
       users: {
         Row: {
+          care_coins_balance: number | null
           created_at: string
           credits: number | null
           email: string | null
           id: string
           is_admin: boolean | null
+          last_seen: string | null
           name: string | null
+          online_status: boolean | null
+          organization: string | null
           remaining_credits: number | null
+          role: string | null
+          specialty: string | null
           total_credits: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          care_coins_balance?: number | null
           created_at?: string
           credits?: number | null
           email?: string | null
           id?: string
           is_admin?: boolean | null
+          last_seen?: string | null
           name?: string | null
+          online_status?: boolean | null
+          organization?: string | null
           remaining_credits?: number | null
+          role?: string | null
+          specialty?: string | null
           total_credits?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          care_coins_balance?: number | null
           created_at?: string
           credits?: number | null
           email?: string | null
           id?: string
           is_admin?: boolean | null
+          last_seen?: string | null
           name?: string | null
+          online_status?: boolean | null
+          organization?: string | null
           remaining_credits?: number | null
+          role?: string | null
+          specialty?: string | null
           total_credits?: number | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      vital_signs: {
+        Row: {
+          blood_pressure: string | null
+          created_at: string
+          date_recorded: string
+          heart_rate: number | null
+          height: number | null
+          id: string
+          oxygen_saturation: number | null
+          patient_id: string
+          respiratory_rate: number | null
+          temperature: number | null
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          blood_pressure?: string | null
+          created_at?: string
+          date_recorded?: string
+          heart_rate?: number | null
+          height?: number | null
+          id?: string
+          oxygen_saturation?: number | null
+          patient_id: string
+          respiratory_rate?: number | null
+          temperature?: number | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          blood_pressure?: string | null
+          created_at?: string
+          date_recorded?: string
+          heart_rate?: number | null
+          height?: number | null
+          id?: string
+          oxygen_saturation?: number | null
+          patient_id?: string
+          respiratory_rate?: number | null
+          temperature?: number | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vital_signs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wounds: {
+        Row: {
+          assessment: string | null
+          created_at: string
+          description: string
+          healing_status: string | null
+          id: string
+          image_url: string
+          infection_status: string | null
+          location: string
+          patient_id: string
+          stage: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment?: string | null
+          created_at?: string
+          description: string
+          healing_status?: string | null
+          id?: string
+          image_url: string
+          infection_status?: string | null
+          location: string
+          patient_id: string
+          stage?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment?: string | null
+          created_at?: string
+          description?: string
+          healing_status?: string | null
+          id?: string
+          image_url?: string
+          infection_status?: string | null
+          location?: string
+          patient_id?: string
+          stage?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wounds_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

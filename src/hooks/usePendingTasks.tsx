@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 
 export interface PendingTask {
@@ -10,10 +11,6 @@ export interface PendingTask {
   due: string;
 }
 
-/**
- * Fetches pending tasks for the logged-in provider
- * Using mock data since the required database tables don't exist
- */
 export const usePendingTasks = () => {
   const { user } = useAuth();
   
@@ -23,45 +20,54 @@ export const usePendingTasks = () => {
       if (!user?.id) return [];
       
       try {
-        console.log("Fetching pending tasks for user:", user.id);
-        
-        // Mock pending tasks since the database tables don't exist
-        const mockTasks: PendingTask[] = [
-          {
-            id: '1',
-            task: 'Complete progress note for John Doe',
-            priority: 'High',
-            due: 'Today'
-          },
-          {
-            id: '2',
-            task: 'Review lab results for Jane Smith',
-            priority: 'High',
-            due: 'Today'
-          },
-          {
-            id: '3',
-            task: 'Update care plan for Robert Johnson',
-            priority: 'Medium',
-            due: 'Tomorrow'
-          },
-          {
-            id: '4',
-            task: 'Follow up with Mary Wilson',
-            priority: 'Medium',
-            due: 'Tomorrow'
-          },
-          {
-            id: '5',
-            task: 'Process prescription renewal for David Brown',
-            priority: 'Low',
-            due: 'Next Week'
+        const { data, error } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            patients:patient_id (
+              first_name,
+              last_name
+            )
+          `)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map((task: any) => {
+          const patientName = task.patients 
+            ? `${task.patients.first_name} ${task.patients.last_name}`
+            : 'Unknown Patient';
+          
+          // Determine priority based on task description
+          let priority = 'Medium';
+          const taskLower = task.task_description.toLowerCase();
+          if (taskLower.includes('urgent') || taskLower.includes('emergency') || taskLower.includes('critical')) {
+            priority = 'High';
+          } else if (taskLower.includes('routine') || taskLower.includes('follow up')) {
+            priority = 'Low';
           }
-        ];
-        
-        console.log(`Generated ${mockTasks.length} mock pending tasks`);
-        
-        return mockTasks;
+
+          // Calculate due date
+          const createdDate = new Date(task.created_at);
+          const today = new Date();
+          const diffTime = Math.abs(today.getTime() - createdDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          let due = 'Today';
+          if (diffDays === 1) {
+            due = 'Tomorrow';
+          } else if (diffDays > 1) {
+            due = 'Next Week';
+          }
+
+          return {
+            id: task.id,
+            task: `${task.task_description} for ${patientName}`,
+            priority,
+            due
+          };
+        });
       } catch (error) {
         console.error("Error fetching pending tasks:", error);
         toast.error("Failed to load pending tasks");
@@ -69,6 +75,6 @@ export const usePendingTasks = () => {
       }
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 5 * 60 * 1000
   });
 };

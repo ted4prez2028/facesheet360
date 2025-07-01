@@ -3,32 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-
-export interface Prescription {
-  id: string;
-  patient_id: string;
-  provider_id: string;
-  medication_name: string;
-  dosage: string;
-  frequency: string;
-  start_date: string;
-  end_date?: string;
-  instructions?: string;
-  status: "prescribed" | "administered" | "cancelled";
-  administered_by?: string;
-  administered_at?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Prescription } from "@/types";
 
 export const usePrescriptions = (patientId?: string) => {
   const { user } = useAuth();
 
   return useQuery({
     queryKey: ["prescriptions", patientId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Prescription[]> => {
       try {
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const query = supabase
           .from("prescriptions")
           .select("*")
@@ -58,7 +41,6 @@ export const useAddPrescription = () => {
   return useMutation({
     mutationFn: async (prescription: Omit<Prescription, "id" | "created_at" | "updated_at">) => {
       try {
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("prescriptions")
           .insert(prescription)
@@ -92,7 +74,6 @@ export const useAdministerPrescription = () => {
       if (!user?.id) throw new Error("User not authenticated");
       
       try {
-        // Use type casting to handle the table that's not in the TypeScript definitions yet
         const { data, error } = await supabase
           .from("prescriptions")
           .update({
@@ -122,7 +103,6 @@ export const useAdministerPrescription = () => {
   });
 };
 
-// Add the missing useUpdatePrescriptionStatus hook
 export const useUpdatePrescriptionStatus = () => {
   const queryClient = useQueryClient();
   
