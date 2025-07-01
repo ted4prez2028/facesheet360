@@ -46,8 +46,8 @@ interface LocalPatientDataForCarePlan {
   gender: string;
   phone: string;
   email: string;
-  address: string; // Made required to match PatientDataForCarePlan
-  insurance_provider?: string;
+  address: string;
+  insurance_provider: string; // Made required to match PatientDataForCarePlan
   insurance_number?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
@@ -109,8 +109,8 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       gender: patient.gender || 'Not specified',
       phone: patient.phone || 'Not provided',
       email: patient.email || 'Not provided',
-      address: patient.address || 'Not provided', // Ensure this is always a string
-      insurance_provider: patient.insurance_provider,
+      address: patient.address || 'Not provided',
+      insurance_provider: patient.insurance_provider || 'Not provided', // Ensure this is always a string
       insurance_number: patient.insurance_number,
       emergency_contact_name: patient.emergency_contact_name,
       emergency_contact_phone: patient.emergency_contact_phone,
