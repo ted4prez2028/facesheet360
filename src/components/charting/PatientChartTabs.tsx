@@ -15,7 +15,7 @@ import MedicationsPanel from "@/components/charting/MedicationsPanel";
 import LabResultsPanel from "@/components/charting/LabResultsPanel";
 import PatientNotes from "@/components/charting/PatientNotes";
 import ImagingPanel from "@/components/charting/ImagingPanel";
-import { Patient, PatientDataForCarePlan } from "@/types";
+import { Patient } from "@/types";
 
 interface ChartData {
   vitalSigns?: {
@@ -37,6 +37,38 @@ interface PatientChartTabsProps {
   userId?: string;
 }
 
+// Define a local interface that matches the expected type
+interface LocalPatientDataForCarePlan {
+  id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth?: string;
+  gender?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  insurance_provider?: string;
+  insurance_number?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relation?: string;
+  medical_history?: string;
+  allergies?: string;
+  medications?: string;
+  notes?: string;
+  medical_record_number?: string;
+  age?: number;
+  name?: string;
+  status?: string;
+  lastVisit?: string;
+  imgUrl?: string;
+  created_at?: string;
+  provider_id?: string;
+  vitalSigns?: any[];
+  medicalHistory?: string[];
+  condition?: string;
+}
+
 export function PatientChartTabs({ patient, chartData, patientId, userId }: PatientChartTabsProps) {
   const [selectedTab, setSelectedTab] = useState("vitals");
   
@@ -51,13 +83,13 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
   };
   
   // Prepare patient data for AI care plan generation
-  const preparePatientDataForAI = (): PatientDataForCarePlan | null => {
+  const preparePatientDataForAI = (): LocalPatientDataForCarePlan | null => {
     if (!patient) return null;
     
-    // Handle allergies - convert to string if it's an array, or use as string
+    // Handle allergies - ensure it's a string
     const allergiesString = Array.isArray(chartData?.allergies) 
       ? chartData.allergies.join(', ') 
-      : (chartData?.allergies || patient.allergies || '');
+      : (typeof chartData?.allergies === 'string' ? chartData.allergies : patient.allergies || '');
     
     return {
       id: patient.id,
