@@ -26,32 +26,4 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Add debug logging for auth state changes in development
-if (process.env.NODE_ENV === 'development') {
-  supabase.auth.onAuthStateChange((event, session) => {
-    console.log('Auth state changed:', event, session);
-  });
-  
-  // Add connection status check
-  supabase
-    .from('users')
-    .select('count(*)', { count: 'exact', head: true })
-    .then(({ error }) => {
-      if (error) {
-        console.error('Supabase connection error:', error);
-      } else {
-        console.log('Supabase connection successful');
-      }
-    });
-    
-  // Add health check for the session
-  supabase.auth.getSession().then(({ data, error }) => {
-    if (error) {
-      console.error('Supabase session error:', error);
-    } else if (data.session) {
-      console.log('Supabase session active:', data.session.user.id);
-    } else {
-      console.log('No active Supabase session');
-    }
-  });
-}
+
