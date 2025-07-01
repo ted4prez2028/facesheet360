@@ -31,7 +31,7 @@ export const useRolePermissions = () => {
   const fetchUserRoles = useCallback(async () => {
     if (!user?.id) {
       setUserRoles([]);
-      setIsLoading(false);
+      setIs1Loading(false);
       return;
     }
 
@@ -98,7 +98,7 @@ export const useRolePermissions = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
     fetchUserRoles();

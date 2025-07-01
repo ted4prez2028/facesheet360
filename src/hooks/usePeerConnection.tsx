@@ -64,7 +64,7 @@ export function usePeerConnection() {
   }, [user]);
 
   // Initialize peer connection
-  useEffect(() => { // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
     if (!peerId) return;
 
     const initPeer = () => {
@@ -172,9 +172,12 @@ export function usePeerConnection() {
     
     // Cleanup function
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       const currentCalls = callsRef.current;
-      if (state.localStream) {
-        state.localStream.getTracks().forEach(track => track.stop());
+      const currentLocalStream = state.localStream;
+
+      if (currentLocalStream) {
+        currentLocalStream.getTracks().forEach(track => track.stop());
       }
       
       currentCalls.forEach(call => {

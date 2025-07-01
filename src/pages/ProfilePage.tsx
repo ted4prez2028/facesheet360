@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { useUserPreferences } from '@/context/UserPreferencesContext';
+import { useUserPreferences } from '@/context/UserPreferences';
 import { useUpdateUser } from '@/hooks/useUserProfile';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

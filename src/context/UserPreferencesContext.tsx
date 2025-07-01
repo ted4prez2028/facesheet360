@@ -3,29 +3,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-export type PreferenceType = {
-  theme: 'light' | 'dark' | 'system';
-  dashboardLayout: string;
-  notification: boolean;
-  soundEnabled: boolean;
-};
+import { PreferenceType, UserPreferencesContextProps, defaultPreferences } from '@/types/userPreferences';
 
-interface UserPreferencesContextProps {
-  preferences: PreferenceType;
-  updatePreference: (key: keyof PreferenceType, value: PreferenceType[keyof PreferenceType]) => void;
-}
-
-const defaultPreferences: PreferenceType = {
-  theme: 'system',
-  dashboardLayout: 'default',
-  notification: true,
-  soundEnabled: true,
-};
-
-const UserPreferencesContext = createContext<UserPreferencesContextProps>({
-  preferences: defaultPreferences,
-  updatePreference: () => {},
-});
+import { UserPreferencesContext } from './UserPreferences';
 
 export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -100,7 +80,6 @@ export const UserPreferencesProvider: React.FC<{ children: React.ReactNode }> = 
   );
 };
 
-// Hook for easy access to preferences
-export const useUserPreferences = () => useContext(UserPreferencesContext);
+
 
 
