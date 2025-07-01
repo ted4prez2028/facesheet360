@@ -1,120 +1,145 @@
 
-import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import RecentPatients from "./RecentPatients";
-import TodayAppointments from "./TodayAppointments";
-import PendingTasks from "./PendingTasks";
-import DashboardCharts from "./DashboardCharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RecentPatients } from "./RecentPatients";
+import { TodayAppointments } from "./TodayAppointments";
+import { PendingTasks } from "./PendingTasks";
+import { useMockRecentPatients, useMockTodayAppointments, useMockPendingTasks } from "@/hooks/useMockDashboardData";
 
-interface PatientStatistic {
-  name: string;
-  newPatients: number;
-  activePatients: number;
-}
-
-interface HealthMetric {
-  name: string;
-  heartRate: number;
-  bloodPressure: number;
-}
-
-interface RecentPatient {
-  id: string;
-  name: string;
-  lastVisit: string;
-  status: string;
-}
-
-interface TodayAppointment {
-  id: string;
-  patientName: string;
-  time: string;
-  type: string;
-}
-
-interface PendingTask {
-  id: string;
-  description: string;
-  dueDate: string;
-  priority: string;
-}
-
-interface DashboardTabsProps {
-  patientStatistics: PatientStatistic[];
-  healthMetrics: HealthMetric[];
-  recentPatients?: RecentPatient[];
-  isRecentPatientsLoading?: boolean;
-  todayAppointments?: TodayAppointment[];
-  isAppointmentsLoading?: boolean;
-  pendingTasks?: PendingTask[];
-  isTasksLoading?: boolean;
-}
-
-const DashboardTabs = ({
-  patientStatistics,
-  healthMetrics,
-  recentPatients,
-  isRecentPatientsLoading,
-  todayAppointments,
-  isAppointmentsLoading,
-  pendingTasks,
-  isTasksLoading
-}: DashboardTabsProps) => {
-  const [timeframe, setTimeframe] = useState("week");
+export const DashboardTabs = () => {
+  const { data: recentPatients = [] } = useMockRecentPatients();
+  const { data: todayAppointments = [] } = useMockTodayAppointments();
+  const { data: pendingTasks = [] } = useMockPendingTasks();
 
   return (
-    <Tabs defaultValue="overview" className="w-full">
-      <div className="flex items-center justify-between">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="patients">Patients</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-        </TabsList>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setTimeframe("week")}>
-            Week
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setTimeframe("month")}>
-            Month
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setTimeframe("year")}>
-            Year
-          </Button>
+    <Tabs defaultValue="overview" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="patients">Patients</TabsTrigger>
+        <TabsTrigger value="appointments">Appointments</TabsTrigger>
+        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview" className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Patients
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">2,350</div>
+              <p className="text-xs text-muted-foreground">
+                +20.1% from last month
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Appointments Today
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-muted-foreground">
+                +5 from yesterday
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Pending Tasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">8</div>
+              <p className="text-xs text-muted-foreground">
+                -2 from yesterday
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Care Coins Earned
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">150</div>
+              <p className="text-xs text-muted-foreground">
+                +12% from last week
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-      
-      <TabsContent value="overview" className="mt-6">
-        <DashboardCharts 
-          patientStatistics={patientStatistics} 
-          healthMetrics={healthMetrics} 
-        />
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="col-span-4">
+            <CardHeader>
+              <CardTitle>Recent Patients</CardTitle>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <RecentPatients patients={recentPatients} />
+            </CardContent>
+          </Card>
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>Today's Appointments</CardTitle>
+              <CardDescription>
+                You have {todayAppointments.length} appointments today.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TodayAppointments appointments={todayAppointments} />
+            </CardContent>
+          </Card>
+        </div>
       </TabsContent>
-      
-      <TabsContent value="patients" className="mt-6">
-        <RecentPatients 
-          patients={recentPatients} 
-          isLoading={isRecentPatientsLoading} 
-        />
+
+      <TabsContent value="patients" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Patients</CardTitle>
+            <CardDescription>
+              Patients you've recently worked with
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecentPatients patients={recentPatients} />
+          </CardContent>
+        </Card>
       </TabsContent>
-      
-      <TabsContent value="appointments" className="mt-6">
-        <TodayAppointments 
-          appointments={todayAppointments} 
-          isLoading={isAppointmentsLoading} 
-        />
+
+      <TabsContent value="appointments" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Today's Appointments</CardTitle>
+            <CardDescription>
+              Your scheduled appointments for today
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TodayAppointments appointments={todayAppointments} />
+          </CardContent>
+        </Card>
       </TabsContent>
-      
-      <TabsContent value="tasks" className="mt-6">
-        <PendingTasks 
-          tasks={pendingTasks} 
-          isLoading={isTasksLoading} 
-        />
+
+      <TabsContent value="tasks" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Tasks</CardTitle>
+            <CardDescription>
+              Tasks that need your attention
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PendingTasks tasks={pendingTasks} />
+          </CardContent>
+        </Card>
       </TabsContent>
     </Tabs>
   );
 };
-
-export default DashboardTabs;

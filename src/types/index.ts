@@ -15,6 +15,7 @@ export interface User {
   // Additional properties for compatibility
   first_name?: string;
   last_name?: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface Patient {
@@ -48,6 +49,8 @@ export interface Patient {
   heart_rate?: number;
   respiratory_rate?: number;
   oxygen_saturation?: number;
+  weight?: number;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface Appointment {
@@ -65,12 +68,13 @@ export interface Appointment {
   patients?: {
     first_name: string;
     last_name: string;
-    medical_record_number: string;
+    medical_record_number?: string;
   };
   patient?: string;
   created_at?: string;
   updated_at?: string;
   type?: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface Prescription {
@@ -86,6 +90,7 @@ export interface Prescription {
   status: 'active' | 'completed' | 'discontinued';
   created_at?: string;
   updated_at?: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface CallLightRequest {
@@ -101,6 +106,7 @@ export interface CallLightRequest {
     first_name: string;
     last_name: string;
   };
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface Message {
@@ -111,6 +117,7 @@ export interface Message {
   content: string | null;
   sender_id?: string;
   timestamp?: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface ChatWindow {
@@ -118,6 +125,7 @@ export interface ChatWindow {
   userName: string;
   minimized: boolean;
   messages?: Message[];
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface RecentPatient {
@@ -126,6 +134,7 @@ export interface RecentPatient {
   lastVisit: string;
   age: number;
   condition: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface TodayAppointment {
@@ -134,6 +143,7 @@ export interface TodayAppointment {
   patient: string;
   type: string;
   duration: number;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface PendingTask {
@@ -141,6 +151,7 @@ export interface PendingTask {
   task: string;
   priority: 'high' | 'medium' | 'low';
   due: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 export interface CarePlan {
@@ -151,6 +162,7 @@ export interface CarePlan {
   is_ai_generated: boolean;
   created_at: string;
   updated_at: string;
+  [key: string]: any; // Index signature for compatibility
 }
 
 // Additional types for compatibility

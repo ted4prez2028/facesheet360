@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { usePatientNotes } from "@/hooks/usePatientNotes";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface PatientNotesProps {
   patientId: string;
@@ -84,16 +85,13 @@ const PatientNotes = ({ patientId, userId }: PatientNotesProps) => {
       }
 
       const data = await response.json();
-      toast({
-        title: "CareCoins Minted",
-        description: `You have been awarded ${data.amount} CareCoins!`,
+      toast.success(`You have been awarded ${data.amount} CareCoins!`, {
+        description: "CareCoins Minted",
       });
     } catch (error) {
       console.error("Error minting CareCoins:", error);
-      toast({
-        title: "Minting Error",
-        description: "Could not mint CareCoins at this time.",
-        variant: "destructive",
+      toast.error("Could not mint CareCoins at this time.", {
+        description: "Minting Error",
       });
     }
   };
