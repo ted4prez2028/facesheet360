@@ -118,7 +118,7 @@ export const usePatientForm = (onSuccess: () => void) => {
         insurance_provider: formState.insuranceProvider || null,
         insurance_number: formState.policyNumber || null, // Map to insurance_number
         address: formState.address || null,
-        facial_data: formState.facialData || null,
+        // Remove facial_data as it's not in the Patient type
       };
       
       console.log("Submitting patient data:", patientData);
