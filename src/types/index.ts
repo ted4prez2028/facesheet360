@@ -202,6 +202,7 @@ export interface MedicationReminder {
   is_active: boolean | null;
 }
 
+// Updated to match database schema
 export interface Message {
   id: string;
   created_at: string;
@@ -210,6 +211,7 @@ export interface Message {
   content: string | null;
 }
 
+// Updated to match database schema  
 export interface Call {
   id: string;
   created_at: string;
@@ -218,7 +220,6 @@ export interface Call {
   accepted: boolean | null;
   ended_at: string | null;
   isVideo: boolean | null;
-  otherUserName?: string;
 }
 
 export interface ChatWindow {

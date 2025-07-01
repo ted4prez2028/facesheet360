@@ -49,6 +49,8 @@ interface PatientDataForCarePlan {
   medications?: string;
   vitalSigns?: any[];
   condition?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export function PatientChartTabs({ patient, chartData, patientId, userId }: PatientChartTabsProps) {
@@ -88,7 +90,9 @@ export function PatientChartTabs({ patient, chartData, patientId, userId }: Pati
       allergies: allergiesString,
       medications: patient.medications,
       vitalSigns: chartData?.vitalSigns,
-      condition: chartData?.diagnosis
+      condition: chartData?.diagnosis,
+      created_at: patient.created_at || new Date().toISOString(),
+      updated_at: patient.updated_at || new Date().toISOString()
     };
   };
 

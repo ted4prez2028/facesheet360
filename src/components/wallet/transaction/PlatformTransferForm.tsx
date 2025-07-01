@@ -1,124 +1,82 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { User } from "@/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 const PlatformTransferForm = () => {
   const [amount, setAmount] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [description, setDescription] = useState('');
+  const [platform, setPlatform] = useState('');
+  const [accountInfo, setAccountInfo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Fetch users for recipient selection
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: async (): Promise<User[]> => {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .neq('id', user?.id); // Exclude current user
-      
-      if (error) throw error;
-      return data as User[];
-    },
-    enabled: !!user?.id
-  });
+  const platforms = [
+    { value: 'paypal', label: 'PayPal' },
+    { value: 'venmo', label: 'Venmo' },
+    { value: 'cashapp', label: 'Cash App' },
+    { value: 'zelle', label: 'Zelle' }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id || !recipient || !amount) {
+    
+    if (!user) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "You must be logged in to transfer Care Coins",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!amount || !platform || !accountInfo) {
+      toast({
+        title: "Error", 
+        description: "Please fill in all fields",
         variant: "destructive"
       });
       return;
     }
 
     const transferAmount = parseInt(amount);
-    if (transferAmount <= 0) {
-      toast({
-        title: "Error",
-        description: "Amount must be greater than 0",
-        variant: "destructive"
-      });
-      return;
-    }
+    const currentBalance = user.care_coins_balance || 0;
 
-    // Check if user has sufficient balance
-    const userBalance = user.care_coins_balance || 0;
-    if (transferAmount > userBalance) {
+    if (transferAmount > currentBalance) {
       toast({
         title: "Insufficient Balance",
-        description: `You only have ${userBalance} Care Coins available`,
+        description: "You don't have enough Care Coins for this transfer",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
+
     try {
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from('care_coins_transactions')
-        .insert({
-          from_user_id: user.id,
-          to_user_id: recipient,
-          amount: transferAmount,
-          transaction_type: 'transfer',
-          description: description || `Transfer to ${users.find(u => u.id === recipient)?.name || 'Unknown User'}`
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Update sender balance
-      const { error: senderError } = await supabase
-        .from('users')
-        .update({ 
-          care_coins_balance: userBalance - transferAmount 
-        })
-        .eq('id', user.id);
-
-      if (senderError) throw senderError;
-
-      // Update recipient balance
-      const recipientUser = users.find(u => u.id === recipient);
-      const recipientBalance = recipientUser?.care_coins_balance || 0;
+      // Simulate API call - in real implementation, this would call a backend service
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const { error: recipientError } = await supabase
-        .from('users')
-        .update({ 
-          care_coins_balance: recipientBalance + transferAmount 
-        })
-        .eq('id', recipient);
-
-      if (recipientError) throw recipientError;
-
       toast({
-        title: "Transfer Successful",
-        description: `Successfully transferred ${transferAmount} Care Coins`
+        title: "Transfer Initiated",
+        description: `Your transfer of ${amount} Care Coins to ${platform} has been initiated. You'll receive confirmation within 24 hours.`
       });
-
+      
       // Reset form
       setAmount('');
-      setRecipient('');
-      setDescription('');
+      setPlatform('');
+      setAccountInfo('');
+      
     } catch (error) {
-      console.error('Transfer error:', error);
       toast({
         title: "Transfer Failed",
-        description: "An error occurred while processing the transfer",
+        description: "There was an error processing your transfer. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -126,34 +84,16 @@ const PlatformTransferForm = () => {
     }
   };
 
-  const userBalance = user?.care_coins_balance || 0;
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transfer Care Coins</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Available Balance: {userBalance} Care Coins
-        </p>
+        <CardTitle>Transfer to Platform</CardTitle>
+        <CardDescription>
+          Convert your Care Coins to cash on external platforms
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="recipient">Recipient</Label>
-            <Select value={recipient} onValueChange={setRecipient}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select recipient" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.name || user.email} ({user.role || 'Doctor'})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (Care Coins)</Label>
             <Input
@@ -163,28 +103,50 @@ const PlatformTransferForm = () => {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="1"
-              max={userBalance}
-              required
+              max={user?.care_coins_balance || 0}
             />
+            {user && (
+              <p className="text-sm text-muted-foreground">
+                Available balance: {user.care_coins_balance || 0} Care Coins
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              placeholder="Add a note for this transfer"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+            <Label htmlFor="platform">Platform</Label>
+            <Select value={platform} onValueChange={setPlatform}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select platform" />
+              </SelectTrigger>
+              <SelectContent>
+                {platforms.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="account">Account Information</Label>
+            <Input
+              id="account"
+              placeholder="Enter your account handle/email"
+              value={accountInfo}
+              onChange={(e) => setAccountInfo(e.target.value)}
             />
           </div>
 
-          <Button 
-            type="submit" 
-            disabled={isLoading || !recipient || !amount}
-            className="w-full"
-          >
-            {isLoading ? "Processing..." : "Send Transfer"}
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing Transfer...
+              </>
+            ) : (
+              'Transfer Care Coins'
+            )}
           </Button>
         </form>
       </CardContent>

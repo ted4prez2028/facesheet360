@@ -17,7 +17,7 @@ export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({
   onViewAll, 
   className 
 }) => {
-  const { data: transactions = [], isLoading } = useCareCoinsTransactions();
+  const { transactions = [], isLoading } = useCareCoinsTransactions();
 
   const getTransactionIcon = (type: string) => {
     switch (type) {

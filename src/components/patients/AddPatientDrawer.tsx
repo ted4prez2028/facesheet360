@@ -10,13 +10,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 
 interface AddPatientDrawerProps {
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onPatientAdded: () => void;
 }
 
-const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
-  isOpen,
+export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
+  open,
   onOpenChange,
+  onPatientAdded,
 }) => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
@@ -28,6 +30,7 @@ const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
     submitForm,
   } = usePatientForm(() => {
     onOpenChange(false);
+    onPatientAdded();
     toast({
       title: "Patient added",
       description: "Patient has been added successfully",
@@ -69,7 +72,7 @@ const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[90vh] overflow-y-auto">
         <DrawerHeader className="pb-4">
           <DrawerTitle>Add New Patient</DrawerTitle>
