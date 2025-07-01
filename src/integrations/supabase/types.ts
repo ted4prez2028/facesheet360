@@ -110,6 +110,56 @@ export type Database = {
         }
         Relationships: []
       }
+      call_lights: {
+        Row: {
+          activated_at: string
+          id: string
+          notes: string | null
+          patient_id: string | null
+          reason: string | null
+          resolved_at: string | null
+          responded_at: string | null
+          responded_by: string | null
+          room_number: string | null
+          status: string | null
+          urgency_level: string | null
+        }
+        Insert: {
+          activated_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          reason?: string | null
+          resolved_at?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          room_number?: string | null
+          status?: string | null
+          urgency_level?: string | null
+        }
+        Update: {
+          activated_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          reason?: string | null
+          resolved_at?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          room_number?: string | null
+          status?: string | null
+          urgency_level?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_lights_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       care_coins_achievements: {
         Row: {
           achieved_at: string
@@ -247,6 +297,62 @@ export type Database = {
           transaction_type?: string
         }
         Relationships: []
+      }
+      care_plans: {
+        Row: {
+          ai_generated: boolean | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          goals: string[] | null
+          id: string
+          interventions: string[] | null
+          patient_id: string | null
+          start_date: string
+          status: string | null
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          goals?: string[] | null
+          id?: string
+          interventions?: string[] | null
+          patient_id?: string | null
+          start_date: string
+          status?: string | null
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          goals?: string[] | null
+          id?: string
+          interventions?: string[] | null
+          patient_id?: string | null
+          start_date?: string
+          status?: string | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chart_records: {
         Row: {
@@ -412,6 +518,56 @@ export type Database = {
         }
         Relationships: []
       }
+      food_orders: {
+        Row: {
+          created_at: string
+          delivery_time: string | null
+          dietary_restrictions: string[] | null
+          id: string
+          items: Json
+          meal_type: string | null
+          order_date: string
+          ordered_by: string | null
+          patient_id: string | null
+          special_instructions: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_time?: string | null
+          dietary_restrictions?: string[] | null
+          id?: string
+          items: Json
+          meal_type?: string | null
+          order_date?: string
+          ordered_by?: string | null
+          patient_id?: string | null
+          special_instructions?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          delivery_time?: string | null
+          dietary_restrictions?: string[] | null
+          id?: string
+          items?: Json
+          meal_type?: string | null
+          order_date?: string
+          ordered_by?: string | null
+          patient_id?: string | null
+          special_instructions?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_predictions: {
         Row: {
           confidence_score: number
@@ -556,6 +712,62 @@ export type Database = {
           },
         ]
       }
+      medication_orders: {
+        Row: {
+          created_at: string
+          dosage: string
+          end_date: string | null
+          frequency: string
+          id: string
+          instructions: string | null
+          medication_name: string
+          patient_id: string | null
+          prescribed_by: string | null
+          route: string | null
+          start_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medication_name: string
+          patient_id?: string | null
+          prescribed_by?: string | null
+          route?: string | null
+          start_date: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medication_name?: string
+          patient_id?: string | null
+          prescribed_by?: string | null
+          route?: string | null
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           author: string
@@ -600,6 +812,68 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      patient_vitals: {
+        Row: {
+          blood_pressure_diastolic: number | null
+          blood_pressure_systolic: number | null
+          created_at: string
+          heart_rate: number | null
+          height: number | null
+          id: string
+          notes: string | null
+          oxygen_saturation: number | null
+          pain_scale: number | null
+          patient_id: string | null
+          recorded_at: string
+          recorded_by: string | null
+          respiratory_rate: number | null
+          temperature: number | null
+          weight: number | null
+        }
+        Insert: {
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          created_at?: string
+          heart_rate?: number | null
+          height?: number | null
+          id?: string
+          notes?: string | null
+          oxygen_saturation?: number | null
+          pain_scale?: number | null
+          patient_id?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          respiratory_rate?: number | null
+          temperature?: number | null
+          weight?: number | null
+        }
+        Update: {
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          created_at?: string
+          heart_rate?: number | null
+          height?: number | null
+          id?: string
+          notes?: string | null
+          oxygen_saturation?: number | null
+          pain_scale?: number | null
+          patient_id?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          respiratory_rate?: number | null
+          temperature?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_vitals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patients: {
         Row: {
@@ -675,6 +949,56 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          external_payment_id: string | null
+          id: string
+          payment_data: Json | null
+          payment_method: string
+          payment_status: string
+          subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          external_payment_id?: string | null
+          id?: string
+          payment_data?: Json | null
+          payment_method: string
+          payment_status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          external_payment_id?: string | null
+          id?: string
+          payment_data?: Json | null
+          payment_method?: string
+          payment_status?: string
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
@@ -816,6 +1140,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          expires_at: string | null
+          id: string
+          payment_id: string | null
+          payment_method: string | null
+          plan_id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          plan_id: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          plan_id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

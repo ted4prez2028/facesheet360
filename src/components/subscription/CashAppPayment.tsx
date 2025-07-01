@@ -9,13 +9,17 @@ import { QRCodeSVG } from 'qrcode.react'; // Fixed import to use named export
 interface CashAppPaymentProps {
   amount: number;
   purchaseType: string;
+  cashAppHandle?: string;
+  instructions?: string;
   onComplete: () => void;
   onCancel: () => void;
 }
 
 const CashAppPayment: React.FC<CashAppPaymentProps> = ({ 
   amount, 
-  purchaseType, 
+  purchaseType,
+  cashAppHandle = '$mycashdirect2022',
+  instructions,
   onComplete, 
   onCancel 
 }) => {
@@ -23,8 +27,7 @@ const CashAppPayment: React.FC<CashAppPaymentProps> = ({
   const [qrValue, setQrValue] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   
-  // Fake CashApp username/handle - in a real app, this would be a company account
-  const cashAppHandle = '$CareConnect';
+  // Use the passed cashAppHandle or default to CareConnect
   
   useEffect(() => {
     // Generate a unique payment ID

@@ -11,12 +11,14 @@ import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
 import WoundCare from './pages/WoundCare';
+import Subscription from './pages/Subscription';
+import PharmacistDashboard from './pages/PharmacistDashboard';
+import Charting from './pages/Charting';
 import { Toaster } from "@/components/ui/toaster"
 import { Navigate } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
-import CommunicationContainer from '@/components/communication/CommunicationContainer';
-import ContactsList from '@/components/communication/ContactsList';
+import { FloatingCommunicationOrb } from '@/components/communication/FloatingCommunicationOrb';
 
 const queryClient = new QueryClient();
 
@@ -89,10 +91,33 @@ function App() {
                       </RequireAuth>
                     }
                   />
+                  <Route
+                    path="/subscription"
+                    element={
+                      <RequireAuth>
+                        <Subscription />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/pharmacy"
+                    element={
+                      <RequireAuth>
+                        <PharmacistDashboard />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/charting"
+                    element={
+                      <RequireAuth>
+                        <Charting />
+                      </RequireAuth>
+                    }
+                  />
                 </Routes>
                 <Toaster />
-                <CommunicationContainer />
-                <ContactsList />
+                <FloatingCommunicationOrb />
               </CommunicationProvider>
             </UserPreferencesProvider>
           </AuthProvider>

@@ -2,9 +2,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, CreditCard, Smartphone } from 'lucide-react';
 import SubscriptionCard from '@/components/subscription/SubscriptionCard';
+import CashAppPayment from '@/components/subscription/CashAppPayment';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 
 interface SubscriptionPlan {
   id: string;
@@ -76,21 +80,91 @@ const subscriptionPlans: SubscriptionPlan[] = [
 
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cashapp' | null>(null);
+  const [showCashAppPayment, setShowCashAppPayment] = useState(false);
+  const [cashAppData, setCashAppData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
   const handleSelectPlan = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
+    setPaymentMethod(null);
+    setShowCashAppPayment(false);
   };
 
-  const handleSubscribe = () => {
-    if (selectedPlan) {
-      // Implement subscription logic here
-      console.log('Subscribing to:', selectedPlan);
+  const handlePaymentMethod = async (method: 'stripe' | 'cashapp') => {
+    if (!selectedPlan || !user) return;
+    
+    setIsLoading(true);
+    setPaymentMethod(method);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+        body: {
+          planId: selectedPlan.id,
+          planName: selectedPlan.title,
+          price: selectedPlan.price,
+          paymentMethod: method
+        }
+      });
+
+      if (error) throw error;
+
+      if (method === 'cashapp') {
+        setCashAppData(data);
+        setShowCashAppPayment(true);
+      } else if (method === 'stripe' && data.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Failed to process payment. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleCashAppComplete = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-cashapp-payment', {
+        body: { subscriptionId: cashAppData?.subscriptionId }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success('Payment verified! Your subscription is now active.');
+        setShowCashAppPayment(false);
+        setSelectedPlan(null);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      toast.error('Failed to verify payment. Please contact support.');
+    }
+  };
+
+  if (showCashAppPayment && cashAppData) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8">
+          <CashAppPayment
+            amount={cashAppData.amount}
+            purchaseType="subscription"
+            cashAppHandle={cashAppData.cashAppHandle}
+            instructions={cashAppData.instructions}
+            onComplete={handleCashAppComplete}
+            onCancel={() => setShowCashAppPayment(false)}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Choose Your Plan
@@ -147,13 +221,28 @@ const Subscription = () => {
                 )}
               </ul>
             </div>
-            <Button 
-              onClick={handleSubscribe}
-              size="lg"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
-            >
-              Subscribe Now
-            </Button>
+            <div className="space-y-3">
+              <Button 
+                onClick={() => handlePaymentMethod('stripe')}
+                size="lg"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                {isLoading && paymentMethod === 'stripe' ? 'Processing...' : 'Pay with Stripe'}
+              </Button>
+              
+              <Button 
+                onClick={() => handlePaymentMethod('cashapp')}
+                size="lg"
+                variant="outline"
+                disabled={isLoading}
+                className="w-full border-2 border-green-500 text-green-600 hover:bg-green-50"
+              >
+                <Smartphone className="mr-2 h-4 w-4" />
+                {isLoading && paymentMethod === 'cashapp' ? 'Setting up...' : 'Pay with CashApp'}
+              </Button>
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
               Cancel anytime. No long-term contracts.
             </p>
@@ -172,7 +261,8 @@ const Subscription = () => {
           Contact Sales
         </Button>
       </div>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 
