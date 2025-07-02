@@ -21,18 +21,6 @@ export interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock user for testing
-const mockUser: User = {
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  email: 'doctor@example.com',
-  name: 'Dr. Smith',
-  role: 'doctor',
-  care_coins_balance: 150,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-};
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
@@ -51,11 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(async () => {
             await fetchUserProfile(session.user.id);
           }, 0);
-        } else {
-          // For development, use mock user if no session
-          console.log('No session found, using mock user for development');
-          setUser(mockUser);
-        }
+        } 
       } catch (error) {
         console.error('Error getting initial session:', error);
         // Fallback to mock user
