@@ -20,7 +20,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+
 
 interface MedicationOrder {
   id: string;
@@ -204,21 +204,20 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pharmacy Dashboard</h1>
-            <p className="text-gray-600">Manage medication orders and pharmacy operations</p>
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline">
-              <Package className="h-4 w-4 mr-2" />
-              Inventory
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Pharmacy Dashboard</h1>
+          <p className="text-gray-600">Manage medication orders and pharmacy operations</p>
         </div>
+        <div className="flex space-x-2">
+          <Button variant="outline">
+            <Package className="h-4 w-4 mr-2" />
+            Inventory
+          </Button>
+        </div>
+      </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -506,6 +505,5 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
-  );
+    );
 };
