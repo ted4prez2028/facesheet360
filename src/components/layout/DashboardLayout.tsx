@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import TopNav from "./TopNav";
-import { SidebarProvider } from "@/lib/sidebar-provider";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import NotificationSound from "@/components/notifications/NotificationSound";
