@@ -49,9 +49,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <head>
-        <title>Facesheet360</title>
-      </head>
       <div className="min-h-screen w-full flex bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-h-screen">
