@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -15,8 +15,8 @@ import Subscription from './pages/Subscription';
 import PharmacistDashboard from './pages/PharmacistDashboard';
 import Charting from './pages/Charting';
 import { Toaster } from "@/components/ui/toaster"
-import { Navigate } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
+import PatientEHRInterface from './pages/PatientEHRInterface';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -89,6 +89,14 @@ function App() {
                           <PatientDetails />
                         </DashboardLayout>
                       </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/patients/:id/detail"
+                  element={
+                    <RequireAuth>
+                      <PatientEHRInterface />
                     </RequireAuth>
                   }
                 />
