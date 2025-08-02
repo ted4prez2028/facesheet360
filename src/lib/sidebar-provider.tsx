@@ -28,7 +28,7 @@ interface SidebarProviderProps {
 
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   children,
-  defaultOpen = false,
+  defaultOpen = true,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(defaultOpen);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -38,8 +38,9 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (!mobile) {
-        setIsSidebarOpen(false);
+      // On desktop, keep sidebar expanded by default
+      if (!mobile && !isSidebarOpen) {
+        setIsSidebarOpen(true);
       }
     };
 

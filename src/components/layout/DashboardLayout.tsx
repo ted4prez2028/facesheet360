@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import TopNav from "./TopNav";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/lib/sidebar-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import NotificationSound from "@/components/notifications/NotificationSound";
@@ -51,7 +51,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen w-full flex bg-background">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex-1 flex flex-col min-h-screen transition-all duration-300">
           <TopNav />
           <main className="flex-1 p-6 overflow-auto">
             {children}

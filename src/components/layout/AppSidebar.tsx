@@ -28,19 +28,15 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { Sidebar } from "@/lib/sidebar";
+import { SidebarContent } from "@/lib/sidebar-content";
+import { SidebarFooter } from "@/lib/sidebar-footer";
+import { SidebarGroup } from "@/lib/sidebar-group";
+import { SidebarGroupContent } from "@/lib/sidebar-group-content";
+import { SidebarGroupLabel } from "@/lib/sidebar-group-label";
+import { SidebarMenu } from "@/lib/sidebar-menu";
+import { SidebarMenuItem } from "@/lib/sidebar-menu-item";
+import { SidebarMenuButton } from "@/lib/sidebar-menu-button";
 import { useAuth } from "@/context/AuthContext";
 
 export function AppSidebar() {
@@ -154,7 +150,7 @@ export function AppSidebar() {
   ];
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarContent>
         {menuItems.map((group) => (
           <SidebarGroup key={group.group}>
@@ -166,7 +162,8 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         className={cn(
-                          location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground"
+                          "w-full justify-start",
+                          location.pathname === item.path && "bg-accent text-accent-foreground"
                         )}
                         onClick={() => navigate(item.path)}
                       >
