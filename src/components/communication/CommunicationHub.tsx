@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Sheet, 
   SheetContent, 
@@ -19,30 +19,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useOrganizationalCommunication } from '@/hooks/useOrganizationalCommunication';
 import ChatWindow from './ChatWindow';
 import VideoCallInterface from './VideoCallInterface';
-
-interface OrganizationalUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  online_status: boolean;
-  specialty?: string;
-  organization?: string;
-}
-
-interface MessagePreview {
-  id: string;
-  content: string;
-  created_at: string;
-  author: string;
-  user_id: string;
-}
 
 interface ChatSession {
   id: string;
@@ -54,13 +35,10 @@ interface ChatSession {
 const CommunicationHub = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState<OrganizationalUser[]>([]);
-  const [messageHistory, setMessageHistory] = useState<Record<string, MessagePreview | null>>({});
-  const [loading, setLoading] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
   const location = useLocation();
-  const { user } = useAuth();
+  const { users, conversations, loading, error, fetchOrganizationalUsers } = useOrganizationalCommunication();
   
   // Hide on homepage
   const isHomePage = location.pathname === '/';
@@ -69,83 +47,12 @@ const CommunicationHub = () => {
     return null;
   }
 
-  // Fetch organizational users
-  useEffect(() => {
-    const fetchOrganizationalUsers = async () => {
-      if (!user) return;
-      
-      setLoading(true);
-      try {
-        // Get current user's organization
-        const { data: currentUserData } = await supabase
-          .from('users')
-          .select('organization')
-          .eq('user_id', user.id)
-          .single();
-
-        if (!currentUserData?.organization) {
-          setLoading(false);
-          return;
-        }
-
-        // Fetch all users in the same organization
-        const { data: orgUsers, error } = await supabase
-          .from('users')
-          .select('id, name, email, role, online_status, specialty, organization')
-          .eq('organization', currentUserData.organization)
-          .neq('user_id', user.id); // Exclude current user
-
-        if (error) {
-          console.error('Error fetching organizational users:', error);
-          return;
-        }
-
-        setUsers(orgUsers || []);
-        
-        // Fetch message history for each user
-        if (orgUsers && orgUsers.length > 0) {
-          await fetchMessageHistory(orgUsers);
-        }
-      } catch (error) {
-        console.error('Error fetching organizational users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isOpen) {
+  // Fetch data when modal opens
+  const handleToggleContacts = () => {
+    if (!isOpen) {
       fetchOrganizationalUsers();
     }
-  }, [isOpen, user]);
-
-  const fetchMessageHistory = async (orgUsers: OrganizationalUser[]) => {
-    if (!user?.id) return;
-
-    const history: Record<string, MessagePreview | null> = {};
-    
-    for (const contact of orgUsers) {
-      try {
-        const { data: messages, error } = await supabase
-          .from('messages')
-          .select('id, content, created_at, author, user_id')
-          .eq('user_id', contact.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (error) {
-          console.error('Error fetching message history for', contact.name, error);
-          history[contact.id] = null;
-          continue;
-        }
-
-        history[contact.id] = messages && messages.length > 0 ? messages[0] : null;
-      } catch (error) {
-        console.error('Error fetching message history for', contact.name, error);
-        history[contact.id] = null;
-      }
-    }
-    
-    setMessageHistory(history);
+    setIsOpen(!isOpen);
   };
 
   // Filter users based on search term
@@ -155,10 +62,6 @@ const CommunicationHub = () => {
     user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const toggleContacts = () => {
-    setIsOpen(!isOpen);
-  };
 
   const openChat = (contactId: string, contactName: string) => {
     // Check if chat is already open
@@ -249,7 +152,7 @@ const CommunicationHub = () => {
         variant="outline" 
         size="icon" 
         className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white border-0 z-40"
-        onClick={toggleContacts}
+        onClick={handleToggleContacts}
       >
         <Users className="h-6 w-6" />
       </Button>
@@ -300,6 +203,14 @@ const CommunicationHub = () => {
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   <p className="mt-2">Loading team members...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                  <Users className="h-12 w-12 mb-2 opacity-50" />
+                  <p className="text-center text-red-500">{error}</p>
+                  <Button variant="ghost" size="sm" onClick={fetchOrganizationalUsers} className="mt-2">
+                    Try Again
+                  </Button>
                 </div>
               ) : filteredUsers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
@@ -357,14 +268,15 @@ const CommunicationHub = () => {
                                 )}
                                 {/* Message preview */}
                                 <div className="mt-1">
-                                  {messageHistory[contact.id] ? (
+                                  {conversations[contact.id]?.last_message ? (
                                     <div className="flex items-center justify-between">
                                       <p className="text-xs text-muted-foreground truncate flex-1">
-                                        {messageHistory[contact.id]!.user_id === user?.id ? 'You: ' : ''}
-                                        {formatMessagePreview(messageHistory[contact.id]!.content)}
+                                        {conversations[contact.id].last_message!.sender_id === contact.id ? 
+                                          `${contact.name?.split(' ')[0]}: ` : 'You: '}
+                                        {formatMessagePreview(conversations[contact.id].last_message!.content)}
                                       </p>
                                       <span className="text-xs text-muted-foreground ml-2">
-                                        {formatTime(messageHistory[contact.id]!.created_at)}
+                                        {formatTime(conversations[contact.id].last_message!.created_at)}
                                       </span>
                                     </div>
                                   ) : (
