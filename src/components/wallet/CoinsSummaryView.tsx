@@ -31,7 +31,7 @@ export const CoinsSummaryView = () => {
     };
 
     fetchBalance();
-  }, [user?.id, getBalance]);
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -49,7 +49,7 @@ export const CoinsSummaryView = () => {
     };
 
     fetchTransactions();
-  }, [user?.id, getTransactions]);
+  }, [user?.id]);
 
   return (
     <div className="space-y-6">
