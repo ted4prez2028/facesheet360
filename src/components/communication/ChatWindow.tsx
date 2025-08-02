@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { X, Send, Phone, Video } from 'lucide-react';
+import { X, Send, Phone, Video, Minimize2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,16 +27,18 @@ interface ChatWindowProps {
   contactId: string;
   contactName: string;
   onClose: () => void;
+  onMinimize?: () => void;
   onStartCall: () => void;
   onStartVideoCall: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({
-  contactId,
-  contactName,
-  onClose,
-  onStartCall,
-  onStartVideoCall
+const ChatWindow: React.FC<ChatWindowProps> = ({ 
+  contactId, 
+  contactName, 
+  onClose, 
+  onMinimize,
+  onStartCall, 
+  onStartVideoCall 
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -153,6 +155,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             >
               <Video className="h-3 w-3" />
             </Button>
+            {onMinimize && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={onMinimize}
+              >
+                <Minimize2 className="h-3 w-3" />
+              </Button>
+            )}
             <Button 
               variant="ghost" 
               size="sm" 

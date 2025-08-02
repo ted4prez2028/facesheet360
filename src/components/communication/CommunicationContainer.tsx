@@ -1,17 +1,11 @@
 
 import React from 'react';
-import OrganizationalContacts from './OrganizationalContacts';
-import CallDialog from './CallDialog';
-import VideoCall from './VideoCall';
-import ChatWindows from './ChatWindows';
+import CommunicationHub from './CommunicationHub';
 
 const CommunicationContainer = () => {
   return (
     <>
-      <OrganizationalContacts />
-      <CallDialog />
-      <VideoCall />
-      <ChatWindows />
+      <CommunicationHub />
     </>
   );
 };
