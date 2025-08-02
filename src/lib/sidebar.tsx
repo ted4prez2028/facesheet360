@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { useSidebar } from "@/lib/sidebar-context";
+import { useSidebar } from "@/lib/sidebar-provider";
 
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
@@ -38,7 +38,7 @@ export const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+    const { isMobile, state, isSidebarOpen, toggleSidebar } = useSidebar();
 
     if (collapsible === "none") {
       return (
@@ -57,7 +57,7 @@ export const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={isSidebarOpen} onOpenChange={toggleSidebar} {...props}>
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
