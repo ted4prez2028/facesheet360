@@ -23,12 +23,14 @@ const SidebarContext = createContext<SidebarContextProps | undefined>(
 
 interface SidebarProviderProps {
   children: ReactNode;
+  defaultOpen?: boolean;
 }
 
 export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   children,
+  defaultOpen = false,
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(defaultOpen);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobile, setIsMobile] = useState(false);
 

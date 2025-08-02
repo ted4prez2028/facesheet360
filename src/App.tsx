@@ -53,154 +53,193 @@ function App() {
         <ThemeProvider defaultTheme="light">
           <AuthProvider>
             <UserPreferencesProvider>
-              <CommunicationProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<LandingPage />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <RequireAuth>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<LandingPage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <Dashboard />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/patients"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/patients"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <PatientList />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/patients/:id"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/patients/:id"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <PatientDetails />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/patients/:id/wound-care"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/patients/:id/wound-care"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <WoundCare />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <ProfilePage />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/subscription"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/subscription"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <Subscription />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/pharmacy"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/pharmacy"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <PharmacistDashboard />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/appointments"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/appointments"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <Appointments />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/analytics"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <Analytics />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/wallet-dashboard"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/wallet-dashboard"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <WalletDashboard />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/doctor-accounts"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/doctor-accounts"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <DoctorAccounts />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/menu-sync"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/menu-sync"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <MenuSyncPage />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <Settings />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    path="/charting"
-                    element={
-                      <RequireAuth>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/charting"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
                         <DashboardLayout>
                           <Charting />
                         </DashboardLayout>
-                      </RequireAuth>
-                    }
-                  />
-                </Routes>
-                <Toaster />
-                <FloatingCommunicationOrb />
-              </CommunicationProvider>
+                        <FloatingCommunicationOrb />
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+              </Routes>
+              <Toaster />
             </UserPreferencesProvider>
           </AuthProvider>
         </ThemeProvider>
