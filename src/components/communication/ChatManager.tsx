@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ChatWindow from './ChatWindow';
+import VideoCallInterface from './VideoCallInterface';
 
 interface ChatSession {
   id: string;
@@ -33,14 +34,16 @@ const ChatManager: React.FC<ChatManagerProps> = ({ children }) => {
     setChatSessions(prev => prev.filter(chat => chat.id !== chatId));
   };
 
+  const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
+
   const handleStartCall = (contactId: string, contactName: string) => {
-    console.log('Starting call with:', contactId, contactName);
-    // TODO: Implement call functionality
+    // Start audio-only call
+    setActiveVideoCall({ contactId, contactName });
   };
 
   const handleStartVideoCall = (contactId: string, contactName: string) => {
-    console.log('Starting video call with:', contactId, contactName);
-    // TODO: Implement video call functionality
+    // Start video call
+    setActiveVideoCall({ contactId, contactName });
   };
 
   return (
@@ -67,6 +70,15 @@ const ChatManager: React.FC<ChatManagerProps> = ({ children }) => {
           />
         </div>
       ))}
+      
+      {/* Video Call Interface */}
+      {activeVideoCall && (
+        <VideoCallInterface
+          contactId={activeVideoCall.contactId}
+          contactName={activeVideoCall.contactName}
+          onClose={() => setActiveVideoCall(null)}
+        />
+      )}
     </>
   );
 };
