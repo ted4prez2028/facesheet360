@@ -22,25 +22,24 @@ import { FloatingCommunicationOrb } from '@/components/communication/FloatingCom
 
 const queryClient = new QueryClient();
 
-const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse">
-        <p className="text-lg text-muted-foreground">Loading...</p>
-      </div>
-    </div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  return <>{children}</>;
-};
-
 function App() {
+  const RequireAuth = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated, isLoading } = useAuth();
+
+    if (isLoading) {
+      return <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse">
+          <p className="text-lg text-muted-foreground">Loading...</p>
+        </div>
+      </div>;
+    }
+
+    if (!isAuthenticated) {
+      return <Navigate to="/login" />;
+    }
+
+    return <>{children}</>;
+  };
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
