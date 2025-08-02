@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { createAdminAccount } from '@/utils/createAccount';
+import { supabase } from '@/integrations/supabase/client';
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
@@ -43,6 +44,30 @@ const LandingPage = () => {
       }
     } catch (error) {
       toast.error('Error creating admin account');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTestLogin = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-login', {
+        body: {
+          email: 'tdicusmurray@gmail.com',
+          password: 'Klasfad4'
+        }
+      });
+
+      if (error) {
+        toast.error('Login test failed: ' + error.message);
+      } else if (data.success) {
+        toast.success('Login credentials are valid!');
+      } else {
+        toast.error('Login test failed: ' + data.details);
+      }
+    } catch (error) {
+      toast.error('Error testing login');
     } finally {
       setIsLoading(false);
     }
@@ -113,6 +138,15 @@ const LandingPage = () => {
                 disabled={isLoading}
               >
                 Create Admin Account
+              </Button>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                className="w-full" 
+                onClick={handleTestLogin}
+                disabled={isLoading}
+              >
+                Test Admin Login
               </Button>
             </CardFooter>
           </form>

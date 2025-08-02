@@ -4,5 +4,8 @@ project_id = "tuembzleutkexrmrzxkg"
 [functions.create-admin-doctor]
 verify_jwt = false
 
+[functions.test-login]
+verify_jwt = false
+
 [functions.sync-menu-items]
 verify_jwt = false
