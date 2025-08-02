@@ -51,12 +51,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen w-full flex bg-background">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-screen">
+        <main className="flex-1 flex flex-col min-h-screen">
           <TopNav />
-          <main className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-6 overflow-auto">
             {children}
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
       {/* These components handle notifications */}
       <NotificationSound />

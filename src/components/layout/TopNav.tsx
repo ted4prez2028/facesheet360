@@ -49,10 +49,10 @@ const TopNav: React.FC = () => {
     : "?";
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+    <header className="bg-background border-b px-4 py-2 flex items-center justify-between">
       <div className="flex items-center">
         <SidebarTrigger className="mr-2" />
-        <Link to="/" className="font-bold text-xl text-health-600">Facesheet360</Link>
+        <Link to="/" className="font-bold text-xl text-primary">Facesheet360</Link>
       </div>
       
       <div className="flex items-center space-x-2">
