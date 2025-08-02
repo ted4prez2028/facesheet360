@@ -19,6 +19,13 @@ import { Navigate } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
 import { FloatingCommunicationOrb } from '@/components/communication/FloatingCommunicationOrb';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import Appointments from './pages/Appointments';
+import Analytics from './pages/Analytics';
+import WalletDashboard from './pages/WalletDashboard';
+import DoctorAccounts from './pages/DoctorAccounts';
+import Settings from './pages/Settings';
+import { MenuSyncPage } from './pages/MenuSync';
 
 const queryClient = new QueryClient();
 
@@ -54,7 +61,9 @@ function App() {
                     path="/dashboard"
                     element={
                       <RequireAuth>
-                        <Dashboard />
+                        <DashboardLayout>
+                          <Dashboard />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -62,7 +71,9 @@ function App() {
                     path="/patients"
                     element={
                       <RequireAuth>
-                        <PatientList />
+                        <DashboardLayout>
+                          <PatientList />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -70,7 +81,9 @@ function App() {
                     path="/patients/:id"
                     element={
                       <RequireAuth>
-                        <PatientDetails />
+                        <DashboardLayout>
+                          <PatientDetails />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -78,7 +91,9 @@ function App() {
                     path="/patients/:id/wound-care"
                     element={
                       <RequireAuth>
-                        <WoundCare />
+                        <DashboardLayout>
+                          <WoundCare />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -86,7 +101,9 @@ function App() {
                     path="/profile"
                     element={
                       <RequireAuth>
-                        <ProfilePage />
+                        <DashboardLayout>
+                          <ProfilePage />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -94,7 +111,9 @@ function App() {
                     path="/subscription"
                     element={
                       <RequireAuth>
-                        <Subscription />
+                        <DashboardLayout>
+                          <Subscription />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -102,7 +121,69 @@ function App() {
                     path="/pharmacy"
                     element={
                       <RequireAuth>
-                        <PharmacistDashboard />
+                        <DashboardLayout>
+                          <PharmacistDashboard />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/appointments"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <Appointments />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <Analytics />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/wallet-dashboard"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <WalletDashboard />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/doctor-accounts"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <DoctorAccounts />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/menu-sync"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <MenuSyncPage />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <Settings />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -110,7 +191,9 @@ function App() {
                     path="/charting"
                     element={
                       <RequireAuth>
-                        <Charting />
+                        <DashboardLayout>
+                          <Charting />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />

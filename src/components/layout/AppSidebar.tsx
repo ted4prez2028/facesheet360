@@ -13,6 +13,19 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  Stethoscope,
+  FileText,
+  Pill,
+  CreditCard,
+  BarChart3,
+  UserCheck,
+  Phone,
+  BellRing,
+  Shield,
+  Briefcase,
+  Package,
+  DollarSign,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -62,29 +75,79 @@ export function AppSidebar() {
           path: "/dashboard",
         },
         {
-          title: "Charts",
+          title: "Patients",
+          icon: Users,
+          path: "/patients",
+        },
+        {
+          title: "Appointments",
+          icon: Calendar,
+          path: "/appointments",
+        },
+        {
+          title: "Charting",
           icon: ClipboardList,
           path: "/charting",
-          subItems: [
-            {
-              title: "Patient List",
-              path: "/patients",
-            },
-            {
-              title: "Patient Details",
-              path: "/patients/:id",
-            },
-          ],
         },
       ],
     },
     {
-      group: "System",
+      group: "Clinical",
       items: [
+        {
+          title: "Wound Care",
+          icon: Stethoscope,
+          path: "/patients", // Navigate to patients list to select a patient
+        },
+        {
+          title: "Pharmacy",
+          icon: Pill,
+          path: "/pharmacy",
+        },
+        {
+          title: "Analytics",
+          icon: BarChart3,
+          path: "/analytics",
+        },
+      ],
+    },
+    {
+      group: "Financial",
+      items: [
+        {
+          title: "Wallet",
+          icon: CreditCard,
+          path: "/wallet-dashboard",
+        },
+        {
+          title: "Subscription",
+          icon: Package,
+          path: "/subscription",
+        },
+      ],
+    },
+    {
+      group: "Administration",
+      items: [
+        {
+          title: "Doctor Accounts",
+          icon: UserCheck,
+          path: "/doctor-accounts",
+        },
+        {
+          title: "Menu Sync",
+          icon: Package,
+          path: "/menu-sync",
+        },
         {
           title: "Settings",
           icon: Settings,
           path: "/settings",
+        },
+        {
+          title: "Profile",
+          icon: Users,
+          path: "/profile",
         },
       ],
     },
@@ -114,38 +177,13 @@ export function AppSidebar() {
                         className={cn(
                           location.pathname === item.path && "bg-sidebar-accent text-sidebar-accent-foreground"
                         )}
-                        onClick={() => item.subItems ? toggleSubMenu(item.title) : navigate(item.path)}
+                        onClick={() => navigate(item.path)}
                       >
                         <item.icon className="h-5 w-5 mr-2" />
                         <span>{item.title}</span>
-                        {item.subItems ? (
-                          openSubMenus[item.title] ? (
-                            <ChevronUp className="h-4 w-4 ml-auto opacity-50" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 ml-auto opacity-50" />
-                          )
-                        ) : (
-                          <ChevronRight className="h-4 w-4 ml-auto opacity-50" />
-                        )}
+                        <ChevronRight className="h-4 w-4 ml-auto opacity-50" />
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    {item.subItems && openSubMenus[item.title] && (
-                      <div className="ml-8 border-l border-gray-200 dark:border-gray-700">
-                        {item.subItems.map((subItem) => (
-                          <SidebarMenuItem key={subItem.title}>
-                            <SidebarMenuButton
-                              className={cn(
-                                "pl-4", // Indent sub-items
-                                location.pathname === subItem.path && "bg-sidebar-accent text-sidebar-accent-foreground"
-                              )}
-                              onClick={() => navigate(subItem.path)}
-                            >
-                              <span>{subItem.title}</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 ))}
               </SidebarMenu>
