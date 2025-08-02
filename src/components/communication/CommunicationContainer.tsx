@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ContactsList from './ContactsList';
+import OrganizationalContacts from './OrganizationalContacts';
 import CallDialog from './CallDialog';
 import VideoCall from './VideoCall';
 import ChatWindows from './ChatWindows';
@@ -8,7 +8,7 @@ import ChatWindows from './ChatWindows';
 const CommunicationContainer = () => {
   return (
     <>
-      <ContactsList />
+      <OrganizationalContacts />
       <CallDialog />
       <VideoCall />
       <ChatWindows />

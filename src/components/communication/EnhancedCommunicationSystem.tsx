@@ -334,7 +334,7 @@ export const EnhancedCommunicationSystem: React.FC<EnhancedCommunicationSystemPr
     <Card className="w-96 h-[600px] fixed bottom-4 right-4 z-50 shadow-2xl">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">CareConnect Communication</CardTitle>
+          <CardTitle className="text-lg">Communication</CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
