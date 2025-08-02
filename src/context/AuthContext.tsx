@@ -42,8 +42,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } 
       } catch (error) {
         console.error('Error getting initial session:', error);
-        // Fallback to mock user
-        setUser(mockUser);
+        // Fallback to null
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
