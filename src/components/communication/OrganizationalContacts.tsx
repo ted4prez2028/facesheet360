@@ -32,10 +32,19 @@ interface OrganizationalUser {
   organization?: string;
 }
 
+interface MessagePreview {
+  id: string;
+  content: string;
+  created_at: string;
+  author: string;
+  user_id: string;
+}
+
 const OrganizationalContacts = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<OrganizationalUser[]>([]);
+  const [messageHistory, setMessageHistory] = useState<Record<string, MessagePreview | null>>({});
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
@@ -79,6 +88,11 @@ const OrganizationalContacts = () => {
         }
 
         setUsers(orgUsers || []);
+        
+        // Fetch message history for each user
+        if (orgUsers && orgUsers.length > 0) {
+          await fetchMessageHistory(orgUsers);
+        }
       } catch (error) {
         console.error('Error fetching organizational users:', error);
       } finally {
@@ -90,6 +104,38 @@ const OrganizationalContacts = () => {
       fetchOrganizationalUsers();
     }
   }, [isOpen, user]);
+
+  const fetchMessageHistory = async (orgUsers: OrganizationalUser[]) => {
+    if (!user?.id) return;
+
+    const history: Record<string, MessagePreview | null> = {};
+    
+    for (const contact of orgUsers) {
+      try {
+        // Since messages table doesn't have recipient_id, we'll fetch recent messages from this contact
+        // In a real implementation, you'd want to add conversation/thread support
+        const { data: messages, error } = await supabase
+          .from('messages')
+          .select('id, content, created_at, author, user_id')
+          .eq('user_id', contact.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error('Error fetching message history for', contact.name, error);
+          history[contact.id] = null;
+          continue;
+        }
+
+        history[contact.id] = messages && messages.length > 0 ? messages[0] : null;
+      } catch (error) {
+        console.error('Error fetching message history for', contact.name, error);
+        history[contact.id] = null;
+      }
+    }
+    
+    setMessageHistory(history);
+  };
 
   // Filter users based on search term
   const filteredUsers = users.filter(user =>
@@ -115,6 +161,28 @@ const OrganizationalContacts = () => {
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatMessagePreview = (content: string, maxLength: number = 40) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else if (days < 7) {
+      return `${days}d ago`;
+    } else {
+      return date.toLocaleDateString();
     }
   };
 
@@ -208,6 +276,24 @@ const OrganizationalContacts = () => {
                                     {contact.specialty}
                                   </p>
                                 )}
+                                {/* Message preview */}
+                                <div className="mt-1">
+                                  {messageHistory[contact.id] ? (
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-xs text-muted-foreground truncate flex-1">
+                                        {messageHistory[contact.id]!.user_id === user?.id ? 'You: ' : ''}
+                                        {formatMessagePreview(messageHistory[contact.id]!.content)}
+                                      </p>
+                                      <span className="text-xs text-muted-foreground ml-2">
+                                        {formatTime(messageHistory[contact.id]!.created_at)}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground italic">
+                                      No messages yet
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
