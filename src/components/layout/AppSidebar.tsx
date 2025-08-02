@@ -155,12 +155,6 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="py-6">
-        <div className="flex items-center px-4">
-          <Heart className="h-6 w-6 text-health-600 mr-2" />
-          <h1 className="text-xl font-semibold">Facesheet360</h1>
-        </div>
-      </SidebarHeader>
       <SidebarContent>
         {menuItems.map((group) => (
           <SidebarGroup key={group.group}>
