@@ -6,7 +6,6 @@ import { Patient } from '@/types';
 import { AddPatientDrawer } from '@/components/patients/AddPatientDrawer';
 import PatientsList from '@/components/patients/PatientsList';
 import PatientToolbar from '@/components/patients/PatientToolbar';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 
 const PatientListPage = () => {
@@ -49,8 +48,7 @@ const PatientListPage = () => {
   });
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <PatientToolbar
           filter={query}
           onFilterChange={setQuery}
@@ -69,8 +67,7 @@ const PatientListPage = () => {
         <AddPatientDrawer open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen} onPatientAdded={() => { /* TODO: Invalidate patients query */ }} />
         {/* Face ID dialog should go here */}
         {/* <FaceIdentificationDialog open={isFaceIdDialogOpen} onOpenChange={setIsFaceIdDialogOpen} /> */}
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

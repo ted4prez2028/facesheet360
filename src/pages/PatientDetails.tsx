@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Patient } from '@/types';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import PatientHeader from '@/components/patientview/PatientHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePatient } from '@/hooks/usePatient';
@@ -21,11 +20,9 @@ const PatientDetails = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center h-96">
+      <div className="flex justify-center items-center h-96">
           <Spinner size="lg" />
-        </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -45,8 +42,7 @@ const PatientDetails = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <PatientHeader patient={patient} calculateAge={calculateAge} />
         <Tabs defaultValue="profile" className="mt-6">
           <TabsList>
@@ -73,8 +69,7 @@ const PatientDetails = () => {
             <ImmunizationsTab patientId={patient.id} />
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

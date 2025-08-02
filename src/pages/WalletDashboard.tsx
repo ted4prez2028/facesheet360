@@ -1,6 +1,5 @@
 
 import React from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CareCoinsDashboard } from '@/components/wallet/CareCoinsDashboard';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,16 +20,14 @@ const WalletDashboard = () => {
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">CareCoin Wallet Dashboard</h1>
           <p className="text-muted-foreground">Manage your CareCoins, pay bills, and track achievements</p>
         </div>
         
         <CareCoinsDashboard />
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

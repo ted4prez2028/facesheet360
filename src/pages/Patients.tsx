@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Patient } from '@/types';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -210,8 +209,7 @@ const Patients = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <PatientToolbar 
           filter={searchQuery}
           onFilterChange={setSearchQuery}
@@ -505,8 +503,7 @@ const Patients = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

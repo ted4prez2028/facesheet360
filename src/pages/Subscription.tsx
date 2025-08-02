@@ -8,7 +8,6 @@ import CashAppPayment from '@/components/subscription/CashAppPayment';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 
 interface SubscriptionPlan {
   id: string;
@@ -147,8 +146,7 @@ const Subscription = () => {
 
   if (showCashAppPayment && cashAppData) {
     return (
-      <DashboardLayout>
-        <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
           <CashAppPayment
             amount={cashAppData.amount}
             purchaseType="subscription"
@@ -157,14 +155,12 @@ const Subscription = () => {
             onComplete={handleCashAppComplete}
             onCancel={() => setShowCashAppPayment(false)}
           />
-        </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Choose Your Plan
@@ -261,8 +257,7 @@ const Subscription = () => {
           Contact Sales
         </Button>
       </div>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

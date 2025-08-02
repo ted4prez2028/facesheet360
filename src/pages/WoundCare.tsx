@@ -2,7 +2,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePatient } from '@/hooks/usePatient';
 import { useWoundCare } from '@/hooks/useWoundCare';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -85,11 +84,9 @@ const WoundCare = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center h-96">
+      <div className="flex justify-center items-center h-96">
           <Spinner size="lg" />
-        </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -99,8 +96,7 @@ const WoundCare = () => {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => navigate(`/patients/${id}`)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -243,8 +239,7 @@ const WoundCare = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

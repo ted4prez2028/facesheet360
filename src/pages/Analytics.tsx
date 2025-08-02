@@ -1,7 +1,6 @@
 
 // Create a new analytics page
 import React, { useState } from 'react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,8 +16,7 @@ const Analytics = () => {
   const { data: careCoinsData = [], isLoading: isCareCoinsLoading } = useCareCoinsAnalytics(timeframe);
   
   return (
-    <DashboardLayout>
-      <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
           <p className="text-muted-foreground">Track key metrics and trends for your healthcare practice.</p>
@@ -133,8 +131,7 @@ const Analytics = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
