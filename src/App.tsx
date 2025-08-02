@@ -18,7 +18,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Navigate } from 'react-router-dom';
 import ProfilePage from './pages/ProfilePage';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
-import { FloatingCommunicationOrb } from '@/components/communication/FloatingCommunicationOrb';
+
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Appointments from './pages/Appointments';
 import Analytics from './pages/Analytics';
@@ -64,7 +64,6 @@ function App() {
                         <DashboardLayout>
                           <Dashboard />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -77,7 +76,6 @@ function App() {
                         <DashboardLayout>
                           <PatientList />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -90,7 +88,6 @@ function App() {
                         <DashboardLayout>
                           <PatientDetails />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -103,7 +100,6 @@ function App() {
                         <DashboardLayout>
                           <WoundCare />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -116,7 +112,6 @@ function App() {
                         <DashboardLayout>
                           <ProfilePage />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -129,7 +124,6 @@ function App() {
                         <DashboardLayout>
                           <Subscription />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -142,7 +136,6 @@ function App() {
                         <DashboardLayout>
                           <PharmacistDashboard />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -155,7 +148,6 @@ function App() {
                         <DashboardLayout>
                           <Appointments />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -168,7 +160,6 @@ function App() {
                         <DashboardLayout>
                           <Analytics />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -181,7 +172,6 @@ function App() {
                         <DashboardLayout>
                           <WalletDashboard />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -194,7 +184,6 @@ function App() {
                         <DashboardLayout>
                           <DoctorAccounts />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -207,7 +196,6 @@ function App() {
                         <DashboardLayout>
                           <MenuSyncPage />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -220,7 +208,6 @@ function App() {
                         <DashboardLayout>
                           <Settings />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
                       </CommunicationProvider>
                     </RequireAuth>
                   }
@@ -233,7 +220,7 @@ function App() {
                         <DashboardLayout>
                           <Charting />
                         </DashboardLayout>
-                        <FloatingCommunicationOrb />
+                        
                       </CommunicationProvider>
                     </RequireAuth>
                   }

@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLocation } from 'react-router-dom';
-import { useOrganizationalCommunication } from '@/hooks/useOrganizationalCommunication';
+import { useCommunication } from '@/hooks/useCommunication';
 import ChatWindow from './ChatWindow';
 import VideoCallInterface from './VideoCallInterface';
 
@@ -38,7 +38,7 @@ const CommunicationHub = () => {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
   const location = useLocation();
-  const { users, conversations, loading, error, fetchOrganizationalUsers } = useOrganizationalCommunication();
+  const { users, conversations, loading, error, fetchUsers } = useCommunication();
   
   // Hide on homepage
   const isHomePage = location.pathname === '/';
@@ -50,7 +50,7 @@ const CommunicationHub = () => {
   // Fetch data when modal opens
   const handleToggleContacts = () => {
     if (!isOpen) {
-      fetchOrganizationalUsers();
+      fetchUsers();
     }
     setIsOpen(!isOpen);
   };
@@ -183,32 +183,32 @@ const CommunicationHub = () => {
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Team Communication
+              Communication
             </SheetTitle>
           </SheetHeader>
           
           <div className="mt-6 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search team members..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+                <Input
+                  placeholder="Search contacts..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
             </div>
             
             <div className="h-[calc(100vh-240px)] overflow-y-auto pr-2">
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <p className="mt-2">Loading team members...</p>
+                  <p className="mt-2">Loading contacts...</p>
                 </div>
               ) : error ? (
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <Users className="h-12 w-12 mb-2 opacity-50" />
                   <p className="text-center text-red-500">{error}</p>
-                  <Button variant="ghost" size="sm" onClick={fetchOrganizationalUsers} className="mt-2">
+                  <Button variant="ghost" size="sm" onClick={fetchUsers} className="mt-2">
                     Try Again
                   </Button>
                 </div>
@@ -216,7 +216,7 @@ const CommunicationHub = () => {
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <Users className="h-12 w-12 mb-2 opacity-50" />
                   <p className="text-center">
-                    {searchTerm ? 'No team members found' : 'No team members available'}
+                    {searchTerm ? 'No contacts found' : 'No contacts available'}
                   </p>
                 </div>
               ) : (
