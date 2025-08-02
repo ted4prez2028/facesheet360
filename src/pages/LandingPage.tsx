@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { createAdminAccount } from '@/utils/createAccount';
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
@@ -26,6 +27,22 @@ const LandingPage = () => {
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateAccount = async () => {
+    setIsLoading(true);
+    try {
+      const result = await createAdminAccount();
+      if (result.success) {
+        toast.success('Admin account created! You can now login.');
+      } else {
+        toast.error('Failed to create admin account');
+      }
+    } catch (error) {
+      toast.error('Error creating admin account');
     } finally {
       setIsLoading(false);
     }
@@ -84,9 +101,18 @@ const LandingPage = () => {
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-2">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleCreateAccount}
+                disabled={isLoading}
+              >
+                Create Admin Account
               </Button>
             </CardFooter>
           </form>
