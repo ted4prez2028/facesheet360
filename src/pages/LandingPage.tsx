@@ -48,8 +48,8 @@ const LandingPage = () => {
             Secure, efficient, and designed for the modern medical workflow.
           </p>
           <div className="flex flex-wrap gap-4">
-            <Button size="lg" variant="default">Learn More</Button>
-            <Button size="lg" variant="outline" className="border-2 border-primary/50">Request Demo</Button>
+            <Button size="lg" variant="default" onClick={() => navigate('/learn-more')}>Learn More</Button>
+            <Button size="lg" variant="outline" className="border-2 border-primary/50" onClick={() => navigate('/view-plans')}>View Plans</Button>
           </div>
         </div>
         

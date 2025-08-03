@@ -1524,6 +1524,16 @@ export type Database = {
         Args: { _email: string; _password: string; _name?: string }
         Returns: Json
       }
+      create_subscription_checkout: {
+        Args: {
+          plan_id: string
+          plan_name: string
+          price: number
+          payment_method: string
+          guest_checkout?: boolean
+        }
+        Returns: Json
+      }
       distribute_care_coins_reward: {
         Args: {
           p_amount: number

@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import Index from './pages/Index';
 import LandingPage from './pages/LandingPage';
+import LearnMore from './pages/LearnMore';
+import ViewPlans from './pages/ViewPlans';
 import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
@@ -56,6 +58,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<LandingPage />} />
+                <Route path="/learn-more" element={<LearnMore />} />
+                <Route path="/view-plans" element={<ViewPlans />} />
                 <Route
                   path="/dashboard"
                   element={

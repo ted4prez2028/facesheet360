@@ -75,10 +75,10 @@ const Index = () => {
             </p>
             <div className="space-x-4">
               <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
-                <Link to="/dashboard">Get Started</Link>
+                <Link to="/learn-more">Learn More</Link>
               </Button>
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Link to="/subscription">View Plans</Link>
+                <Link to="/view-plans">View Plans</Link>
               </Button>
             </div>
           </div>
@@ -177,10 +177,10 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
-              <Link to="/dashboard">Get Started</Link>
+              <Link to="/learn-more">Learn More</Link>
             </Button>
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Link to="/subscription">View Plans</Link>
+              <Link to="/view-plans">View Plans</Link>
             </Button>
           </div>
         </div>
