@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
-import { sampleDoctors } from '@/lib/api/sampleDoctors';
+// Remove sample doctors - use real user data instead
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -33,11 +33,8 @@ const CreateDoctorAccounts = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedDoctors.length === sampleDoctors.length) {
-      setSelectedDoctors([]);
-    } else {
-      setSelectedDoctors(sampleDoctors.map(doc => doc.id!));
-    }
+    // Functionality removed - use real user management instead
+    setSelectedDoctors([]);
   };
 
   const createAccounts = async () => {
@@ -53,9 +50,8 @@ const CreateDoctorAccounts = () => {
     setIsLoading(true);
     try {
       // Get selected doctors' data
-      const doctorsToCreate = sampleDoctors.filter(doc => 
-        selectedDoctors.includes(doc.id!)
-      );
+      // Use real user data instead of sample data
+      console.log('Real user account creation not implemented yet');
       
       // Call the edge function
       const { data, error } = await supabase.functions.invoke('create-doctor-accounts', {
@@ -92,7 +88,7 @@ const CreateDoctorAccounts = () => {
       <CardHeader>
         <CardTitle>Create Doctor Accounts</CardTitle>
         <CardDescription>
-          Create accounts for sample doctors and email them login credentials and a call script.
+          Create accounts for healthcare providers and email them login credentials.
         </CardDescription>
       </CardHeader>
       <CardContent>

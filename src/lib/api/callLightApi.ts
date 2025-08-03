@@ -14,84 +14,107 @@ export interface CallLight extends CallLightRequest {
 }
 
 export const createCallLightRequest = async (requestData: CallLightRequestPayload): Promise<CallLightRequest> => {
-  // Mock implementation since we don't have call_light_requests table
-  const mockRequest: CallLightRequest = {
-    id: `req_${Date.now()}`,
-    patient_id: requestData.patient_id,
-    room_number: requestData.room_number,
-    request_type: requestData.request_type,
-    message: requestData.message,
-    status: 'active',
-    created_at: new Date().toISOString()
-  };
+  const { data, error } = await supabase
+    .from('call_lights')
+    .insert({
+      patient_id: requestData.patient_id,
+      room_number: requestData.room_number,
+      reason: requestData.request_type,
+      notes: requestData.message,
+      status: 'active'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
   
-  console.log('Mock call light request created:', mockRequest);
-  return mockRequest;
+  return {
+    id: data.id,
+    patient_id: data.patient_id,
+    room_number: data.room_number,
+    request_type: data.reason,
+    message: data.notes,
+    status: data.status,
+    created_at: data.activated_at
+  };
 };
 
 // Alias for backward compatibility
 export const createCallLight = createCallLightRequest;
 
 export const getPatientCallLightHistory = async (patientId: string): Promise<CallLightRequest[]> => {
-  // Mock implementation
-  return [
-    {
-      id: `req_${Date.now()}_1`,
-      patient_id: patientId,
-      room_number: '101',
-      request_type: 'bathroom',
-      message: 'Need assistance to bathroom',
-      status: 'completed',
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      completed_at: new Date(Date.now() - 3000000).toISOString(),
-      completed_by: 'nurse_123'
-    },
-    {
-      id: `req_${Date.now()}_2`,
-      patient_id: patientId,
-      room_number: '102',
-      request_type: 'pain',
-      message: 'Pain level 7/10',
-      status: 'in_progress', 
-      created_at: new Date(Date.now() - 1800000).toISOString()
-    }
-  ];
+  const { data, error } = await supabase
+    .from('call_lights')
+    .select('*')
+    .eq('patient_id', patientId)
+    .order('activated_at', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map(record => ({
+    id: record.id,
+    patient_id: record.patient_id,
+    room_number: record.room_number,
+    request_type: record.reason,
+    message: record.notes,
+    status: record.status,
+    created_at: record.activated_at,
+    completed_at: record.resolved_at,
+    completed_by: record.responded_by
+  }));
 };
 
 export const getActiveCallLights = async (): Promise<CallLightRequest[]> => {
-  // Mock implementation
-  return [
-    {
-      id: `req_${Date.now()}_active_1`,
-      patient_id: 'patient_123',
-      room_number: '101',
-      request_type: 'emergency',
-      message: 'Urgent assistance needed',
-      status: 'active',
-      created_at: new Date().toISOString()
-    }
-  ];
+  const { data, error } = await supabase
+    .from('call_lights')
+    .select('*')
+    .eq('status', 'active')
+    .order('activated_at', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map(record => ({
+    id: record.id,
+    patient_id: record.patient_id,
+    room_number: record.room_number,
+    request_type: record.reason,
+    message: record.notes,
+    status: record.status,
+    created_at: record.activated_at
+  }));
 };
 
 export const updateCallLightRequest = async (
   requestId: string, 
   updates: Partial<CallLightRequest>
 ): Promise<CallLightRequest> => {
-  // Mock implementation
-  const mockUpdatedRequest: CallLightRequest = {
-    id: requestId,
-    patient_id: updates.patient_id || 'patient_123',
-    room_number: updates.room_number || '101',
-    request_type: updates.request_type || 'general',
-    message: updates.message,
-    status: updates.status || 'completed',
-    created_at: updates.created_at || new Date().toISOString(),
-    completed_at: updates.completed_at,
-    completed_by: updates.completed_by
-  };
+  const dbUpdates: any = {};
   
-  console.log('Mock call light request updated:', mockUpdatedRequest);
-  return mockUpdatedRequest;
+  if (updates.status) dbUpdates.status = updates.status;
+  if (updates.completed_at) dbUpdates.resolved_at = updates.completed_at;
+  if (updates.completed_by) dbUpdates.responded_by = updates.completed_by;
+  if (updates.message) dbUpdates.notes = updates.message;
+
+  const { data, error } = await supabase
+    .from('call_lights')
+    .update(dbUpdates)
+    .eq('id', requestId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    patient_id: data.patient_id,
+    room_number: data.room_number,
+    request_type: data.reason,
+    message: data.notes,
+    status: data.status,
+    created_at: data.activated_at,
+    completed_at: data.resolved_at,
+    completed_by: data.responded_by
+  };
 };
 
 // Alias for backward compatibility
