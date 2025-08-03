@@ -34,7 +34,7 @@ export const createCallLightRequest = async (requestData: CallLightRequestPayloa
     room_number: data.room_number,
     request_type: data.reason,
     message: data.notes,
-    status: data.status,
+    status: data.status as 'active' | 'in_progress' | 'completed',
     created_at: data.activated_at
   };
 };
@@ -57,7 +57,7 @@ export const getPatientCallLightHistory = async (patientId: string): Promise<Cal
     room_number: record.room_number,
     request_type: record.reason,
     message: record.notes,
-    status: record.status,
+    status: record.status as 'active' | 'in_progress' | 'completed',
     created_at: record.activated_at,
     completed_at: record.resolved_at,
     completed_by: record.responded_by
@@ -79,7 +79,7 @@ export const getActiveCallLights = async (): Promise<CallLightRequest[]> => {
     room_number: record.room_number,
     request_type: record.reason,
     message: record.notes,
-    status: record.status,
+    status: record.status as 'active' | 'in_progress' | 'completed',
     created_at: record.activated_at
   }));
 };
@@ -110,7 +110,7 @@ export const updateCallLightRequest = async (
     room_number: data.room_number,
     request_type: data.reason,
     message: data.notes,
-    status: data.status,
+    status: data.status as 'active' | 'in_progress' | 'completed',
     created_at: data.activated_at,
     completed_at: data.resolved_at,
     completed_by: data.responded_by
