@@ -36,9 +36,9 @@ const CashAppPayment: React.FC<CashAppPaymentProps> = ({
     
     // Generate CashApp payment URL 
     // Format is: cash.app/$USERNAME/$AMOUNT/optional-note
-    const paymentUrl = `https://cash.app/${cashAppHandle}/${amount}/${paymentId}-${purchaseType}`;
+    const paymentUrl = `https://cash.app/${cashAppHandle}/${amount}/${uniqueId}-${purchaseType}`;
     setQrValue(paymentUrl);
-  }, [amount, purchaseType, paymentId]);
+  }, [amount, purchaseType, cashAppHandle]); // Removed paymentId from dependencies
   
   const copyPaymentInfo = () => {
     navigator.clipboard.writeText(`${cashAppHandle} $${amount} Ref: ${paymentId}`);
