@@ -86,7 +86,12 @@ serve(async (req) => {
       console.log("🎉 Subscription activated successfully");
       return new Response(JSON.stringify({
         success: true,
-        message: "Payment verified and subscription activated!"
+        message: "Payment verified and subscription activated!",
+        subscription: {
+          id: subscription.id,
+          plan_id: subscription.plan_id,
+          amount: subscription.amount
+        }
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

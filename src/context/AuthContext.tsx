@@ -193,17 +193,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setAuthError(null);
     try {
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: userData
         }
       });
 
       if (error) throw error;
       
-      toast.success('Account created successfully');
+      toast.success('Account created successfully! Please check your email to verify your account.');
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to sign up';
       setAuthError(errorMessage);

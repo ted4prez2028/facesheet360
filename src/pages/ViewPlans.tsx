@@ -141,10 +141,17 @@ const ViewPlans = () => {
       if (error) throw error;
 
       if (data.success) {
-        toast.success('Payment verified! Please login to activate your subscription.');
+        toast.success('Payment verified! Please create an account to access your subscription.');
         setShowCashAppPayment(false);
         setSelectedPlan(null);
-        navigate('/login');
+        
+        // Redirect to post-payment auth with plan details
+        const params = new URLSearchParams({
+          subscriptionId: cashAppData?.subscriptionId || '',
+          planName: selectedPlan?.title || '',
+          amount: selectedPlan?.price?.toString() || ''
+        });
+        navigate(`/post-payment-auth?${params.toString()}`);
       } else {
         toast.error(data.message);
       }

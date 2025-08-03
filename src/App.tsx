@@ -9,6 +9,7 @@ import Index from './pages/Index';
 import LandingPage from './pages/LandingPage';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
+import PostPaymentAuth from './pages/PostPaymentAuth';
 import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
@@ -60,6 +61,7 @@ function App() {
                 <Route path="/login" element={<LandingPage />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
+                <Route path="/post-payment-auth" element={<PostPaymentAuth />} />
                 <Route
                   path="/dashboard"
                   element={
