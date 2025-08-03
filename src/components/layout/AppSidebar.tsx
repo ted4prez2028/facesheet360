@@ -93,7 +93,7 @@ export function AppSidebar() {
         {
           title: "Wound Care",
           icon: Stethoscope,
-          path: "/patients", // Navigate to patients list to select a patient
+          path: "/wound-care",
         },
         {
           title: "Pharmacy",

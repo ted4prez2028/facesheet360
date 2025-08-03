@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
 import WoundCare from './pages/WoundCare';
+import WoundCareDashboard from './pages/WoundCareDashboard';
 import Subscription from './pages/Subscription';
 import PharmacistDashboard from './pages/PharmacistDashboard';
 import Charting from './pages/Charting';
@@ -113,6 +114,18 @@ function App() {
                       <CommunicationProvider>
                         <DashboardLayout>
                           <WoundCare />
+                        </DashboardLayout>
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/wound-care"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
+                        <DashboardLayout>
+                          <WoundCareDashboard />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>
