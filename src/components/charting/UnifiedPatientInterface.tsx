@@ -67,18 +67,29 @@ interface UnifiedPatientInterfaceProps {
   patientData: LocalPatient | undefined;
   userId: string | undefined;
   onBack: () => void;
+  initialTab?: string;
 }
 
 const UnifiedPatientInterface = ({ 
   selectedPatient, 
   patientData, 
   userId, 
-  onBack 
+  onBack,
+  initialTab 
 }: UnifiedPatientInterfaceProps) => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(initialTab || 'overview');
   const [isAddingVitals, setIsAddingVitals] = useState(false);
   const [isAddingMedication, setIsAddingMedication] = useState(false);
   const { user } = useAuth();
+
+  // Handle initial tab and auto-show forms
+  useEffect(() => {
+    if (initialTab === 'vitals') {
+      setIsAddingVitals(true);
+    } else if (initialTab === 'medications') {
+      setIsAddingMedication(true);
+    }
+  }, [initialTab]);
 
   // Fetch patient chart data from the database
   const { data: vitalSigns = [] } = useVitalSigns(selectedPatient);

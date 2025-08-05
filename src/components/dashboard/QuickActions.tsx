@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Clock, FileText, Search, Bell } from "lucide-react";
+import { Calendar, FileText, Search, Heart, Pill, FileText as NoteIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '@/hooks/useAuth';
 import CallLightDashboard from '@/components/call-light/CallLightDashboard';
@@ -19,41 +19,32 @@ export const QuickActions = () => {
         <CardHeader className="pb-3">
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Button 
             variant="outline" 
             className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
-            onClick={() => navigate('/patients')}
+            onClick={() => navigate('/patients?tab=vitals')}
           >
-            <Search className="h-10 w-10 text-muted-foreground/70 mb-2" />
-            <div className="font-medium text-sm">Find Patient</div>
+            <Heart className="h-10 w-10 text-red-500 mb-2" />
+            <div className="font-medium text-sm">Add Vitals</div>
           </Button>
 
           <Button 
             variant="outline" 
             className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
-            onClick={() => navigate('/appointments')}
+            onClick={() => navigate('/patients?tab=medications')}
           >
-            <Calendar className="h-10 w-10 text-muted-foreground/70 mb-2" />
-            <div className="font-medium text-sm">Schedule Appointment</div>
+            <Pill className="h-10 w-10 text-blue-500 mb-2" />
+            <div className="font-medium text-sm">Add Medication</div>
           </Button>
 
           <Button 
             variant="outline" 
             className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
-            onClick={() => navigate('/charting')}
+            onClick={() => navigate('/patients?tab=notes')}
           >
-            <FileText className="h-10 w-10 text-muted-foreground/70 mb-2" />
-            <div className="font-medium text-sm">Patient Chart</div>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            className="h-auto flex-col items-center justify-center pt-6 pb-5 px-3 gap-2 border-dashed hover:border-primary hover:bg-background"
-            onClick={() => setCallLightOpen(true)}
-          >
-            <Bell className="h-10 w-10 text-amber-500 mb-2" />
-            <div className="font-medium text-sm">Call Light Dashboard</div>
+            <NoteIcon className="h-10 w-10 text-green-500 mb-2" />
+            <div className="font-medium text-sm">Add Note</div>
           </Button>
         </CardContent>
       </Card>

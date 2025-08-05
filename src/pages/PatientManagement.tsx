@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useSearchParams } from "react-router-dom";
 import PatientList from "@/components/charting/PatientList";
 import UnifiedPatientInterface from "@/components/charting/UnifiedPatientInterface";
 import AddPatientSheet from "@/components/charting/AddPatientSheet";
@@ -7,7 +8,9 @@ import { usePatientSelection } from "@/hooks/usePatientSelection";
 
 const PatientManagement = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [initialTab, setInitialTab] = useState<string | undefined>();
   
   const { 
     selectedPatient, 
@@ -16,6 +19,20 @@ const PatientManagement = () => {
     patients,
     isLoading
   } = usePatientSelection(user?.id);
+
+  // Handle tab parameter from URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab) {
+      setInitialTab(tab);
+      // Clear the tab parameter from URL after using it
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete('tab');
+        return newParams;
+      });
+    }
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="h-full overflow-hidden">
@@ -42,6 +59,7 @@ const PatientManagement = () => {
               patientData={selectedPatientData}
               userId={user?.id}
               onBack={() => setSelectedPatient(null)}
+              initialTab={initialTab}
             />
           </div>
         )}
