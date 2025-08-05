@@ -5,7 +5,6 @@ export interface User {
   name: string;
   role: 'doctor' | 'nurse' | 'therapist' | 'cna';
   specialty?: string;
-  license_number?: string;
   profile_image?: string;
   care_coins_balance: number;
   organization?: string;

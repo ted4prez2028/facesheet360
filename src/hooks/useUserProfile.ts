@@ -30,7 +30,7 @@ export const useUpdateUser = () => {
       if (updates.name) dbData.name = updates.name;
       if (updates.email) dbData.email = updates.email;
       if (updates.specialty) dbData.specialty = updates.specialty;
-      if (updates.license_number) dbData.license_number = updates.license_number;
+      if (updates.specialty) dbData.specialty = updates.specialty;
       if (updates.profile_image) dbData.profile_image = updates.profile_image;
       if (updates.care_coins_balance !== undefined) dbData.care_coins_balance = updates.care_coins_balance;
       if (updates.role) dbData.role = updates.role;

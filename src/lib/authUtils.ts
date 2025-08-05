@@ -8,7 +8,6 @@ interface DbUser {
   email?: string;
   role?: string;
   specialty?: string;
-  license_number?: string;
   profile_image?: string;
   care_coins_balance?: number;
   created_at?: string;
@@ -71,7 +70,6 @@ export const formatUserData = (userData: DbUser): User => {
     email: userData.email || '',
     role,
     specialty: userData.specialty || undefined,
-    license_number: userData.license_number || undefined,
     profile_image: userData.profile_image || undefined,
     care_coins_balance: userData.care_coins_balance || 0,
     created_at: userData.created_at || '',

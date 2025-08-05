@@ -106,7 +106,6 @@ export const useAuthOperations = (
       const dbUpdate = {
         name: userData.name,
         specialty: userData.specialty,
-        license_number: userData.license_number,
         profile_image: userData.profile_image,
       };
       
@@ -151,7 +150,6 @@ export const useAuthOperations = (
           email: userData.email,
           role: userData.role,
           specialty: userData.specialty || undefined,
-          license_number: userData.license_number || undefined,
           profile_image: userData.profile_image || undefined,
           care_coins_balance: userData.care_coins_balance || 0,
           created_at: userData.created_at || new Date().toISOString(),

@@ -16,7 +16,6 @@ export default function ProfilePage() {
     email: user?.email || '',
     role: user?.role || 'doctor' as User['role'],
     specialty: user?.specialty || '',
-    license_number: user?.license_number || '',
   });
 
   const handleSave = () => {
@@ -30,7 +29,6 @@ export default function ProfilePage() {
       email: user?.email || '',
       role: user?.role || 'doctor',
       specialty: user?.specialty || '',
-      license_number: user?.license_number || '',
     });
     setIsEditing(false);
   };
@@ -92,16 +90,6 @@ export default function ProfilePage() {
                 id="specialty"
                 value={formData.specialty}
                 onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                disabled={!isEditing}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="license">License Number</Label>
-              <Input
-                id="license"
-                value={formData.license_number}
-                onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
                 disabled={!isEditing}
               />
             </div>

@@ -22,7 +22,6 @@ const profileFormSchema = z.object({
     .min(1, { message: "Email is required" })
     .email("This is not a valid email"),
   specialty: z.string().optional(),
-  license_number: z.string().optional(),
   bio: z.string().optional(),
 });
 
@@ -36,7 +35,6 @@ export default function ProfileTab() {
       name: user?.name || "",
       email: user?.email || "",
       specialty: user?.specialty || "",
-      license_number: user?.license_number || "",
       bio: "",
     },
   });
@@ -48,7 +46,6 @@ export default function ProfileTab() {
       await updateUserProfile({
         name: values.name,
         specialty: values.specialty,
-        license_number: values.license_number,
       });
       
       toast.success("Profile updated successfully");
@@ -136,12 +133,12 @@ export default function ProfileTab() {
                 
                 <FormField
                   control={form.control}
-                  name="license_number"
+                  name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>License Number</FormLabel>
+                      <FormLabel>Bio</FormLabel>
                       <FormControl>
-                        <Input placeholder="License #" {...field} />
+                        <Input placeholder="Tell us about yourself..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
