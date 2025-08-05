@@ -38,7 +38,7 @@ import { SidebarGroupLabel } from "@/lib/sidebar-group-label";
 import { SidebarMenu } from "@/lib/sidebar-menu";
 import { SidebarMenuItem } from "@/lib/sidebar-menu-item";
 import { SidebarMenuButton } from "@/lib/sidebar-menu-button";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AppSidebar() {
   const navigate = useNavigate();

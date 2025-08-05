@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from "react";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useCommunicationState() {
   const [isContactsOpen, setIsContactsOpen] = useState(false);

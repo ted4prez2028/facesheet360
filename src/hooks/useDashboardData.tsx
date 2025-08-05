@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from "sonner";
 
 export interface DashboardData {

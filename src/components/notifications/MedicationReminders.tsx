@@ -1,7 +1,7 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Bell, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';

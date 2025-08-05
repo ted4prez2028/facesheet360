@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 import { PreferenceType, defaultPreferences } from '@/types/userPreferences';
 

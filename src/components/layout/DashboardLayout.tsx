@@ -5,7 +5,7 @@ import { AppSidebar } from "./AppSidebar";
 import TopNav from "./TopNav";
 import { SidebarProvider } from "@/lib/sidebar-provider";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import NotificationSound from "@/components/notifications/NotificationSound";
 import MedicationReminders from "@/components/notifications/MedicationReminders";
 import CommunicationContainer from "@/components/communication/CommunicationContainer";

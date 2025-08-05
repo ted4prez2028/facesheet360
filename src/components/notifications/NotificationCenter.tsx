@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getNotifications, markNotificationAsRead, type Notification } from '@/lib/api/notificationApi';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';

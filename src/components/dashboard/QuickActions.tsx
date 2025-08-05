@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Clock, FileText, Search, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import CallLightDashboard from '@/components/call-light/CallLightDashboard';
 
 export const QuickActions = () => {
