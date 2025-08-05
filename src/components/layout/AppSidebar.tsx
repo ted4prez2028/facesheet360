@@ -26,6 +26,7 @@ import {
   Package,
   DollarSign,
   Zap,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -111,8 +112,8 @@ export function AppSidebar() {
       group: "Financial",
       items: [
         {
-          title: "Wallet",
-          icon: CreditCard,
+          title: "CareCoin Wallet",
+          icon: Wallet,
           path: "/wallet-dashboard",
         },
         {
