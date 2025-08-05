@@ -71,20 +71,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, setting supabase user and fetching profile...');
           setSupabaseUser(session.user);
-          await fetchUserProfile(session.user.id);
+          // Defer the profile fetch to avoid potential race conditions
+          setTimeout(async () => {
+            try {
+              await fetchUserProfile(session.user.id);
+            } catch (error) {
+              console.error('Failed to fetch user profile after sign in:', error);
+              await createFallbackUser(session.user.id);
+            }
+          }, 100);
         } else if (event === 'SIGNED_OUT' || !session) {
+          console.log('User signed out, clearing state...');
           setSupabaseUser(null);
           setUser(null);
+          setIsLoading(false);
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('Token refreshed...');
           setSupabaseUser(session.user);
           // Don't refetch user profile on token refresh if we already have user data
           if (!user) {
-            await fetchUserProfile(session.user.id);
+            setTimeout(async () => {
+              try {
+                await fetchUserProfile(session.user.id);
+              } catch (error) {
+                console.error('Failed to fetch user profile after token refresh:', error);
+                await createFallbackUser(session.user.id);
+              }
+            }, 100);
           }
         }
         
-        setIsLoading(false);
+        // Always ensure loading is set to false after processing
+        setTimeout(() => setIsLoading(false), 200);
       }
     );
 
@@ -103,6 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
+      console.log('Database query result:', { data, error });
+
       if (error) {
         console.error('Error fetching user profile:', error);
         // If profile doesn't exist, create one
@@ -112,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         // If other error, create a basic user from auth data
-        console.log('Creating fallback user profile...');
+        console.log('Creating fallback user profile due to error...');
         await createFallbackUser(userId);
         return;
       }
@@ -132,7 +154,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: data.created_at,
           updated_at: data.updated_at
         };
+        console.log('Setting user profile:', userProfile);
         setUser(userProfile);
+      } else {
+        console.log('No data returned, creating fallback user...');
+        await createFallbackUser(userId);
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
