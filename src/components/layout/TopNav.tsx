@@ -10,7 +10,9 @@ import {
   ChevronDown,
   DollarSign,
   Pill,
-  LogOut
+  LogOut,
+  Shield,
+  UserPlus
 } from 'lucide-react';
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -26,11 +28,15 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCommunication } from '@/context/communication/CommunicationContext';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 
 const TopNav: React.FC = () => {
   const { user, logout } = useAuth();
   const { toggleContacts } = useCommunication();
+  const { hasRole } = useRolePermissions();
   const navigate = useNavigate();
+  
+  const isAdmin = hasRole('admin');
 
   const handleLogout = async () => {
     try {
@@ -77,7 +83,12 @@ const TopNav: React.FC = () => {
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
-              <span className="mr-1">{user?.name || 'User'}</span>
+              <div className="flex items-center gap-1">
+                <span>{user?.name || 'User'}</span>
+                {isAdmin && (
+                  <Shield className="h-3 w-3 text-primary" />
+                )}
+              </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
@@ -101,6 +112,12 @@ const TopNav: React.FC = () => {
                 <Pill className="mr-2 h-4 w-4" />
                 <span>Pharmacy Dashboard</span>
               </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => navigate('/doctor-accounts')}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  <span>Doctor Accounts</span>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
