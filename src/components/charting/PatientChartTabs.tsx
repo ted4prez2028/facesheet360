@@ -22,7 +22,7 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
     : 'Unknown Patient';
 
   return (
-    <CardContent className="flex-1 flex flex-col overflow-hidden">
+    <CardContent className="flex-1 flex flex-col overflow-hidden p-6">
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-6 shrink-0">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -34,7 +34,7 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
         </TabsList>
 
         <div className="flex-1 mt-4 overflow-hidden">
-          <TabsContent value="overview" className="h-full overflow-y-auto">
+          <TabsContent value="overview" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
             <PatientOverview 
               patient={patient}
               patientName={displayName}
@@ -42,7 +42,7 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
             />
           </TabsContent>
 
-          <TabsContent value="vitals" className="h-full overflow-y-auto">
+          <TabsContent value="vitals" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
             <VitalSigns 
               patientId={patientId}
               patientName={displayName}
@@ -50,28 +50,28 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
             />
           </TabsContent>
 
-          <TabsContent value="medications" className="h-full overflow-y-auto">
+          <TabsContent value="medications" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
             <MedicationsSection 
               patientId={patientId}
               medications={chartData.medications}
             />
           </TabsContent>
 
-          <TabsContent value="labs" className="h-full overflow-y-auto">
+          <TabsContent value="labs" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
             <LabResults 
               patientId={patientId}
               labResults={chartData.labResults}
             />
           </TabsContent>
 
-          <TabsContent value="imaging" className="h-full overflow-y-auto">
+          <TabsContent value="imaging" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
             <ImagingRecords 
               patientId={patientId}
               imagingRecords={chartData.imaging}
             />
           </TabsContent>
 
-          <TabsContent value="notes" className="h-full overflow-y-auto">
+          <TabsContent value="notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
             <NotesSection 
               patientId={patientId}
               providerId={userId}
