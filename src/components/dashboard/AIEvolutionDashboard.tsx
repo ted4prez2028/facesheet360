@@ -68,21 +68,22 @@ const AIEvolutionDashboard: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('ai-self-improvement');
       
-      if (error) {
-        // Handle rate limit errors specifically
-        if (error.message?.includes('rate limit') || error.message?.includes('429')) {
-          toast({
-            title: "⏳ AI System Rate Limited",
-            description: "AI improvements are temporarily paused due to API limits. Will resume automatically in 15 minutes.",
-            variant: "default",
-          });
-        } else {
-          throw error;
-        }
+      // Handle the response - now all responses come back as 200 status
+      if (data && !data.success) {
+        // Handle error responses that come back as 200 but with success: false
+        toast({
+          title: "⏳ AI System Status",
+          description: data.error.includes('rate limit') || data.error.includes('429')
+            ? "AI improvements are temporarily paused due to API limits. Will resume automatically."
+            : data.error,
+          variant: data.error.includes('rate limit') ? "default" : "destructive",
+        });
+      } else if (error) {
+        throw error;
       } else {
         toast({
           title: "🤖 AI Improvement Triggered",
-          description: `${data.improvement_implemented || 'System analyzed and improved'}`,
+          description: `${data?.improvement_implemented || 'System analyzed and improved'}`,
         });
       }
 
@@ -91,8 +92,8 @@ const AIEvolutionDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error triggering AI improvement:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to trigger AI improvement",
+        title: "Connection Error",
+        description: "Unable to connect to AI system. Please try again later.",
         variant: "destructive",
       });
     } finally {
