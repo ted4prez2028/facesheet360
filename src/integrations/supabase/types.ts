@@ -88,6 +88,36 @@ export type Database = {
           },
         ]
       }
+      auth_attempts: {
+        Row: {
+          created_at: string
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          success: boolean
+          user_agent: string | null
+          user_email: string | null
+        }
+        Insert: {
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean
+          user_agent?: string | null
+          user_email?: string | null
+        }
+        Update: {
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean
+          user_agent?: string | null
+          user_email?: string | null
+        }
+        Relationships: []
+      }
       auto_post_settings: {
         Row: {
           created_at: string
@@ -586,6 +616,45 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          created_at: string
+          endpoint: string | null
+          error_message: string | null
+          error_type: string
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          severity: string | null
+          stack_trace: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
+          error_type: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          severity?: string | null
+          stack_trace?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string | null
+          error_message?: string | null
+          error_type?: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          severity?: string | null
+          stack_trace?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1312,6 +1381,42 @@ export type Database = {
         }
         Relationships: []
       }
+      system_health_metrics: {
+        Row: {
+          created_at: string
+          daily_appointments: number | null
+          error_rate: number | null
+          id: string
+          last_updated: string
+          metric_date: string
+          system_uptime: unknown | null
+          total_patients: number | null
+          total_users: number | null
+        }
+        Insert: {
+          created_at?: string
+          daily_appointments?: number | null
+          error_rate?: number | null
+          id?: string
+          last_updated?: string
+          metric_date: string
+          system_uptime?: unknown | null
+          total_patients?: number | null
+          total_users?: number | null
+        }
+        Update: {
+          created_at?: string
+          daily_appointments?: number | null
+          error_rate?: number | null
+          id?: string
+          last_updated?: string
+          metric_date?: string
+          system_uptime?: unknown | null
+          total_patients?: number | null
+          total_users?: number | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -1582,6 +1687,10 @@ export type Database = {
           p_payment_id: string
           p_provider: string
         }
+        Returns: boolean
+      }
+      analyze_tables: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       assess_health_risks: {
