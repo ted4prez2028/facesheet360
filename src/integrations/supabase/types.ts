@@ -359,6 +359,45 @@ export type Database = {
           },
         ]
       }
+      carecoin_contract: {
+        Row: {
+          abi: Json | null
+          contract_address: string
+          contract_details: Json | null
+          created_at: string
+          deployed_by: string | null
+          deployer_address: string
+          id: string
+          network: string
+          transaction_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          abi?: Json | null
+          contract_address: string
+          contract_details?: Json | null
+          created_at?: string
+          deployed_by?: string | null
+          deployer_address: string
+          id?: string
+          network?: string
+          transaction_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          abi?: Json | null
+          contract_address?: string
+          contract_details?: Json | null
+          created_at?: string
+          deployed_by?: string | null
+          deployer_address?: string
+          id?: string
+          network?: string
+          transaction_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chart_records: {
         Row: {
           created_at: string
