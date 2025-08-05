@@ -7,7 +7,7 @@ import { toast } from "sonner";
 export interface PendingTask {
   id: string;
   task: string;
-  priority: string;
+  priority: 'high' | 'medium' | 'low'; // Updated to match types/index.ts
   due: string;
 }
 
@@ -40,12 +40,12 @@ export const usePendingTasks = () => {
             : 'Unknown Patient';
           
           // Determine priority based on task description
-          let priority = 'Medium';
+          let priority: 'high' | 'medium' | 'low' = 'medium';
           const taskLower = task.task_description.toLowerCase();
           if (taskLower.includes('urgent') || taskLower.includes('emergency') || taskLower.includes('critical')) {
-            priority = 'High';
+            priority = 'high';
           } else if (taskLower.includes('routine') || taskLower.includes('follow up')) {
-            priority = 'Low';
+            priority = 'low';
           }
 
           // Calculate due date

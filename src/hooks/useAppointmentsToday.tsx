@@ -8,7 +8,7 @@ export interface TodayAppointment {
   patient: string;
   time: string;
   type: string;
-  duration: string;
+  duration: number; // Changed from string to number to match types/index.ts
 }
 
 /**
@@ -55,7 +55,7 @@ export const useAppointmentsToday = () => {
           hour12: true
         }),
         type: appointment.notes || 'Appointment',
-        duration: '30 min' // Default duration since not stored
+        duration: 30 // Default duration in minutes as number
       }));
     },
     enabled: !!user?.id,
