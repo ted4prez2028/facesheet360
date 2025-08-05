@@ -104,7 +104,11 @@ function App() {
                   path="/patients/:id/detail"
                   element={
                     <RequireAuth>
-                      <PatientEHRInterface />
+                      <CommunicationProvider>
+                        <DashboardLayout>
+                          <PatientEHRInterface />
+                        </DashboardLayout>
+                      </CommunicationProvider>
                     </RequireAuth>
                   }
                 />
