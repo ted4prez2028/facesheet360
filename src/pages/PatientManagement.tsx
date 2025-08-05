@@ -20,24 +20,38 @@ const PatientManagement = () => {
   return (
     <>
       <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
-        <div className="w-full md:w-80 flex flex-col">
-          <PatientList 
-            selectedPatient={selectedPatient}
-            setSelectedPatient={(id) => setSelectedPatient(id)}
-            setIsAddPatientOpen={setIsAddPatientOpen}
-            user={user as any}
-            patients={patients}
-            isLoading={isLoading}
-          />
-        </div>
+        {/* Show patient list only when no patient is selected */}
+        {!selectedPatient && (
+          <div className="w-full flex flex-col">
+            <PatientList 
+              selectedPatient={selectedPatient}
+              setSelectedPatient={(id) => setSelectedPatient(id)}
+              setIsAddPatientOpen={setIsAddPatientOpen}
+              user={user as any}
+              patients={patients}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
         
-        <div className="flex-1 flex flex-col h-full overflow-hidden">
-          <PatientChart 
-            selectedPatient={selectedPatient}
-            patientData={selectedPatientData}
-            userId={user?.id}
-          />
-        </div>
+        {/* Show patient chart when a patient is selected */}
+        {selectedPatient && (
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <div className="mb-4">
+              <button
+                onClick={() => setSelectedPatient(null)}
+                className="text-primary hover:text-primary/80 text-sm font-medium"
+              >
+                ← Back to Patients
+              </button>
+            </div>
+            <PatientChart 
+              selectedPatient={selectedPatient}
+              patientData={selectedPatientData}
+              userId={user?.id}
+            />
+          </div>
+        )}
       </div>
 
       <AddPatientSheet 
