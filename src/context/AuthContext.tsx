@@ -179,13 +179,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       toast.success('Signed in successfully');
+      // Don't set isLoading to false here - let onAuthStateChange handle it
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to sign in';
       setAuthError(errorMessage);
       toast.error(errorMessage);
+      setIsLoading(false); // Only set to false on error
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
