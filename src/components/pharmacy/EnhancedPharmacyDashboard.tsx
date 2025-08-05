@@ -212,7 +212,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
           <p className="text-muted-foreground">Manage medication orders and pharmacy operations</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" size="default" className="gap-2">
             <Package className="h-4 w-4" />
             Inventory
           </Button>
@@ -366,15 +366,16 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                           <>
                             <Button 
                               size="sm" 
+                              variant="default"
                               onClick={() => updateOrderStatus(order.id, 'administered')}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white"
                             >
                               <CheckCircle className="h-4 w-4 mr-1" />
                               Administer
                             </Button>
                             <Button 
                               size="sm" 
-                              variant="outline"
+                              variant="destructive"
                               onClick={() => updateOrderStatus(order.id, 'discontinued')}
                             >
                               <AlertTriangle className="h-4 w-4 mr-1" />
@@ -504,7 +505,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                   />
                 </div>
 
-                <Button onClick={createMedicationOrder} className="w-full">
+                <Button onClick={createMedicationOrder} className="w-full" size="lg">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Medication Order
                 </Button>
