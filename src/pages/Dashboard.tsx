@@ -5,7 +5,6 @@ import DashboardCharts from '@/components/dashboard/DashboardCharts';
 import RecentPatients from '@/components/dashboard/RecentPatients';
 import TodayAppointments from '@/components/dashboard/TodayAppointments';
 import PendingTasks from '@/components/dashboard/PendingTasks';
-import QuickActions from '@/components/dashboard/QuickActions';
 import { useAppointmentsToday } from '@/hooks/useAppointmentsToday';
 import { usePendingTasks } from '@/hooks/usePendingTasks';
 import { useRecentPatients } from '@/hooks/useRecentPatients';
@@ -86,9 +85,6 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div className="flex gap-2">
-          <QuickActions />
-        </div>
       </div>
 
       <StatisticsCards />
