@@ -320,28 +320,6 @@ const UnifiedPatientInterface = ({
                     </Card>
                   </div>
 
-                  {/* Quick Actions */}
-                  <Card>
-                    <CardHeader>
-                      <h3 className="text-lg font-semibold">Quick Actions</h3>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        <Button onClick={() => setIsAddingVitals(true)} size="sm">
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Vitals
-                        </Button>
-                        <Button onClick={() => setIsAddingMedication(true)} size="sm" variant="outline">
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Medication
-                        </Button>
-                        <Button onClick={() => setActiveTab('notes')} size="sm" variant="outline">
-                          <FileText className="h-4 w-4 mr-1" />
-                          Add Note
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </TabsContent>
 
