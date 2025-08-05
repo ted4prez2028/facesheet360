@@ -18,7 +18,7 @@ import WoundCare from './pages/WoundCare';
 import WoundCareDashboard from './pages/WoundCareDashboard';
 import Subscription from './pages/Subscription';
 import PharmacistDashboard from './pages/PharmacistDashboard';
-import Charting from './pages/Charting';
+import PatientManagement from './pages/PatientManagement';
 import { Toaster } from "@/components/ui/toaster"
 import ProfilePage from './pages/ProfilePage';
 import PatientEHRInterface from './pages/PatientEHRInterface';
@@ -82,7 +82,7 @@ function App() {
                     <RequireAuth>
                       <CommunicationProvider>
                         <DashboardLayout>
-                          <PatientList />
+                          <PatientManagement />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>
@@ -246,9 +246,8 @@ function App() {
                     <RequireAuth>
                       <CommunicationProvider>
                         <DashboardLayout>
-                          <Charting />
+                          <PatientManagement />
                         </DashboardLayout>
-                        
                       </CommunicationProvider>
                     </RequireAuth>
                   }
