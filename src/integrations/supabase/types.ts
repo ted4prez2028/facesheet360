@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_improvements: {
+        Row: {
+          code_changes: string | null
+          completion_time: string | null
+          created_at: string
+          description: string
+          error_message: string | null
+          files_modified: Json | null
+          id: string
+          impact_score: number | null
+          implementation_status: string
+          implementation_time: string | null
+          improvement_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code_changes?: string | null
+          completion_time?: string | null
+          created_at?: string
+          description: string
+          error_message?: string | null
+          files_modified?: Json | null
+          id?: string
+          impact_score?: number | null
+          implementation_status?: string
+          implementation_time?: string | null
+          improvement_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code_changes?: string | null
+          completion_time?: string | null
+          created_at?: string
+          description?: string
+          error_message?: string | null
+          files_modified?: Json | null
+          id?: string
+          impact_score?: number | null
+          implementation_status?: string
+          implementation_time?: string | null
+          improvement_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analytics_data: {
         Row: {
           created_at: string | null
@@ -44,6 +92,51 @@ export type Database = {
           platform?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      app_evolution_metrics: {
+        Row: {
+          accessibility_improvements: number | null
+          avg_impact_score: number | null
+          bug_fixes: number | null
+          created_at: string
+          feature_additions: number | null
+          files_modified: number | null
+          id: string
+          lines_of_code_added: number | null
+          metric_date: string
+          performance_improvements: number | null
+          total_improvements: number | null
+          ui_improvements: number | null
+        }
+        Insert: {
+          accessibility_improvements?: number | null
+          avg_impact_score?: number | null
+          bug_fixes?: number | null
+          created_at?: string
+          feature_additions?: number | null
+          files_modified?: number | null
+          id?: string
+          lines_of_code_added?: number | null
+          metric_date?: string
+          performance_improvements?: number | null
+          total_improvements?: number | null
+          ui_improvements?: number | null
+        }
+        Update: {
+          accessibility_improvements?: number | null
+          avg_impact_score?: number | null
+          bug_fixes?: number | null
+          created_at?: string
+          feature_additions?: number | null
+          files_modified?: number | null
+          id?: string
+          lines_of_code_added?: number | null
+          metric_date?: string
+          performance_improvements?: number | null
+          total_improvements?: number | null
+          ui_improvements?: number | null
         }
         Relationships: []
       }

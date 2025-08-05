@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import RecentPatients from "./RecentPatients";
 import TodayAppointments from "./TodayAppointments";
 import PendingTasks from "./PendingTasks";
+import AIEvolutionDashboard from "./AIEvolutionDashboard";
 import { RecentPatient, TodayAppointment, PendingTask } from "@/types";
 
 interface DashboardTabsProps {
@@ -29,6 +30,7 @@ const DashboardTabs = ({
         <TabsTrigger value="patients">Patients</TabsTrigger>
         <TabsTrigger value="appointments">Appointments</TabsTrigger>
         <TabsTrigger value="tasks">Tasks</TabsTrigger>
+        <TabsTrigger value="ai-evolution">🤖 AI Evolution</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
@@ -150,6 +152,10 @@ const DashboardTabs = ({
             <PendingTasks tasks={pendingTasks} />
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="ai-evolution" className="space-y-4">
+        <AIEvolutionDashboard />
       </TabsContent>
     </Tabs>
   );
