@@ -22,9 +22,9 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
     : 'Unknown Patient';
 
   return (
-    <CardContent className="flex-1 flex flex-col">
+    <CardContent className="flex-1 flex flex-col overflow-hidden">
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-6 shrink-0">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
           <TabsTrigger value="medications">Medications</TabsTrigger>
@@ -33,8 +33,8 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
           <TabsTrigger value="notes">Notes</TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 mt-4">
-          <TabsContent value="overview" className="h-full">
+        <div className="flex-1 mt-4 overflow-hidden">
+          <TabsContent value="overview" className="h-full overflow-y-auto">
             <PatientOverview 
               patient={patient}
               patientName={displayName}
@@ -42,7 +42,7 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
             />
           </TabsContent>
 
-          <TabsContent value="vitals" className="h-full">
+          <TabsContent value="vitals" className="h-full overflow-y-auto">
             <VitalSigns 
               patientId={patientId}
               patientName={displayName}
@@ -50,28 +50,28 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
             />
           </TabsContent>
 
-          <TabsContent value="medications" className="h-full">
+          <TabsContent value="medications" className="h-full overflow-y-auto">
             <MedicationsSection 
               patientId={patientId}
               medications={chartData.medications}
             />
           </TabsContent>
 
-          <TabsContent value="labs" className="h-full">
+          <TabsContent value="labs" className="h-full overflow-y-auto">
             <LabResults 
               patientId={patientId}
               labResults={chartData.labResults}
             />
           </TabsContent>
 
-          <TabsContent value="imaging" className="h-full">
+          <TabsContent value="imaging" className="h-full overflow-y-auto">
             <ImagingRecords 
               patientId={patientId}
               imagingRecords={chartData.imaging}
             />
           </TabsContent>
 
-          <TabsContent value="notes" className="h-full">
+          <TabsContent value="notes" className="h-full overflow-y-auto">
             <NotesSection 
               patientId={patientId}
               providerId={userId}
