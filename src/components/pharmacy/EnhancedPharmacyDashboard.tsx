@@ -221,10 +221,10 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 dark:from-amber-950 dark:to-amber-900 dark:border-amber-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-500 rounded-lg">
+                <div className="p-3 bg-amber-500 rounded-lg">
                   <Clock className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-4">
@@ -235,10 +235,10 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 dark:from-emerald-950 dark:to-emerald-900 dark:border-emerald-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-green-500 rounded-lg">
+                <div className="p-3 bg-emerald-500 rounded-lg">
                   <CheckCircle className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-4">
@@ -249,7 +249,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 dark:from-blue-950 dark:to-blue-900 dark:border-blue-800">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-blue-500 rounded-lg">
@@ -263,10 +263,10 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border-violet-200 dark:from-violet-950 dark:to-violet-900 dark:border-violet-800">
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className="p-3 bg-purple-500 rounded-lg">
+                <div className="p-3 bg-violet-500 rounded-lg">
                   <User className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-4">
