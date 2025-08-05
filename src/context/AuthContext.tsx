@@ -28,24 +28,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session?.user) {
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setIsLoading(false);
+          }
+          return;
+        }
+        
+        if (session?.user && mounted) {
           setSupabaseUser(session.user);
-          // Use setTimeout to prevent potential deadlocks
-          setTimeout(async () => {
-            await fetchUserProfile(session.user.id);
-          }, 0);
+          await fetchUserProfile(session.user.id);
         } 
+        
+        if (mounted) {
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Error getting initial session:', error);
-        // Fallback to null
-        setUser(null);
-      } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setUser(null);
+          setSupabaseUser(null);
+          setIsLoading(false);
+        }
       }
     };
 
@@ -53,24 +65,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setIsLoading(true);
-        if (session?.user) {
+      async (event, session) => {
+        if (!mounted) return;
+        
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
           setSupabaseUser(session.user);
-          // Use setTimeout to prevent potential deadlocks
-          setTimeout(async () => {
-            await fetchUserProfile(session.user.id);
-            setIsLoading(false);
-          }, 0);
-        } else {
+          await fetchUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT' || !session) {
           setSupabaseUser(null);
           setUser(null);
-          setIsLoading(false);
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          setSupabaseUser(session.user);
+          // Don't refetch user profile on token refresh if we already have user data
+          if (!user) {
+            await fetchUserProfile(session.user.id);
+          }
         }
+        
+        setIsLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
