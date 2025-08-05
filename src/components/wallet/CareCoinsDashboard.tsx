@@ -11,6 +11,7 @@ import { VirtualCardView } from './VirtualCardView';
 import { BillPaymentView } from './BillPaymentView';
 import { AchievementsView } from './AchievementsView';
 import HealthcareTransferView from './HealthcareTransferView';
+import QRWalletConnect from './QRWalletConnect';
 
 export const CareCoinsDashboard = () => {
   return (
@@ -28,8 +29,9 @@ export const CareCoinsDashboard = () => {
       </div>
 
       <Tabs defaultValue="transfer" className="mt-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full">
           <TabsTrigger value="transfer">Transfers</TabsTrigger>
+          <TabsTrigger value="connect">Mobile Wallet</TabsTrigger>
           <TabsTrigger value="cashout">Cash Out</TabsTrigger>
           <TabsTrigger value="cards">Virtual Cards</TabsTrigger>
           <TabsTrigger value="bills">Bill Payments</TabsTrigger>
@@ -41,6 +43,10 @@ export const CareCoinsDashboard = () => {
             <HealthcareTransferView />
             <CareCoinsRewards />
           </div>
+        </TabsContent>
+        
+        <TabsContent value="connect" className="space-y-4 pt-4">
+          <QRWalletConnect />
         </TabsContent>
         
         <TabsContent value="cashout" className="space-y-4 pt-4">
