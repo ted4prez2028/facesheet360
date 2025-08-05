@@ -77,7 +77,7 @@ const TopNav: React.FC = () => {
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
-              <span className="mr-1">{user?.name?.split(' ')[0]}</span>
+              <span className="mr-1">{user?.name || 'User'}</span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
