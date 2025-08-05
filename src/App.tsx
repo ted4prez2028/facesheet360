@@ -240,18 +240,6 @@ function App() {
                     </RequireAuth>
                   }
                 />
-                <Route
-                  path="/charting"
-                  element={
-                    <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <PatientManagement />
-                        </DashboardLayout>
-                      </CommunicationProvider>
-                    </RequireAuth>
-                  }
-                />
               </Routes>
               <Toaster />
             </UserPreferencesProvider>

@@ -81,11 +81,6 @@ export function AppSidebar() {
           icon: Calendar,
           path: "/appointments",
         },
-        {
-          title: "Charting",
-          icon: ClipboardList,
-          path: "/charting",
-        },
       ],
     },
     {
