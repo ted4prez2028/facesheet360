@@ -68,27 +68,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('🔄 Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, setting supabase user and fetching profile...');
+          console.log('🔑 User signed in, setting supabase user and fetching profile...');
           setSupabaseUser(session.user);
+          setIsLoading(true);
           // Defer the profile fetch to avoid potential race conditions
           setTimeout(async () => {
             try {
               await fetchUserProfile(session.user.id);
             } catch (error) {
-              console.error('Failed to fetch user profile after sign in:', error);
+              console.error('❌ Failed to fetch user profile after sign in:', error);
               await createFallbackUser(session.user.id);
+            } finally {
+              setIsLoading(false);
             }
           }, 100);
         } else if (event === 'SIGNED_OUT' || !session) {
-          console.log('User signed out, clearing state...');
+          console.log('👋 User signed out, clearing state...');
           setSupabaseUser(null);
           setUser(null);
           setIsLoading(false);
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('Token refreshed...');
+          console.log('🔄 Token refreshed...');
           setSupabaseUser(session.user);
           // Don't refetch user profile on token refresh if we already have user data
           if (!user) {
@@ -96,15 +99,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               try {
                 await fetchUserProfile(session.user.id);
               } catch (error) {
-                console.error('Failed to fetch user profile after token refresh:', error);
+                console.error('❌ Failed to fetch user profile after token refresh:', error);
                 await createFallbackUser(session.user.id);
+              } finally {
+                setIsLoading(false);
               }
             }, 100);
           }
         }
-        
-        // Always ensure loading is set to false after processing
-        setTimeout(() => setIsLoading(false), 200);
       }
     );
 
@@ -116,31 +118,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('Fetching user profile for:', userId);
+      console.log('🔍 Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
 
-      console.log('Database query result:', { data, error });
+      console.log('📊 Database query result:', { data, error });
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('❌ Error fetching user profile:', error);
         // If profile doesn't exist, create one
         if (error.code === 'PGRST116') {
-          console.log('User profile not found, creating one...');
+          console.log('🆕 User profile not found, creating one...');
           await createUserProfile(userId);
           return;
         }
         // If other error, create a basic user from auth data
-        console.log('Creating fallback user profile due to error...');
+        console.log('🔄 Creating fallback user profile due to error...');
         await createFallbackUser(userId);
         return;
       }
 
       if (data) {
-        console.log('User profile found:', data);
+        console.log('✅ User profile found:', data);
         const userProfile: User = {
           id: data.id,
           email: data.email || '',
@@ -154,14 +156,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: data.created_at,
           updated_at: data.updated_at
         };
-        console.log('Setting user profile:', userProfile);
+        console.log('🚀 Setting user profile:', userProfile);
         setUser(userProfile);
+        console.log('✨ User profile set successfully');
       } else {
-        console.log('No data returned, creating fallback user...');
+        console.log('⚠️ No data returned, creating fallback user...');
         await createFallbackUser(userId);
       }
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('💥 Error in fetchUserProfile:', error);
       // Always create fallback user to prevent loading freeze
       await createFallbackUser(userId);
     }
@@ -169,9 +172,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createFallbackUser = async (userId: string) => {
     try {
+      console.log('🔧 Creating fallback user for:', userId);
       const { data: authUser } = await supabase.auth.getUser();
       if (authUser.user) {
-        console.log('Creating fallback user profile from auth data');
+        console.log('📝 Creating fallback user profile from auth data');
         const basicUser: User = {
           id: authUser.user.id,
           email: authUser.user.email || '',
@@ -181,10 +185,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
+        console.log('🎯 Setting fallback user:', basicUser);
         setUser(basicUser);
+        console.log('✅ Fallback user set successfully');
+      } else {
+        console.error('❌ No auth user found for fallback');
       }
     } catch (error) {
-      console.error('Error creating fallback user:', error);
+      console.error('💥 Error creating fallback user:', error);
       // Even if this fails, create a minimal user to prevent freeze
       const minimalUser: User = {
         id: userId,
@@ -195,6 +203,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+      console.log('🆘 Setting minimal user to prevent freeze:', minimalUser);
       setUser(minimalUser);
     }
   };
