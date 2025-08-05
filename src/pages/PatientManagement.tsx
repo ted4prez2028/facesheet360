@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import PatientList from "@/components/charting/PatientList";
-import CombinedPatientView from "@/components/charting/CombinedPatientView";
+import UnifiedPatientInterface from "@/components/charting/UnifiedPatientInterface";
 import AddPatientSheet from "@/components/charting/AddPatientSheet";
 import { usePatientSelection } from "@/hooks/usePatientSelection";
 
@@ -18,11 +18,11 @@ const PatientManagement = () => {
   } = usePatientSelection(user?.id);
 
   return (
-    <>
-      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
+    <div className="h-full overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-6 h-full">
         {/* Show patient list only when no patient is selected */}
         {!selectedPatient && (
-          <div className="w-full flex flex-col">
+          <div className="w-full flex flex-col overflow-hidden">
             <PatientList 
               selectedPatient={selectedPatient}
               setSelectedPatient={(id) => setSelectedPatient(id)}
@@ -34,10 +34,10 @@ const PatientManagement = () => {
           </div>
         )}
         
-        {/* Show patient chart when a patient is selected */}
+        {/* Show unified patient interface when a patient is selected */}
         {selectedPatient && (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <CombinedPatientView 
+            <UnifiedPatientInterface 
               selectedPatient={selectedPatient}
               patientData={selectedPatientData}
               userId={user?.id}
@@ -52,7 +52,7 @@ const PatientManagement = () => {
         onOpenChange={setIsAddPatientOpen}
         user={user as any}
       />
-    </>
+    </div>
   );
 };
 
