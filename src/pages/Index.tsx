@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   Check, 
   Pill, 
@@ -9,10 +9,45 @@ import {
   FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Index = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const features = [
     {
       icon: <Users className="h-8 w-8 text-health-500" />,
@@ -83,30 +118,54 @@ const Index = () => {
             </div>
           </div>
           <div className="md:w-1/2 md:pl-10">
-            <div className="relative bg-white/10 p-6 rounded-xl backdrop-blur-sm border border-white/20 shadow-xl dark:bg-gray-800/30 dark:border-gray-700/50">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/20 p-4 rounded-lg dark:bg-gray-700/40">
-                  <Pill className="h-8 w-8 mb-2 text-white" />
-                  <h3 className="font-medium text-white">Prescription</h3>
-                  <p className="text-sm opacity-80 text-white">Manage medications</p>
+            <Card className="bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl dark:bg-gray-800/30 dark:border-gray-700/50">
+              <CardHeader>
+                <CardTitle className="text-white text-center">Sign In to Your Account</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <Label htmlFor="email" className="text-white">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password" className="text-white">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                      placeholder="Enter your password"
+                      required
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-white text-health-700 hover:bg-white/90"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing In..." : "Sign In"}
+                  </Button>
+                </form>
+                <div className="mt-4 text-center">
+                  <p className="text-white/80 text-sm">
+                    Don't have an account?{" "}
+                    <Link to="/login" className="text-white underline hover:text-white/80">
+                      Sign up here
+                    </Link>
+                  </p>
                 </div>
-                <div className="bg-white/20 p-4 rounded-lg dark:bg-gray-700/40">
-                  <Calendar className="h-8 w-8 mb-2 text-white" />
-                  <h3 className="font-medium text-white">Appointments</h3>
-                  <p className="text-sm opacity-80 text-white">Schedule visits</p>
-                </div>
-                <div className="bg-white/20 p-4 rounded-lg dark:bg-gray-700/40">
-                  <Bell className="h-8 w-8 mb-2 text-white" />
-                  <h3 className="font-medium text-white">Reminders</h3>
-                  <p className="text-sm opacity-80 text-white">Stay on track</p>
-                </div>
-                <div className="bg-white/20 p-4 rounded-lg dark:bg-gray-700/40">
-                  <Users className="h-8 w-8 mb-2 text-white" />
-                  <h3 className="font-medium text-white">Patient Portal</h3>
-                  <p className="text-sm opacity-80 text-white">Streamlined care</p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
