@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { payBillWithCareCoins } from '@/lib/api/careCoinsApi';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { BillPaymentResult } from '@/types/health-predictions';
 

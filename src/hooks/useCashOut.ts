@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { cashOutCareCoins, convertCareCoinsToUSD, getExchangeRate } from '@/lib/api/careCoinsApi';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { CashOutResult } from '@/types/health-predictions';
