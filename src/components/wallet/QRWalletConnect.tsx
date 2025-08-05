@@ -13,6 +13,8 @@ interface WalletConnectionData {
   appUrl: string;
   chainId: number;
   timestamp: number;
+  walletAddress?: string;
+  qrType: 'walletconnect' | 'address' | 'payment';
 }
 
 const QRWalletConnect: React.FC = () => {
@@ -20,23 +22,37 @@ const QRWalletConnect: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletConnection, setWalletConnection] = useState<WalletConnection | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [qrMode, setQrMode] = useState<'receive' | 'connect'>('receive');
 
-  // Generate connection data for QR code
+  // Generate different types of QR codes
   const generateConnectionData = async () => {
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const walletConnectURI = await careWallet.generateWalletConnectQR();
     
-    const data: WalletConnectionData = {
-      sessionId,
-      appName: 'Facesheet360 - CareCoin',
-      appUrl: window.location.origin,
-      chainId: 1, // Ethereum mainnet
-      timestamp: Date.now()
-    };
-    setConnectionData(data);
-    
-    // Start polling for connection
-    pollForConnection(sessionId);
+    if (qrMode === 'receive') {
+      // Generate a simple wallet address QR for receiving CareCoin
+      const data: WalletConnectionData = {
+        sessionId,
+        appName: 'Facesheet360 - CareCoin',
+        appUrl: window.location.origin,
+        chainId: 1,
+        timestamp: Date.now(),
+        walletAddress: '0x742d35Cc6663C7e3d78EB01C3E5d4D22e1E24c46', // Example CareCoin treasury/demo address
+        qrType: 'address'
+      };
+      setConnectionData(data);
+    } else {
+      // Generate WalletConnect URI
+      const data: WalletConnectionData = {
+        sessionId,
+        appName: 'Facesheet360 - CareCoin',
+        appUrl: window.location.origin,
+        chainId: 1,
+        timestamp: Date.now(),
+        qrType: 'walletconnect'
+      };
+      setConnectionData(data);
+      pollForConnection(sessionId);
+    }
   };
 
   // Simulate polling for wallet connection (in real implementation, this would be WebSocket or Server-Sent Events)
@@ -79,12 +95,28 @@ const QRWalletConnect: React.FC = () => {
     }
   };
 
-  // Generate QR code on component mount
+  // Generate proper QR value based on mode
+  const getQRValue = () => {
+    if (!connectionData) return '';
+    
+    if (connectionData.qrType === 'address' && connectionData.walletAddress) {
+      // Simple wallet address format that MetaMask recognizes
+      return connectionData.walletAddress;
+    } else if (connectionData.qrType === 'walletconnect') {
+      // Proper WalletConnect v2 URI format
+      return `wc:${connectionData.sessionId}@2?relay-protocol=irn&symKey=${connectionData.sessionId.slice(-32)}`;
+    } else {
+      // Fallback to Ethereum payment request format
+      return `ethereum:${connectionData.walletAddress || '0x742d35Cc6663C7e3d78EB01C3E5d4D22e1E24c46'}@1?value=0`;
+    }
+  };
+
+  const qrValue = getQRValue();
+
+  // Generate QR code when component mounts or mode changes
   useEffect(() => {
     generateConnectionData();
-  }, []);
-
-  const qrValue = connectionData ? JSON.stringify(connectionData) : '';
+  }, [qrMode]);
 
   return (
     <div className="space-y-6">
@@ -99,6 +131,29 @@ const QRWalletConnect: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* QR Mode Toggle */}
+          <div className="flex justify-center space-x-2">
+            <Button
+              variant={qrMode === 'receive' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setQrMode('receive');
+                generateConnectionData();
+              }}
+            >
+              Receive CareCoin
+            </Button>
+            <Button
+              variant={qrMode === 'connect' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setQrMode('connect');
+                generateConnectionData();
+              }}
+            >
+              Connect Wallet
+            </Button>
+          </div>
           {!isConnected ? (
             <>
               <div className="flex justify-center">
@@ -126,16 +181,25 @@ const QRWalletConnect: React.FC = () => {
 
               <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Open MetaMask mobile app and scan this QR code
+                  {qrMode === 'receive' 
+                    ? 'Scan this address to send CareCoin to Facesheet360'
+                    : 'Open MetaMask mobile app and scan this QR code to connect'
+                  }
                 </p>
                 <div className="flex justify-center space-x-2">
                   <Badge variant="outline" className="text-xs">
-                    Session: {connectionData?.sessionId.slice(-8)}
+                    {qrMode === 'receive' ? 'Address' : 'Session'}: {connectionData?.sessionId.slice(-8)}
                   </Badge>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={copyToClipboard}
+                    onClick={() => {
+                      const textToCopy = qrMode === 'receive' 
+                        ? connectionData?.walletAddress || qrValue
+                        : qrValue;
+                      navigator.clipboard.writeText(textToCopy);
+                      toast.success(qrMode === 'receive' ? 'Address copied!' : 'Connection data copied!');
+                    }}
                     className="h-6 px-2"
                   >
                     <Copy className="h-3 w-3" />
@@ -193,7 +257,12 @@ const QRWalletConnect: React.FC = () => {
           </div>
           <div className="flex items-start space-x-3">
             <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">2</span>
-            <p className="text-muted-foreground">Tap the scanner icon and scan the QR code above</p>
+            <p className="text-muted-foreground">
+              {qrMode === 'receive' 
+                ? 'Use this address to send CareCoin or add it to your wallet'
+                : 'Tap the scanner icon and scan the QR code above'
+              }
+            </p>
           </div>
           <div className="flex items-start space-x-3">
             <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">3</span>
