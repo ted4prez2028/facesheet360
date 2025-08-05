@@ -5,6 +5,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { storeContractAddress } from "@/lib/web3";
+import { MetaMaskIntegration } from "./MetaMaskIntegration";
 
 interface DeploymentResult {
   success: boolean;
@@ -18,6 +20,7 @@ interface DeploymentResult {
     totalSupply: string;
     owner: string;
   };
+  abi?: string[];
   error?: string;
   message?: string;
 }
@@ -43,6 +46,12 @@ export function TokenDeployer() {
 
       if (data.success) {
         setDeploymentResult(data);
+        
+        // Store the contract address and ABI locally
+        if (data.contractAddress && data.abi) {
+          storeContractAddress(data.contractAddress, data.abi);
+        }
+        
         toast.success(`CareCoin deployed successfully! Address: ${data.contractAddress}`);
       } else {
         throw new Error(data.error || 'Deployment failed');
@@ -180,16 +189,26 @@ export function TokenDeployer() {
               </Alert>
             )}
 
-            <Button 
-              onClick={() => {
-                setDeploymentResult(null);
-                setIsDeploying(false);
-              }}
-              variant="outline"
-              className="w-full"
-            >
-              Deploy Another Contract
-            </Button>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => {
+                  setDeploymentResult(null);
+                  setIsDeploying(false);
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                Deploy Another Contract
+              </Button>
+
+              {deploymentResult.success && deploymentResult.contractAddress && (
+                <MetaMaskIntegration
+                  contractAddress={deploymentResult.contractAddress}
+                  tokenSymbol={deploymentResult.contractDetails?.symbol || "CARE"}
+                  tokenDecimals={deploymentResult.contractDetails?.decimals || 18}
+                />
+              )}
+            </div>
           </div>
         )}
       </CardContent>
