@@ -1,15 +1,12 @@
 
 import { useState } from "react";
-import { Search, PlusCircle, FileText } from "lucide-react";
+import { Search, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import GoToEhrButton from "@/components/patientview/GoToEhrButton";
-import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 
 interface Patient {
@@ -39,7 +36,6 @@ const PatientList = ({
   isLoading
 }: PatientListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
 
   const filteredPatients = searchQuery && patients 
     ? patients.filter(p => 
@@ -92,50 +88,33 @@ const PatientList = ({
             <div className="space-y-1">
               {filteredPatients && filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => (
-                  <div key={patient.id} className="flex flex-col space-y-2 p-3">
-                    <button
-                      className={`w-full flex items-center rounded-md text-left hover:bg-muted transition-colors ${
-                        selectedPatient === patient.id ? "bg-muted" : ""
-                      }`}
-                      onClick={() => setSelectedPatient(patient.id)}
-                    >
-                      <Avatar className="h-9 w-9 mr-3">
-                        <AvatarImage src={patient.imgUrl || ""} alt={patient.name} />
-                        <AvatarFallback className="text-xs">
-                          {patient.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{patient.name}</div>
-                        <div className="text-xs text-muted-foreground flex gap-2 items-center mt-0.5">
-                          <span>{patient.id.substring(0, 8)}</span>
-                          <span>•</span>
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs py-0 h-5 ${getStatusColor(patient.status)}`}
-                          >
-                            {patient.status}
-                          </Badge>
-                        </div>
+                  <button
+                    key={patient.id}
+                    className={`w-full flex items-center p-3 rounded-md text-left hover:bg-muted transition-colors ${
+                      selectedPatient === patient.id ? "bg-muted" : ""
+                    }`}
+                    onClick={() => setSelectedPatient(patient.id)}
+                  >
+                    <Avatar className="h-9 w-9 mr-3">
+                      <AvatarImage src={patient.imgUrl || ""} alt={patient.name} />
+                      <AvatarFallback className="text-xs">
+                        {patient.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{patient.name}</div>
+                      <div className="text-xs text-muted-foreground flex gap-2 items-center mt-0.5">
+                        <span>{patient.id.substring(0, 8)}</span>
+                        <span>•</span>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs py-0 h-5 ${getStatusColor(patient.status)}`}
+                        >
+                          {patient.status}
+                        </Badge>
                       </div>
-                    </button>
-                    <div className="ml-12 flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-xs h-7" 
-                        onClick={() => setSelectedPatient(patient.id)}
-                      >
-                        Chart
-                      </Button>
-                      <GoToEhrButton 
-                        patientId={patient.id} 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-xs h-7" 
-                      />
                     </div>
-                  </div>
+                  </button>
                 ))
               ) : (
                 <div className="p-4 text-center text-sm text-muted-foreground">

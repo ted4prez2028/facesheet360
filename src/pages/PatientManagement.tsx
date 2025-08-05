@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import PatientList from "@/components/charting/PatientList";
-import PatientChart from "@/components/charting/PatientChart";
+import CombinedPatientView from "@/components/charting/CombinedPatientView";
 import AddPatientSheet from "@/components/charting/AddPatientSheet";
 import { usePatientSelection } from "@/hooks/usePatientSelection";
 
@@ -37,18 +37,11 @@ const PatientManagement = () => {
         {/* Show patient chart when a patient is selected */}
         {selectedPatient && (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <div className="mb-4">
-              <button
-                onClick={() => setSelectedPatient(null)}
-                className="text-primary hover:text-primary/80 text-sm font-medium"
-              >
-                ← Back to Patients
-              </button>
-            </div>
-            <PatientChart 
+            <CombinedPatientView 
               selectedPatient={selectedPatient}
               patientData={selectedPatientData}
               userId={user?.id}
+              onBack={() => setSelectedPatient(null)}
             />
           </div>
         )}
