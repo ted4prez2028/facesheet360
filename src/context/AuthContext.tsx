@@ -96,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching user profile for:', userId);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -106,27 +107,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error fetching user profile:', error);
         // If profile doesn't exist, create one
         if (error.code === 'PGRST116') {
+          console.log('User profile not found, creating one...');
           await createUserProfile(userId);
           return;
         }
         // If other error, create a basic user from auth data
-        const { data: authUser } = await supabase.auth.getUser();
-        if (authUser.user) {
-          const basicUser: User = {
-            id: authUser.user.id,
-            email: authUser.user.email || '',
-            name: authUser.user.user_metadata?.name || authUser.user.email || 'User',
-            role: 'doctor',
-            care_coins_balance: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          setUser(basicUser);
-        }
+        console.log('Creating fallback user profile...');
+        await createFallbackUser(userId);
         return;
       }
 
       if (data) {
+        console.log('User profile found:', data);
         const userProfile: User = {
           id: data.id,
           email: data.email || '',
@@ -144,20 +136,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      // Fallback to basic user from auth session
+      // Always create fallback user to prevent loading freeze
+      await createFallbackUser(userId);
+    }
+  };
+
+  const createFallbackUser = async (userId: string) => {
+    try {
       const { data: authUser } = await supabase.auth.getUser();
       if (authUser.user) {
+        console.log('Creating fallback user profile from auth data');
         const basicUser: User = {
           id: authUser.user.id,
           email: authUser.user.email || '',
           name: authUser.user.user_metadata?.name || authUser.user.email || 'User',
-          role: 'doctor',
+          role: (authUser.user.user_metadata?.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
           care_coins_balance: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
         setUser(basicUser);
       }
+    } catch (error) {
+      console.error('Error creating fallback user:', error);
+      // Even if this fails, create a minimal user to prevent freeze
+      const minimalUser: User = {
+        id: userId,
+        email: 'user@example.com',
+        name: 'User',
+        role: 'doctor',
+        care_coins_balance: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setUser(minimalUser);
     }
   };
 
@@ -165,6 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: authUser } = await supabase.auth.getUser();
       
+      console.log('Creating new user profile in database...');
       const { error } = await supabase
         .from('users')
         .insert({
@@ -172,19 +185,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user_id: userId,
           email: authUser.user?.email || '',
           name: authUser.user?.user_metadata?.name || 'User',
-          role: 'doctor',
+          role: (authUser.user?.user_metadata?.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
           care_coins_balance: 0
         });
 
       if (error) {
         console.error('Error creating user profile:', error);
+        // Fallback to creating user from auth data
+        await createFallbackUser(userId);
         return;
       }
 
+      console.log('User profile created successfully, fetching...');
       // Fetch the newly created profile
       await fetchUserProfile(userId);
     } catch (error) {
       console.error('Error in createUserProfile:', error);
+      // Always fallback to prevent freeze
+      await createFallbackUser(userId);
     }
   };
 
