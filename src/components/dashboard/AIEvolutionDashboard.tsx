@@ -68,12 +68,23 @@ const AIEvolutionDashboard: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('ai-self-improvement');
       
-      if (error) throw error;
-
-      toast({
-        title: "🤖 AI Improvement Triggered",
-        description: `${data.improvement_implemented || 'System analyzed and improved'}`,
-      });
+      if (error) {
+        // Handle rate limit errors specifically
+        if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+          toast({
+            title: "⏳ AI System Rate Limited",
+            description: "AI improvements are temporarily paused due to API limits. Will resume automatically in 15 minutes.",
+            variant: "default",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "🤖 AI Improvement Triggered",
+          description: `${data.improvement_implemented || 'System analyzed and improved'}`,
+        });
+      }
 
       // Refresh data after a short delay
       setTimeout(fetchData, 2000);
@@ -81,7 +92,7 @@ const AIEvolutionDashboard: React.FC = () => {
       console.error('Error triggering AI improvement:', error);
       toast({
         title: "Error",
-        description: "Failed to trigger AI improvement",
+        description: error.message || "Failed to trigger AI improvement",
         variant: "destructive",
       });
     } finally {

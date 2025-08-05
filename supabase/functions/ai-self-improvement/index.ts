@@ -91,31 +91,56 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('🔍 Generating AI improvement ideas...');
     
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert healthcare software architect. Respond ONLY with valid JSON arrays. No explanations or additional text.' 
-          },
-          { role: 'user', content: improvementPrompt }
-        ],
-        temperature: 0.8,
-        max_tokens: 3000,
-      }),
-    });
+    // Add retry logic with exponential backoff for rate limits
+    const makeOpenAIRequest = async (retries = 3, delay = 1000): Promise<any> => {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4.1-2025-04-14',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: 'You are an expert healthcare software architect. Respond ONLY with valid JSON arrays. No explanations or additional text.' 
+                },
+                { role: 'user', content: improvementPrompt }
+              ],
+              temperature: 0.8,
+              max_tokens: 3000,
+            }),
+          });
 
-    if (!aiResponse.ok) {
-      throw new Error(`OpenAI API error: ${aiResponse.status} ${aiResponse.statusText}`);
-    }
+          if (aiResponse.status === 429) {
+            if (attempt < retries) {
+              console.log(`⏳ Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${retries + 1})`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+              delay *= 2; // Exponential backoff
+              continue;
+            } else {
+              throw new Error('Rate limit exceeded after all retries');
+            }
+          }
 
-    const aiData = await aiResponse.json();
+          if (!aiResponse.ok) {
+            throw new Error(`OpenAI API error: ${aiResponse.status} ${aiResponse.statusText}`);
+          }
+
+          return await aiResponse.json();
+        } catch (error) {
+          if (attempt === retries) throw error;
+          console.log(`🔄 Request failed, retrying in ${delay}ms:`, error.message);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+        }
+      }
+    };
+
+    const aiData = await makeOpenAIRequest();
     console.log('📝 OpenAI Response received:', aiData);
     
     let improvementIdeas: ImprovementIdea[] = [];
@@ -321,6 +346,45 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error) {
     console.error('❌ AI Self-Improvement failed:', error);
+    
+    // Handle rate limit errors gracefully
+    if (error.message.includes('Rate limit') || error.message.includes('429')) {
+      // Send a different notification for rate limits
+      try {
+        const { data: adminUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', 'tdicusmurray@gmail.com')
+          .single();
+
+        if (adminUser) {
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: adminUser.id,
+              title: '⏳ AI System Paused',
+              message: 'AI improvements temporarily paused due to API rate limits. Will resume automatically.',
+              type: 'system',
+              read: false
+            });
+        }
+      } catch (notifError) {
+        console.error('Failed to send rate limit notification:', notifError);
+      }
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'AI system temporarily rate limited. Will resume automatically.',
+        duration: Date.now() - startTime,
+        retry_after: '15 minutes'
+      }), {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
+      });
+    }
     
     return new Response(JSON.stringify({
       success: false,
