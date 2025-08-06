@@ -40,6 +40,14 @@ const handler = async (req: Request): Promise<Response> => {
     // Convert full GitHub URL to owner/repo format if needed
     if (githubRepo && githubRepo.includes('github.com/')) {
       githubRepo = githubRepo.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '');
+      console.log(`🔄 Converted GitHub URL to repo format: ${githubRepo}`);
+    }
+    
+    // Validate GitHub repo format
+    if (githubRepo && !githubRepo.match(/^[a-zA-Z0-9\-_.]+\/[a-zA-Z0-9\-_.]+$/)) {
+      console.error(`❌ Invalid GitHub repo format: ${githubRepo}`);
+      console.log('Expected format: owner/repo (e.g., "octocat/Hello-World")');
+      githubRepo = undefined; // Disable GitHub integration if format is invalid
     }
     
     if (!supabaseUrl || !supabaseKey) {
