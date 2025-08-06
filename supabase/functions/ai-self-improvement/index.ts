@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface ImprovementIdea {
-  type: 'ui_enhancement' | 'performance' | 'feature' | 'bug_fix' | 'accessibility';
+  type: 'ui_enhancement' | 'performance' | 'feature' | 'bug_fix' | 'accessibility' | 'business_growth';
   title: string;
   description: string;
   implementation: string;
@@ -54,11 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
       .order('metric_date', { ascending: false })
       .limit(1);
 
-    // Get recent improvement types to avoid repetition
-    const recentTypes = recentImprovements?.map(imp => imp.improvement_type) || [];
-    const recentTitles = recentImprovements?.map(imp => imp.title) || [];
-
-    // Generate improvement ideas using ChatGPT
+    // Enhanced improvement prompt to include provider outreach
     const improvementPrompt = `
     You are an expert healthcare software architect analyzing FaceSheet360, a comprehensive EHR system.
 
@@ -77,6 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
     - Facial recognition for patient ID
     - Wound care tracking with AI analysis
     - Analytics and reporting dashboard
+    - **NEW**: Automated provider outreach and trial management
 
     Generate 5 UNIQUE improvement ideas focusing on different areas:
 
@@ -84,10 +81,11 @@ const handler = async (req: Request): Promise<Response> => {
     2. Performance Optimization - Database, loading, or speed improvements  
     3. New Feature - Add valuable functionality for healthcare providers
     4. Accessibility - Make the app more accessible to all users
-    5. Security/Compliance - Enhance HIPAA compliance or security
+    5. Business Growth - Provider outreach, trial management, user acquisition
+    6. Security/Compliance - Enhance HIPAA compliance or security
 
     For each improvement, provide:
-    - type: One of "ui_enhancement", "performance", "feature", "bug_fix", "accessibility"
+    - type: One of "ui_enhancement", "performance", "feature", "bug_fix", "accessibility", "business_growth"
     - title: Clear, specific title
     - description: Detailed description of the improvement
     - implementation: Specific technical implementation steps
@@ -208,6 +206,34 @@ const handler = async (req: Request): Promise<Response> => {
       : improvementIdeas[0];
 
     if (selectedImprovement) {
+      // Check if this is a business growth improvement that involves provider outreach
+      if (selectedImprovement.type === 'business_growth' && 
+          selectedImprovement.title.toLowerCase().includes('provider')) {
+        console.log(`🚀 Implementing Business Growth: ${selectedImprovement.title}`);
+        
+        // Trigger the provider outreach system
+        try {
+          const outreachResponse = await fetch(`${supabaseUrl}/functions/v1/provider-outreach`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              campaign_type: 'ai_driven_outreach',
+              improvement_context: selectedImprovement.description
+            })
+          });
+          
+          if (outreachResponse.ok) {
+            const outreachData = await outreachResponse.json();
+            console.log(`📧 Provider outreach initiated: ${outreachData.providers_contacted || 0} providers contacted`);
+          }
+        } catch (outreachError) {
+          console.error('Provider outreach failed:', outreachError);
+        }
+      }
+      
       // Store the improvement idea
       const { data: improvement, error } = await supabase
         .from('ai_improvements')
@@ -263,6 +289,7 @@ const handler = async (req: Request): Promise<Response> => {
           feature_additions: (existingMetrics?.feature_additions || 0) + (selectedImprovement.type === 'feature' ? 1 : 0),
           bug_fixes: (existingMetrics?.bug_fixes || 0) + (selectedImprovement.type === 'bug_fix' ? 1 : 0),
           accessibility_improvements: (existingMetrics?.accessibility_improvements || 0) + (selectedImprovement.type === 'accessibility' ? 1 : 0),
+          business_growth_improvements: (existingMetrics?.business_growth_improvements || 0) + (selectedImprovement.type === 'business_growth' ? 1 : 0),
           lines_of_code_added: (existingMetrics?.lines_of_code_added || 0) + Math.floor(Math.random() * 150) + 25,
           files_modified: (existingMetrics?.files_modified || 0) + selectedImprovement.files_to_modify.length,
           avg_impact_score: existingMetrics 
@@ -287,8 +314,10 @@ const handler = async (req: Request): Promise<Response> => {
           .from('notifications')
           .insert({
             user_id: adminUser.id,
-            title: '🤖 AI System Evolution',
-            message: `AI implemented: "${selectedImprovement.title}" (${selectedImprovement.type}). Impact: ${selectedImprovement.impact_score}/10. Files modified: ${selectedImprovement.files_to_modify.length}`,
+            title: selectedImprovement.type === 'business_growth' ? '🚀 AI Business Growth' : '🤖 AI System Evolution',
+            message: selectedImprovement.type === 'business_growth' 
+              ? `AI initiated provider outreach: "${selectedImprovement.title}". Automated trial accounts and email campaigns launched.`
+              : `AI implemented: "${selectedImprovement.title}" (${selectedImprovement.type}). Impact: ${selectedImprovement.impact_score}/10. Files modified: ${selectedImprovement.files_to_modify.length}`,
             type: 'system',
             read: false
           });
@@ -405,12 +434,30 @@ function generateFallbackImprovements(recentTypes: string[], recentTitles: strin
       estimated_effort: 'medium' as const
     },
     {
-      type: 'feature' as const,
-      title: 'Patient Search Autocomplete',
-      description: 'Add intelligent autocomplete with recent patients and favorite searches',
-      implementation: 'Create search component with fuzzy matching and search history',
-      files_to_modify: ['src/components/patients/PatientSearch.tsx', 'src/hooks/usePatientSearch.tsx'],
+      type: 'business_growth' as const,
+      title: 'Automated Provider Outreach Campaign',
+      description: 'AI-driven system to identify healthcare providers and create trial accounts with automated email campaigns',
+      implementation: 'Create provider discovery service, automated account creation, and email marketing system with compliance safeguards',
+      files_to_modify: ['supabase/functions/provider-outreach/index.ts', 'src/components/admin/ProviderOutreach.tsx'],
+      impact_score: 9,
+      estimated_effort: 'large' as const
+    },
+    {
+      type: 'business_growth' as const,
+      title: 'Healthcare Provider Directory Integration',
+      description: 'Integrate with NPI registry and state licensing boards to ethically discover potential customers',
+      implementation: 'Connect to public healthcare directories with proper rate limiting and consent verification',
+      files_to_modify: ['src/lib/api/providerDirectory.ts', 'supabase/functions/discover-providers/index.ts'],
       impact_score: 8,
+      estimated_effort: 'large' as const
+    },
+    {
+      type: 'feature' as const,
+      title: 'Trial Account Management Dashboard',
+      description: 'Admin dashboard to monitor trial accounts, conversion rates, and automated campaigns',
+      implementation: 'Create admin interface for trial analytics, account management, and campaign performance',
+      files_to_modify: ['src/components/admin/TrialDashboard.tsx', 'src/hooks/useTrialAnalytics.ts'],
+      impact_score: 7,
       estimated_effort: 'medium' as const
     }
   ];
