@@ -54,6 +54,10 @@ const handler = async (req: Request): Promise<Response> => {
       .order('metric_date', { ascending: false })
       .limit(1);
 
+    // Extract recent improvement data for analysis
+    const recentTitles = recentImprovements?.map(imp => imp.title) || [];
+    const recentTypes = recentImprovements?.map(imp => imp.improvement_type) || [];
+
     // Enhanced improvement prompt to include provider outreach
     const improvementPrompt = `
     You are an expert healthcare software architect analyzing FaceSheet360, a comprehensive EHR system.
