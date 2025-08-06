@@ -426,70 +426,56 @@ function generateFallbackImprovements(recentTypes: string[], recentTitles: strin
       implementation: 'Update CSS variables and component styles for improved dark mode experience',
       files_to_modify: ['src/index.css', 'tailwind.config.ts', 'src/components/ui/theme-provider.tsx'],
       impact_score: 6,
-      estimated_effort: 'medium' as const
+      estimated_effort: 'small' as const
     },
     {
       type: 'performance' as const,
       title: 'Component Code Splitting',
-      description: 'Implement lazy loading for dashboard components to improve initial load time',
-      implementation: 'Add React.lazy and Suspense to large dashboard components',
+      description: 'Implement lazy loading for heavy components to improve initial load times',
+      implementation: 'Add React.lazy() and Suspense for dashboard components',
       files_to_modify: ['src/pages/Dashboard.tsx', 'src/components/dashboard/*.tsx'],
       impact_score: 7,
       estimated_effort: 'medium' as const
     },
     {
       type: 'business_growth' as const,
-      title: 'Automated Provider Outreach Campaign',
-      description: 'AI-driven system to identify healthcare providers and create trial accounts with automated email campaigns',
-      implementation: 'Create provider discovery service, automated account creation, and email marketing system with compliance safeguards',
+      title: 'Healthcare Provider Email Discovery & Trial Setup',
+      description: 'Automatically discover healthcare provider emails from professional directories and create 5-day trial accounts with personalized outreach campaigns',
+      implementation: 'Build web scraping service for healthcare directories, automated account creation, and email marketing system with HIPAA-compliant templates',
       files_to_modify: ['supabase/functions/provider-outreach/index.ts', 'src/components/admin/ProviderOutreach.tsx'],
       impact_score: 9,
       estimated_effort: 'large' as const
     },
     {
-      type: 'business_growth' as const,
-      title: 'Healthcare Provider Directory Integration',
-      description: 'Integrate with NPI registry and state licensing boards to ethically discover potential customers',
-      implementation: 'Connect to public healthcare directories with proper rate limiting and consent verification',
-      files_to_modify: ['src/lib/api/providerDirectory.ts', 'supabase/functions/discover-providers/index.ts'],
+      type: 'feature' as const,
+      title: 'AI-Powered Care Plan Templates',
+      description: 'Create intelligent care plan templates based on diagnosis patterns and patient history',
+      implementation: 'Develop AI service that analyzes patient data to suggest optimal care plans',
+      files_to_modify: ['src/components/care-plan/AICarePlanTemplates.tsx', 'supabase/functions/ai-care-templates/index.ts'],
       impact_score: 8,
       estimated_effort: 'large' as const
-    },
-    {
-      type: 'feature' as const,
-      title: 'Trial Account Management Dashboard',
-      description: 'Admin dashboard to monitor trial accounts, conversion rates, and automated campaigns',
-      implementation: 'Create admin interface for trial analytics, account management, and campaign performance',
-      files_to_modify: ['src/components/admin/TrialDashboard.tsx', 'src/hooks/useTrialAnalytics.ts'],
-      impact_score: 7,
-      estimated_effort: 'medium' as const
     }
   ];
 
-  // Filter out recently implemented improvements
-  const availableImprovements = allImprovements.filter(improvement => 
-    !recentTitles.some(title => 
-      title.toLowerCase().includes(improvement.title.toLowerCase().split(' ')[0]) ||
-      improvement.title.toLowerCase().includes(title.toLowerCase().split(' ')[0])
+  // Filter out improvements that are too similar to recent ones
+  const filteredImprovements = allImprovements.filter(improvement => 
+    !recentTitles.some(recentTitle => 
+      recentTitle.toLowerCase().includes(improvement.title.toLowerCase().split(' ')[0]) ||
+      improvement.title.toLowerCase().includes(recentTitle.toLowerCase().split(' ')[0])
     )
   );
 
-  // If no available improvements, return a random one
-  if (availableImprovements.length === 0) {
-    return [allImprovements[Math.floor(Math.random() * allImprovements.length)]];
-  }
-
-  // Prefer types we haven't done recently
-  const preferredImprovements = availableImprovements.filter(improvement =>
-    !recentTypes.includes(improvement.type)
+  // Prefer improvement types that haven't been done recently
+  const availableImprovements = filteredImprovements.length > 0 ? filteredImprovements : allImprovements;
+  
+  // Select random subset, prioritizing types not done recently
+  const typePreference = availableImprovements.filter(imp => 
+    !recentTypes.includes(imp.type)
   );
-
-  const selectedImprovements = preferredImprovements.length > 0 
-    ? preferredImprovements 
-    : availableImprovements;
-
-  // Return 1-3 random improvements
-  const count = Math.min(3, selectedImprovements.length);
-  const shuffled = selectedImprovements.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+  
+  const selectedImprovements = typePreference.length > 0 ? typePreference : availableImprovements;
+  
+  // Shuffle and return a few improvements
+  const shuffled = selectedImprovements.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(3, shuffled.length));
 }
