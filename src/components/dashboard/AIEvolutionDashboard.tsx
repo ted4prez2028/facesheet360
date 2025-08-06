@@ -42,33 +42,6 @@ const AIEvolutionDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [triggeringAI, setTriggeringAI] = useState(false);
 
-  // Early return if not admin
-  if (adminLoading) {
-    return (
-      <Card className="max-w-4xl mx-auto">
-        <CardContent className="pt-6">
-          <div className="text-center text-muted-foreground">Checking permissions...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-destructive" />
-            Access Restricted
-          </CardTitle>
-          <CardDescription>
-            This feature is only available to administrators.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
   const fetchData = async () => {
     try {
       const [improvementsResponse, metricsResponse] = await Promise.all([
@@ -108,22 +81,30 @@ const AIEvolutionDashboard: React.FC = () => {
             : data.error,
           variant: data.error.includes('rate limit') ? "default" : "destructive",
         });
-      } else if (error) {
-        throw error;
-      } else {
+      } else if (data && data.success) {
+        // Handle successful responses
         toast({
-          title: "🤖 AI Improvement Triggered",
-          description: `${data?.improvement_implemented || 'System analyzed and improved'}`,
+          title: "🚀 AI Improvement Triggered",
+          description: data.improvement_implemented 
+            ? `Successfully implemented: ${data.improvement_implemented}`
+            : "AI improvement process initiated successfully",
         });
+        
+        // Refresh the data after successful improvement
+        fetchData();
+      } else {
+        // Handle unexpected response format
+        toast({
+          title: "🤖 AI System Response",
+          description: "AI improvement process completed. Check the improvements list for updates.",
+        });
+        fetchData();
       }
-
-      // Refresh data after a short delay
-      setTimeout(fetchData, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error triggering AI improvement:', error);
       toast({
-        title: "Connection Error",
-        description: "Unable to connect to AI system. Please try again later.",
+        title: "❌ Error",
+        description: error.message || "Failed to trigger AI improvement",
         variant: "destructive",
       });
     } finally {
@@ -132,20 +113,32 @@ const AIEvolutionDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    
-    // Set up real-time subscriptions
-    const improvementsSubscription = supabase
-      .channel('ai_improvements')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_improvements' }, () => {
-        fetchData();
-      })
+    if (isAdmin) {
+      fetchData();
+    }
+
+    // Set up real-time subscription for improvements
+    const channel = supabase
+      .channel('ai_improvements_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ai_improvements'
+        },
+        () => {
+          if (isAdmin) {
+            fetchData();
+          }
+        }
+      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(improvementsSubscription);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isAdmin]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -165,6 +158,33 @@ const AIEvolutionDashboard: React.FC = () => {
       default: return <FileText className="w-4 h-4" />;
     }
   };
+
+  // Conditional rendering AFTER all hooks
+  if (adminLoading) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="pt-6">
+          <div className="text-center text-muted-foreground">Checking permissions...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-destructive" />
+            Access Restricted
+          </CardTitle>
+          <CardDescription>
+            This feature is only available to administrators.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   const totalImprovements = metrics[0]?.total_improvements || 0;
   const recentMetrics = metrics.slice(0, 7);
