@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { GitBranch, GitCommit, Code, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { GitHubConfigTest } from './GitHubConfigTest';
 
 interface AICodeGenerationDashboardProps {
   onImprovementTriggered?: () => void;
@@ -213,6 +214,11 @@ export function AICodeGenerationDashboard({ onImprovementTriggered }: AICodeGene
             </div>
           </>
         )}
+
+        <Separator />
+
+        {/* GitHub Configuration Test */}
+        <GitHubConfigTest />
 
         <Separator />
 
