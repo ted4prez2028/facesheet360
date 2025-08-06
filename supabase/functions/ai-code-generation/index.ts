@@ -336,11 +336,17 @@ async function implementCodeChanges(
   
   // Get the default branch and latest commit
   const repoResponse = await fetch(`${githubApi}/repos/${repo}`, {
-    headers: { 'Authorization': `Bearer ${githubToken}` }
+    headers: { 
+      'Authorization': `token ${githubToken}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Supabase-Function'
+    }
   });
   
   if (!repoResponse.ok) {
-    throw new Error('Failed to fetch repository info');
+    const errorText = await repoResponse.text();
+    console.error('GitHub API Error:', repoResponse.status, errorText);
+    throw new Error(`Failed to fetch repository info: ${repoResponse.status} ${errorText}`);
   }
   
   const repoData = await repoResponse.json();
@@ -348,7 +354,11 @@ async function implementCodeChanges(
   
   // Get the latest commit SHA
   const branchResponse = await fetch(`${githubApi}/repos/${repo}/git/ref/heads/${defaultBranch}`, {
-    headers: { 'Authorization': `Bearer ${githubToken}` }
+    headers: { 
+      'Authorization': `token ${githubToken}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Supabase-Function'
+    }
   });
   
   const branchData = await branchResponse.json();
@@ -360,8 +370,10 @@ async function implementCodeChanges(
   await fetch(`${githubApi}/repos/${repo}/git/refs`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${githubToken}`,
+      'Authorization': `token ${githubToken}`,
       'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Supabase-Function'
     },
     body: JSON.stringify({
       ref: `refs/heads/${branchName}`,
@@ -379,7 +391,11 @@ async function implementCodeChanges(
         try {
           const fileResponse = await fetch(
             `${githubApi}/repos/${repo}/contents/${change.file_path}?ref=${branchName}`,
-            { headers: { 'Authorization': `Bearer ${githubToken}` } }
+            { headers: { 
+              'Authorization': `token ${githubToken}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'User-Agent': 'Supabase-Function'
+            } }
           );
           
           if (fileResponse.ok) {
@@ -407,8 +423,10 @@ async function implementCodeChanges(
         {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${githubToken}`,
+            'Authorization': `token ${githubToken}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'Supabase-Function'
           },
           body: JSON.stringify(updatePayload)
         }
@@ -425,8 +443,10 @@ async function implementCodeChanges(
   const prResponse = await fetch(`${githubApi}/repos/${repo}/pulls`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${githubToken}`,
+      'Authorization': `token ${githubToken}`,
       'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Supabase-Function'
     },
     body: JSON.stringify({
       title: `🤖 AI Improvement: ${title}`,
@@ -641,8 +661,10 @@ async function triggerDeployment(githubToken: string, repo: string) {
     await fetch(`https://api.github.com/repos/${repo}/dispatches`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${githubToken}`,
+        'Authorization': `token ${githubToken}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Supabase-Function'
       },
       body: JSON.stringify({
         event_type: 'ai-improvement-deploy'
