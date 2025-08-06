@@ -5,6 +5,7 @@ import RecentPatients from "./RecentPatients";
 import TodayAppointments from "./TodayAppointments";
 import PendingTasks from "./PendingTasks";
 import AIEvolutionDashboard from "./AIEvolutionDashboard";
+import { ServerMonitoringDashboard } from "./ServerMonitoringDashboard";
 import StatisticsCards from "./StatisticsCards";
 import { RecentPatient, TodayAppointment, PendingTask } from "@/types";
 
@@ -32,6 +33,7 @@ const DashboardTabs = ({
         <TabsTrigger value="appointments">Appointments</TabsTrigger>
         <TabsTrigger value="tasks">Tasks</TabsTrigger>
         <TabsTrigger value="ai-evolution">🤖 AI Evolution</TabsTrigger>
+        <TabsTrigger value="server-monitoring">🖥️ Server Monitor</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
@@ -104,6 +106,10 @@ const DashboardTabs = ({
 
       <TabsContent value="ai-evolution" className="space-y-4">
         <AIEvolutionDashboard />
+      </TabsContent>
+
+      <TabsContent value="server-monitoring" className="space-y-4">
+        <ServerMonitoringDashboard />
       </TabsContent>
     </Tabs>
   );

@@ -69,25 +69,23 @@ const AIEvolutionDashboard: React.FC = () => {
   const triggerAIImprovement = async () => {
     setTriggeringAI(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-self-improvement');
+      // Use the enhanced ai-code-generation function instead for real GitHub updates
+      const { data, error } = await supabase.functions.invoke('ai-code-generation');
       
-      // Handle the response - now all responses come back as 200 status
+      // Handle the response
       if (data && !data.success) {
-        // Handle error responses that come back as 200 but with success: false
         toast({
-          title: "⏳ AI System Status",
-          description: data.error.includes('rate limit') || data.error.includes('429')
-            ? "AI improvements are temporarily paused due to API limits. Will resume automatically."
-            : data.error,
-          variant: data.error.includes('rate limit') ? "default" : "destructive",
+          title: "⏳ AI Code Generation Status",
+          description: data.error || "AI code generation encountered an issue",
+          variant: "destructive",
         });
       } else if (data && data.success) {
-        // Handle successful responses
+        // Handle successful responses with real code changes
         toast({
-          title: "🚀 AI Improvement Triggered",
-          description: data.improvement_implemented 
-            ? `Successfully implemented: ${data.improvement_implemented}`
-            : "AI improvement process initiated successfully",
+          title: "🚀 AI Code Generated & Deployed",
+          description: data.code_changes_applied 
+            ? `Real code changes applied: ${data.improvement_implemented}${data.commit_url ? ' (PR created)' : ''}`
+            : `Improvement generated: ${data.improvement_implemented}`,
         });
         
         // Refresh the data after successful improvement
@@ -101,10 +99,10 @@ const AIEvolutionDashboard: React.FC = () => {
         fetchData();
       }
     } catch (error: any) {
-      console.error('Error triggering AI improvement:', error);
+      console.error('Error triggering AI code generation:', error);
       toast({
         title: "❌ Error",
-        description: error.message || "Failed to trigger AI improvement",
+        description: error.message || "Failed to trigger AI code generation",
         variant: "destructive",
       });
     } finally {
@@ -230,17 +228,17 @@ const AIEvolutionDashboard: React.FC = () => {
               className="bg-primary hover:bg-primary/90"
             >
               {triggeringAI ? (
-                <>
+                 <>
                   <Brain className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4 mr-2" />
-                  Trigger AI Improvement
-                </>
-              )}
-            </Button>
+                  Generating Code...
+                 </>
+               ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2" />
+                Generate & Deploy Code
+              </>
+            )}
+          </Button>
           </div>
         </CardHeader>
       </Card>

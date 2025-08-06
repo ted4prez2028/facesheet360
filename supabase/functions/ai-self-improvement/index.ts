@@ -217,24 +217,33 @@ const handler = async (req: Request): Promise<Response> => {
         
         // Trigger the provider outreach system
         try {
-          const outreachResponse = await fetch(`${supabaseUrl}/functions/v1/provider-outreach`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${supabaseKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          const outreachResponse = await supabase.functions.invoke('provider-outreach', {
+            body: {
               campaign_type: 'ai_driven_outreach',
               improvement_context: selectedImprovement.description
-            })
+            }
           });
           
-          if (outreachResponse.ok) {
-            const outreachData = await outreachResponse.json();
-            console.log(`📧 Provider outreach initiated: ${outreachData.providers_contacted || 0} providers contacted`);
+          if (outreachResponse.data) {
+            console.log(`📧 Provider outreach initiated: ${outreachResponse.data.providers_contacted || 0} providers contacted`);
           }
         } catch (outreachError) {
           console.error('Provider outreach failed:', outreachError);
+        }
+      }
+
+      // For non-business improvements, trigger real code generation
+      if (selectedImprovement.type !== 'business_growth') {
+        console.log(`🔄 Triggering real code generation for: ${selectedImprovement.title}`);
+        
+        try {
+          const codeGenResponse = await supabase.functions.invoke('ai-real-improvements');
+          
+          if (codeGenResponse.data?.success) {
+            console.log(`✅ Real code improvements applied: ${codeGenResponse.data.improvement_implemented}`);
+          }
+        } catch (codeError) {
+          console.error('Real code generation failed:', codeError);
         }
       }
       
