@@ -45,23 +45,32 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('🤖 AI Self-Improvement System Starting with Code Generation...');
 
-    // Check if user is admin
-    const { data: authUser } = await supabase.auth.getUser();
-    if (!authUser.user) {
+    // Get the authorization header from the request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(JSON.stringify({
         success: false,
         message: 'Authentication required',
-        error: 'No authenticated user'
+        error: 'No authorization header'
       }), {
         status: 401,
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
 
-    // Check admin role
-    const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin');
+    // Create a client with the user's JWT token
+    const userSupabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { 
+        headers: { 
+          Authorization: authHeader 
+        } 
+      }
+    });
+
+    // Check if user is admin using the user's client
+    const { data: isAdmin, error: adminError } = await userSupabase.rpc('is_admin');
     if (adminError || !isAdmin) {
-      console.log('❌ Access denied - Admin role required');
+      console.log('❌ Access denied - Admin role required', { adminError, isAdmin });
       return new Response(JSON.stringify({
         success: false,
         message: 'Admin access required for AI code generation',
