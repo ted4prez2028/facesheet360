@@ -114,12 +114,6 @@ const TopNav: React.FC = () => {
                 <Pill className="mr-2 h-4 w-4" />
                 <span>Pharmacy Dashboard</span>
               </DropdownMenuItem>
-              {isAdmin && (
-                <DropdownMenuItem onClick={() => navigate('/doctor-accounts')}>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  <span>Doctor Accounts</span>
-                </DropdownMenuItem>
-              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
