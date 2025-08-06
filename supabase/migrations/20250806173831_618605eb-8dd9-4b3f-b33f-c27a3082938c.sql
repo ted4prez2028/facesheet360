@@ -1,0 +1,2 @@
+-- Add a comment to track notification filtering changes
+COMMENT ON TABLE notifications IS 'Notifications table - now filtered to show only: pharmacy, appointment, patient, wound_care, carecoin, food_delivery types';
