@@ -65,12 +65,18 @@ const NotificationCenter = () => {
   
   const getNotificationIcon = (type: string) => {
     switch(type) {
-      case 'medication':
+      case 'pharmacy':
         return <span className="text-blue-500">💊</span>;
       case 'appointment':
         return <span className="text-green-500">📅</span>;
-      case 'procedure':
-        return <span className="text-purple-500">🔬</span>;
+      case 'patient':
+        return <span className="text-orange-500">👤</span>;
+      case 'wound_care':
+        return <span className="text-red-500">🩹</span>;
+      case 'carecoin':
+        return <span className="text-yellow-500">🪙</span>;
+      case 'food_delivery':
+        return <span className="text-purple-500">🍽️</span>;
       default:
         return <span className="text-gray-500">📢</span>;
     }

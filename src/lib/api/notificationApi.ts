@@ -16,13 +16,16 @@ export interface Notification {
 export type CreateNotificationInput = Omit<Notification, "id" | "created_at">;
 
 /**
- * Get all notifications for a user
+ * Get all notifications for a user (filtered for specific types only)
  */
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
+  const allowedTypes = ['pharmacy', 'appointment', 'patient', 'wound_care', 'carecoin', 'food_delivery'];
+  
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
+    .in('type', allowedTypes)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
