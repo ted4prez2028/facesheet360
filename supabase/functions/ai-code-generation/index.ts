@@ -45,6 +45,33 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('🤖 AI Self-Improvement System Starting with Code Generation...');
 
+    // Check if user is admin
+    const { data: authUser } = await supabase.auth.getUser();
+    if (!authUser.user) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'Authentication required',
+        error: 'No authenticated user'
+      }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+
+    // Check admin role
+    const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin');
+    if (adminError || !isAdmin) {
+      console.log('❌ Access denied - Admin role required');
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'Admin access required for AI code generation',
+        error: 'Insufficient permissions'
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+
     // Verify GitHub configuration for real code changes
     if (!githubToken || !githubRepo) {
       console.log('⚠️ GitHub configuration missing - returning simulated result');

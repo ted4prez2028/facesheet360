@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/hooks/useAuth';
 import { 
   MessageSquare, 
@@ -28,15 +29,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCommunication } from '@/context/communication/CommunicationContext';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
-import { useRolePermissions } from '@/hooks/useRolePermissions';
+import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 const TopNav: React.FC = () => {
   const { user, logout } = useAuth();
   const { toggleContacts } = useCommunication();
-  const { hasRole } = useRolePermissions();
+  const { isAdmin } = useAdminStatus();
   const navigate = useNavigate();
-  
-  const isAdmin = hasRole('admin');
 
   const handleLogout = async () => {
     try {
@@ -83,10 +82,13 @@ const TopNav: React.FC = () => {
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex items-center gap-1">
+               <div className="flex items-center gap-1">
                 <span>{user?.name || 'User'}</span>
                 {isAdmin && (
-                  <Shield className="h-3 w-3 text-primary" />
+                  <Badge variant="secondary" className="ml-1 text-xs px-1 py-0 h-4">
+                    <Shield className="h-2 w-2 mr-1" />
+                    Admin
+                  </Badge>
                 )}
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />

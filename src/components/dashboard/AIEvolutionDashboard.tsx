@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Code, TrendingUp, Zap, Clock, FileText, Activity } from 'lucide-react';
+import { Brain, Code, TrendingUp, Zap, Clock, FileText, Activity, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { AICodeGenerationDashboard } from './AICodeGenerationDashboard';
+import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 interface AIImprovement {
   id: string;
@@ -35,10 +36,38 @@ interface EvolutionMetrics {
 
 const AIEvolutionDashboard: React.FC = () => {
   const { toast } = useToast();
+  const { isAdmin, isLoading: adminLoading } = useAdminStatus();
   const [improvements, setImprovements] = useState<AIImprovement[]>([]);
   const [metrics, setMetrics] = useState<EvolutionMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [triggeringAI, setTriggeringAI] = useState(false);
+
+  // Early return if not admin
+  if (adminLoading) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="pt-6">
+          <div className="text-center text-muted-foreground">Checking permissions...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-destructive" />
+            Access Restricted
+          </CardTitle>
+          <CardDescription>
+            This feature is only available to administrators.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   const fetchData = async () => {
     try {
