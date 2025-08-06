@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, Code, TrendingUp, Zap, Clock, FileText, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { AICodeGenerationDashboard } from './AICodeGenerationDashboard';
 
 interface AIImprovement {
   id: string;
@@ -245,11 +246,47 @@ const AIEvolutionDashboard: React.FC = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="improvements" className="space-y-4">
+      <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="code-gen">Code Generation</TabsTrigger>
           <TabsTrigger value="improvements">Recent Improvements</TabsTrigger>
           <TabsTrigger value="metrics">Evolution Metrics</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-lg font-semibold">AI Evolution System Status</h3>
+                <p className="text-muted-foreground">
+                  The AI system continuously analyzes and improves FaceSheet360 with real code generation and deployment capabilities.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                  <div className="text-center">
+                    <Brain className="w-8 h-8 mx-auto text-blue-500 mb-2" />
+                    <p className="font-medium">AI Analysis</p>
+                    <p className="text-sm text-muted-foreground">Continuous system monitoring</p>
+                  </div>
+                  <div className="text-center">
+                    <Code className="w-8 h-8 mx-auto text-green-500 mb-2" />
+                    <p className="font-medium">Code Generation</p>
+                    <p className="text-sm text-muted-foreground">Automated React/TypeScript improvements</p>
+                  </div>
+                  <div className="text-center">
+                    <TrendingUp className="w-8 h-8 mx-auto text-purple-500 mb-2" />
+                    <p className="font-medium">Auto Deployment</p>
+                    <p className="text-sm text-muted-foreground">GitHub integration & pull requests</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="code-gen" className="space-y-4">
+          <AICodeGenerationDashboard onImprovementTriggered={fetchData} />
+        </TabsContent>
 
         <TabsContent value="improvements" className="space-y-4">
           {improvements.length === 0 ? (
