@@ -35,7 +35,12 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
     const githubToken = Deno.env.get('GITHUB_TOKEN');
-    const githubRepo = Deno.env.get('GITHUB_REPO'); // format: "owner/repo"
+    let githubRepo = Deno.env.get('GITHUB_REPO'); // format: "owner/repo"
+    
+    // Convert full GitHub URL to owner/repo format if needed
+    if (githubRepo && githubRepo.includes('github.com/')) {
+      githubRepo = githubRepo.replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '');
+    }
     
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase configuration');
@@ -476,41 +481,139 @@ function generateCodeImprovement(recentTypes: string[], recentTitles: string[]):
       estimated_effort: 'small' as const,
       code_changes: [
         {
-          file_path: 'src/components/ui/skeleton.tsx',
+          file_path: 'src/components/ui/loading-spinner.tsx',
           action: 'create' as const,
           content: `import { cn } from "@/lib/utils"
 
-function Skeleton({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
-      {...props}
-    />
-  )
+interface LoadingSpinnerProps {
+  className?: string
+  size?: 'sm' | 'md' | 'lg'
 }
 
-export { Skeleton }`
-        },
-        {
-          file_path: 'src/components/patients/PatientListSkeleton.tsx',
-          action: 'create' as const,
-          content: `import { Skeleton } from "@/components/ui/skeleton"
+export function LoadingSpinner({ className, size = 'md' }: LoadingSpinnerProps) {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6', 
+    lg: 'h-8 w-8'
+  }
 
-export function PatientListSkeleton() {
   return (
-    <div className="space-y-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[200px]" />
-            <Skeleton className="h-4 w-[150px]" />
-          </div>
-        </div>
-      ))}
+    <div
+      className={cn(
+        "animate-spin rounded-full border-2 border-muted border-t-primary",
+        sizeClasses[size],
+        className
+      )}
+    />
+  )
+}`
+        }
+      ]
+    },
+    {
+      type: 'performance' as const,
+      title: 'Optimized Patient Search',
+      description: 'Add debounced search with improved performance',
+      implementation: 'Implement debouncing and memoization for patient search',
+      files_to_modify: ['src/hooks/usePatientSearch.ts'],
+      impact_score: 8,
+      estimated_effort: 'medium' as const,
+      code_changes: [
+        {
+          file_path: 'src/hooks/usePatientSearch.ts',
+          action: 'create' as const,
+          content: `import { useState, useEffect, useMemo } from 'react'
+import { useDebounce } from './useDebounce'
+
+interface Patient {
+  id: string
+  name: string
+  email: string
+  phone: string
+}
+
+export function usePatientSearch(patients: Patient[], delay = 300) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearchTerm = useDebounce(searchTerm, delay)
+
+  const filteredPatients = useMemo(() => {
+    if (!debouncedSearchTerm) return patients
+
+    const lowercaseSearch = debouncedSearchTerm.toLowerCase()
+    return patients.filter(patient =>
+      patient.name.toLowerCase().includes(lowercaseSearch) ||
+      patient.email.toLowerCase().includes(lowercaseSearch) ||
+      patient.phone.includes(lowercaseSearch)
+    )
+  }, [patients, debouncedSearchTerm])
+
+  return {
+    searchTerm,
+    setSearchTerm,
+    filteredPatients,
+    isSearching: searchTerm !== debouncedSearchTerm
+  }
+}`
+        }
+      ]
+    },
+    {
+      type: 'feature' as const,
+      title: 'Quick Action Toolbar',
+      description: 'Add floating action buttons for common tasks',
+      implementation: 'Create a floating action button component with quick actions',
+      files_to_modify: ['src/components/ui/floating-action-button.tsx'],
+      impact_score: 7,
+      estimated_effort: 'medium' as const,
+      code_changes: [
+        {
+          file_path: 'src/components/ui/floating-action-button.tsx',
+          action: 'create' as const,
+          content: `import { useState } from 'react'
+import { Plus, X } from 'lucide-react'
+import { Button } from './button'
+import { cn } from '@/lib/utils'
+
+interface Action {
+  icon: React.ReactNode
+  label: string
+  onClick: () => void
+}
+
+interface FloatingActionButtonProps {
+  actions: Action[]
+  className?: string
+}
+
+export function FloatingActionButton({ actions, className }: FloatingActionButtonProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className={cn("fixed bottom-6 right-6 z-50", className)}>
+      <div className="flex flex-col-reverse items-end gap-3">
+        {isOpen && actions.map((action, index) => (
+          <Button
+            key={index}
+            size="lg"
+            className="rounded-full shadow-lg"
+            onClick={() => {
+              action.onClick()
+              setIsOpen(false)
+            }}
+          >
+            {action.icon}
+            <span className="sr-only">{action.label}</span>
+          </Button>
+        ))}
+        
+        <Button
+          size="lg"
+          className="rounded-full shadow-lg"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
+        </Button>
+      </div>
     </div>
   )
 }`
@@ -518,84 +621,158 @@ export function PatientListSkeleton() {
       ]
     },
     {
-      type: 'accessibility' as const,
-      title: 'Improved Focus Management',
-      description: 'Add proper focus indicators and keyboard navigation',
-      implementation: 'Update button and form components with better focus styles',
-      files_to_modify: ['src/components/ui/button.tsx'],
+      type: 'bug_fix' as const,
+      title: 'Form Validation Improvements',
+      description: 'Fix form validation edge cases and improve error handling',
+      implementation: 'Add better form validation with proper error states',
+      files_to_modify: ['src/lib/form-validation.ts'],
       impact_score: 6,
       estimated_effort: 'small' as const,
       code_changes: [
         {
-          file_path: 'src/components/ui/button.tsx',
-          action: 'update' as const,
-          content: `import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
+          file_path: 'src/lib/form-validation.ts',
+          action: 'create' as const,
+          content: `import { z } from 'zod'
 
-import { cn } from "@/lib/utils"
+export const patientSchema = z.object({
+  name: z.string()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be less than 100 characters')
+    .regex(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'),
+  
+  email: z.string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  
+  phone: z.string()
+    .min(1, 'Phone number is required')
+    .regex(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
+  
+  dateOfBirth: z.string()
+    .min(1, 'Date of birth is required')
+    .refine(date => {
+      const birthDate = new Date(date)
+      const today = new Date()
+      return birthDate <= today
+    }, 'Date of birth cannot be in the future')
+})
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
+export type PatientFormData = z.infer<typeof patientSchema>
+
+export function validateForm<T>(schema: z.ZodSchema<T>, data: unknown): {
+  success: boolean
+  data?: T
+  errors?: Record<string, string>
+} {
+  try {
+    const validData = schema.parse(data)
+    return { success: true, data: validData }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors: Record<string, string> = {}
+      error.errors.forEach(err => {
+        if (err.path) {
+          errors[err.path.join('.')] = err.message
+        }
+      })
+      return { success: false, errors }
+    }
+    return { success: false, errors: { general: 'Validation failed' } }
   }
-)
+}`
+        }
+      ]
+    },
+    {
+      type: 'accessibility' as const,
+      title: 'Keyboard Navigation Enhancement',
+      description: 'Improve keyboard navigation throughout the app',
+      implementation: 'Add better keyboard shortcuts and focus management',
+      files_to_modify: ['src/hooks/useKeyboardShortcuts.ts'],
+      impact_score: 7,
+      estimated_effort: 'medium' as const,
+      code_changes: [
+        {
+          file_path: 'src/hooks/useKeyboardShortcuts.ts',
+          action: 'create' as const,
+          content: `import { useEffect } from 'react'
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
+interface KeyboardShortcut {
+  key: string
+  ctrlKey?: boolean
+  altKey?: boolean
+  shiftKey?: boolean
+  callback: () => void
+  description?: string
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-Button.displayName = "Button"
+export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      for (const shortcut of shortcuts) {
+        const { key, ctrlKey = false, altKey = false, shiftKey = false, callback } = shortcut
+        
+        if (
+          event.key.toLowerCase() === key.toLowerCase() &&
+          event.ctrlKey === ctrlKey &&
+          event.altKey === altKey &&
+          event.shiftKey === shiftKey
+        ) {
+          event.preventDefault()
+          callback()
+          break
+        }
+      }
+    }
 
-export { Button, buttonVariants }`
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [shortcuts])
+}
+
+// Common shortcuts
+export const commonShortcuts = {
+  search: { key: 'k', ctrlKey: true, description: 'Open search' },
+  save: { key: 's', ctrlKey: true, description: 'Save current form' },
+  newItem: { key: 'n', ctrlKey: true, description: 'Create new item' },
+  escape: { key: 'Escape', description: 'Close modal/dialog' }
+}`
         }
       ]
     }
   ];
 
-  // Filter out recently implemented types
-  const availableImprovements = improvements.filter(imp => 
-    !recentTypes.includes(imp.type) && 
-    !recentTitles.some(title => title.includes(imp.title.split(' ')[0]))
-  );
+  console.log('🔍 Recent improvements:', recentTitles);
+  console.log('🔍 Recent types:', recentTypes);
 
-  return availableImprovements.length > 0 
-    ? availableImprovements[0] 
-    : improvements[Math.floor(Math.random() * improvements.length)];
+  // More strict filtering to avoid repetition
+  const availableImprovements = improvements.filter(imp => {
+    const isRecentType = recentTypes.includes(imp.type);
+    const isRecentTitle = recentTitles.some(title => 
+      title.toLowerCase().includes(imp.title.toLowerCase()) ||
+      imp.title.toLowerCase().includes(title.toLowerCase())
+    );
+    
+    console.log(`🔍 Checking ${imp.title}: recentType=${isRecentType}, recentTitle=${isRecentTitle}`);
+    
+    return !isRecentType && !isRecentTitle;
+  });
+
+  console.log('✅ Available improvements:', availableImprovements.map(i => i.title));
+
+  if (availableImprovements.length > 0) {
+    return availableImprovements[0];
+  }
+
+  // If all improvements have been used recently, pick a random one but modify the title
+  const randomImprovement = improvements[Math.floor(Math.random() * improvements.length)];
+  const timestamp = Date.now();
+  
+  return {
+    ...randomImprovement,
+    title: `${randomImprovement.title} v${timestamp % 1000}`,
+    description: `${randomImprovement.description} (Enhanced version)`
+  };
 }
 
 async function updateEvolutionMetrics(supabase: any, improvement: ImprovementIdea) {
