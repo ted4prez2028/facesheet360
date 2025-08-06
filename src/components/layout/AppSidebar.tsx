@@ -122,11 +122,6 @@ export function AppSidebar() {
       group: "Administration",
       items: [
         {
-          title: "Doctor Accounts",
-          icon: UserCheck,
-          path: "/doctor-accounts",
-        },
-        {
           title: "Menu Sync",
           icon: Package,
           path: "/menu-sync",
