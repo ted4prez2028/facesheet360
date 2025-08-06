@@ -104,6 +104,16 @@ export function AppSidebar() {
       ],
     },
     {
+      group: "Transportation",
+      items: [
+        {
+          title: "Taxi Service",
+          icon: ChevronRight, // We'll use ChevronRight as a car icon placeholder
+          path: "/taxi",
+        },
+      ],
+    },
+    {
       group: "Financial",
       items: [
         {

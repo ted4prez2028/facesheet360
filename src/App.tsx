@@ -31,6 +31,7 @@ import WalletDashboard from './pages/WalletDashboard';
 import DoctorAccounts from './pages/DoctorAccounts';
 import Settings from './pages/Settings';
 import { MenuSyncPage } from './pages/MenuSync';
+import TaxiPage from './pages/TaxiPage';
 
 const queryClient = new QueryClient();
 
@@ -243,8 +244,20 @@ function App() {
                       </CommunicationProvider>
                     </RequireAuth>
                   }
-                />
-              </Routes>
+                 />
+                 <Route
+                   path="/taxi"
+                   element={
+                     <RequireAuth>
+                       <CommunicationProvider>
+                         <DashboardLayout>
+                           <TaxiPage />
+                         </DashboardLayout>
+                       </CommunicationProvider>
+                     </RequireAuth>
+                   }
+                 />
+               </Routes>
               <Toaster />
             </UserPreferencesProvider>
           </AuthProvider>

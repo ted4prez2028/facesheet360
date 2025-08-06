@@ -712,6 +712,63 @@ export type Database = {
         }
         Relationships: []
       }
+      drivers: {
+        Row: {
+          created_at: string
+          current_location: Json | null
+          email: string | null
+          id: string
+          license_number: string
+          license_plate: string
+          name: string
+          phone: string
+          rating: number | null
+          status: string
+          total_rides: number | null
+          updated_at: string
+          vehicle_color: string
+          vehicle_make: string
+          vehicle_model: string
+          vehicle_year: number
+        }
+        Insert: {
+          created_at?: string
+          current_location?: Json | null
+          email?: string | null
+          id?: string
+          license_number: string
+          license_plate: string
+          name: string
+          phone: string
+          rating?: number | null
+          status?: string
+          total_rides?: number | null
+          updated_at?: string
+          vehicle_color: string
+          vehicle_make: string
+          vehicle_model: string
+          vehicle_year: number
+        }
+        Update: {
+          created_at?: string
+          current_location?: Json | null
+          email?: string | null
+          id?: string
+          license_number?: string
+          license_plate?: string
+          name?: string
+          phone?: string
+          rating?: number | null
+          status?: string
+          total_rides?: number | null
+          updated_at?: string
+          vehicle_color?: string
+          vehicle_make?: string
+          vehicle_model?: string
+          vehicle_year?: number
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           created_at: string
@@ -1063,6 +1120,48 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          app_notification_sent: boolean
+          created_at: string
+          email_address: string | null
+          email_sent: boolean
+          id: string
+          message: string
+          notification_type: string
+          patient_id: string | null
+          phone_number: string | null
+          sms_sent: boolean
+          user_id: string | null
+        }
+        Insert: {
+          app_notification_sent?: boolean
+          created_at?: string
+          email_address?: string | null
+          email_sent?: boolean
+          id?: string
+          message: string
+          notification_type: string
+          patient_id?: string | null
+          phone_number?: string | null
+          sms_sent?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          app_notification_sent?: boolean
+          created_at?: string
+          email_address?: string | null
+          email_sent?: boolean
+          id?: string
+          message?: string
+          notification_type?: string
+          patient_id?: string | null
+          phone_number?: string | null
+          sms_sent?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1386,6 +1485,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rides: {
+        Row: {
+          actual_cost_carecoins: number | null
+          created_at: string
+          driver_id: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          dropoff_location: string
+          dropoff_time: string | null
+          estimated_arrival_time: string | null
+          estimated_cost_carecoins: number
+          id: string
+          patient_id: string | null
+          pickup_location: string
+          pickup_time: string | null
+          ride_type: string
+          route_data: Json | null
+          scheduled_time: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_info: string | null
+        }
+        Insert: {
+          actual_cost_carecoins?: number | null
+          created_at?: string
+          driver_id?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          dropoff_location: string
+          dropoff_time?: string | null
+          estimated_arrival_time?: string | null
+          estimated_cost_carecoins?: number
+          id?: string
+          patient_id?: string | null
+          pickup_location: string
+          pickup_time?: string | null
+          ride_type: string
+          route_data?: Json | null
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_info?: string | null
+        }
+        Update: {
+          actual_cost_carecoins?: number | null
+          created_at?: string
+          driver_id?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          dropoff_location?: string
+          dropoff_time?: string | null
+          estimated_arrival_time?: string | null
+          estimated_cost_carecoins?: number
+          id?: string
+          patient_id?: string | null
+          pickup_location?: string
+          pickup_time?: string | null
+          ride_type?: string
+          route_data?: Json | null
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_info?: string | null
+        }
+        Relationships: []
       }
       social_accounts: {
         Row: {

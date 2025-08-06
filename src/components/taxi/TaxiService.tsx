@@ -61,18 +61,22 @@ const TaxiService = () => {
   const fetchRides = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('rides')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('rides')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching rides:', error);
-      return;
+      if (error) {
+        console.error('Error fetching rides:', error);
+        return;
+      }
+
+      setRides(data || []);
+    } catch (error) {
+      console.error('Error in fetchRides:', error);
     }
-
-    setRides(data || []);
   };
 
   const handleBookRide = async () => {
