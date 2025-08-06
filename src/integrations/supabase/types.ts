@@ -1862,6 +1862,10 @@ export type Database = {
           value: number
         }[]
       }
+      get_dashboard_statistics: {
+        Args: { user_id_param: string }
+        Returns: Json
+      }
       get_patient_demographics: {
         Args: Record<PropertyKey, never>
         Returns: {
