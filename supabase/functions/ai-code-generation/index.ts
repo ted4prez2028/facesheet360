@@ -45,6 +45,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('🤖 AI Self-Improvement System Starting with Code Generation...');
 
+    // Verify GitHub configuration for real code changes
+    if (!githubToken || !githubRepo) {
+      console.log('⚠️ GitHub configuration missing - returning simulated result');
+      
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'GitHub configuration required for real code changes',
+        improvement_implemented: null,
+        code_changes_applied: false,
+        commit_url: null,
+        github_integration: false,
+        error: 'Missing GITHUB_TOKEN or GITHUB_REPO configuration'
+      }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
+      });
+    }
+
     // Analyze current system state
     const { data: recentImprovements } = await supabase
       .from('ai_improvements')
