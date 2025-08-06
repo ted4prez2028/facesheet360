@@ -247,9 +247,9 @@ const handler = async (req: Request): Promise<Response> => {
         console.error('GitHub implementation failed:', gitError);
       }
     } else {
-      console.log('⚠️ GitHub integration not configured - simulating implementation');
-      // Simulate implementation delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('⚠️ GitHub integration not configured - marking as completed without deployment');
+      // When GitHub isn't configured, we still mark as completed since the improvement was generated
+      await new Promise(resolve => setTimeout(resolve, 1000));
       implementationSuccess = true;
     }
 
