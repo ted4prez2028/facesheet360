@@ -23,33 +23,82 @@ export function AICodeGenerationDashboard({ onImprovementTriggered }: AICodeGene
     setIsTriggering(true);
     
     try {
-      const { data, error } = await supabase.functions.invoke('ai-code-generation', {
-        body: JSON.stringify({
-          repository: githubRepo || undefined
-        })
-      });
-
-      if (error) throw error;
-
-      setLastImplementation(data);
+      console.log('🤖 Triggering AI Code Generation...');
+      console.log('📁 Target repository:', githubRepo || 'Not specified');
       
-      toast({
-        title: data.success ? "🤖 AI Implementation Complete" : "❌ Implementation Failed",
-        description: data.success 
-          ? `Successfully implemented: ${data.improvement_implemented}${data.commit_url ? ' (Pull request created)' : ''}`
-          : `Failed: ${data.error}`,
-        variant: data.success ? "default" : "destructive"
+      const { data, error } = await supabase.functions.invoke('ai-code-generation', {
+        body: { 
+          github_repo: githubRepo || undefined,
+          timestamp: new Date().toISOString()
+        }
       });
 
-      if (data.success && onImprovementTriggered) {
-        onImprovementTriggered();
+      if (error) {
+        console.error('AI Code Generation Error:', error);
+        toast({
+          title: "AI Generation Failed",
+          description: error.message || "Unknown error occurred during AI code generation",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('AI Generation Response:', data);
+      
+      if (data?.success) {
+        const deploymentStatus = data.deployment_status === 'deployed' 
+          ? 'Successfully deployed to GitHub!' 
+          : data.github_configured 
+            ? 'Generated but GitHub deployment failed'
+            : 'Generated (configure GitHub for deployment)';
+        
+        toast({
+          title: "AI Code Generation Successful! 🤖",
+          description: `${data.improvement_implemented} - ${deploymentStatus}`,
+          variant: "default",
+        });
+
+        if (data.commit_url) {
+          console.log('📁 Pull Request created:', data.commit_url);
+        }
+
+        setLastImplementation({
+          success: true,
+          improvement_implemented: data.improvement_implemented,
+          deployment_status: data.deployment_status || 'unknown',
+          code_changes_applied: data.code_changes_applied,
+          commit_url: data.commit_url,
+          github_configured: data.github_configured,
+          duration: data.duration,
+          timestamp: new Date().toISOString()
+        });
+
+        onImprovementTriggered?.();
+      } else {
+        toast({
+          title: "AI Generation Failed",
+          description: data?.message || "Failed to generate AI improvement",
+          variant: "destructive",
+        });
+        
+        setLastImplementation({
+          success: false,
+          error: data?.message || "Unknown error",
+          timestamp: new Date().toISOString()
+        });
       }
     } catch (error: any) {
-      console.error('AI Code Generation error:', error);
+      console.error('Unexpected error:', error);
       toast({
-        title: "Error",
-        description: "Failed to trigger AI code generation. Check console for details.",
-        variant: "destructive"
+        title: "AI Generation Failed",
+        description: "An unexpected error occurred during AI code generation",
+        variant: "destructive",
+      });
+      
+      setLastImplementation({
+        success: false,
+        error: error.message || "Unexpected error",
+        timestamp: new Date().toISOString()
       });
     } finally {
       setIsTriggering(false);
@@ -126,22 +175,40 @@ export function AICodeGenerationDashboard({ onImprovementTriggered }: AICodeGene
                 Last Implementation
               </h4>
               <div className="text-sm space-y-1">
-                <p><strong>Improvement:</strong> {lastImplementation.improvement_implemented}</p>
-                <p><strong>Code Changes:</strong> {lastImplementation.code_changes_applied ? 'Applied' : 'Simulated'}</p>
-                {lastImplementation.commit_url && (
-                  <p>
-                    <strong>Pull Request:</strong> 
-                    <a 
-                      href={lastImplementation.commit_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline ml-1"
-                    >
-                      View on GitHub
-                    </a>
-                  </p>
+                {lastImplementation.success ? (
+                  <>
+                    <p><strong>Improvement:</strong> {lastImplementation.improvement_implemented}</p>
+                    <p>
+                      <strong>Deployment Status:</strong> 
+                      <Badge 
+                        variant={lastImplementation.deployment_status === 'deployed' ? 'default' : 'secondary'}
+                        className="ml-2"
+                      >
+                        {lastImplementation.deployment_status === 'deployed' ? 'Deployed to GitHub' : 
+                         lastImplementation.github_configured ? 'Deployment Failed' : 'GitHub Not Configured'}
+                      </Badge>
+                    </p>
+                    {lastImplementation.commit_url && (
+                      <p>
+                        <strong>Pull Request:</strong> 
+                        <a 
+                          href={lastImplementation.commit_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline ml-1"
+                        >
+                          View on GitHub →
+                        </a>
+                      </p>
+                    )}
+                    <p><strong>Duration:</strong> {lastImplementation.duration}ms</p>
+                  </>
+                ) : (
+                  <p className="text-red-500"><strong>Error:</strong> {lastImplementation.error}</p>
                 )}
-                <p><strong>Duration:</strong> {lastImplementation.duration}ms</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(lastImplementation.timestamp).toLocaleString()}
+                </p>
               </div>
             </div>
           </>

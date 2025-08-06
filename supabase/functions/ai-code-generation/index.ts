@@ -81,25 +81,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Verify GitHub configuration for real code changes
+    // Log GitHub configuration status
     if (!githubToken || !githubRepo) {
-      console.log('⚠️ GitHub configuration missing - returning simulated result');
-      
-      return new Response(JSON.stringify({
-        success: false,
-        message: 'GitHub configuration required for real code changes',
-        improvement_implemented: null,
-        code_changes_applied: false,
-        commit_url: null,
-        github_integration: false,
-        error: 'Missing GITHUB_TOKEN or GITHUB_REPO configuration'
-      }), {
-        status: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
-      });
+      console.log('⚠️ GitHub configuration missing - will generate improvement without deployment');
+    } else {
+      console.log('✅ GitHub integration configured - will deploy changes to:', githubRepo);
     }
 
     // Analyze current system state
@@ -229,7 +215,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (githubToken && githubRepo && improvementIdea.code_changes) {
       try {
-        console.log('📝 Implementing code changes via GitHub...');
+        console.log('📝 Implementing code changes via GitHub API...');
+        console.log(`🔗 Repository: ${githubRepo}`);
+        console.log(`📁 Files to modify: ${improvementIdea.code_changes.map(c => c.file_path).join(', ')}`);
+        
         const result = await implementCodeChanges(
           githubToken,
           githubRepo,
@@ -241,15 +230,21 @@ const handler = async (req: Request): Promise<Response> => {
         if (result.success) {
           implementationSuccess = true;
           commitUrl = result.commitUrl || '';
-          console.log('✅ Code changes committed to GitHub:', commitUrl);
+          console.log('✅ Code changes committed to GitHub successfully!');
+          console.log(`🔗 Pull Request URL: ${commitUrl}`);
+        } else {
+          console.error('❌ GitHub deployment failed - no success response');
         }
       } catch (gitError) {
-        console.error('GitHub implementation failed:', gitError);
+        console.error('❌ GitHub implementation failed:', gitError);
+        console.error('Error details:', gitError.message);
       }
+    } else if (!githubToken || !githubRepo) {
+      console.log('⚠️ GitHub integration not configured - improvement generated but not deployed');
+      console.log('💡 To enable deployment, configure GITHUB_TOKEN and GITHUB_REPO secrets');
+      implementationSuccess = false; // Mark as not successful since it wasn't deployed
     } else {
-      console.log('⚠️ GitHub integration not configured - marking as completed without deployment');
-      // When GitHub isn't configured, we still mark as completed since the improvement was generated
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('⚠️ No code changes to deploy');
       implementationSuccess = true;
     }
 
@@ -291,11 +286,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'AI self-improvement with code generation completed',
+      message: implementationSuccess 
+        ? 'AI improvement successfully deployed to GitHub' 
+        : 'AI improvement generated (GitHub deployment required)',
       improvement_implemented: improvementIdea.title,
       code_changes_applied: implementationSuccess,
-      commit_url: commitUrl,
-      github_integration: !!githubToken,
+      commit_url: commitUrl || null,
+      github_integration: !!(githubToken && githubRepo),
+      github_configured: !!(githubToken && githubRepo),
+      deployment_status: implementationSuccess ? 'deployed' : 'pending_deployment',
       duration
     }), {
       status: 200,
