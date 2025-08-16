@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-    config: Record<string, any>
+    config: Record<string, unknown>
   }
 >(({ className, children, config, ...props }, ref) => {
   return (
@@ -23,11 +23,11 @@ ChartContainer.displayName = "ChartContainer"
 // Chart tooltip component
 interface ChartTooltipProps extends React.ComponentProps<"div"> {
   active?: boolean
-  payload?: any[]
+  payload?: Array<{ value: number | string; name: string; color?: string }>
   label?: string
-  labelFormatter?: (value: any) => string
+  labelFormatter?: (value: string) => string
   labelClassName?: string
-  formatter?: (value: any, name: string) => [string, string]
+  formatter?: (value: number | string, name: string) => [string, string]
   hideLabel?: boolean
   hideIndicator?: boolean
   indicator?: "line" | "dot" | "dashed"

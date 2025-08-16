@@ -22,13 +22,17 @@ import {
   FileText
 } from 'lucide-react';
 
+interface RiskPredictionData {
+  risk_score?: number;
+  factors?: string[];
+}
+
 interface PatientOverviewProps {
   patient: Patient | undefined;
   patientName: string;
-  chartData: any;
 }
 
-const PatientOverview: React.FC<PatientOverviewProps> = ({ patient, patientName, chartData }) => {
+const PatientOverview: React.FC<PatientOverviewProps> = ({ patient, patientName }) => {
   const { data: carePlans } = useCarePlans(patient?.id);
   const { predictions } = useHealthPredictions(patient?.id);
 
@@ -53,7 +57,8 @@ const PatientOverview: React.FC<PatientOverviewProps> = ({ patient, patientName,
 
   const activeCarePlans = carePlans?.filter(plan => plan.status === 'active') || [];
   const aiGeneratedPlans = carePlans?.filter(plan => plan.is_ai_generated) || [];
-  const highRiskPredictions = predictions?.filter(p => (p.prediction_data as any)?.risk_score > 0.7) || [];
+  const highRiskPredictions =
+    predictions?.filter((p) => (p.prediction_data as RiskPredictionData)?.risk_score > 0.7) || [];
 
   return (
     <div className="space-y-6">
@@ -224,40 +229,46 @@ const PatientOverview: React.FC<PatientOverviewProps> = ({ patient, patientName,
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {predictions.map((prediction) => (
-                <div key={prediction.id} className="p-4 rounded-lg border bg-muted/50">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium capitalize">
-                      {prediction.prediction_type.replace('_', ' ')} Risk
-                    </h4>
-                    <Badge variant={
-                      (prediction.prediction_data as any)?.risk_score > 0.7 ? "destructive" :
-                      (prediction.prediction_data as any)?.risk_score > 0.4 ? "default" : "secondary"
-                    }>
-                      {Math.round(((prediction.prediction_data as any)?.risk_score || 0) * 100)}%
-                    </Badge>
-                  </div>
-                  <Progress 
-                    value={((prediction.prediction_data as any)?.risk_score || 0) * 100} 
-                    className="h-2 mb-2" 
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Confidence: {Math.round(prediction.confidence_score * 100)}%
-                  </p>
-                  {(prediction.prediction_data as any)?.factors && (
-                    <div className="mt-2">
-                      <p className="text-xs font-medium mb-1">Risk Factors:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {((prediction.prediction_data as any)?.factors as string[]).map((factor, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {factor}
-                          </Badge>
-                        ))}
-                      </div>
+              {predictions.map((prediction) => {
+                const data = prediction.prediction_data as RiskPredictionData;
+                return (
+                  <div key={prediction.id} className="p-4 rounded-lg border bg-muted/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium capitalize">
+                        {prediction.prediction_type.replace('_', ' ')} Risk
+                      </h4>
+                      <Badge variant={
+                        (data.risk_score ?? 0) > 0.7
+                          ? "destructive"
+                          : (data.risk_score ?? 0) > 0.4
+                            ? "default"
+                            : "secondary"
+                      }>
+                        {Math.round((data.risk_score ?? 0) * 100)}%
+                      </Badge>
                     </div>
-                  )}
-                </div>
-              ))}
+                    <Progress
+                      value={(data.risk_score ?? 0) * 100}
+                      className="h-2 mb-2"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Confidence: {Math.round(prediction.confidence_score * 100)}%
+                    </p>
+                    {data.factors && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium mb-1">Risk Factors:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {data.factors.map((factor, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {factor}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

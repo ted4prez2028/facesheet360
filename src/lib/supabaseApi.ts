@@ -27,10 +27,7 @@ export const getPatientCharts = chartApi.chartApi.getChartRecords;
 export const addChartRecord = chartApi.chartApi.createChartRecord;
 export const updateChartRecord = chartApi.chartApi.updateChartRecord;
 export const createChartRecord = chartApi.chartApi.createChartRecord;
-export const getChartRecordById = async (id: string) => {
-  // Mock implementation since this function doesn't exist
-  return null;
-};
+export const getChartRecordById = chartApi.chartApi.getChartRecordById;
 export const getChartRecordsByPatientId = chartApi.chartApi.getChartRecords;
 export const deleteChartRecord = chartApi.chartApi.deleteChartRecord;
 
@@ -59,8 +56,12 @@ export const transferCareCoins = async (fromId: string, toId: string, amount: nu
 };
 
 export const getCareCoinsBalance = async (userId: string) => {
-  // Mock implementation
-  return 100;
+  const transactions = await careCoinsApi.careCoinsApi.getTransactions(userId);
+  return transactions.reduce((balance, tx) => {
+    if (tx.to_user_id === userId) return balance + tx.amount;
+    if (tx.from_user_id === userId) return balance - tx.amount;
+    return balance;
+  }, 0);
 };
 
 export const {

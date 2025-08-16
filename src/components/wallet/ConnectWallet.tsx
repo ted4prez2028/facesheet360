@@ -11,12 +11,6 @@ const ConnectWallet = () => {
 
   const handleConnect = async () => {
     try {
-      // Check if MetaMask is installed
-      if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask to connect your wallet');
-        return;
-      }
-      
       await connectWallet();
     } catch (error) {
       console.error('Failed to connect wallet:', error);
@@ -89,10 +83,10 @@ const ConnectWallet = () => {
           </Button>
         ) : (
           <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button 
-              onClick={handleConnect} 
+            <Button
+              onClick={handleConnect}
               className="flex-1"
-              disabled={isLoading || !window.ethereum}
+              disabled={isLoading}
             >
               {isLoading ? "Connecting..." : "Connect MetaMask"}
             </Button>

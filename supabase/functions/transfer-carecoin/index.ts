@@ -27,7 +27,7 @@ async function transferTokens(contractAddress: string, recipientAddress: string,
     console.log(`From contract: ${contractAddress}`);
     console.log(`To address: ${recipientAddress}`);
 
-    const provider = new ethers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`);
+    const provider = new ethers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
     const wallet = new ethers.Wallet(deployerPrivateKey, provider);
 
     // Connect to the CareCoin contract

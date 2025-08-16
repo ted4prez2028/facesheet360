@@ -6,12 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Video, 
   VideoOff, 
-  Mic, 
-  MicOff, 
-  Phone, 
+  Mic,
+  MicOff,
+  Phone,
   PhoneCall,
   Copy,
-  MessageSquare
+  MessageSquare,
+  ScreenShare,
+  ScreenShareOff
 } from 'lucide-react';
 import { usePeerConnection } from '@/hooks/usePeerConnection';
 import { useToast } from '@/components/ui/use-toast';
@@ -50,6 +52,9 @@ const VideoCallInterface: React.FC<VideoCallInterfaceProps> = ({
     endCall,
     toggleAudio,
     toggleVideo,
+    startScreenShare,
+    stopScreenShare,
+    isScreenSharing,
     clearError
   } = usePeerConnection({
     enableVideo: true,
@@ -104,6 +109,14 @@ const VideoCallInterface: React.FC<VideoCallInterfaceProps> = ({
   const handleToggleAudio = () => {
     toggleAudio();
     setIsAudioEnabled(!isAudioEnabled);
+  };
+
+  const handleToggleScreen = () => {
+    if (isScreenSharing) {
+      stopScreenShare();
+    } else {
+      startScreenShare();
+    }
   };
 
   const copyPeerId = () => {
@@ -227,6 +240,18 @@ const VideoCallInterface: React.FC<VideoCallInterfaceProps> = ({
                     disabled={!isCallActive}
                   >
                     {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={isScreenSharing ? "default" : "outline"}
+                    onClick={handleToggleScreen}
+                    disabled={!isCallActive}
+                  >
+                    {isScreenSharing ? (
+                      <ScreenShareOff className="h-4 w-4" />
+                    ) : (
+                      <ScreenShare className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     size="sm"

@@ -100,13 +100,16 @@ export const useWallet = () => {
   const connectWallet = async () => {
     try {
       if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts'
         });
         setWalletAddress(accounts[0]);
         setIsWalletConnected(true);
         setTokenBalance('100'); // Mock token balance
         toast.success('Wallet connected successfully');
+      } else {
+        const dappUrl = encodeURIComponent(window.location.href);
+        window.location.href = `https://metamask.app.link/dapp/${dappUrl}`;
       }
     } catch (error) {
       console.error('Error connecting wallet:', error);

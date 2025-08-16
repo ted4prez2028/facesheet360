@@ -30,8 +30,9 @@ import Analytics from './pages/Analytics';
 import WalletDashboard from './pages/WalletDashboard';
 import DoctorAccounts from './pages/DoctorAccounts';
 import Settings from './pages/Settings';
-import { MenuSyncPage } from './pages/MenuSync';
+import { FoodPage } from './pages/Food';
 import TaxiPage from './pages/TaxiPage';
+import MyChartPage from './pages/MyChart';
 
 const queryClient = new QueryClient();
 
@@ -210,6 +211,18 @@ function App() {
                   }
                 />
                 <Route
+                  path="/my-chart"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
+                        <DashboardLayout>
+                          <MyChartPage />
+                        </DashboardLayout>
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
                   path="/doctor-accounts"
                   element={
                     <RequireAuth>
@@ -222,12 +235,12 @@ function App() {
                   }
                 />
                 <Route
-                  path="/menu-sync"
+                  path="/food"
                   element={
                     <RequireAuth>
                       <CommunicationProvider>
                         <DashboardLayout>
-                          <MenuSyncPage />
+                          <FoodPage />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>

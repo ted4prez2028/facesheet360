@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ClinicalNote } from '@/types';
 
 interface NotesSectionProps {
   patientId: string | null;
   providerId: string | undefined;
-  notes: any[];
+  notes: ClinicalNote[];
 }
 
 const NotesSection: React.FC<NotesSectionProps> = ({ patientId, providerId, notes }) => {

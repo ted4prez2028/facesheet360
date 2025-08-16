@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LabResult } from '@/types';
 
 interface LabResultsProps {
   patientId: string | null;
-  labResults: any[];
+  labResults: LabResult[];
 }
 
 const LabResults: React.FC<LabResultsProps> = ({ patientId, labResults }) => {

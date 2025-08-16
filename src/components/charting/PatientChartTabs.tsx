@@ -7,11 +7,12 @@ import MedicationsSection from "./MedicationsSection";
 import LabResults from "./LabResults";
 import ImagingRecords from "./ImagingRecords";
 import NotesSection from "./NotesSection";
-import { Patient } from "@/types";
+import AllergiesSection from "./AllergiesSection";
+import { Patient, PatientChartData } from "@/types";
 
 interface PatientChartTabsProps {
   patient: Patient | undefined;
-  chartData: any;
+  chartData: PatientChartData;
   patientId: string | null;
   userId: string | undefined;
 }
@@ -24,21 +25,21 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
   return (
     <CardContent className="flex-1 flex flex-col overflow-hidden p-6">
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-6 shrink-0">
+        <TabsList className="grid w-full grid-cols-7 shrink-0">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
           <TabsTrigger value="medications">Medications</TabsTrigger>
           <TabsTrigger value="labs">Labs</TabsTrigger>
           <TabsTrigger value="imaging">Imaging</TabsTrigger>
+          <TabsTrigger value="allergies">Allergies</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
         </TabsList>
 
         <div className="flex-1 mt-4 overflow-hidden">
           <TabsContent value="overview" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <PatientOverview 
+            <PatientOverview
               patient={patient}
               patientName={displayName}
-              chartData={chartData}
             />
           </TabsContent>
 
@@ -65,10 +66,14 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
           </TabsContent>
 
           <TabsContent value="imaging" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <ImagingRecords 
+            <ImagingRecords
               patientId={patientId}
               imagingRecords={chartData.imaging}
             />
+          </TabsContent>
+
+          <TabsContent value="allergies" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+            <AllergiesSection patientId={patientId} />
           </TabsContent>
 
           <TabsContent value="notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">

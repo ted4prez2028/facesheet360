@@ -23,7 +23,7 @@ interface WoundAssessment {
   patient_id: string;
   location: string;
   size: string;
-  ai_analysis: any;
+  ai_analysis: AIAnalysis;
   stage: string;
   severity: string;
   healing_progress: string;
@@ -32,6 +32,15 @@ interface WoundAssessment {
   treatment_plan: string;
   image_url?: string;
   assessed_at: string;
+}
+
+interface AIAnalysis {
+  stage: string;
+  severity: string;
+  healingProgress: string;
+  infectionRisk: string;
+  recommendations: string[];
+  treatmentPlan: string;
 }
 
 interface AIWoundAssessmentProps {

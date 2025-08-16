@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
-export type HealthcareRole = 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin';
+export type HealthcareRole = 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin' | 'patient';
 
 // Define types for the missing tables
 interface UserRole {
@@ -78,8 +78,8 @@ export const useRolePermissions = () => {
           throw new Error("Could not retrieve user roles");
         } catch (directErr: unknown) {
           console.error("Direct query fallback failed:", directErr);
-          // If user is logged in but we can't retrieve roles, default to basic role
-          setUserRoles(['doctor']); // Assume doctor role as fallback
+          // If user is logged in but we can't retrieve roles, default to patient role
+          setUserRoles(['patient']);
           setIsLoading(false);
           return;
         }
@@ -93,7 +93,7 @@ export const useRolePermissions = () => {
       setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
       // Default to basic role if there's an error but user is logged in
       if (user) {
-        setUserRoles(['doctor']); // Assume doctor role as fallback
+        setUserRoles(['patient']);
       }
     } finally {
       setIsLoading(false);

@@ -18,10 +18,11 @@ Facesheet360 is an innovative healthcare management system designed to streamlin
 *   **Wound Analysis and Monitoring:** Utilizes AI for advanced image analysis of wounds, assisting in accurate assessment, tracking healing progress, and identifying potential complications early.
 
 ### Advanced Blockchain Integration (CareCoin)
-Facesheet360 leverages a custom, private Proof-of-Stake (PoS) blockchain network to introduce **CareCoins**, a digital incentive for healthcare activities.
+Facesheet360 leverages the Ethereum network to introduce **CareCoins**, a digital incentive for healthcare activities.
 
 *   **MetaMask Integration:** Seamlessly connect your MetaMask wallet to manage your CareCoins directly within the application.
 *   **CareCoin (ERC-20 Token):** A custom digital token designed to reward healthcare providers for their charting activities and enable new functionalities.
+*   **One-Click Mainnet Launch:** Deploy the CareCoin ERC-20 contract to Ethereum mainnet directly from the Wallet Dashboard.
 *   **Staking Functionality:** Users can stake their CareCoins on the blockchain, participating in the network's security and potentially earning rewards (requires a deployed CareCoin smart contract with staking capabilities).
 *   **Backend-Driven Minting for Charting:**
     *   CareCoins are minted and awarded to healthcare providers whenever they chart patient data in the system.
@@ -89,9 +90,22 @@ This will start the development server with auto-reloading and an instant previe
 *   **Backend for Minting:** The minting of CareCoins upon charting is designed to be handled by a secure backend service. The frontend currently simulates this interaction by making a `fetch` call to a hypothetical `/api/mint-carecoin` endpoint. You will need to implement this backend service separately.
 
 ## How to Contribute
+Contributions are welcome!
 
-(Add your contribution guidelines here)
+1. Fork the repository and create your branch from `main`.
+2. Install dependencies with `npm install`.
+3. Run `npm run lint` and `npm run build` to verify your changes.
+4. Submit a pull request with a clear description.
 
 ## Deployment
 
-(Add your deployment instructions here)
+1. Build the production assets:
+   ```sh
+   npm run build
+   ```
+   The output will be located in the `dist` directory.
+2. Preview the build locally:
+   ```sh
+   npm run preview
+   ```
+3. Deploy the contents of `dist` to your preferred static hosting provider (e.g., Netlify, Vercel). Ensure that required environment variables are configured on the host.
