@@ -44,6 +44,54 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
+  // Flush any offline messages when coming online
+  useEffect(() => {
+    const flushOfflineMessages = async () => {
+      if (!conversationId || !user?.id) return;
+
+      const stored = localStorage.getItem('offlineMessages');
+      if (!stored) return;
+      const queue: any[] = JSON.parse(stored);
+      const remaining: any[] = [];
+
+      for (const msg of queue) {
+        if (msg.conversation_id !== conversationId) {
+          remaining.push(msg);
+          continue;
+        }
+
+        try {
+          const { data, error } = await supabase
+            .from('messages')
+            .insert([{ ...msg }])
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          setMessages(prev =>
+            prev.map(m => (m.id === msg.client_id ? data : m))
+          );
+        } catch {
+          remaining.push(msg);
+        }
+      }
+
+      if (remaining.length > 0) {
+        localStorage.setItem('offlineMessages', JSON.stringify(remaining));
+      } else {
+        localStorage.removeItem('offlineMessages');
+      }
+    };
+
+    if (navigator.onLine) {
+      flushOfflineMessages();
+    }
+
+    window.addEventListener('online', flushOfflineMessages);
+    return () => window.removeEventListener('online', flushOfflineMessages);
+  }, [conversationId, user?.id]);
+
   // Scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -180,13 +228,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       if (error) throw error;
 
       // Replace temp message with real message
-      setMessages(prev => prev.map(msg => 
-        msg.id === tempMessage.id ? data : msg
-      ));
+      setMessages(prev =>
+        prev.map(msg => (msg.id === tempMessage.id ? data : msg))
+      );
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove temp message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      // Queue message for later sync
+      const stored = localStorage.getItem('offlineMessages');
+      const queue = stored ? JSON.parse(stored) : [];
+      queue.push({ ...messageData, client_id: tempMessage.id });
+      localStorage.setItem('offlineMessages', JSON.stringify(queue));
     }
   };
 
