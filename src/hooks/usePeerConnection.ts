@@ -22,6 +22,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   
   const mediaConnectionRef = useRef<MediaConnection | null>(null);
   const dataConnectionRef = useRef<DataConnection | null>(null);
@@ -160,7 +161,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       console.error('Error making call:', error);
       setCallError('Failed to make call');
     }
-  }, [peer, startLocalStream]);
+  }, [peer, startLocalStream, endCall]);
 
   const answerCall = useCallback(async () => {
     if (!incomingCallRef.current) return;
@@ -188,7 +189,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       console.error('Error answering call:', error);
       setCallError('Failed to answer call');
     }
-  }, [startLocalStream]);
+  }, [startLocalStream, endCall]);
 
   const rejectCall = useCallback(() => {
     if (incomingCallRef.current) {
@@ -255,6 +256,36 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
     }
   }, [localStream]);
 
+  const stopScreenShare = useCallback(() => {
+    if (!screenStream) return;
+    const sender = mediaConnectionRef.current?.peerConnection.getSenders().find(s => s.track?.kind === 'video');
+    const cameraTrack = localStream?.getVideoTracks()[0];
+    if (sender && cameraTrack) {
+      sender.replaceTrack(cameraTrack);
+    }
+    screenStream.getTracks().forEach(track => track.stop());
+    setScreenStream(null);
+  }, [screenStream, localStream]);
+
+  const startScreenShare = useCallback(async () => {
+    if (screenStream) return;
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const screenTrack = stream.getVideoTracks()[0];
+      const sender = mediaConnectionRef.current?.peerConnection
+        .getSenders()
+        .find(s => s.track?.kind === 'video');
+      if (sender) {
+        sender.replaceTrack(screenTrack);
+      }
+      screenTrack.onended = () => stopScreenShare();
+      setScreenStream(stream);
+    } catch (error) {
+      console.error('Error starting screen share', error);
+      setCallError('Failed to share screen');
+    }
+  }, [screenStream, stopScreenShare]);
+
   return {
     peer,
     peerId,
@@ -270,6 +301,9 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
     endCall,
     toggleAudio,
     toggleVideo,
+    startScreenShare,
+    stopScreenShare,
+    isScreenSharing: !!screenStream,
     clearError: () => setCallError(null)
   };
 };

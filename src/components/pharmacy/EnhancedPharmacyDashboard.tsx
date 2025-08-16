@@ -49,6 +49,13 @@ interface Patient {
   date_of_birth: string;
 }
 
+interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
 export const EnhancedPharmacyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [medicationOrders, setMedicationOrders] = useState<MedicationOrder[]>([]);
@@ -57,6 +64,9 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState('');
+
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [newItem, setNewItem] = useState({ name: '', quantity: 0, unit: 'tabs' });
   
   const [newOrder, setNewOrder] = useState({
     patient_id: '',
@@ -96,11 +106,19 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
         .select('id, first_name, last_name, medical_record_number, date_of_birth')
         .order('last_name');
 
+      // Load inventory
+      const { data: inventoryData, error: inventoryError } = await supabase
+        .from('pharmacy_inventory')
+        .select('*')
+        .order('name');
+
       if (ordersError) throw ordersError;
       if (patientsError) throw patientsError;
+      if (inventoryError) throw inventoryError;
 
       setMedicationOrders(ordersData || []);
       setPatients(patientsData || []);
+      setInventory((inventoryData as InventoryItem[]) || []);
     } catch (error) {
       console.error('Error loading pharmacy data:', error);
       toast.error('Failed to load pharmacy data');
@@ -154,7 +172,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
     try {
       const { error } = await supabase
         .from('medication_orders')
-        .update({ 
+        .update({
           status: newStatus,
           ...(newStatus === 'administered' && { administered_at: new Date().toISOString() })
         })
@@ -167,6 +185,42 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
     } catch (error) {
       console.error('Error updating medication status:', error);
       toast.error('Failed to update medication status');
+    }
+  };
+
+  const addInventoryItem = async () => {
+    if (!newItem.name) {
+      toast.error('Medication name required');
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('pharmacy_inventory')
+        .insert({ name: newItem.name, quantity: newItem.quantity, unit: newItem.unit });
+      if (error) throw error;
+      toast.success('Inventory item added');
+      setNewItem({ name: '', quantity: 0, unit: 'tabs' });
+      loadData();
+    } catch (error) {
+      console.error('Error adding inventory item:', error);
+      toast.error('Failed to add inventory item');
+    }
+  };
+
+  const adjustInventory = async (itemId: string, delta: number) => {
+    const item = inventory.find(i => i.id === itemId);
+    if (!item) return;
+    const newQty = Math.max(0, item.quantity + delta);
+    try {
+      const { error } = await supabase
+        .from('pharmacy_inventory')
+        .update({ quantity: newQty })
+        .eq('id', itemId);
+      if (error) throw error;
+      setInventory(prev => prev.map(i => i.id === itemId ? { ...i, quantity: newQty } : i));
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      toast.error('Failed to update inventory');
     }
   };
 
@@ -212,7 +266,12 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
           <p className="text-muted-foreground">Manage medication orders and pharmacy operations</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="default" className="gap-2">
+          <Button
+            variant="outline"
+            size="default"
+            className="gap-2"
+            onClick={() => setActiveTab('inventory')}
+          >
             <Package className="h-4 w-4" />
             Inventory
           </Button>
@@ -306,10 +365,11 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="pending">Pending Orders</TabsTrigger>
             <TabsTrigger value="administered">Administered</TabsTrigger>
             <TabsTrigger value="discontinued">Discontinued</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="new-order">New Order</TabsTrigger>
           </TabsList>
 
@@ -427,6 +487,65 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          <TabsContent value="inventory" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inventory Management</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="pb-2">Medication</th>
+                        <th className="pb-2">Quantity</th>
+                        <th className="pb-2">Unit</th>
+                        <th className="pb-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inventory.map(item => (
+                        <tr key={item.id} className="border-t">
+                          <td className="py-2">{item.name}</td>
+                          <td className="py-2">{item.quantity}</td>
+                          <td className="py-2">{item.unit}</td>
+                          <td className="py-2 space-x-2">
+                            <Button size="sm" variant="outline" onClick={() => adjustInventory(item.id, 1)}>+</Button>
+                            <Button size="sm" variant="outline" onClick={() => adjustInventory(item.id, -1)}>-</Button>
+                          </td>
+                        </tr>
+                      ))}
+                      {inventory.length === 0 && (
+                        <tr><td colSpan={4} className="py-4 text-center text-muted-foreground">No inventory items</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Input
+                    placeholder="Medication name"
+                    value={newItem.name}
+                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Qty"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
+                  />
+                  <Input
+                    placeholder="Unit"
+                    value={newItem.unit}
+                    onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
+                  />
+                </div>
+                <Button onClick={addInventoryItem} className="w-full">
+                  Add Medication
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="new-order">

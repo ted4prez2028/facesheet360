@@ -51,13 +51,10 @@ const CareCoinGuide = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <ul className="list-disc pl-6 space-y-2">
-            <li>MetaMask or another Ethereum wallet with test ETH</li>
-            <li>Remix IDE or Hardhat for contract deployment</li>
+            <li>MetaMask or another Ethereum wallet with ETH for gas fees</li>
+            <li>Optional: Remix IDE or Hardhat for custom contract work</li>
             <li>Basic understanding of Ethereum and smart contracts</li>
-            <li>
-              Test network selected (Goerli, Sepolia, etc.) for initial testing
-              before deploying to mainnet
-            </li>
+            <li>One-click mainnet deployment from the Wallet Dashboard</li>
           </ul>
         </CardContent>
       </Card>
