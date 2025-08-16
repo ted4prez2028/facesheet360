@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
 import { User, FileText, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PatientDetailHeaderProps {
   patientName: string | undefined;
@@ -17,11 +18,21 @@ interface PatientDetailHeaderProps {
   patientAge: number | undefined;
 }
 
-const PatientDetailHeader = ({ 
-  patientName, 
-  patientId, 
-  patientAge 
+const PatientDetailHeader = ({
+  patientName,
+  patientId,
+  patientAge
 }: PatientDetailHeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleSchedule = () => {
+    if (patientId) {
+      navigate(`/appointments?patientId=${patientId}`);
+    } else {
+      navigate('/appointments');
+    }
+  };
+
   return (
     <div className="flex justify-between items-start">
       <div>
@@ -31,7 +42,7 @@ const PatientDetailHeader = ({
         </CardDescription>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" className="gap-2" size="sm">
+        <Button variant="outline" className="gap-2" size="sm" onClick={handleSchedule}>
           <Calendar className="h-4 w-4" />
           <span>Schedule</span>
         </Button>

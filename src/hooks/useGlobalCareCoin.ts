@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -8,13 +9,16 @@ interface CareCoinContract {
   deployer_address: string;
   network: string;
   transaction_hash?: string;
-  contract_details: any;
-  abi: any;
+  contract_details: Record<string, unknown>;
+  abi: unknown[];
   created_at: string;
 }
 
 export const useGlobalCareCoin = () => {
   const queryClient = useQueryClient();
+  const [localDeployed, setLocalDeployed] = useState(
+    () => typeof window !== 'undefined' && localStorage.getItem('carecoin-deployed') === 'true'
+  );
 
   // Check if CareCoin is already deployed
   const { data: existingContract, isLoading } = useQuery({
@@ -32,6 +36,13 @@ export const useGlobalCareCoin = () => {
       return data as CareCoinContract | null;
     },
   });
+
+  useEffect(() => {
+    if (existingContract) {
+      localStorage.setItem('carecoin-deployed', 'true');
+      setLocalDeployed(true);
+    }
+  }, [existingContract]);
 
   // Deploy CareCoin
   const deployCareCoin = useMutation({
@@ -54,6 +65,8 @@ export const useGlobalCareCoin = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['carecoin-contract'] });
+      localStorage.setItem('carecoin-deployed', 'true');
+      setLocalDeployed(true);
       toast.success(`CareCoin deployed! ${data.contractDetails?.deployerReward || '100'} CARE tokens sent to your wallet.`);
     },
     onError: (error: Error) => {
@@ -66,6 +79,6 @@ export const useGlobalCareCoin = () => {
     existingContract,
     isLoading,
     deployCareCoin,
-    isDeployed: !!existingContract,
+    isDeployed: localDeployed || !!existingContract,
   };
 };

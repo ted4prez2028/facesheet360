@@ -48,9 +48,12 @@ export const connectToMetaMask = async () => {
 
     console.log('Connected to MetaMask:', address);
     return { provider, signer, address };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('MetaMask connection error:', error);
-    throw new Error(`Failed to connect to MetaMask: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to connect to MetaMask: ${error.message}`);
+    }
+    throw new Error('Failed to connect to MetaMask');
   }
 };
 
@@ -69,9 +72,12 @@ export const getCareCoinBalance = async (address: string) => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     // Mock implementation - replace with actual contract call
     return ethers.parseEther('100');
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Balance fetch error:', error);
-    throw new Error(`Failed to fetch balance: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to fetch balance: ${error.message}`);
+    }
+    throw new Error('Failed to fetch balance');
   }
 };
 
@@ -91,9 +97,12 @@ export const transferCareCoins = async (to: string, amount: string) => {
     });
 
     return tx;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Transfer error:', error);
-    throw new Error(`Failed to transfer: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to transfer: ${error.message}`);
+    }
+    throw new Error('Failed to transfer');
   }
 };
 
@@ -109,9 +118,12 @@ export const stakeCareCoins = async (amount: string) => {
     // Mock implementation
     console.log('Staking', amount, 'CareCoins');
     return { hash: 'mock-tx-hash' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Staking error:', error);
-    throw new Error(`Failed to stake: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to stake: ${error.message}`);
+    }
+    throw new Error('Failed to stake');
   }
 };
 
@@ -127,9 +139,12 @@ export const unstakeCareCoins = async (amount: string) => {
     // Mock implementation
     console.log('Unstaking', amount, 'CareCoins');
     return { hash: 'mock-tx-hash' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Unstaking error:', error);
-    throw new Error(`Failed to unstake: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to unstake: ${error.message}`);
+    }
+    throw new Error('Failed to unstake');
   }
 };
 
@@ -145,8 +160,11 @@ export const mintCareCoins = async (to: string, amount: string, metadataHash: st
     // Mock implementation
     console.log('Minting', amount, 'CareCoins to', to, 'with metadata:', metadataHash);
     return { hash: 'mock-mint-tx-hash' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Minting error:', error);
-    throw new Error(`Failed to mint: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to mint: ${error.message}`);
+    }
+    throw new Error('Failed to mint');
   }
 };
