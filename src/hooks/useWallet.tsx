@@ -108,7 +108,7 @@ export const useWallet = () => {
         setTokenBalance('100'); // Mock token balance
         toast.success('Wallet connected successfully');
       } else {
-        const dappUrl = encodeURIComponent(window.location.href);
+        const dappUrl = window.location.origin.replace(/^https?:\/\//, '');
         window.location.href = `https://metamask.app.link/dapp/${dappUrl}`;
       }
     } catch (error) {
