@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
-import { AuthProvider } from './context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import Index from './pages/Index';
@@ -30,8 +29,9 @@ import Analytics from './pages/Analytics';
 import WalletDashboard from './pages/WalletDashboard';
 import DoctorAccounts from './pages/DoctorAccounts';
 import Settings from './pages/Settings';
-import { MenuSyncPage } from './pages/MenuSync';
+import { FoodPage } from './pages/Food';
 import TaxiPage from './pages/TaxiPage';
+import MyChartPage from './pages/MyChart';
 
 const queryClient = new QueryClient();
 
@@ -57,7 +57,6 @@ function App() {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light">
-          <AuthProvider>
             <UserPreferencesProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -210,6 +209,18 @@ function App() {
                   }
                 />
                 <Route
+                  path="/my-chart"
+                  element={
+                    <RequireAuth>
+                      <CommunicationProvider>
+                        <DashboardLayout>
+                          <MyChartPage />
+                        </DashboardLayout>
+                      </CommunicationProvider>
+                    </RequireAuth>
+                  }
+                />
+                <Route
                   path="/doctor-accounts"
                   element={
                     <RequireAuth>
@@ -222,12 +233,12 @@ function App() {
                   }
                 />
                 <Route
-                  path="/menu-sync"
+                  path="/food"
                   element={
                     <RequireAuth>
                       <CommunicationProvider>
                         <DashboardLayout>
-                          <MenuSyncPage />
+                          <FoodPage />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>
@@ -260,7 +271,6 @@ function App() {
                </Routes>
               <Toaster />
             </UserPreferencesProvider>
-          </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>

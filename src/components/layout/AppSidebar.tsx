@@ -27,6 +27,7 @@ import {
   DollarSign,
   Zap,
   Wallet,
+  Utensils,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -39,12 +40,15 @@ import { SidebarMenu } from "@/lib/sidebar-menu";
 import { SidebarMenuItem } from "@/lib/sidebar-menu-item";
 import { SidebarMenuButton } from "@/lib/sidebar-menu-button";
 import { useAuth } from "@/hooks/useAuth";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
+  const { hasRole } = useRolePermissions();
+  const isPatient = hasRole('patient');
 
   const handleLogout = async () => {
     try {
@@ -62,93 +66,60 @@ export function AppSidebar() {
     }));
   };
 
-  const menuItems = [
+  const staffMenuItems = [
     {
       group: "Core",
       items: [
-        {
-          title: "Dashboard",
-          icon: LayoutDashboard,
-          path: "/dashboard",
-        },
-        {
-          title: "Patients",
-          icon: Users,
-          path: "/patients",
-        },
-        {
-          title: "Appointments",
-          icon: Calendar,
-          path: "/appointments",
-        },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+        { title: "Patients", icon: Users, path: "/patients" },
+        { title: "Appointments", icon: Calendar, path: "/appointments" },
       ],
     },
     {
       group: "Clinical",
       items: [
-        {
-          title: "Wound Care",
-          icon: Stethoscope,
-          path: "/wound-care",
-        },
-        {
-          title: "Pharmacy",
-          icon: Pill,
-          path: "/pharmacy",
-        },
-        {
-          title: "Analytics",
-          icon: BarChart3,
-          path: "/analytics",
-        },
+        { title: "Wound Care", icon: Stethoscope, path: "/wound-care" },
+        { title: "Pharmacy", icon: Pill, path: "/pharmacy" },
+        { title: "Analytics", icon: BarChart3, path: "/analytics" },
       ],
     },
     {
       group: "Transportation",
       items: [
-        {
-          title: "Taxi Service",
-          icon: ChevronRight, // We'll use ChevronRight as a car icon placeholder
-          path: "/taxi",
-        },
+        { title: "Taxi Service", icon: ChevronRight, path: "/taxi" },
       ],
     },
     {
       group: "Financial",
       items: [
-        {
-          title: "CareCoin Wallet",
-          icon: Wallet,
-          path: "/wallet-dashboard",
-        },
-        {
-          title: "Subscription",
-          icon: Package,
-          path: "/subscription",
-        },
+        { title: "CareCoin Wallet", icon: Wallet, path: "/wallet-dashboard" },
+        { title: "Subscription", icon: Package, path: "/subscription" },
       ],
     },
     {
       group: "Administration",
       items: [
-        {
-          title: "Menu Sync",
-          icon: Package,
-          path: "/menu-sync",
-        },
-        {
-          title: "Settings",
-          icon: Settings,
-          path: "/settings",
-        },
-        {
-          title: "Profile",
-          icon: Users,
-          path: "/profile",
-        },
+        { title: "Food", icon: Utensils, path: "/food" },
+        { title: "Settings", icon: Settings, path: "/settings" },
+        { title: "Profile", icon: Users, path: "/profile" },
       ],
     },
   ];
+
+  const patientMenuItems = [
+    {
+      group: "Patient",
+      items: [
+        { title: "My Chart", icon: FileText, path: "/my-chart" },
+        { title: "Appointments", icon: Calendar, path: "/appointments" },
+        { title: "CareCoin Wallet", icon: Wallet, path: "/wallet-dashboard" },
+        { title: "Food", icon: Utensils, path: "/food" },
+        { title: "Profile", icon: Users, path: "/profile" },
+      ],
+    },
+  ];
+
+  const menuItems = isPatient ? patientMenuItems : staffMenuItems;
 
   return (
     <Sidebar collapsible="offcanvas">
