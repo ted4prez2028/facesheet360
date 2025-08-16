@@ -205,6 +205,43 @@ export interface ChartRecord {
   updated_at: string;
 }
 
+export interface LabResult {
+  test_name: string;
+  result: string;
+  reference_range?: string;
+  date_collected: string;
+}
+
+export interface ImagingRecord {
+  study_type: string;
+  body_part: string;
+  findings?: string;
+  study_date: string;
+}
+
+export interface MedicationRecord {
+  medication_name: string;
+  dosage: string;
+  frequency: string;
+  status: string;
+  instructions?: string;
+}
+
+export interface ClinicalNote {
+  title?: string;
+  date: string;
+  content: string;
+  provider?: string;
+}
+
+export interface PatientChartData {
+  vitalSigns: VitalSigns[];
+  medications: MedicationRecord[];
+  labResults: LabResult[];
+  imaging: ImagingRecord[];
+  notes: ClinicalNote[];
+}
+
 export interface CareCoinsBillPayment {
   id: string;
   user_id: string;

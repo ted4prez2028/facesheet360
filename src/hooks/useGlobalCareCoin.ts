@@ -8,8 +8,8 @@ interface CareCoinContract {
   deployer_address: string;
   network: string;
   transaction_hash?: string;
-  contract_details: any;
-  abi: any;
+  contract_details: Record<string, unknown>;
+  abi: unknown[];
   created_at: string;
 }
 

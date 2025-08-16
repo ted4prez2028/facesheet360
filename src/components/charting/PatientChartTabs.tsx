@@ -7,11 +7,11 @@ import MedicationsSection from "./MedicationsSection";
 import LabResults from "./LabResults";
 import ImagingRecords from "./ImagingRecords";
 import NotesSection from "./NotesSection";
-import { Patient } from "@/types";
+import { Patient, PatientChartData } from "@/types";
 
 interface PatientChartTabsProps {
   patient: Patient | undefined;
-  chartData: any;
+  chartData: PatientChartData;
   patientId: string | null;
   userId: string | undefined;
 }
@@ -35,10 +35,9 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
 
         <div className="flex-1 mt-4 overflow-hidden">
           <TabsContent value="overview" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <PatientOverview 
+            <PatientOverview
               patient={patient}
               patientName={displayName}
-              chartData={chartData}
             />
           </TabsContent>
 
