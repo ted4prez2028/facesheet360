@@ -6,6 +6,7 @@ interface ChatSession {
   id: string;
   contactId: string;
   contactName: string;
+  minimized: boolean;
 }
 
 interface ChatManagerProps {
@@ -16,22 +17,46 @@ const ChatManager: React.FC<ChatManagerProps> = ({ children }) => {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   const openChat = (contactId: string, contactName: string) => {
-    // Check if chat is already open
-    const existingChat = chatSessions.find(chat => chat.contactId === contactId);
-    if (existingChat) return;
+    setChatSessions(prev => {
+      const existing = prev.find(c => c.contactId === contactId);
+      if (existing) {
+        return prev.map(c => ({
+          ...c,
+          minimized: c.contactId !== contactId,
+        }));
+      }
 
-    // Create new chat session
-    const newChat: ChatSession = {
-      id: `chat-${contactId}-${Date.now()}`,
-      contactId,
-      contactName
-    };
+      const newChat: ChatSession = {
+        id: `chat-${contactId}-${Date.now()}`,
+        contactId,
+        contactName,
+        minimized: false,
+      };
 
-    setChatSessions(prev => [...prev, newChat]);
+      return prev.map(c => ({ ...c, minimized: true })).concat(newChat);
+    });
   };
 
   const closeChat = (chatId: string) => {
     setChatSessions(prev => prev.filter(chat => chat.id !== chatId));
+  };
+
+  const minimizeChat = (chatId: string) => {
+    setChatSessions(prev =>
+      prev.map(chat => ({
+        ...chat,
+        minimized: chat.id === chatId ? true : chat.minimized,
+      }))
+    );
+  };
+
+  const activateChat = (chatId: string) => {
+    setChatSessions(prev =>
+      prev.map(chat => ({
+        ...chat,
+        minimized: chat.id !== chatId,
+      }))
+    );
   };
 
   const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
@@ -50,26 +75,57 @@ const ChatManager: React.FC<ChatManagerProps> = ({ children }) => {
     <>
       {children(openChat)}
       
-      {/* Render active chat windows */}
-      {chatSessions.map((chat, index) => (
+      {/* Active chat window */}
+      {chatSessions.filter(c => !c.minimized).map(chat => (
         <div
           key={chat.id}
           style={{
             position: 'fixed',
-            bottom: '1rem',
-            right: `${140 + (index * 330)}px`, // Start further right to avoid overlap with floating button
-            zIndex: 40
+            bottom: '4rem',
+            right: '1rem',
+            zIndex: 40,
           }}
         >
           <ChatWindow
             contactId={chat.contactId}
             contactName={chat.contactName}
             onClose={() => closeChat(chat.id)}
+            onMinimize={() => minimizeChat(chat.id)}
             onStartCall={() => handleStartCall(chat.contactId, chat.contactName)}
             onStartVideoCall={() => handleStartVideoCall(chat.contactId, chat.contactName)}
           />
         </div>
       ))}
+
+      {/* Dock of minimized chats */}
+      {chatSessions.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '0.5rem',
+            left: '0.5rem',
+            display: 'flex',
+            gap: '0.5rem',
+            zIndex: 40,
+          }}
+        >
+          {chatSessions.map(chat => (
+            <button
+              key={chat.id}
+              onClick={() => activateChat(chat.id)}
+              style={{
+                padding: '0.25rem 0.5rem',
+                background: chat.minimized ? '#f3f4f6' : '#3b82f6',
+                color: chat.minimized ? '#000' : '#fff',
+                borderRadius: '0.25rem',
+                minWidth: '6rem',
+              }}
+            >
+              {chat.contactName}
+            </button>
+          ))}
+        </div>
+      )}
       
       {/* Video Call Interface */}
       {activeVideoCall && (

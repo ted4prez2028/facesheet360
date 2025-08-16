@@ -161,12 +161,13 @@ export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patien
   const canManageTeam = hasRole('doctor') || hasRole('admin');
 
   const getRoleBadge = (role: HealthcareRole) => {
-    const colorMap = {
+    const colorMap: Record<HealthcareRole, string> = {
       doctor: 'bg-blue-100 text-blue-800 border-blue-200',
       nurse: 'bg-green-100 text-green-800 border-green-200',
       therapist: 'bg-purple-100 text-purple-800 border-purple-200',
       cna: 'bg-amber-100 text-amber-800 border-amber-200',
       admin: 'bg-red-100 text-red-800 border-red-200',
+      patient: 'bg-gray-100 text-gray-800 border-gray-200',
     };
 
     return (

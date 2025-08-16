@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface UserPreferences {
@@ -17,14 +17,7 @@ export const useUserPreferences = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadPreferences();
-    }
-    setIsLoading(false);
-  }, [user]);
-
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -36,7 +29,14 @@ export const useUserPreferences = () => {
     } catch (error) {
       console.error('Error loading preferences:', error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadPreferences();
+    }
+    setIsLoading(false);
+  }, [user, loadPreferences]);
 
   const updatePreferences = async (updates: Partial<UserPreferences>) => {
     if (!user) return;

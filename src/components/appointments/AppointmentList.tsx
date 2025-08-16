@@ -49,8 +49,8 @@ const AppointmentList = ({
         onSuccess: () => {
           toast.success('Appointment cancelled successfully');
         },
-        onError: (error: any) => {
-          const errorMessage = error?.message || 'Failed to cancel appointment';
+        onError: (error: unknown) => {
+          const errorMessage = (error as { message?: string })?.message || 'Failed to cancel appointment';
           toast.error(`Error cancelling appointment: ${errorMessage}`);
         }
       });
