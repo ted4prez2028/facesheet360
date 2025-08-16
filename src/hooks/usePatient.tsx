@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Patient } from '@/types';
 
@@ -8,13 +8,7 @@ export const usePatient = (patientId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (patientId) {
-      fetchPatient();
-    }
-  }, [patientId]);
-
-  const fetchPatient = async () => {
+  const fetchPatient = useCallback(async () => {
     if (!patientId) return;
 
     try {
@@ -53,12 +47,19 @@ export const usePatient = (patientId?: string) => {
       };
 
       setPatient(transformedPatient);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [patientId]);
+
+  useEffect(() => {
+    if (patientId) {
+      fetchPatient();
+    }
+  }, [patientId, fetchPatient]);
 
   const updatePatient = async (updates: Partial<Patient>) => {
     if (!patientId || !patient) return;
@@ -100,8 +101,9 @@ export const usePatient = (patientId?: string) => {
       };
 
       setPatient(transformedPatient);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 

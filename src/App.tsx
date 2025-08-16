@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
-import { AuthProvider } from './context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import Index from './pages/Index';
@@ -58,7 +57,6 @@ function App() {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light">
-          <AuthProvider>
             <UserPreferencesProvider>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -273,7 +271,6 @@ function App() {
                </Routes>
               <Toaster />
             </UserPreferencesProvider>
-          </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
