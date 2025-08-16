@@ -161,7 +161,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       console.error('Error making call:', error);
       setCallError('Failed to make call');
     }
-  }, [peer, startLocalStream]);
+  }, [peer, startLocalStream, endCall]);
 
   const answerCall = useCallback(async () => {
     if (!incomingCallRef.current) return;
@@ -189,7 +189,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       console.error('Error answering call:', error);
       setCallError('Failed to answer call');
     }
-  }, [startLocalStream]);
+  }, [startLocalStream, endCall]);
 
   const rejectCall = useCallback(() => {
     if (incomingCallRef.current) {

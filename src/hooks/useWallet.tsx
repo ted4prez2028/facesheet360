@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,7 +12,7 @@ export const useWallet = () => {
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [tokenBalance, setTokenBalance] = useState<string>('0');
 
-  const updateBalances = async () => {
+  const updateBalances = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -28,7 +28,7 @@ export const useWallet = () => {
     } catch (error) {
       console.error('Error updating balances:', error);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -36,7 +36,7 @@ export const useWallet = () => {
       updateBalances();
     }
     setIsLoading(false);
-  }, [user]);
+  }, [user, updateBalances]);
 
   const addFunds = async (amount: number) => {
     if (!user) {
