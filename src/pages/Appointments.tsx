@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { usePatients } from "@/hooks/usePatients";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Filter, MoreHorizontal, Plus, Search, User, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAppointments, useCreateAppointment } from "@/hooks/useAppointments";
+import { Appointment } from "@/lib/api/appointmentApi";
+import AppointmentForm from "@/components/appointments/AppointmentForm";
+import { ChevronLeft, ChevronRight, Clock, Filter, MoreHorizontal, Plus, Search, User } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay, addWeeks, subWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,43 +11,70 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-const appointmentsData = [
-  {
-    id: '1',
-    patientName: 'John Doe',
-    patientId: 'P001',
-    date: new Date(2024, 3, 20, 10, 0),
-    type: 'check-up',
-    duration: 30,
-    notes: 'Annual check-up'
-  },
-  // Add more mock appointments or fetch from API
-];
+interface CalendarAppointment {
+  id: string;
+  patientName: string;
+  patientId: string;
+  date: Date;
+  type: string;
+  duration: number;
+  notes?: string;
+}
 
 const Appointments = () => {
-  const [date, setDate] = useState<Date>(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [calendarView, setCalendarView] = useState("week");
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [showNewAppointmentDialog, setShowNewAppointmentDialog] = useState(false);
-  const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(new Date());
-  
+
+  const { data: appointments = [] } = useAppointments();
+  const [appointmentsData, setAppointmentsData] = useState<CalendarAppointment[]>([]);
+  const createAppointment = useCreateAppointment();
+
+  useEffect(() => {
+    const formatted = appointments.map((a: any) => ({
+      id: a.id,
+      patientName: `${a.patients?.first_name ?? ''} ${a.patients?.last_name ?? ''}`.trim(),
+      patientId: a.patient_id,
+      date: new Date(a.appointment_date),
+      type: a.notes?.split(':')[0] || 'Appointment',
+      duration: 30,
+      notes: a.notes || ''
+    }));
+    setAppointmentsData(formatted);
+  }, [appointments]);
+
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  
-  const { data: patients, isLoading: isLoadingPatients } = usePatients();
-  
+
   const getAppointmentsForDay = (date: Date) => {
-    return appointmentsData.filter(appointment => 
+    return appointmentsData.filter(appointment =>
       isSameDay(appointment.date, date)
     ).sort((a, b) => a.date.getTime() - b.date.getTime());
+  };
+
+  const handleCreateAppointment = (data: Appointment) => {
+    createAppointment.mutate(data, {
+      onSuccess: (newAppointment) => {
+        setShowNewAppointmentDialog(false);
+        if (newAppointment) {
+          const formatted = {
+            id: newAppointment.id!,
+            patientName: `${newAppointment.patients?.first_name ?? ''} ${newAppointment.patients?.last_name ?? ''}`.trim(),
+            patientId: newAppointment.patient_id,
+            date: new Date(newAppointment.appointment_date),
+            type: newAppointment.notes?.split(':')[0] || 'Appointment',
+            duration: 30,
+            notes: newAppointment.notes || ''
+          };
+          setAppointmentsData(prev => [...prev, formatted]);
+        }
+      }
+    });
   };
   
   const timeSlots = Array.from({ length: 12 }, (_, i) => i + 8); // 8 AM to 7 PM
@@ -117,122 +146,11 @@ const Appointments = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="patient">Patient</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder={isLoadingPatients ? "Loading patients..." : "Select patient"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {patients?.map((patient) => (
-                        <SelectItem 
-                          key={patient.id} 
-                          value={patient.id}
-                        >
-                          {`${patient.first_name} ${patient.last_name} (${patient.medical_record_number || 'No MRN'})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {newAppointmentDate ? format(newAppointmentDate, "PPP") : "Select date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={newAppointmentDate}
-                          onSelect={setNewAppointmentDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="time">Time</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeSlots.map((hour) => (
-                          <SelectItem key={hour} value={hour.toString()}>
-                            {formatTimeSlot(hour)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="type">Appointment Type</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="check-up">Check-up</SelectItem>
-                        <SelectItem value="follow-up">Follow-up</SelectItem>
-                        <SelectItem value="consultation">Consultation</SelectItem>
-                        <SelectItem value="procedure">Procedure</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                        <SelectItem value="therapy">Therapy</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="duration">Duration</Label>
-                    <Select defaultValue="30">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="45">45 minutes</SelectItem>
-                        <SelectItem value="60">60 minutes</SelectItem>
-                        <SelectItem value="90">90 minutes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input id="notes" placeholder="Add appointment notes" />
-                </div>
-              </div>
-              
-              <DialogFooter>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowNewAppointmentDialog(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  className="bg-health-600 hover:bg-health-700"
-                  onClick={() => setShowNewAppointmentDialog(false)}
-                >
-                  Schedule Appointment
-                </Button>
-              </DialogFooter>
+              <AppointmentForm
+                onSubmit={handleCreateAppointment}
+                onCancel={() => setShowNewAppointmentDialog(false)}
+                isLoading={createAppointment.isLoading}
+              />
             </DialogContent>
           </Dialog>
         </div>

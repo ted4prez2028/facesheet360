@@ -4,11 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import RecentPatients from "./RecentPatients";
 import TodayAppointments from "./TodayAppointments";
 import PendingTasks from "./PendingTasks";
-import AIEvolutionDashboard from "./AIEvolutionDashboard";
-import { ServerMonitoringDashboard } from "./ServerMonitoringDashboard";
 import StatisticsCards from "./StatisticsCards";
 import { RecentPatient, TodayAppointment, PendingTask } from "@/types";
-import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 interface DashboardTabsProps {
   patientStatistics?: any[];
@@ -26,7 +23,6 @@ const DashboardTabs = ({
   todayAppointments = [], 
   pendingTasks = [] 
 }: DashboardTabsProps) => {
-  const { isAdmin } = useAdminStatus();
   return (
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList>
@@ -34,8 +30,6 @@ const DashboardTabs = ({
         <TabsTrigger value="patients">Patients</TabsTrigger>
         <TabsTrigger value="appointments">Appointments</TabsTrigger>
         <TabsTrigger value="tasks">Tasks</TabsTrigger>
-        {isAdmin && <TabsTrigger value="ai-evolution">🤖 AI Evolution</TabsTrigger>}
-        {isAdmin && <TabsTrigger value="server-monitoring">🖥️ Server Monitor</TabsTrigger>}
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
@@ -105,18 +99,6 @@ const DashboardTabs = ({
           </CardContent>
         </Card>
       </TabsContent>
-
-      {isAdmin && (
-        <TabsContent value="ai-evolution" className="space-y-4">
-          <AIEvolutionDashboard />
-        </TabsContent>
-      )}
-
-      {isAdmin && (
-        <TabsContent value="server-monitoring" className="space-y-4">
-          <ServerMonitoringDashboard />
-        </TabsContent>
-      )}
     </Tabs>
   );
 };
