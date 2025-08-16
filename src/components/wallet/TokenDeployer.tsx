@@ -1,30 +1,38 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { CheckCircle, Loader2, ExternalLink, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useGlobalCareCoin } from "@/hooks/useGlobalCareCoin";
 import { MetaMaskIntegration } from "./MetaMaskIntegration";
+import { useWallet } from "@/hooks/useWallet";
 
 export function TokenDeployer() {
-  const [deployerAddress, setDeployerAddress] = useState("");
   const { existingContract, isLoading, deployCareCoin, isDeployed } = useGlobalCareCoin();
+  const { isWalletConnected, walletAddress, connectWallet } = useWallet();
 
-  const handleDeploy = () => {
-    if (!deployerAddress.trim()) {
-      toast.error("Please enter your Sepolia wallet address");
-      return;
-    }
-    
-    if (!deployerAddress.startsWith('0x') || deployerAddress.length !== 42) {
-      toast.error("Please enter a valid Ethereum wallet address");
-      return;
+  const handleDeploy = async () => {
+    if (isDeployed) return;
+
+    if (!walletAddress) {
+      await connectWallet();
     }
 
-    deployCareCoin.mutate(deployerAddress);
+    const accounts = await window.ethereum?.request({ method: 'eth_accounts' });
+    const address = accounts?.[0];
+
+    if (!address) {
+      toast.error('Wallet connection required');
+      return;
+    }
+
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    if (chainId !== '0x1') {
+      toast.error('Please switch to Ethereum mainnet in MetaMask');
+      return;
+    }
+
+    deployCareCoin.mutate(address);
   };
 
   const copyToClipboard = (text: string) => {
@@ -52,9 +60,9 @@ export function TokenDeployer() {
           🪙 CareCoin {isDeployed ? 'Contract' : 'Deployment'}
         </CardTitle>
         <CardDescription>
-          {isDeployed 
-            ? "CareCoin is live on Sepolia testnet - available for all users"
-            : "Deploy the CareCoin ERC-20 token contract on Sepolia testnet"
+          {isDeployed
+            ? "CareCoin is live on Ethereum mainnet - available for all users"
+            : "Launch the CareCoin ERC-20 token contract on Ethereum mainnet"
           }
         </CardDescription>
       </CardHeader>
@@ -86,7 +94,7 @@ export function TokenDeployer() {
                         asChild
                       >
                         <a
-                          href={`https://sepolia.etherscan.io/address/${existingContract.contract_address}`}
+                          href={`https://etherscan.io/address/${existingContract.contract_address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1"
@@ -103,7 +111,7 @@ export function TokenDeployer() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div><span className="font-medium">Name:</span> {existingContract.contract_details.name}</div>
                       <div><span className="font-medium">Symbol:</span> {existingContract.contract_details.symbol}</div>
-                      <div><span className="font-medium">Network:</span> Sepolia Testnet</div>
+                      <div><span className="font-medium">Network:</span> Ethereum Mainnet</div>
                       <div><span className="font-medium">Total Supply:</span> {existingContract.contract_details.totalSupply} CARE</div>
                     </div>
                   </div>
@@ -113,23 +121,19 @@ export function TokenDeployer() {
           </Alert>
         ) : (
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="deployerAddress">Your Sepolia Wallet Address</Label>
-              <Input
-                id="deployerAddress"
-                value={deployerAddress}
-                onChange={(e) => setDeployerAddress(e.target.value)}
-                placeholder="0x..."
-                className="mt-1"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Enter your Sepolia wallet address to receive 100 CARE tokens after deployment
+            {isWalletConnected ? (
+              <div className="text-sm">
+                Deploying as <code className="break-all">{walletAddress}</code>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                You'll be prompted to connect your wallet before deployment.
               </p>
-            </div>
-            
-            <Button 
+            )}
+
+            <Button
               onClick={handleDeploy}
-              disabled={deployCareCoin.isPending || !deployerAddress.trim()}
+              disabled={isDeployed || deployCareCoin.isPending}
               className="w-full"
               size="lg"
             >
@@ -139,12 +143,11 @@ export function TokenDeployer() {
                   Deploying CareCoin...
                 </>
               ) : (
-                'Deploy CareCoin & Receive 100 CARE'
+                'Launch CareCoin on Mainnet'
               )}
             </Button>
           </div>
         )}
-
         {isDeployed && existingContract && (
           <MetaMaskIntegration
             contractAddress={existingContract.contract_address}

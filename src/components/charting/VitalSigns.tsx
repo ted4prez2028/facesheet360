@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VitalSigns as VitalSignRecord } from '@/types';
 
 interface VitalSignsProps {
   patientId: string | null;
   patientName: string;
-  vitalSigns: any[];
+  vitalSigns: VitalSignRecord[];
 }
 
 const VitalSigns: React.FC<VitalSignsProps> = ({ patientId, patientName, vitalSigns }) => {

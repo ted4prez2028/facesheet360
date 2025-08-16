@@ -34,6 +34,11 @@ export const storeContractAddress = (address: string, abi: string[]): void => {
   localStorage.setItem('carecoin_contract_abi', JSON.stringify(abi));
 };
 
+export const clearStoredContract = (): void => {
+  localStorage.removeItem('carecoin_contract_address');
+  localStorage.removeItem('carecoin_contract_abi');
+};
+
 export const getStoredContractABI = (): string[] => {
   const stored = localStorage.getItem('carecoin_contract_abi');
   return stored ? JSON.parse(stored) : [
