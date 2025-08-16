@@ -65,12 +65,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         const participant2 = user.id < contactId ? contactId : user.id;
         
         // First try to find existing conversation
-        let { data: conversation, error: convError } = await supabase
+        const { data: existingConv, error: convError } = await supabase
           .from('conversations')
           .select('*')
           .eq('participant_1_id', participant1)
           .eq('participant_2_id', participant2)
           .maybeSingle();
+
+        let conversation = existingConv;
 
         // If no conversation exists, create one
         if (!conversation && !convError) {
