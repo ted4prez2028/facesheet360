@@ -1,5 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Reusable column selection for appointment queries.  The previous
+// implementation attempted to join the `users` table using the
+// `provider_id` field, but the database lacks a foreign-key relationship
+// between the two tables.  That join produced 400 errors from Supabase.
+//
+// By centralising the select string and limiting it to the appointment
+// fields plus the related patient record, we ensure the client never
+// requests the unsupported `users!provider_id` join again.
+const APPOINTMENT_SELECT = `
+  *,
+  patients(id, first_name, last_name, medical_record_number)
+`;
+
 export interface Appointment {
   id?: string;
   patient_id: string;
@@ -13,10 +26,7 @@ export const getAppointments = async () => {
   try {
     const { data, error } = await supabase
       .from('appointments')
-      .select(`
-        *,
-        patients(id, first_name, last_name, medical_record_number)
-      `)
+      .select(APPOINTMENT_SELECT)
       .order('appointment_date', { ascending: true });
 
     if (error) throw error;
@@ -31,10 +41,7 @@ export const getPatientAppointments = async (patientId: string) => {
   try {
     const { data, error } = await supabase
       .from('appointments')
-      .select(`
-        *,
-        patients(id, first_name, last_name, medical_record_number)
-      `)
+      .select(APPOINTMENT_SELECT)
       .eq('patient_id', patientId)
       .order('appointment_date', { ascending: true });
 
@@ -53,10 +60,7 @@ export const getTodayAppointments = async (providerId?: string) => {
   
   let query = supabase
     .from('appointments')
-    .select(`
-      *,
-      patients(id, first_name, last_name, medical_record_number)
-    `)
+    .select(APPOINTMENT_SELECT)
     .gte('appointment_date', startOfToday)
     .lte('appointment_date', endOfToday);
   
@@ -84,10 +88,7 @@ export const addAppointment = async (appointment: Appointment) => {
     const { data, error } = await supabase
       .from('appointments')
       .insert(formattedAppointment)
-      .select(`
-        *,
-        patients(id, first_name, last_name, medical_record_number)
-      `)
+      .select(APPOINTMENT_SELECT)
       .single();
       
     if (error) throw error;
@@ -109,10 +110,7 @@ export const updateAppointment = async (id: string, updates: Partial<Appointment
       .from('appointments')
       .update(formattedUpdates)
       .eq('id', id)
-      .select(`
-        *,
-        patients(id, first_name, last_name, medical_record_number)
-      `)
+      .select(APPOINTMENT_SELECT)
       .single();
       
     if (error) throw error;
