@@ -23,6 +23,30 @@ export const chartApi = {
     }));
   },
 
+  async getChartRecordById(id: string): Promise<ChartRecord | null> {
+    const { data, error } = await supabase
+      .from('chart_records')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching chart record:', error);
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      ...data,
+      vital_signs: data.vital_signs as Record<string, unknown> || {},
+      vitals: data.vitals as Record<string, unknown> || {},
+      medications: data.medications as Record<string, unknown> || {}
+    };
+  },
+
   async createChartRecord(record: Omit<ChartRecord, 'created_at' | 'id'>): Promise<ChartRecord> {
     const recordData = {
       ...record,

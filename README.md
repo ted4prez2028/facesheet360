@@ -89,9 +89,22 @@ This will start the development server with auto-reloading and an instant previe
 *   **Backend for Minting:** The minting of CareCoins upon charting is designed to be handled by a secure backend service. The frontend currently simulates this interaction by making a `fetch` call to a hypothetical `/api/mint-carecoin` endpoint. You will need to implement this backend service separately.
 
 ## How to Contribute
+Contributions are welcome!
 
-(Add your contribution guidelines here)
+1. Fork the repository and create your branch from `main`.
+2. Install dependencies with `npm install`.
+3. Run `npm run lint` and `npm run build` to verify your changes.
+4. Submit a pull request with a clear description.
 
 ## Deployment
 
-(Add your deployment instructions here)
+1. Build the production assets:
+   ```sh
+   npm run build
+   ```
+   The output will be located in the `dist` directory.
+2. Preview the build locally:
+   ```sh
+   npm run preview
+   ```
+3. Deploy the contents of `dist` to your preferred static hosting provider (e.g., Netlify, Vercel). Ensure that required environment variables are configured on the host.
