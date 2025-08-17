@@ -5,13 +5,18 @@ import { supabase } from "@/integrations/supabase/client";
 // `provider_id` field, but the database lacks a foreign-key relationship
 // between the two tables.  That join produced 400 errors from Supabase.
 //
-// By centralising the select string and limiting it to the appointment
-// fields plus the related patient record, we ensure the client never
-// requests the unsupported `users!provider_id` join again.
-const APPOINTMENT_SELECT = `
-  *,
-  patients(id, first_name, last_name, medical_record_number)
-`;
+// By centralising the select string and limiting it to explicit
+// appointment fields plus the related patient record, we ensure the
+// client never requests the unsupported `users!provider_id` join again.
+// Selecting columns explicitly avoids any implicit relationship
+// expansions that might sneak back into the query.
+const APPOINTMENT_SELECT = `id,
+  patient_id,
+  provider_id,
+  appointment_date,
+  status,
+  notes,
+  patients(id, first_name, last_name, medical_record_number)`;
 
 export interface Appointment {
   id?: string;
