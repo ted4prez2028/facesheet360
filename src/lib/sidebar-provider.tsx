@@ -38,19 +38,15 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // On desktop, keep sidebar expanded by default
       if (!mobile && !isSidebarOpen) {
         setIsSidebarOpen(true);
       }
     };
 
-    handleResize(); // Check initial size
+    handleResize();
     window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isSidebarOpen]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -79,6 +75,7 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (!context) {

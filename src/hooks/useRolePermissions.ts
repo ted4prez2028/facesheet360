@@ -47,7 +47,10 @@ export const useRolePermissions = () => {
       
       // Use the Edge Function to fetch user roles
       const { data, error } = await supabase.functions.invoke('get-user-roles', {
-        body: { userId: user.id }
+        body: { userId: user.id },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
       });
 
       if (error) {
@@ -133,9 +136,12 @@ export const useRolePermissions = () => {
       
       // Use Edge Function to check patient assignment
       const { data, error } = await supabase.functions.invoke('check-patient-assignment', {
-        body: { 
+        body: {
           staffId: user.id,
           patientId: patientId
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
         }
       });
 
@@ -178,11 +184,14 @@ export const useRolePermissions = () => {
       
       // Use edge function
       const { data: funcData, error: funcError } = await supabase.functions.invoke('assign-to-patient', {
-        body: { 
+        body: {
           staffId,
           patientId,
           role,
           assignedBy: user.id
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
         }
       });
       
@@ -222,7 +231,10 @@ export const useRolePermissions = () => {
       
       // Use edge function
       const { data: funcData, error: funcError } = await supabase.functions.invoke('remove-from-patient', {
-        body: { assignmentId }
+        body: { assignmentId },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
       });
       
       if (funcError) {

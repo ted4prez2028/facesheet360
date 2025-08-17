@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CareCoinsCard } from '@/types';
@@ -12,13 +12,7 @@ export const useVirtualCard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRequestingCard, setIsRequestingCard] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchCard();
-    }
-  }, [user]);
-
-  const fetchCard = async () => {
+  const fetchCard = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -41,7 +35,13 @@ export const useVirtualCard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchCard();
+    }
+  }, [user, fetchCard]);
 
   const createCard = async () => {
     if (!user) {
