@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ImagingRecord } from '@/types';
 
 interface ImagingRecordsProps {
   patientId: string | null;
-  imagingRecords: any[];
+  imagingRecords: ImagingRecord[];
 }
 
 const ImagingRecords: React.FC<ImagingRecordsProps> = ({ patientId, imagingRecords }) => {

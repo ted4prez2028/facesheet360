@@ -16,12 +16,20 @@ interface Doctor {
   organization?: string;
 }
 
+interface AccountCreationResult {
+  email: string;
+  success: boolean;
+  accountCreated?: boolean;
+  emailSent?: boolean;
+  error?: string;
+}
+
 const CreateDoctorAccounts = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [manualDoctors, setManualDoctors] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<AccountCreationResult[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { hasRole } = useRolePermissions();
 
@@ -118,18 +126,21 @@ const CreateDoctorAccounts = () => {
 
       console.log('Creating accounts for:', doctors);
       
-      const { data, error } = await supabase.functions.invoke('create-doctor-accounts', {
-        body: { doctors }
-      });
+      const { data, error } = await supabase.functions.invoke<{ results: AccountCreationResult[] }>(
+        'create-doctor-accounts',
+        {
+          body: { doctors }
+        }
+      );
 
       if (error) {
         throw error;
       }
 
       setResults(data.results);
-      
-      const successful = data.results.filter((r: any) => r.success).length;
-      const failed = data.results.filter((r: any) => !r.success).length;
+
+      const successful = data.results.filter((r) => r.success).length;
+      const failed = data.results.filter((r) => !r.success).length;
       
       toast({
         title: "Account Creation Complete",
