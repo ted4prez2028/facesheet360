@@ -18,7 +18,7 @@ export const CoinsSummaryView = () => {
       if (user?.id) {
         setIsLoading(true);
         try {
-          const balanceData = await getBalance.mutateAsync(user.id);
+          const balanceData = await getBalance(user.id);
           setBalance(balanceData?.balance || 0);
           setTotalEarned(balanceData?.totalEarned || 0);
           setUsdValue(balanceData?.usdValue || 0);
@@ -38,7 +38,7 @@ export const CoinsSummaryView = () => {
       if (user?.id) {
         setIsLoading(true);
         try {
-          const transactionsData = await getTransactions.mutateAsync(user.id);
+          const transactionsData = await getTransactions(user.id);
           setTransactions(transactionsData || []);
         } catch (error) {
           console.error("Failed to fetch transactions:", error);
