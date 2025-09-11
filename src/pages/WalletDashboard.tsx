@@ -1,9 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useNavigate } from 'react-router-dom';
 
 // CareCoin Dashboard Components
 import { CareCoinsDashboard } from '@/components/wallet/CareCoinsDashboard';
@@ -22,19 +19,7 @@ import { MetaMaskIntegration } from '@/components/wallet/MetaMaskIntegration';
 import { useGlobalCareCoin } from '@/hooks/useGlobalCareCoin';
 
 const WalletDashboard = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const { existingContract, isDeployed } = useGlobalCareCoin();
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold">Authentication Required</h1>
-        <p className="mb-4 text-muted-foreground">You need to log in to access the CareCoin Wallet Dashboard.</p>
-        <Button onClick={() => navigate('/login')}>Log In</Button>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">

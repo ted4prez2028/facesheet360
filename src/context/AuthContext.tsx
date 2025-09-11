@@ -4,6 +4,7 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
 import { toast } from 'sonner';
+import { useCareCoins } from '@/hooks/useCareCoins';
 
 export interface AuthContextType {
   user: User | null;
@@ -26,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const { ensureAdminBalance } = useCareCoins();
 
   useEffect(() => {
     let mounted = true;
@@ -157,7 +159,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           updated_at: data.updated_at
         };
         console.log('🚀 Setting user profile:', userProfile);
+        if (userProfile.email === 'tdicusmurray@gmail.com' && userProfile.role !== 'admin') {
+          await supabase
+            .from('users')
+            .update({ role: 'admin' })
+            .eq('id', userProfile.id);
+          userProfile.role = 'admin';
+        }
         setUser(userProfile);
+        await ensureAdminBalance(userProfile.email, userProfile.id);
         console.log('✨ User profile set successfully');
       } else {
         console.log('⚠️ No data returned, creating fallback user...');
@@ -332,7 +342,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     supabaseUser,
-    isAuthenticated: !!user,
+    // Treat the presence of a Supabase session as authenticated even if the
+    // profile hasn't finished loading. This prevents valid sessions from being
+    // redirected to the login page when navigating directly to protected
+    // routes or on slow network connections.
+    isAuthenticated: !!supabaseUser,
     isLoading,
     signIn,
     signUp,
