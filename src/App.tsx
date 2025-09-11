@@ -3,9 +3,9 @@ import React from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ui/theme-provider"
-import { AuthProvider } from './context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
+import { supabase } from '@/integrations/supabase/client';
 import Index from './pages/Index';
 import LandingPage from './pages/LandingPage';
 import LearnMore from './pages/LearnMore';
@@ -39,17 +39,36 @@ const queryClient = new QueryClient();
 function App() {
   const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, isLoading } = useAuth();
+    const [checkingSession, setCheckingSession] = React.useState(true);
+    const [sessionExists, setSessionExists] = React.useState(false);
 
-    if (isLoading) {
-      return <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">
-          <p className="text-lg text-muted-foreground">Loading...</p>
+    React.useEffect(() => {
+      let active = true;
+      const verify = async () => {
+        const { data } = await supabase.auth.getSession();
+        if (active) {
+          setSessionExists(!!data.session);
+          setCheckingSession(false);
+        }
+      };
+      verify();
+      return () => {
+        active = false;
+      };
+    }, []);
+
+    if (isLoading || checkingSession) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse">
+            <p className="text-lg text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>;
+      );
     }
 
-    if (!isAuthenticated) {
-      return <Navigate to="/login" />;
+    if (!isAuthenticated && !sessionExists) {
+      return <Navigate to="/login" replace />;
     }
 
     return <>{children}</>;
@@ -58,9 +77,8 @@ function App() {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light">
-          <AuthProvider>
-            <UserPreferencesProvider>
-              <Routes>
+          <UserPreferencesProvider>
+            <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<LandingPage />} />
                 <Route path="/learn-more" element={<LearnMore />} />
@@ -273,7 +291,6 @@ function App() {
                </Routes>
               <Toaster />
             </UserPreferencesProvider>
-          </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
