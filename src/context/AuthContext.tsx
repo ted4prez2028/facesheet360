@@ -332,7 +332,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     supabaseUser,
-    isAuthenticated: !!user,
+    // Treat the presence of a Supabase session as authenticated even if the
+    // profile hasn't finished loading. This prevents valid sessions from being
+    // redirected to the login page when navigating directly to protected
+    // routes or on slow network connections.
+    isAuthenticated: !!supabaseUser,
     isLoading,
     signIn,
     signUp,
