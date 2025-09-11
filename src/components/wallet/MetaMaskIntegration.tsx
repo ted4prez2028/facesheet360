@@ -91,7 +91,7 @@ export function MetaMaskIntegration({
               asChild
             >
               <a
-                href={`https://etherscan.io/address/${finalAddress}`}
+                href={`https://sepolia.etherscan.io/address/${finalAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -124,7 +124,7 @@ export function MetaMaskIntegration({
           <AlertDescription className="text-sm">
             <strong>How to use:</strong>
             <ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>Make sure you're connected to Ethereum mainnet in MetaMask</li>
+                <li>Make sure you're connected to the Sepolia testnet in MetaMask</li>
               <li>Click "Add CareCoin to MetaMask" button above</li>
               <li>Approve the token addition in MetaMask</li>
               <li>The CARE token will appear in your MetaMask wallet</li>
