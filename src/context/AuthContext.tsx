@@ -70,8 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         console.log('🔄 Auth state changed:', event, session?.user?.id);
         
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('🔑 User signed in, setting supabase user and fetching profile...');
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+          console.log('🔑 User authenticated, setting supabase user and fetching profile...');
           setSupabaseUser(session.user);
           setIsLoading(true);
           // Defer the profile fetch to avoid potential race conditions
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
               await fetchUserProfile(session.user.id);
             } catch (error) {
-              console.error('❌ Failed to fetch user profile after sign in:', error);
+              console.error('❌ Failed to fetch user profile:', error);
               await createFallbackUser(session.user.id);
             } finally {
               setIsLoading(false);

@@ -149,7 +149,7 @@ const Appointments = () => {
               <AppointmentForm
                 onSubmit={handleCreateAppointment}
                 onCancel={() => setShowNewAppointmentDialog(false)}
-                isLoading={createAppointment.isLoading}
+                isLoading={createAppointment.isPending}
               />
             </DialogContent>
           </Dialog>

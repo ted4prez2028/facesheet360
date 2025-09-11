@@ -109,10 +109,10 @@ export function TokenDeployer() {
                   <div className="mt-3 p-3 bg-white rounded-lg">
                     <h4 className="font-medium text-sm mb-2">Token Details:</h4>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div><span className="font-medium">Name:</span> {existingContract.contract_details.name}</div>
-                      <div><span className="font-medium">Symbol:</span> {existingContract.contract_details.symbol}</div>
+                      <div><span className="font-medium">Name:</span> {String(existingContract.contract_details.name)}</div>
+                      <div><span className="font-medium">Symbol:</span> {String(existingContract.contract_details.symbol)}</div>
                       <div><span className="font-medium">Network:</span> Ethereum Mainnet</div>
-                      <div><span className="font-medium">Total Supply:</span> {existingContract.contract_details.totalSupply} CARE</div>
+                      <div><span className="font-medium">Total Supply:</span> {String(existingContract.contract_details.totalSupply)} CARE</div>
                     </div>
                   </div>
                 </div>
@@ -151,8 +151,8 @@ export function TokenDeployer() {
         {isDeployed && existingContract && (
           <MetaMaskIntegration
             contractAddress={existingContract.contract_address}
-            tokenSymbol={existingContract.contract_details.symbol}
-            tokenDecimals={existingContract.contract_details.decimals}
+            tokenSymbol={String(existingContract.contract_details.symbol)}
+            tokenDecimals={Number(existingContract.contract_details.decimals)}
           />
         )}
       </CardContent>

@@ -83,8 +83,8 @@ const WalletDashboard = () => {
           {isDeployed && existingContract && (
             <MetaMaskIntegration
               contractAddress={existingContract.contract_address}
-              tokenSymbol={existingContract.contract_details.symbol}
-              tokenDecimals={existingContract.contract_details.decimals}
+              tokenSymbol={String(existingContract.contract_details.symbol)}
+              tokenDecimals={Number(existingContract.contract_details.decimals)}
             />
           )}
         </TabsContent>

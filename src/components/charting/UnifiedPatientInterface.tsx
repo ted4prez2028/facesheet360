@@ -117,12 +117,25 @@ const UnifiedPatientInterface = ({
     instructions: ''
   });
 
-  // Create combined chart data object
+  // Create combined chart data object with proper types
   const chartData = {
-    vitalSigns: vitalSigns,
+    vitalSigns: vitalSigns.map(vs => ({
+      ...vs,
+      created_at: (vs as any).created_at || new Date().toISOString(),
+      updated_at: (vs as any).updated_at || new Date().toISOString()
+    })),
     medications: medications,
-    labResults: labResults,
-    imaging: imaging,
+    labResults: labResults.map(lr => ({
+      ...lr,
+      result: (lr as any).result || '',
+      date_collected: (lr as any).date_collected || (lr as any).created_at || new Date().toISOString()
+    })),
+    imaging: imaging.map(img => ({
+      ...img,
+      study_type: (img as any).study_type || '',
+      body_part: (img as any).body_part || '',
+      study_date: (img as any).study_date || (img as any).created_at || new Date().toISOString()
+    })),
     notes: [],
     history: [],
     diagnosis: "",
