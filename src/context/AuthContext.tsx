@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState, useRef } from 'react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
@@ -21,6 +21,7 @@ export interface AuthContextType {
   authError: string | null;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +29,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const { ensureAdminBalance } = useCareCoins();
+  const userRef = useRef<User | null>(null);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     let mounted = true;
@@ -96,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('🔄 Token refreshed...');
           setSupabaseUser(session.user);
           // Don't refetch user profile on token refresh if we already have user data
-          if (!user) {
+          if (!userRef.current) {
             setTimeout(async () => {
               try {
                 await fetchUserProfile(session.user.id);
@@ -116,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mounted = false;
       subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
@@ -361,6 +368,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Temporary export to maintain compatibility while we migrate imports
+// eslint-disable-next-line react-refresh/only-export-components
 export { useAuth } from '@/hooks/useAuth';
 

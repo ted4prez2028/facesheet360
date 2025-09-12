@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface PeerConnectionOptions {
   video: boolean;
@@ -72,7 +72,7 @@ export const usePeerConnection = (options: PeerConnectionOptions = { video: true
     }
   };
 
-  const endCall = () => {
+  const endCall = useCallback(() => {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       setLocalStream(null);
@@ -85,7 +85,7 @@ export const usePeerConnection = (options: PeerConnectionOptions = { video: true
     
     setRemoteStream(null);
     setIsConnected(false);
-  };
+  }, [localStream]);
 
   const toggleVideo = () => {
     if (localStream) {
@@ -109,7 +109,7 @@ export const usePeerConnection = (options: PeerConnectionOptions = { video: true
     return () => {
       endCall();
     };
-  }, []);
+  }, [endCall]);
 
   return {
     localStream,
