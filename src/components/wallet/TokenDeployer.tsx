@@ -27,8 +27,8 @@ export function TokenDeployer() {
     }
 
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== '0x1') {
-      toast.error('Please switch to Ethereum mainnet in MetaMask');
+    if (chainId !== '0xaa36a7') {
+      toast.error('Please switch to the Sepolia testnet in MetaMask');
       return;
     }
 
@@ -61,8 +61,8 @@ export function TokenDeployer() {
         </CardTitle>
         <CardDescription>
           {isDeployed
-            ? "CareCoin is live on Ethereum mainnet - available for all users"
-            : "Launch the CareCoin ERC-20 token contract on Ethereum mainnet"
+            ? "CareCoin is live on the Sepolia testnet - available for experimentation"
+            : "Launch the CareCoin ERC-20 token contract on the Sepolia testnet"
           }
         </CardDescription>
       </CardHeader>
@@ -94,7 +94,7 @@ export function TokenDeployer() {
                         asChild
                       >
                         <a
-                          href={`https://etherscan.io/address/${existingContract.contract_address}`}
+                          href={`https://sepolia.etherscan.io/address/${existingContract.contract_address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1"
@@ -111,7 +111,7 @@ export function TokenDeployer() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div><span className="font-medium">Name:</span> {existingContract.contract_details.name}</div>
                       <div><span className="font-medium">Symbol:</span> {existingContract.contract_details.symbol}</div>
-                      <div><span className="font-medium">Network:</span> Ethereum Mainnet</div>
+                      <div><span className="font-medium">Network:</span> Sepolia Testnet</div>
                       <div><span className="font-medium">Total Supply:</span> {existingContract.contract_details.totalSupply} CARE</div>
                     </div>
                   </div>
@@ -143,7 +143,7 @@ export function TokenDeployer() {
                   Deploying CareCoin...
                 </>
               ) : (
-                'Launch CareCoin on Mainnet'
+                'Launch CareCoin on Sepolia'
               )}
             </Button>
           </div>

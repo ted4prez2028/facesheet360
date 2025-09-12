@@ -54,7 +54,7 @@ const CareCoinGuide = () => {
             <li>MetaMask or another Ethereum wallet with ETH for gas fees</li>
             <li>Optional: Remix IDE or Hardhat for custom contract work</li>
             <li>Basic understanding of Ethereum and smart contracts</li>
-            <li>One-click mainnet deployment from the Wallet Dashboard</li>
+            <li>One-click Sepolia testnet deployment from the Wallet Dashboard</li>
           </ul>
         </CardContent>
       </Card>

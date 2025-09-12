@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Check, Star, CreditCard, Smartphone } from 'lucide-react';
 import SubscriptionCard from '@/components/subscription/SubscriptionCard';
 import CashAppPayment from '@/components/subscription/CashAppPayment';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
