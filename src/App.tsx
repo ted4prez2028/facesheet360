@@ -40,6 +40,8 @@ function App() {
   const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, isLoading } = useAuth();
 
+    console.log('🛡️ RequireAuth check:', { isAuthenticated, isLoading });
+
     if (isLoading) {
       return <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse">
@@ -49,9 +51,11 @@ function App() {
     }
 
     if (!isAuthenticated) {
+      console.log('❌ Not authenticated, redirecting to login');
       return <Navigate to="/login" />;
     }
 
+    console.log('✅ Authenticated, rendering protected content');
     return <>{children}</>;
   };
   return (

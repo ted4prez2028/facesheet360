@@ -21,8 +21,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
+  console.log('🏠 DashboardLayout check:', { isAuthenticated, authLoading });
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
+      console.log('🚪 DashboardLayout: Not authenticated, redirecting to login');
       toast({
         title: "Authentication required",
         description: "Please log in to access this page.",
@@ -35,6 +38,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }, [isAuthenticated, authLoading, navigate, toast]);
 
   if (isLoading || authLoading) {
+    console.log('⏳ DashboardLayout: Loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse-subtle">
@@ -45,8 +49,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }
 
   if (!isAuthenticated) {
+    console.log('❌ DashboardLayout: Not authenticated, returning null');
     return null; // Will redirect in useEffect
   }
+
+  console.log('✅ DashboardLayout: Authenticated, rendering layout');
 
   return (
     <SidebarProvider defaultOpen={true}>

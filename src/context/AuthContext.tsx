@@ -344,6 +344,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authError
   };
 
+  console.log('🔐 AuthContext state:', { 
+    isAuthenticated: !!user, 
+    isLoading, 
+    hasUser: !!user, 
+    userId: user?.id 
+  });
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
