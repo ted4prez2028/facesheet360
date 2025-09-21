@@ -23,11 +23,7 @@ const Index = () => {
   const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated, navigate]);
+  // Removed automatic redirect - let route protection handle it
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

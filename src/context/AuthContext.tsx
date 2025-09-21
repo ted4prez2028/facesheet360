@@ -93,19 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 Token refreshed...');
           setSupabaseUser(session.user);
-          // Don't refetch user profile on token refresh if we already have user data
-          if (!user) {
-            setTimeout(async () => {
-              try {
-                await fetchUserProfile(session.user.id);
-              } catch (error) {
-                console.error('❌ Failed to fetch user profile after token refresh:', error);
-                await createFallbackUser(session.user.id);
-              } finally {
-                setIsLoading(false);
-              }
-            }, 100);
-          }
+          // Don't refetch user profile on token refresh to avoid rate limiting
         }
       }
     );

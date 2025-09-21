@@ -65,7 +65,12 @@ function App() {
           <AuthProvider>
             <UserPreferencesProvider>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={
+                  <RequireAuth>
+                    <Navigate to="/dashboard" replace />
+                  </RequireAuth>
+                } />
+                <Route path="/landing" element={<Index />} />
                 <Route path="/login" element={<LandingPage />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
