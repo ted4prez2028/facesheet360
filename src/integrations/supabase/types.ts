@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -174,6 +174,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action_details: Json | null
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          patient_id: string | null
+          resource_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          patient_id?: string | null
+          resource_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          patient_id?: string | null
+          resource_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
@@ -1943,10 +1990,10 @@ export type Database = {
     Functions: {
       add_credits_after_payment: {
         Args: {
-          p_user_id: string
           p_credits: number
           p_payment_id: string
           p_provider: string
+          p_user_id: string
         }
         Returns: boolean
       }
@@ -1955,60 +2002,60 @@ export type Database = {
         Returns: boolean
       }
       assess_health_risks: {
-        Args: { patient_id_param: string; assessment_data: Json }
+        Args: { assessment_data: Json; patient_id_param: string }
         Returns: Json
       }
       assign_user_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       create_admin_doctor_account: {
-        Args: { _email: string; _password: string; _name?: string }
+        Args: { _email: string; _name?: string; _password: string }
         Returns: Json
       }
       create_subscription_checkout: {
         Args: {
+          guest_checkout?: boolean
+          payment_method: string
           plan_id: string
           plan_name: string
           price: number
-          payment_method: string
-          guest_checkout?: boolean
         }
         Returns: Json
       }
       distribute_care_coins_reward: {
         Args: {
           p_amount: number
-          p_provider_id: string
-          p_patient_id: string
-          p_reward_category: string
           p_description?: string
+          p_patient_id: string
+          p_provider_id: string
+          p_reward_category: string
         }
         Returns: boolean
       }
       get_analytics_overview: {
         Args: { provider_id_param: string; timeframe_param: string }
         Returns: {
-          totalpatients: number
           appointments: number
-          chartingrate: number
-          carecoinsgenerated: number
-          patientsgrowth: number
           appointmentsgrowth: number
-          chartingrategrowth: number
+          carecoinsgenerated: number
           carecoinsgrowth: number
+          chartingrate: number
+          chartingrategrowth: number
+          patientsgrowth: number
+          totalpatients: number
         }[]
       }
       get_appointment_analytics: {
-        Args: { timeframe_param: string; provider_id_param: string }
+        Args: { provider_id_param: string; timeframe_param: string }
         Returns: {
+          cancelled: number
+          completed: number
           month: string
           scheduled: number
-          completed: number
-          cancelled: number
         }[]
       }
       get_auth_user_id: {
@@ -2016,10 +2063,10 @@ export type Database = {
         Returns: string
       }
       get_care_coins_analytics: {
-        Args: { user_id_param: string; timeframe_param: string }
+        Args: { timeframe_param: string; user_id_param: string }
         Returns: {
-          month: string
           earned: number
+          month: string
           spent: number
         }[]
       }
@@ -2044,26 +2091,26 @@ export type Database = {
       get_patient_trends: {
         Args: { timeframe_param: string }
         Returns: {
-          month: string
-          newpatients: number
           activepatients: number
           discharge: number
+          month: string
+          newpatients: number
         }[]
       }
       get_provider_performance: {
         Args: Record<PropertyKey, never>
         Returns: {
-          name: string
-          "Dr. Smith": number
-          "Dr. Johnson": number
-          "Dr. Williams": number
           "Dr. Brown": number
+          "Dr. Johnson": number
+          "Dr. Smith": number
+          "Dr. Williams": number
+          name: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }

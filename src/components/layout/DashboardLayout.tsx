@@ -5,6 +5,7 @@ import { AppSidebar } from "./AppSidebar";
 import TopNav from "./TopNav";
 import { SidebarProvider } from "@/lib/sidebar-provider";
 import { useAuth } from "@/hooks/useAuth";
+import { PageLoadingState } from "@/components/common/LoadingState";
 import NotificationSound from "@/components/notifications/NotificationSound";
 import MedicationReminders from "@/components/notifications/MedicationReminders";
 import CommunicationContainer from "@/components/communication/CommunicationContainer";
@@ -29,13 +30,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   if (authLoading) {
     console.log('⏳ DashboardLayout: Loading state');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse-subtle">
-          <p className="text-lg text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingState />;
   }
 
   if (!isAuthenticated) {

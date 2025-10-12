@@ -124,10 +124,12 @@ const Appointments = () => {
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
+            </div>
             <p className="text-muted-foreground">
-              Manage your schedule and patient appointments
+              Manage your schedule and patient appointments securely
             </p>
           </div>
           

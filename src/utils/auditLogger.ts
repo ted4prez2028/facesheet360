@@ -70,6 +70,7 @@ class AuditLogger {
     this.queue = [];
 
     try {
+      // @ts-ignore - audit_logs table exists but types not yet regenerated
       const { error } = await supabase
         .from('audit_logs')
         .insert(batch);

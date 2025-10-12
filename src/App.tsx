@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
+import { ErrorBoundary } from '@/components/security/ErrorBoundary';
+import { SessionTimeout } from '@/components/security/SessionTimeout';
 import Index from './pages/Index';
 import LandingPage from './pages/LandingPage';
 import LearnMore from './pages/LearnMore';
@@ -59,11 +61,13 @@ function App() {
     return <>{children}</>;
   };
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light">
-          <AuthProvider>
-            <UserPreferencesProvider>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider defaultTheme="light">
+            <AuthProvider>
+              <SessionTimeout />
+              <UserPreferencesProvider>
               <Routes>
                 <Route path="/" element={
                   <RequireAuth>
@@ -281,11 +285,12 @@ function App() {
                  />
                </Routes>
               <Toaster />
-            </UserPreferencesProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+              </UserPreferencesProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

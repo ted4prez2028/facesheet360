@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import RecentPatients from "./RecentPatients";
 import TodayAppointments from "./TodayAppointments";
 import PendingTasks from "./PendingTasks";
-import StatisticsCards from "./StatisticsCards";
+import EnhancedStatisticsCards from "./EnhancedStatisticsCards";
 import { RecentPatient, TodayAppointment, PendingTask } from "@/types";
 
 interface DashboardTabsProps {
@@ -33,7 +33,7 @@ const DashboardTabs = ({
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
-        <StatisticsCards />
+        <EnhancedStatisticsCards />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <Card className="col-span-4">

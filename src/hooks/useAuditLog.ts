@@ -1,0 +1,29 @@
+/**
+ * Hook for HIPAA-compliant audit logging
+ */
+
+import { useAuth } from '@/hooks/useAuth';
+import { auditLogger, AuditEventType } from '@/utils/auditLogger';
+
+export const useAuditLog = () => {
+  const { user } = useAuth();
+
+  const logEvent = async (
+    eventType: AuditEventType,
+    patientId?: string,
+    resourceId?: string,
+    actionDetails?: Record<string, any>
+  ) => {
+    if (!user) return;
+
+    await auditLogger.log({
+      event_type: eventType,
+      user_id: user.id,
+      patient_id: patientId,
+      resource_id: resourceId,
+      action_details: actionDetails
+    });
+  };
+
+  return { logEvent };
+};

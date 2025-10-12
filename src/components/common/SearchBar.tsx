@@ -2,7 +2,7 @@
  * Advanced Search Bar Component
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,9 +23,9 @@ export const SearchBar = ({
   const debouncedQuery = useDebounce(query, 300);
 
   // Trigger search when debounced value changes
-  useState(() => {
+  useEffect(() => {
     onSearch(debouncedQuery);
-  });
+  }, [debouncedQuery, onSearch]);
 
   const handleClear = () => {
     setQuery('');

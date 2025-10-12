@@ -1,6 +1,7 @@
 
 import React from 'react';
 import DashboardTabs from '@/components/dashboard/DashboardTabs';
+import { PageHeader } from '@/components/common/PageHeader';
 import { useAppointmentsToday } from '@/hooks/useAppointmentsToday';
 import { usePendingTasks } from '@/hooks/usePendingTasks';
 import { useRecentPatients } from '@/hooks/useRecentPatients';
@@ -11,10 +12,12 @@ export default function Dashboard() {
   const { data: recentPatients = [], isLoading: patientsLoading } = useRecentPatients();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-      </div>
+    <div className="space-y-6 animate-fade-in">
+      <PageHeader
+        title="Dashboard"
+        description="Welcome back! Here's your healthcare overview."
+        showEncryption={true}
+      />
 
       <DashboardTabs 
         recentPatients={recentPatients}

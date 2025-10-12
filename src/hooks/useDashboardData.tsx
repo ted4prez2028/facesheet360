@@ -73,11 +73,13 @@ export const useDashboardData = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
+  const userId = user?.id;
+  
   // Set up real-time subscriptions
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
 
-    const channels: any[] = [];
+    const channels: ReturnType<typeof supabase.channel>[] = [];
 
     // Subscribe to patients changes
     const patientsChannel = supabase
@@ -90,7 +92,10 @@ export const useDashboardData = () => {
           table: 'patients'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["dashboardData", user.id] });
+          // Use setTimeout to avoid infinite loops
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["dashboardData", userId] });
+          }, 100);
         }
       )
       .subscribe();
@@ -106,7 +111,9 @@ export const useDashboardData = () => {
           table: 'appointments'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["dashboardData", user.id] });
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["dashboardData", userId] });
+          }, 100);
         }
       )
       .subscribe();
@@ -122,7 +129,9 @@ export const useDashboardData = () => {
           table: 'call_lights'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["dashboardData", user.id] });
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["dashboardData", userId] });
+          }, 100);
         }
       )
       .subscribe();
@@ -138,7 +147,9 @@ export const useDashboardData = () => {
           table: 'tasks'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["dashboardData", user.id] });
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["dashboardData", userId] });
+          }, 100);
         }
       )
       .subscribe();
@@ -152,10 +163,12 @@ export const useDashboardData = () => {
           event: 'UPDATE',
           schema: 'public',
           table: 'users',
-          filter: `id=eq.${user.id}`
+          filter: `id=eq.${userId}`
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["dashboardData", user.id] });
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["dashboardData", userId] });
+          }, 100);
         }
       )
       .subscribe();
@@ -167,12 +180,12 @@ export const useDashboardData = () => {
         supabase.removeChannel(channel);
       });
     };
-  }, [user?.id, queryClient]);
+  }, [userId]);
   
   return useQuery({
-    queryKey: ["dashboardData", user?.id],
-    queryFn: () => fetchDashboardData(user?.id || ""),
-    enabled: !!user?.id,
+    queryKey: ["dashboardData", userId],
+    queryFn: () => fetchDashboardData(userId || ""),
+    enabled: !!userId,
     staleTime: 1 * 60 * 1000, // 1 minute
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
