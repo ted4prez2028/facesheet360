@@ -35,7 +35,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     }
     
     setIsLoading(false);
-  }, [isAuthenticated, authLoading, navigate, toast]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   if (isLoading || authLoading) {
     console.log('⏳ DashboardLayout: Loading state');
