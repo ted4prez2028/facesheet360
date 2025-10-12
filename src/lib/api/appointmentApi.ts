@@ -16,8 +16,7 @@ export const getAppointments = async () => {
       .from('appointments')
       .select(`
         *,
-        patients(id, first_name, last_name, medical_record_number),
-        users!provider_id(id, name, email, role)
+        patients(id, first_name, last_name, medical_record_number)
       `)
       .order('appointment_date', { ascending: true });
 
@@ -35,8 +34,7 @@ export const getPatientAppointments = async (patientId: string) => {
       .from('appointments')
       .select(`
         *,
-        patients(id, first_name, last_name, medical_record_number),
-        users!provider_id(id, name, email, role)
+        patients(id, first_name, last_name, medical_record_number)
       `)
       .eq('patient_id', patientId)
       .order('appointment_date', { ascending: true });
@@ -58,8 +56,7 @@ export const getTodayAppointments = async (providerId?: string) => {
     .from('appointments')
     .select(`
       *,
-      patients(id, first_name, last_name, medical_record_number),
-      users!provider_id(id, name, email, role)
+      patients(id, first_name, last_name, medical_record_number)
     `)
     .gte('appointment_date', startOfToday)
     .lte('appointment_date', endOfToday);
@@ -90,8 +87,7 @@ export const addAppointment = async (appointment: Appointment) => {
       .insert(formattedAppointment)
       .select(`
         *,
-        patients(id, first_name, last_name, medical_record_number),
-        users!provider_id(id, name, email, role)
+        patients(id, first_name, last_name, medical_record_number)
       `)
       .single();
       
@@ -116,8 +112,7 @@ export const updateAppointment = async (id: string, updates: Partial<Appointment
       .eq('id', id)
       .select(`
         *,
-        patients(id, first_name, last_name, medical_record_number),
-        users!provider_id(id, name, email, role)
+        patients(id, first_name, last_name, medical_record_number)
       `)
       .single();
       
