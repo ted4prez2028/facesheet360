@@ -1,10 +1,9 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import TopNav from "./TopNav";
 import { SidebarProvider } from "@/lib/sidebar-provider";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import NotificationSound from "@/components/notifications/NotificationSound";
 import MedicationReminders from "@/components/notifications/MedicationReminders";
@@ -16,9 +15,7 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   console.log('🏠 DashboardLayout check:', { isAuthenticated, authLoading });
@@ -26,18 +23,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       console.log('🚪 DashboardLayout: Not authenticated, redirecting to login');
-      toast({
-        title: "Authentication required",
-        description: "Please log in to access this page.",
-        variant: "destructive",
-      });
       navigate("/login");
     }
-    
-    setIsLoading(false);
   }, [isAuthenticated, authLoading, navigate]);
 
-  if (isLoading || authLoading) {
+  if (authLoading) {
     console.log('⏳ DashboardLayout: Loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -50,7 +40,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   if (!isAuthenticated) {
     console.log('❌ DashboardLayout: Not authenticated, returning null');
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   console.log('✅ DashboardLayout: Authenticated, rendering layout');
