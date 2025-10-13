@@ -73,6 +73,7 @@ export function AppSidebar() {
         { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
         { title: "Patients", icon: Users, path: "/patients" },
         { title: "Appointments", icon: Calendar, path: "/appointments" },
+        { title: "Communication", icon: Phone, path: "/communication" },
       ],
     },
     {

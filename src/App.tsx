@@ -25,6 +25,7 @@ import { Toaster } from "@/components/ui/toaster"
 import ProfilePage from './pages/ProfilePage';
 import PatientEHRInterface from './pages/PatientEHRInterface';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
+import NotFound from './pages/NotFound';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Appointments from './pages/Appointments';
@@ -35,14 +36,13 @@ import Settings from './pages/Settings';
 import { FoodPage } from './pages/Food';
 import TaxiPage from './pages/TaxiPage';
 import MyChartPage from './pages/MyChart';
+import Communication from './pages/Communication';
 
 const queryClient = new QueryClient();
 
 function App() {
   const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, isLoading } = useAuth();
-
-    console.log('🛡️ RequireAuth check:', { isAuthenticated, isLoading });
 
     if (isLoading) {
       return <div className="min-h-screen flex items-center justify-center">
@@ -53,11 +53,9 @@ function App() {
     }
 
     if (!isAuthenticated) {
-      console.log('❌ Not authenticated, redirecting to login');
       return <Navigate to="/login" />;
     }
 
-    console.log('✅ Authenticated, rendering protected content');
     return <>{children}</>;
   };
   return (
@@ -283,6 +281,19 @@ function App() {
                      </RequireAuth>
                    }
                  />
+                 <Route
+                   path="/communication"
+                   element={
+                     <RequireAuth>
+                       <CommunicationProvider>
+                         <DashboardLayout>
+                           <Communication />
+                         </DashboardLayout>
+                       </CommunicationProvider>
+                     </RequireAuth>
+                   }
+                 />
+                 <Route path="*" element={<NotFound />} />
                </Routes>
               <Toaster />
               </UserPreferencesProvider>

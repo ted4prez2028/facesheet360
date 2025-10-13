@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Check, Star, CreditCard, Smartphone } from 'lucide-react';
 import SubscriptionCard from '@/components/subscription/SubscriptionCard';
-import CashAppPayment from '@/components/subscription/CashAppPayment';
+import { CashAppPaymentDialog } from '@/components/subscription/CashAppPaymentDialog';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -80,15 +80,14 @@ const subscriptionPlans: SubscriptionPlan[] = [
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cashapp' | null>(null);
-  const [showCashAppPayment, setShowCashAppPayment] = useState(false);
-  const [cashAppData, setCashAppData] = useState<any>(null);
+  const [showCashAppDialog, setShowCashAppDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
   const handleSelectPlan = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
     setPaymentMethod(null);
-    setShowCashAppPayment(false);
+    setShowCashAppDialog(false);
   };
 
   const handlePaymentMethod = async (method: 'stripe' | 'cashapp') => {
@@ -98,22 +97,22 @@ const Subscription = () => {
     setPaymentMethod(method);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-        body: {
-          planId: selectedPlan.id,
-          planName: selectedPlan.title,
-          price: selectedPlan.price,
-          paymentMethod: method
-        }
-      });
-
-      if (error) throw error;
-
       if (method === 'cashapp') {
-        setCashAppData(data);
-        setShowCashAppPayment(true);
-      } else if (method === 'stripe' && data.url) {
-        window.open(data.url, '_blank');
+        setShowCashAppDialog(true);
+      } else if (method === 'stripe') {
+        const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+          body: {
+            planId: selectedPlan.id,
+            planName: selectedPlan.title,
+            price: selectedPlan.price,
+            paymentMethod: method
+          }
+        });
+
+        if (error) throw error;
+        if (data.url) {
+          window.open(data.url, '_blank');
+        }
       }
     } catch (error) {
       console.error('Payment error:', error);
@@ -123,41 +122,11 @@ const Subscription = () => {
     }
   };
 
-  const handleCashAppComplete = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-cashapp-payment', {
-        body: { subscriptionId: cashAppData?.subscriptionId }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success('Payment verified! Your subscription is now active.');
-        setShowCashAppPayment(false);
-        setSelectedPlan(null);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.error('Verification error:', error);
-      toast.error('Failed to verify payment. Please contact support.');
-    }
+  const handleCashAppSuccess = () => {
+    toast.success('Payment verified! Your subscription is now active.');
+    setShowCashAppDialog(false);
+    setSelectedPlan(null);
   };
-
-  if (showCashAppPayment && cashAppData) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-          <CashAppPayment
-            amount={cashAppData.amount}
-            purchaseType="subscription"
-            cashAppHandle={cashAppData.cashAppHandle}
-            instructions={cashAppData.instructions}
-            onComplete={handleCashAppComplete}
-            onCancel={() => setShowCashAppPayment(false)}
-          />
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -257,6 +226,16 @@ const Subscription = () => {
           Contact Sales
         </Button>
       </div>
+
+      {selectedPlan && (
+        <CashAppPaymentDialog
+          open={showCashAppDialog}
+          onOpenChange={setShowCashAppDialog}
+          amount={selectedPlan.price}
+          planName={selectedPlan.title}
+          onSuccess={handleCashAppSuccess}
+        />
+      )}
     </div>
   );
 };
