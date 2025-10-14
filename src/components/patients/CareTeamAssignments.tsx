@@ -1,309 +1,178 @@
-
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRolePermissions, HealthcareRole } from '@/hooks/useRolePermissions';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { useCallback } from 'react';
-
-interface StaffMember {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface CareTeamMember {
-  id: string;
-  staff_id: string;
-  role: HealthcareRole;
-  assigned_at: string;
-  name: string;
-  email: string;
-}
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Trash2, UserCircle } from "lucide-react";
+import { usePatientAssignments, useUsersByRole, useCreatePatientAssignment, useDeletePatientAssignment } from "@/hooks/usePatientAssignments";
+import { useAuth } from "@/context/AuthContext";
 
 interface CareTeamAssignmentsProps {
   patientId: string;
 }
 
-const formSchema = z.object({
-  staffId: z.string().uuid(),
-  role: z.enum(['doctor', 'nurse', 'therapist', 'cna']),
-});
-
-export const CareTeamAssignments: React.FC<CareTeamAssignmentsProps> = ({ patientId }) => {
-  const [careTeam, setCareTeam] = useState<CareTeamMember[]>([]);
-  const [availableStaff, setAvailableStaff] = useState<StaffMember[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { hasRole, assignToPatient, removeFromPatient } = useRolePermissions();
+const CareTeamAssignments = ({ patientId }: CareTeamAssignmentsProps) => {
   const { user } = useAuth();
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      staffId: "",
-      role: "nurse",
-    },
-  });
+  const [isAdding, setIsAdding] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'doctor' | 'nurse' | 'therapist' | 'cna'>('nurse');
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [notes, setNotes] = useState('');
 
-  // Fetch care team
-  const fetchCareTeam = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.functions.invoke('get-care-team', {
-        body: { patientId }
-      });
+  const { data: assignments = [], isLoading } = usePatientAssignments(patientId);
+  const { data: availableUsers = [] } = useUsersByRole();
+  const createAssignment = useCreatePatientAssignment();
+  const deleteAssignment = useDeletePatientAssignment();
 
-      if (error) throw error;
+  const handleAddAssignment = async () => {
+    if (!selectedUserId || !user?.id) return;
 
-      setCareTeam(data || []);
-    } catch (error) {
-      console.error('Error fetching care team:', error);
-      toast.error('Failed to load care team information');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [patientId]);
+    await createAssignment.mutateAsync({
+      patient_id: patientId,
+      assigned_to: selectedUserId,
+      role: selectedRole,
+      assigned_by: user.id,
+      notes: notes || undefined
+    });
 
-  // Fetch available staff that aren't already assigned
-  const fetchAvailableStaff = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, name, email');
+    setIsAdding(false);
+    setSelectedUserId('');
+    setNotes('');
+  };
 
-      if (error) throw error;
-
-      const assignedStaffIds = careTeam.map(member => member.staff_id);
-      const available = data.filter(staff => !assignedStaffIds.includes(staff.id));
-      
-      setAvailableStaff(available);
-    } catch (error) {
-      console.error('Error fetching available staff:', error);
-      toast.error('Failed to load available staff');
-    }
-  }, [careTeam]);
-
-  useEffect(() => {
-    if (patientId) {
-      fetchCareTeam();
-    }
-  }, [patientId, fetchCareTeam]);
-
-  useEffect(() => {
-    if (isAddDialogOpen) {
-      fetchAvailableStaff();
-    }
-  }, [isAddDialogOpen, careTeam, fetchAvailableStaff]);
-
-  const handleAddStaff = async (values: z.infer<typeof formSchema>) => {
-    const result = await assignToPatient(values.staffId, patientId, values.role);
-    if (result) {
-      setIsAddDialogOpen(false);
-      form.reset();
-      fetchCareTeam();
+  const handleDeleteAssignment = async (assignmentId: string) => {
+    if (window.confirm('Are you sure you want to remove this care team member?')) {
+      await deleteAssignment.mutateAsync(assignmentId);
     }
   };
 
-  const handleRemoveStaff = async (assignmentId: string) => {
-    if (confirm('Are you sure you want to remove this staff member from the care team?')) {
-      const success = await removeFromPatient(assignmentId);
-      if (success) {
-        fetchCareTeam();
-      }
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'doctor': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      case 'nurse': return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'therapist': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+      case 'cna': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+      default: return '';
     }
   };
 
-  const canManageTeam = hasRole('doctor') || hasRole('admin');
-
-  const getRoleBadge = (role: HealthcareRole) => {
-    const colorMap: Record<HealthcareRole, string> = {
-      doctor: 'bg-blue-100 text-blue-800 border-blue-200',
-      nurse: 'bg-green-100 text-green-800 border-green-200',
-      therapist: 'bg-purple-100 text-purple-800 border-purple-200',
-      cna: 'bg-amber-100 text-amber-800 border-amber-200',
-      admin: 'bg-red-100 text-red-800 border-red-200',
-      patient: 'bg-gray-100 text-gray-800 border-gray-200',
-    };
-
-    return (
-      <Badge variant="outline" className={colorMap[role]}>
-        {role.charAt(0).toUpperCase() + role.slice(1)}
-      </Badge>
-    );
-  };
+  if (isLoading) {
+    return <div className="animate-pulse">Loading care team...</div>;
+  }
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Care Team</CardTitle>
-          <CardDescription>Healthcare professionals assigned to this patient</CardDescription>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <UserCircle className="h-5 w-5" />
+            Care Team
+          </CardTitle>
+          {!isAdding && (
+            <Button size="sm" onClick={() => setIsAdding(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Assign Member
+            </Button>
+          )}
         </div>
-        {canManageTeam && (
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">Assign Staff</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Assign Staff to Patient</DialogTitle>
-                <DialogDescription>
-                  Add a healthcare professional to this patient's care team.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleAddStaff)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="staffId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Staff Member</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a staff member" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {availableStaff.map(staff => (
-                              <SelectItem key={staff.id} value={staff.id}>
-                                {staff.name} ({staff.email})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="doctor">Doctor</SelectItem>
-                            <SelectItem value="nurse">Nurse</SelectItem>
-                            <SelectItem value="therapist">Therapist</SelectItem>
-                            <SelectItem value="cna">CNA</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full">
-                    Assign
-                  </Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        )}
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="text-center py-4">Loading care team...</div>
-        ) : careTeam.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground">
-            No healthcare professionals are currently assigned to this patient.
+        {isAdding && (
+          <div className="mb-4 p-4 border rounded-lg space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Role</label>
+                <Select value={selectedRole} onValueChange={(value: any) => setSelectedRole(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="doctor">Doctor</SelectItem>
+                    <SelectItem value="nurse">Nurse</SelectItem>
+                    <SelectItem value="therapist">Therapist</SelectItem>
+                    <SelectItem value="cna">CNA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Staff Member</label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select staff member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableUsers
+                      .filter((u: any) => !assignments.some((a: any) => a.assigned_to === u.id))
+                      .map((u: any) => (
+                        <SelectItem key={u.id} value={u.id}>
+                          {u.name} ({u.email})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Notes (Optional)</label>
+              <Textarea 
+                value={notes} 
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add any notes about this assignment..."
+                rows={2}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleAddAssignment} disabled={!selectedUserId}>
+                Add to Team
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => {
+                setIsAdding(false);
+                setSelectedUserId('');
+                setNotes('');
+              }}>
+                Cancel
+              </Button>
+            </div>
           </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Assigned</TableHead>
-                {canManageTeam && <TableHead className="w-[100px]">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {careTeam.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="font-medium">{member.name}</div>
-                    <div className="text-sm text-muted-foreground">{member.email}</div>
-                  </TableCell>
-                  <TableCell>{getRoleBadge(member.role)}</TableCell>
-                  <TableCell>{new Date(member.assigned_at).toLocaleDateString()}</TableCell>
-                  {canManageTeam && (
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleRemoveStaff(member.id)}
-                        disabled={member.staff_id === user?.id} // Can't remove yourself
-                      >
-                        Remove
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         )}
+
+        <div className="space-y-3">
+          {assignments.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No care team members assigned yet
+            </p>
+          ) : (
+            assignments.map((assignment: any) => (
+              <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <UserCircle className="h-8 w-8 text-muted-foreground" />
+                  <div>
+                    <div className="font-medium">{assignment.users?.name || 'Unknown'}</div>
+                    <div className="text-sm text-muted-foreground">{assignment.users?.email}</div>
+                    {assignment.notes && (
+                      <div className="text-xs text-muted-foreground mt-1">{assignment.notes}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className={getRoleBadgeColor(assignment.role)}>
+                    {assignment.role}
+                  </Badge>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDeleteAssignment(assignment.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 };
+
+export default CareTeamAssignments;

@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Video, Send, X, Minimize2, Maximize2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Phone, Video, Send, X, Minimize2, Maximize2, Mic, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCommunicationService } from '@/hooks/useCommunicationService';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Provider {
   id: string;
@@ -30,15 +33,38 @@ const MOCK_PROVIDERS: Provider[] = [
 ];
 
 export function ProviderCommunication() {
+  const { user } = useAuth();
+  const { messages: dbMessages, sendMessage: sendDbMessage, refreshMessages } = useCommunicationService();
   const [activeChat, setActiveChat] = useState<Provider | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
   const [callType, setCallType] = useState<'audio' | 'video' | null>(null);
+  const [transcription, setTranscription] = useState('');
+  const [isMuted, setIsMuted] = useState(false);
 
-  const handleSendMessage = () => {
-    if (!messageInput.trim() || !activeChat) return;
+  // Load chat history from database
+  useEffect(() => {
+    if (activeChat && user) {
+      refreshMessages();
+      const chatHistory = dbMessages
+        .filter((msg: any) => 
+          (msg.sender_id === activeChat.id && msg.recipient_id === user.id) ||
+          (msg.sender_id === user.id && msg.recipient_id === activeChat.id)
+        )
+        .map((msg: any) => ({
+          id: msg.id,
+          senderId: msg.sender_id === user.id ? 'me' : activeChat.id,
+          text: msg.content,
+          timestamp: new Date(msg.created_at)
+        }));
+      setMessages(chatHistory);
+    }
+  }, [activeChat, user, dbMessages]);
+
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !activeChat || !user) return;
     
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -48,30 +74,57 @@ export function ProviderCommunication() {
     };
     
     setMessages([...messages, newMessage]);
-    setMessageInput('');
     
-    // Simulate response
-    setTimeout(() => {
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        senderId: activeChat.id,
-        text: 'Message received. I\'ll get back to you shortly.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, response]);
-    }, 2000);
+    try {
+      await sendDbMessage(messageInput, activeChat.id);
+      setMessageInput('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
   };
 
   const startCall = (provider: Provider, type: 'audio' | 'video') => {
     setActiveChat(provider);
     setCallType(type);
     setIsCallActive(true);
+    setTranscription(''); // Reset transcription
   };
 
-  const endCall = () => {
+  const endCall = async () => {
     setIsCallActive(false);
     setCallType(null);
+    setIsMuted(false);
+    
+    // Save transcription to chat history
+    if (transcription && activeChat && user) {
+      const transcriptMsg: Message = {
+        id: Date.now().toString(),
+        senderId: 'system',
+        text: `📞 Call Transcript:\n${transcription}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, transcriptMsg]);
+      await sendDbMessage(`Call Transcript:\n${transcription}`, activeChat.id);
+    }
   };
+
+  // Simulate live transcription (in production, use Web Speech API)
+  useEffect(() => {
+    if (isCallActive && !isMuted) {
+      const interval = setInterval(() => {
+        const transcripts = [
+          'Patient vitals discussed...',
+          'Treatment plan reviewed...',
+          'Follow-up scheduled...',
+          'Medication adjustments noted...'
+        ];
+        const text = transcripts[Math.floor(Math.random() * transcripts.length)];
+        setTranscription(prev => prev + (prev ? '\n' : '') + `[${new Date().toLocaleTimeString()}] ${text}`);
+      }, 4000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isCallActive, isMuted]);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -176,80 +229,107 @@ export function ProviderCommunication() {
             {!isMinimized && (
               <CardContent className="p-0 flex flex-col h-[calc(100%-5rem)]">
                 {isCallActive ? (
-                  // Call Interface
-                  <div className="flex-1 bg-accent/10 flex items-center justify-center relative">
-                    {callType === 'video' ? (
-                      <div className="w-full h-full bg-black relative">
-                        {/* Remote Video (simulated) */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Avatar className="w-32 h-32">
+                    <div className="flex-1 bg-accent/10 flex flex-col relative">
+                      {callType === 'video' ? (
+                        <div className="flex-1 bg-black relative">
+                          {/* Remote Video */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Avatar className="w-32 h-32">
+                              <AvatarFallback className="text-4xl">
+                                {activeChat.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                          </div>
+                          {/* Local Video */}
+                          <div className="absolute bottom-4 right-4 w-48 h-36 bg-muted rounded-lg flex items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Your Camera</p>
+                          </div>
+                          {/* Transcription Overlay */}
+                          {transcription && (
+                            <div className="absolute bottom-4 left-4 right-64 bg-black/80 text-white rounded-lg p-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs font-semibold mb-1">Live Transcription:</p>
+                              <p className="text-xs whitespace-pre-wrap">{transcription}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center p-4">
+                          <Avatar className="w-32 h-32 mb-4">
                             <AvatarFallback className="text-4xl">
                               {activeChat.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
+                          <p className="text-lg font-medium">{activeChat.name}</p>
+                          <p className="text-muted-foreground mb-4">Call in progress...</p>
+                          
+                          {/* Transcription for Audio Call */}
+                          {transcription && (
+                            <ScrollArea className="w-full max-w-md max-h-48 mt-4">
+                              <div className="bg-muted rounded-lg p-3">
+                                <p className="text-xs font-semibold mb-2">Live Transcription:</p>
+                                <p className="text-xs whitespace-pre-wrap">{transcription}</p>
+                              </div>
+                            </ScrollArea>
+                          )}
                         </div>
-                        {/* Local Video (simulated) */}
-                        <div className="absolute bottom-4 right-4 w-48 h-36 bg-muted rounded-lg flex items-center justify-center">
-                          <p className="text-sm text-muted-foreground">Your Camera</p>
-                        </div>
+                      )}
+                      
+                      {/* Call Controls */}
+                      <div className="p-4 bg-background border-t flex items-center justify-center gap-3">
+                        <Button 
+                          variant={isMuted ? "default" : "outline"} 
+                          size="icon"
+                          onClick={() => setIsMuted(!isMuted)}
+                        >
+                          {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                        </Button>
+                        <Button variant="destructive" onClick={endCall} className="px-8">
+                          <Phone className="h-4 w-4 mr-2" />
+                          End Call
+                        </Button>
                       </div>
-                    ) : (
-                      <div className="text-center">
-                        <Avatar className="w-32 h-32 mx-auto mb-4">
-                          <AvatarFallback className="text-4xl">
-                            {activeChat.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <p className="text-lg font-medium">{activeChat.name}</p>
-                        <p className="text-muted-foreground">Call in progress...</p>
-                      </div>
-                    )}
-                    
-                    {/* Call Controls */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
-                      <Button variant="destructive" onClick={endCall} className="rounded-full px-8">
-                        <Phone className="h-4 w-4 mr-2" />
-                        End Call
-                      </Button>
                     </div>
-                  </div>
                 ) : (
                   // Messages Interface
                   <>
-                    <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                      {messages.length === 0 ? (
-                        <div className="text-center text-muted-foreground py-12">
-                          <p>Start a conversation with {activeChat.name}</p>
-                        </div>
-                      ) : (
-                        messages.map(msg => (
-                          <div
-                            key={msg.id}
-                            className={cn(
-                              "flex",
-                              msg.senderId === 'me' ? "justify-end" : "justify-start"
-                            )}
-                          >
+                    <ScrollArea className="flex-1 p-4">
+                      <div className="space-y-4">
+                        {messages.length === 0 ? (
+                          <div className="text-center text-muted-foreground py-12">
+                            <p>Start a conversation with {activeChat.name}</p>
+                          </div>
+                        ) : (
+                          messages.map(msg => (
                             <div
+                              key={msg.id}
                               className={cn(
-                                "max-w-[70%] rounded-lg px-4 py-2",
-                                msg.senderId === 'me' 
-                                  ? "bg-primary text-primary-foreground" 
-                                  : "bg-muted"
+                                "flex",
+                                msg.senderId === 'me' ? "justify-end" : msg.senderId === 'system' ? "justify-center" : "justify-start"
                               )}
                             >
-                              <p>{msg.text}</p>
-                              <p className={cn(
-                                "text-xs mt-1",
-                                msg.senderId === 'me' ? "text-primary-foreground/70" : "text-muted-foreground"
-                              )}>
-                                {msg.timestamp.toLocaleTimeString()}
-                              </p>
+                              <div
+                                className={cn(
+                                  "max-w-[70%] rounded-lg px-4 py-2",
+                                  msg.senderId === 'me' 
+                                    ? "bg-primary text-primary-foreground" 
+                                    : msg.senderId === 'system'
+                                    ? "bg-secondary text-secondary-foreground border"
+                                    : "bg-muted"
+                                )}
+                              >
+                                <p className="whitespace-pre-wrap text-sm">{msg.text}</p>
+                                <p className={cn(
+                                  "text-xs mt-1",
+                                  msg.senderId === 'me' ? "text-primary-foreground/70" : "text-muted-foreground"
+                                )}>
+                                  {msg.timestamp.toLocaleTimeString()}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                          ))
+                        )}
+                      </div>
+                    </ScrollArea>
                     
                     <div className="border-t p-4">
                       <div className="flex gap-2">

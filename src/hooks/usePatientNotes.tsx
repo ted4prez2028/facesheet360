@@ -1,95 +1,107 @@
-
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-
-interface Note {
-  id: string;
-  date: string;
-  content: string;
-  type: string;
-  provider: string;
-}
-
-interface AddNoteParams {
-  patientId: string;
-  providerId: string;
-  content: string;
-  noteType: string;
-}
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { 
+  getPatientNotes, 
+  createPatientNote, 
+  updatePatientNote, 
+  deletePatientNote,
+  PatientNote
+} from "@/lib/api/patientNotesApi";
+import { toast } from "sonner";
 
 export const usePatientNotes = (patientId: string) => {
   const queryClient = useQueryClient();
   
-  // Fetch patient notes
-  const { data: notes, isLoading, error } = useQuery({
+  const query = useQuery({
     queryKey: ['patient-notes', patientId],
-    queryFn: async (): Promise<Note[]> => {
-      if (!patientId) return [];
-      
-      // Mock data since chart_records table doesn't exist
-      const mockNotes: Note[] = [
-        {
-          id: '1',
-          date: new Date().toISOString(),
-          content: 'Patient reported feeling well today. Vital signs are stable.',
-          type: 'Progress Note',
-          provider: 'Dr. Smith'
-        },
-        {
-          id: '2',
-          date: new Date(Date.now() - 86400000).toISOString(),
-          content: 'Patient completed physical therapy session. Good improvement in mobility.',
-          type: 'Therapy Note',
-          provider: 'Jane Therapist'
-        },
-        {
-          id: '3',
-          date: new Date(Date.now() - 2 * 86400000).toISOString(),
-          content: 'Medication review completed. No adverse reactions reported.',
-          type: 'Medication Review',
-          provider: 'Dr. Johnson'
-        }
-      ];
-      
-      return mockNotes;
-    },
+    queryFn: () => getPatientNotes(patientId),
     enabled: !!patientId
   });
-  
-  // Add a new note
-  const addNote = useMutation({
-    mutationFn: async (params: AddNoteParams) => {
-      const { patientId, providerId, content, noteType } = params;
-      
-      // Mock implementation
-      const mockNote: Note = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        content: content,
-        type: noteType,
-        provider: 'Current Provider'
+
+  const addNoteMutation = useMutation({
+    mutationFn: async (noteData: { patientId: string; providerId: string; content: string; noteType: string }) => {
+      // Map note types to database enum values
+      const noteTypeMap: Record<string, 'progress' | 'assessment' | 'plan' | 'general' | 'discharge'> = {
+        'Progress Note': 'progress',
+        'Consultation': 'assessment',
+        'Procedure Note': 'general',
+        'Discharge Summary': 'discharge',
+        'General': 'general'
       };
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      return mockNote;
+      const note: Omit<PatientNote, 'id'> = {
+        patient_id: noteData.patientId,
+        created_by: noteData.providerId,
+        note_content: noteData.content,
+        note_type: noteTypeMap[noteData.noteType] || 'general'
+      };
+      return createPatientNote(note);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patient-notes', patientId] });
-      toast.success('Note added successfully');
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['patient-notes', variables.patientId] });
+      toast.success("Note added successfully");
     },
-    onError: (error) => {
-      console.error('Error adding note:', error);
-      toast.error('Failed to add note');
+    onError: (error: Error) => {
+      toast.error(`Failed to add note: ${error.message}`);
     }
   });
-  
+
+  // Return data in the format expected by components
   return {
-    notes,
-    isLoading,
-    error,
-    addNote
+    ...query,
+    notes: query.data?.map((note: any) => ({
+      id: note.id,
+      type: note.note_type,
+      content: note.note_content,
+      date: note.created_at,
+      provider: note.users?.name || 'Unknown',
+      providerId: note.created_by
+    })) || [],
+    addNote: addNoteMutation
   };
+};
+
+export const useCreatePatientNote = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (note: Omit<PatientNote, 'id'>) => createPatientNote(note),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['patient-notes', variables.patient_id] });
+      toast.success("Note added successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to add note: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdatePatientNote = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<PatientNote> }) =>
+      updatePatientNote(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patient-notes'] });
+      toast.success("Note updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update note: ${error.message}`);
+    }
+  });
+};
+
+export const useDeletePatientNote = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: deletePatientNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patient-notes'] });
+      toast.success("Note deleted successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete note: ${error.message}`);
+    }
+  });
 };
