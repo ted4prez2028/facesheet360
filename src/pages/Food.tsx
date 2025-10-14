@@ -40,6 +40,13 @@ export function FoodPage() {
     } else {
       setSelectedItems([...selectedItems, {id: itemId, name: itemName, quantity: 1}]);
     }
+    // Show success animation
+    import('sonner').then(({ toast }) => {
+      toast.success(`${itemName} added to order!`, {
+        duration: 2000,
+        className: "animate-in slide-in-from-top-5"
+      });
+    });
   };
 
   const handleSubmitOrder = () => {

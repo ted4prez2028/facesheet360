@@ -949,6 +949,85 @@ export type Database = {
           },
         ]
       }
+      imaging_studies: {
+        Row: {
+          body_part: string | null
+          created_at: string | null
+          findings: string | null
+          id: string
+          image_url: string | null
+          impression: string | null
+          modality: string | null
+          notes: string | null
+          ordered_by: string | null
+          patient_id: string
+          performed_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          study_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          body_part?: string | null
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          impression?: string | null
+          modality?: string | null
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id: string
+          performed_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          study_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          body_part?: string | null
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          impression?: string | null
+          modality?: string | null
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id?: string
+          performed_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          study_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_studies_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_studies_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imaging_studies_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       immunizations: {
         Row: {
           created_at: string
@@ -989,6 +1068,82 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_results: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          ordered_by: string | null
+          patient_id: string
+          performed_at: string | null
+          reference_range: string | null
+          result_unit: string | null
+          result_value: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          test_category: string | null
+          test_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id: string
+          performed_at?: string | null
+          reference_range?: string | null
+          result_unit?: string | null
+          result_value?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          test_category?: string | null
+          test_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id?: string
+          performed_at?: string | null
+          reference_range?: string | null
+          result_unit?: string | null
+          result_value?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          test_category?: string | null
+          test_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_results_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1245,6 +1400,106 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to: string
+          id: string
+          notes: string | null
+          patient_id: string
+          role: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          role: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_assignments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_assignments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_notes: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          id: string
+          is_locked: boolean | null
+          note_content: string
+          note_type: string
+          patient_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_locked?: boolean | null
+          note_content: string
+          note_type: string
+          patient_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_locked?: boolean | null
+          note_content?: string
+          note_type?: string
+          patient_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_vitals: {
         Row: {
           blood_pressure_diastolic: number | null
@@ -1329,6 +1584,7 @@ export type Database = {
           medications: string | null
           notes: string | null
           phone: string | null
+          room_number: string | null
           updated_at: string
           user_id: string | null
         }
@@ -1353,6 +1609,7 @@ export type Database = {
           medications?: string | null
           notes?: string | null
           phone?: string | null
+          room_number?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1377,6 +1634,7 @@ export type Database = {
           medications?: string | null
           notes?: string | null
           phone?: string | null
+          room_number?: string | null
           updated_at?: string
           user_id?: string | null
         }

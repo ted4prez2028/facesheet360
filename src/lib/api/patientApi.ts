@@ -90,6 +90,7 @@ export const addPatient = async (patient: Partial<Patient>) => {
         email: patient.email,
         phone: patient.phone,
         address: patient.address,
+        room_number: patient.room_number,
         medical_record_number: patient.medical_record_number,
         insurance_provider: patient.insurance_provider,
         policy_number: patient.policy_number,

@@ -25,6 +25,7 @@ export interface Patient {
   phone?: string;
   email?: string;
   address?: string;
+  room_number?: string;
   medical_record_number?: string;
   insurance_provider?: string;
   insurance_number?: string;
