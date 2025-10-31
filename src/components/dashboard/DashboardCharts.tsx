@@ -20,7 +20,34 @@ interface DashboardChartsProps {
   healthMetrics: HealthMetric[];
 }
 
-const DashboardCharts = ({ patientStatistics, healthMetrics }: DashboardChartsProps) => {
+const DashboardCharts = ({ patientStatistics = [], healthMetrics = [] }: DashboardChartsProps) => {
+  if (!patientStatistics.length || !healthMetrics.length) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Patient Statistics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              Loading data...
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Health Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              Loading data...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card className="shadow-sm">
@@ -75,7 +102,7 @@ const DashboardCharts = ({ patientStatistics, healthMetrics }: DashboardChartsPr
       
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Health Metrics</CardTitle>
+          <CardTitle>Health Metrics (Avg Heart Rate & BP)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">

@@ -5,22 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Heart, Pill, FileText, Brain, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, Heart, Pill, FileText, Brain, AlertTriangle, Users } from "lucide-react";
 import PatientDetailHeader from "./PatientDetailHeader";
 import VitalSigns from "./VitalSigns";
 import MedicationsSection from "./MedicationsSection";
-import LabResults from "./LabResults";
-import ImagingRecords from "./ImagingRecords";
+import LabResultsPanel from "./LabResultsPanel";
+import ImagingPanel from "./ImagingPanel";
 import NotesSection from "./NotesSection";
+import CareTeamAssignments from "@/components/patients/CareTeamAssignments";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { 
   useVitalSigns, 
-  useLabResults, 
+  useLabResults as useLabResultsChart, 
   useMedications, 
-  useImagingRecords 
+  useImagingRecords as useImagingRecordsChart 
 } from "@/hooks/useChartData";
+import { useLabResults } from "@/hooks/useLabResults";
+import { useImagingStudies } from "@/hooks/useImagingStudies";
+import { usePatientNotes } from "@/hooks/usePatientNotes";
 import { Patient } from "@/types";
 
 interface LocalPatient {
@@ -95,7 +99,18 @@ const UnifiedPatientInterface = ({
   const { data: vitalSigns = [] } = useVitalSigns(selectedPatient);
   const { data: labResults = [] } = useLabResults(selectedPatient);
   const { data: medications = [] } = useMedications(selectedPatient);
-  const { data: imaging = [] } = useImagingRecords(selectedPatient);
+  const { data: imaging = [] } = useImagingRecordsChart(selectedPatient);
+  const { data: notes = [] } = usePatientNotes(selectedPatient);
+  
+  // Room number state
+  const [roomNumber, setRoomNumber] = useState('');
+  const [isEditingRoom, setIsEditingRoom] = useState(false);
+
+  useEffect(() => {
+    if (patientData) {
+      setRoomNumber((patientData as any).room_number || '');
+    }
+  }, [patientData]);
 
   const [newVitals, setNewVitals] = useState({
     temperature: '',
@@ -130,13 +145,20 @@ const UnifiedPatientInterface = ({
       result: (lr as any).result || '',
       date_collected: (lr as any).date_collected || (lr as any).created_at || new Date().toISOString()
     })),
-    imaging: imaging.map(img => ({
+      imaging: imaging.map(img => ({
       ...img,
       study_type: (img as any).study_type || '',
       body_part: (img as any).body_part || '',
       study_date: (img as any).study_date || (img as any).created_at || new Date().toISOString()
     })),
-    notes: [],
+    notes: notes.map((note: any) => ({
+      id: note.id,
+      date: note.created_at || new Date().toISOString(),
+      content: note.note_content || '',
+      author: note.users?.name || 'Unknown',
+      type: note.note_type || 'general',
+      created_at: note.created_at || new Date().toISOString()
+    })),
     history: [],
     diagnosis: "",
     allergies: []
@@ -239,6 +261,25 @@ const UnifiedPatientInterface = ({
     }
   };
 
+  const handleUpdateRoom = async () => {
+    if (!selectedPatient) return;
+
+    try {
+      const { error } = await supabase
+        .from('patients')
+        .update({ room_number: roomNumber })
+        .eq('id', selectedPatient);
+
+      if (error) throw error;
+
+      toast.success('Room number updated successfully');
+      setIsEditingRoom(false);
+    } catch (error) {
+      console.error('Error updating room number:', error);
+      toast.error('Failed to update room number');
+    }
+  };
+
   if (!selectedPatient) {
     return null;
   }
@@ -269,17 +310,38 @@ const UnifiedPatientInterface = ({
             patientId={enhancedPatientData?.id}
             patientAge={enhancedPatientData?.age}
           />
+          <div className="mt-4 flex items-center gap-2">
+            <label className="text-sm font-medium">Room Number:</label>
+            {isEditingRoom ? (
+              <>
+                <Input
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  className="w-32"
+                  placeholder="e.g., 301B"
+                />
+                <Button size="sm" onClick={handleUpdateRoom}>Save</Button>
+                <Button size="sm" variant="outline" onClick={() => setIsEditingRoom(false)}>Cancel</Button>
+              </>
+            ) : (
+              <>
+                <span className="text-sm">{roomNumber || 'Not assigned'}</span>
+                <Button size="sm" variant="ghost" onClick={() => setIsEditingRoom(true)}>Edit</Button>
+              </>
+            )}
+          </div>
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col overflow-hidden p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-6 shrink-0">
+            <TabsList className="grid w-full grid-cols-7 shrink-0">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="vitals">Vitals</TabsTrigger>
               <TabsTrigger value="medications">Medications</TabsTrigger>
               <TabsTrigger value="labs">Labs</TabsTrigger>
               <TabsTrigger value="imaging">Imaging</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
+              <TabsTrigger value="care-team">Care Team</TabsTrigger>
             </TabsList>
 
             <div className="flex-1 mt-4 overflow-hidden">
@@ -500,17 +562,11 @@ const UnifiedPatientInterface = ({
               </TabsContent>
 
               <TabsContent value="labs" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-                <LabResults 
-                  patientId={selectedPatient}
-                  labResults={chartData.labResults}
-                />
+                <LabResultsPanel patientId={selectedPatient} />
               </TabsContent>
 
               <TabsContent value="imaging" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-                <ImagingRecords 
-                  patientId={selectedPatient}
-                  imagingRecords={chartData.imaging}
-                />
+                <ImagingPanel patientId={selectedPatient} />
               </TabsContent>
 
               <TabsContent value="notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
@@ -519,6 +575,10 @@ const UnifiedPatientInterface = ({
                   providerId={userId}
                   notes={chartData.notes}
                 />
+              </TabsContent>
+
+              <TabsContent value="care-team" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <CareTeamAssignments patientId={selectedPatient} />
               </TabsContent>
             </div>
           </Tabs>

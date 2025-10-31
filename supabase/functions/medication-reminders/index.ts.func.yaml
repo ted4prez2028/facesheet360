@@ -1,0 +1,12 @@
+name: medication-reminders
+version: 1.0
+description: Sends medication reminders to assigned nurses for their patients
+schemas:
+  - public
+  - auth
+entrypoint: index.ts
+
+# Run every hour
+schedule:
+  cron: '0 * * * *'
+  run_on_startup: false
