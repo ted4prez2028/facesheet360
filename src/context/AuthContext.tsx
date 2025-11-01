@@ -73,18 +73,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           console.log('🔑 User authenticated, setting supabase user and fetching profile...');
           setSupabaseUser(session.user);
-          setIsLoading(true);
-          // Defer the profile fetch to avoid potential race conditions
-          setTimeout(async () => {
-            try {
-              await fetchUserProfile(session.user.id);
-            } catch (error) {
-              console.error('❌ Failed to fetch user profile:', error);
-              await createFallbackUser(session.user.id);
-            } finally {
-              setIsLoading(false);
-            }
-          }, 100);
+          try {
+            await fetchUserProfile(session.user.id);
+          } catch (error) {
+            console.error('❌ Failed to fetch user profile:', error);
+            await createFallbackUser(session.user.id);
+          } finally {
+            setIsLoading(false);
+          }
         } else if (event === 'SIGNED_OUT' || !session) {
           console.log('👋 User signed out, clearing state...');
           setSupabaseUser(null);

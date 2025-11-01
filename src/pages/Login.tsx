@@ -38,12 +38,15 @@ const Login = () => {
   const { isSignedIn, user: clerkUser } = useUser();
 
   useEffect(() => {
-    console.log("Login page auth state:", { isAuthenticated, isLoading, authError });
+    console.log("Login page auth state:", { isAuthenticated, isLoading, authError, isSignedIn });
     if (!isLoading && (isAuthenticated || isSignedIn)) {
       console.log("User is authenticated, redirecting to dashboard");
-      navigate('/dashboard', { replace: true });
+      // Small delay to ensure state is fully updated
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     }
-  }, [isAuthenticated, isLoading, navigate, authError, isSignedIn]);
+  }, [isAuthenticated, isLoading, navigate, isSignedIn]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,10 +64,10 @@ const Login = () => {
     
     try {
       await login(loginData.email, loginData.password);
-      console.log("Login successful, waiting for auth state to update");
+      console.log("Login successful, auth state will trigger redirect");
+      // Don't set isSubmitting to false - let the redirect happen
     } catch (error) {
       console.error("Login error:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };
