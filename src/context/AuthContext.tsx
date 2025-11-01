@@ -33,7 +33,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Add timeout protection
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Session fetch timeout')), 5000);
+        });
+        
+        const sessionPromise = supabase.auth.getSession();
+        
+        const { data: { session }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
         
         if (error) {
           console.error('Error getting session:', error);
@@ -73,12 +83,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           console.log('🔑 User authenticated, setting supabase user and fetching profile...');
           setSupabaseUser(session.user);
+          
+          // Add timeout to prevent infinite loading
+          const timeoutId = setTimeout(() => {
+            console.warn('⏰ Profile fetch timeout, using fallback');
+            createFallbackUser(session.user.id);
+            setIsLoading(false);
+          }, 5000); // 5 second timeout
+          
           try {
             await fetchUserProfile(session.user.id);
+            clearTimeout(timeoutId);
           } catch (error) {
             console.error('❌ Failed to fetch user profile:', error);
+            clearTimeout(timeoutId);
             await createFallbackUser(session.user.id);
           } finally {
+            clearTimeout(timeoutId);
             setIsLoading(false);
           }
         } else if (event === 'SIGNED_OUT' || !session) {
@@ -103,25 +124,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('🔍 Fetching user profile for:', userId);
+      
+      // Use maybeSingle to avoid errors if user doesn't exist
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       console.log('📊 Database query result:', { data, error });
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
-        // If profile doesn't exist, create one
-        if (error.code === 'PGRST116') {
-          console.log('🆕 User profile not found, creating one...');
-          await createUserProfile(userId);
-          return;
-        }
-        // If other error, create a basic user from auth data
         console.log('🔄 Creating fallback user profile due to error...');
         await createFallbackUser(userId);
+        return;
+      }
+
+      if (!data) {
+        console.log('🆕 User profile not found, creating one...');
+        await createUserProfile(userId);
         return;
       }
 
