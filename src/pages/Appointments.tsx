@@ -306,12 +306,13 @@ const Appointments = () => {
             <Card className="shadow-sm">
               <CardContent className="p-6">
                 <div className="space-y-6">
-                  {days.map((day, dayIndex) => {
-                    const dayAppointments = getAppointmentsForDay(day);
-                    if (dayAppointments.length === 0) return null;
-                    
-                    return (
-                      <div key={dayIndex} className="space-y-3">
+                  {days
+                    .filter(day => getAppointmentsForDay(day).length > 0)
+                    .map((day) => {
+                      const dayAppointments = getAppointmentsForDay(day);
+                      
+                      return (
+                        <div key={day.toISOString()} className="space-y-3">
                         <h3 className={cn(
                           "text-lg font-semibold flex items-center",
                           isToday(day) && "text-primary"
