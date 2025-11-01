@@ -81,27 +81,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('🔄 Auth state changed:', event, session?.user?.id);
         
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-          console.log('🔑 User authenticated, setting supabase user and fetching profile...');
+          console.log('🔑 User authenticated, fetching profile...');
           setSupabaseUser(session.user);
-          
-          // Add timeout to prevent infinite loading
-          const timeoutId = setTimeout(() => {
-            console.warn('⏰ Profile fetch timeout, using fallback');
-            createFallbackUser(session.user.id);
-            setIsLoading(false);
-          }, 5000); // 5 second timeout
-          
-          try {
-            await fetchUserProfile(session.user.id);
-            clearTimeout(timeoutId);
-          } catch (error) {
-            console.error('❌ Failed to fetch user profile:', error);
-            clearTimeout(timeoutId);
-            await createFallbackUser(session.user.id);
-          } finally {
-            clearTimeout(timeoutId);
-            setIsLoading(false);
-          }
+          await fetchUserProfile(session.user.id);
+          setIsLoading(false);
         } else if (event === 'SIGNED_OUT' || !session) {
           console.log('👋 User signed out, clearing state...');
           setSupabaseUser(null);
@@ -125,7 +108,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🔍 Fetching user profile for:', userId);
       
-      // Use maybeSingle to avoid errors if user doesn't exist
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -136,8 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
-        console.log('🔄 Creating fallback user profile due to error...');
-        await createFallbackUser(userId);
+        toast.error('Failed to load user profile');
         return;
       }
 
@@ -147,72 +128,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      if (data) {
-        console.log('✅ User profile found:', data);
-        const userProfile: User = {
-          id: data.id,
-          email: data.email || '',
-          name: data.name || '',
-          role: (data.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
-          specialty: data.specialty,
-          care_coins_balance: data.care_coins_balance || 0,
-          organization: data.organization,
-          online_status: data.online_status,
-          last_seen: data.last_seen,
-          created_at: data.created_at,
-          updated_at: data.updated_at
-        };
-        console.log('🚀 Setting user profile:', userProfile);
-        setUser(userProfile);
-        console.log('✨ User profile set successfully');
-      } else {
-        console.log('⚠️ No data returned, creating fallback user...');
-        await createFallbackUser(userId);
-      }
+      console.log('✅ User profile found:', data);
+      const userProfile: User = {
+        id: data.id,
+        email: data.email || '',
+        name: data.name || '',
+        role: (data.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
+        specialty: data.specialty,
+        care_coins_balance: data.care_coins_balance || 0,
+        organization: data.organization,
+        online_status: data.online_status,
+        last_seen: data.last_seen,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+      console.log('🚀 Setting user profile:', userProfile);
+      setUser(userProfile);
     } catch (error) {
       console.error('💥 Error in fetchUserProfile:', error);
-      // Always create fallback user to prevent loading freeze
-      await createFallbackUser(userId);
+      toast.error('Authentication error');
     }
   };
 
-  const createFallbackUser = async (userId: string) => {
-    try {
-      console.log('🔧 Creating fallback user for:', userId);
-      const { data: authUser } = await supabase.auth.getUser();
-      if (authUser.user) {
-        console.log('📝 Creating fallback user profile from auth data');
-        const basicUser: User = {
-          id: authUser.user.id,
-          email: authUser.user.email || '',
-          name: authUser.user.user_metadata?.name || authUser.user.email || 'User',
-          role: (authUser.user.user_metadata?.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
-          care_coins_balance: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        console.log('🎯 Setting fallback user:', basicUser);
-        setUser(basicUser);
-        console.log('✅ Fallback user set successfully');
-      } else {
-        console.error('❌ No auth user found for fallback');
-      }
-    } catch (error) {
-      console.error('💥 Error creating fallback user:', error);
-      // Even if this fails, create a minimal user to prevent freeze
-      const minimalUser: User = {
-        id: userId,
-        email: 'user@example.com',
-        name: 'User',
-        role: 'doctor',
-        care_coins_balance: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      console.log('🆘 Setting minimal user to prevent freeze:', minimalUser);
-      setUser(minimalUser);
-    }
-  };
 
   const createUserProfile = async (userId: string) => {
     try {
@@ -232,18 +169,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error creating user profile:', error);
-        // Fallback to creating user from auth data
-        await createFallbackUser(userId);
+        toast.error('Failed to create user profile');
         return;
       }
 
       console.log('User profile created successfully, fetching...');
-      // Fetch the newly created profile
       await fetchUserProfile(userId);
     } catch (error) {
       console.error('Error in createUserProfile:', error);
-      // Always fallback to prevent freeze
-      await createFallbackUser(userId);
+      toast.error('Failed to initialize user account');
     }
   };
 
