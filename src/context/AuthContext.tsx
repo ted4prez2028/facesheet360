@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
         console.log('🔄 Auth state changed:', event, session?.user?.id);
@@ -71,8 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           console.log('🔑 User authenticated, fetching profile...');
           setSupabaseUser(session.user);
-          await fetchUserProfile(session.user.id);
-          setIsLoading(false);
+          
+          // Defer profile fetch to avoid deadlock
+          setTimeout(async () => {
+            await fetchUserProfile(session.user.id);
+            setIsLoading(false);
+          }, 0);
         } else if (event === 'SIGNED_OUT' || !session) {
           console.log('👋 User signed out, clearing state...');
           setSupabaseUser(null);
@@ -81,7 +85,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 Token refreshed...');
           setSupabaseUser(session.user);
-          // Don't refetch user profile on token refresh to avoid rate limiting
         }
       }
     );
