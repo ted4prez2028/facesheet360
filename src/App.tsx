@@ -9,7 +9,6 @@ import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import { ErrorBoundary } from '@/components/security/ErrorBoundary';
 import { SessionTimeout } from '@/components/security/SessionTimeout';
 import Index from './pages/Index';
-import LandingPage from './pages/LandingPage';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
 import PostPaymentAuth from './pages/PostPaymentAuth';
@@ -23,7 +22,6 @@ import PharmacistDashboard from './pages/PharmacistDashboard';
 import PatientManagement from './pages/PatientManagement';
 import { Toaster } from "@/components/ui/toaster"
 import ProfilePage from './pages/ProfilePage';
-import PatientEHRInterface from './pages/PatientEHRInterface';
 import { CommunicationProvider } from '@/context/communication/CommunicationContext';
 import NotFound from './pages/NotFound';
 
@@ -73,7 +71,7 @@ function App() {
                   </RequireAuth>
                 } />
                 <Route path="/landing" element={<Index />} />
-                <Route path="/login" element={<LandingPage />} />
+                <Route path="/login" element={<Index />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
                 <Route path="/post-payment-auth" element={<PostPaymentAuth />} />
@@ -108,30 +106,6 @@ function App() {
                       <CommunicationProvider>
                         <DashboardLayout>
                           <PatientDetails />
-                        </DashboardLayout>
-                      </CommunicationProvider>
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/patients/:id/detail"
-                  element={
-                    <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <PatientEHRInterface />
-                        </DashboardLayout>
-                      </CommunicationProvider>
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/patients/:id/wound-care"
-                  element={
-                    <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <WoundCare />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>

@@ -30,37 +30,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
+    // Get initial session with proper error handling
     const getInitialSession = async () => {
       try {
-        // Add timeout protection
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session fetch timeout')), 5000);
-        });
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        const sessionPromise = supabase.auth.getSession();
-        
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        if (!mounted) return;
         
         if (error) {
           console.error('Error getting session:', error);
-          if (mounted) {
-            setIsLoading(false);
-          }
+          setIsLoading(false);
           return;
         }
         
-        if (session?.user && mounted) {
+        if (session?.user) {
           setSupabaseUser(session.user);
           await fetchUserProfile(session.user.id);
-        } 
-        
-        if (mounted) {
-          setIsLoading(false);
         }
+        
+        setIsLoading(false);
       } catch (error) {
         console.error('Error getting initial session:', error);
         if (mounted) {

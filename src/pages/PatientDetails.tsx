@@ -13,6 +13,9 @@ import MedicalDiagnosesTab from '@/components/patientview/MedicalDiagnosesTab';
 import AllergiesTab from '@/components/patientview/AllergiesTab';
 import WoundCareTab from '@/components/patientview/WoundCareTab';
 import ImmunizationsTab from '@/components/patientview/ImmunizationsTab';
+import { PointClickCareEHR } from '@/components/ehr/PointClickCareEHR';
+import VitalsTab from '@/components/patientview/VitalsTab';
+import { Button } from '@/components/ui/button';
 
 const PatientDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,17 +47,25 @@ const PatientDetails = () => {
   return (
     <div className="container mx-auto px-4 py-8">
         <PatientHeader patient={patient} calculateAge={calculateAge} />
-        <Tabs defaultValue="profile" className="mt-6">
-          <TabsList>
+        <Tabs defaultValue="overview" className="mt-6">
+          <TabsList className="w-full justify-start overflow-x-auto">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="vitals">Vitals</TabsTrigger>
             <TabsTrigger value="medical-diagnoses">Medical Diagnoses</TabsTrigger>
             <TabsTrigger value="allergies">Allergies</TabsTrigger>
             <TabsTrigger value="wound-care">Wound Care</TabsTrigger>
             <TabsTrigger value="immunizations">Immunizations</TabsTrigger>
           </TabsList>
           
+          <TabsContent value="overview">
+            <PointClickCareEHR patientId={patient.id} />
+          </TabsContent>
           <TabsContent value="profile">
             <ProfileTab patientId={patient.id} />
+          </TabsContent>
+          <TabsContent value="vitals">
+            <VitalsTab patientId={patient.id} />
           </TabsContent>
           <TabsContent value="medical-diagnoses">
             <MedicalDiagnosesTab patientId={patient.id} />

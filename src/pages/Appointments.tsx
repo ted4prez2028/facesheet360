@@ -307,9 +307,9 @@ const Appointments = () => {
               <CardContent className="p-6">
                 <div className="space-y-6">
                   {days
-                    .filter(day => getAppointmentsForDay(day).length > 0)
                     .map((day) => {
                       const dayAppointments = getAppointmentsForDay(day);
+                      if (dayAppointments.length === 0) return null;
                       
                       return (
                         <div key={day.toISOString()} className="space-y-3">
