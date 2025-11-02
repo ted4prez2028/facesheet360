@@ -19,7 +19,7 @@ const WoundCareDashboard = () => {
   ) || [];
 
   const handlePatientSelect = (patientId: string) => {
-    navigate(`/patients/${patientId}/wound-care`);
+    navigate(`/patients/${patientId}?tab=wound-care`);
   };
 
   if (isLoading) {
