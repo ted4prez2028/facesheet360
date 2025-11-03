@@ -28,6 +28,7 @@ import {
   Zap,
   Wallet,
   Utensils,
+  Shield as ShieldIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -101,6 +102,7 @@ export function AppSidebar() {
       group: "Administration",
       items: [
         { title: "Food", icon: Utensils, path: "/food" },
+        { title: "Audit Logs", icon: ShieldIcon, path: "/audit-logs" },
         { title: "Settings", icon: Settings, path: "/settings" },
         { title: "Profile", icon: Users, path: "/profile" },
       ],

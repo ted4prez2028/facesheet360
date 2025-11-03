@@ -15,6 +15,8 @@ import WoundCareTab from '@/components/patientview/WoundCareTab';
 import ImmunizationsTab from '@/components/patientview/ImmunizationsTab';
 import { PointClickCareEHR } from '@/components/ehr/PointClickCareEHR';
 import VitalsTab from '@/components/patientview/VitalsTab';
+import { SOAPNoteTab } from '@/components/patientview/SOAPNoteTab';
+import { useAuditLog } from '@/hooks/useAuditLog';
 import { Button } from '@/components/ui/button';
 
 const PatientDetails = () => {
@@ -23,12 +25,20 @@ const PatientDetails = () => {
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
   const { patient, isLoading } = usePatient(id || '');
+  const { logEvent } = useAuditLog();
 
   useEffect(() => {
     if (tabFromUrl) {
       setActiveTab(tabFromUrl);
     }
   }, [tabFromUrl]);
+
+  useEffect(() => {
+    // Log patient view access for HIPAA audit
+    if (id) {
+      logEvent('patient_view', id);
+    }
+  }, [id, logEvent]);
 
   if (isLoading) {
     return (
@@ -61,6 +71,7 @@ const PatientDetails = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="vitals">Vitals</TabsTrigger>
+            <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
             <TabsTrigger value="medical-diagnoses">Medical Diagnoses</TabsTrigger>
             <TabsTrigger value="allergies">Allergies</TabsTrigger>
             <TabsTrigger value="wound-care">Wound Care & AI</TabsTrigger>
@@ -76,6 +87,11 @@ const PatientDetails = () => {
           <TabsContent value="vitals">
             <VitalsTab patientId={patient.id} />
           </TabsContent>
+
+          <TabsContent value="soap-notes">
+            <SOAPNoteTab patientId={patient.id} />
+          </TabsContent>
+          
           <TabsContent value="medical-diagnoses">
             <MedicalDiagnosesTab patientId={patient.id} />
           </TabsContent>

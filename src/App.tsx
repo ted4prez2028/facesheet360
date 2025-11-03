@@ -17,6 +17,7 @@ import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
 import WoundCare from './pages/WoundCare';
 import WoundCareDashboard from './pages/WoundCareDashboard';
+import AuditLogs from './pages/AuditLogs';
 import Subscription from './pages/Subscription';
 import PharmacistDashboard from './pages/PharmacistDashboard';
 import PatientManagement from './pages/PatientManagement';
@@ -262,6 +263,18 @@ function App() {
                        <CommunicationProvider>
                          <DashboardLayout>
                            <Communication />
+                         </DashboardLayout>
+                       </CommunicationProvider>
+                     </RequireAuth>
+                   }
+                 />
+                 <Route
+                   path="/audit-logs"
+                   element={
+                     <RequireAuth>
+                       <CommunicationProvider>
+                         <DashboardLayout>
+                           <AuditLogs />
                          </DashboardLayout>
                        </CommunicationProvider>
                      </RequireAuth>
