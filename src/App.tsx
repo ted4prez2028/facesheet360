@@ -32,6 +32,7 @@ import Analytics from './pages/Analytics';
 import WalletDashboard from './pages/WalletDashboard';
 import DoctorAccounts from './pages/DoctorAccounts';
 import Settings from './pages/Settings';
+import EHRImport from './pages/EHRImport';
 import { FoodPage } from './pages/Food';
 import TaxiPage from './pages/TaxiPage';
 import MyChartPage from './pages/MyChart';
@@ -275,6 +276,18 @@ function App() {
                        <CommunicationProvider>
                          <DashboardLayout>
                            <AuditLogs />
+                         </DashboardLayout>
+                       </CommunicationProvider>
+                     </RequireAuth>
+                   }
+                 />
+                 <Route
+                   path="/ehr-import"
+                   element={
+                     <RequireAuth>
+                       <CommunicationProvider>
+                         <DashboardLayout>
+                           <EHRImport />
                          </DashboardLayout>
                        </CommunicationProvider>
                      </RequireAuth>
