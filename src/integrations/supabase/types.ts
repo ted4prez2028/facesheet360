@@ -187,7 +187,7 @@ export type Database = {
           created_at: string
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           patient_id: string | null
           resource_id: string | null
           timestamp: string
@@ -199,7 +199,7 @@ export type Database = {
           created_at?: string
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           patient_id?: string | null
           resource_id?: string | null
           timestamp?: string
@@ -211,7 +211,7 @@ export type Database = {
           created_at?: string
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           patient_id?: string | null
           resource_id?: string | null
           timestamp?: string
@@ -233,7 +233,7 @@ export type Database = {
           created_at: string
           failure_reason: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           success: boolean
           user_agent: string | null
           user_email: string | null
@@ -242,7 +242,7 @@ export type Database = {
           created_at?: string
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           success?: boolean
           user_agent?: string | null
           user_email?: string | null
@@ -251,7 +251,7 @@ export type Database = {
           created_at?: string
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           success?: boolean
           user_agent?: string | null
           user_email?: string | null
@@ -1572,6 +1572,7 @@ export type Database = {
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relation: string | null
+          epic_id: string | null
           facial_data: string | null
           first_name: string
           gender: string
@@ -1584,6 +1585,7 @@ export type Database = {
           medications: string | null
           notes: string | null
           phone: string | null
+          pointclickcare_id: string | null
           room_number: string | null
           updated_at: string
           user_id: string | null
@@ -1597,6 +1599,7 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
+          epic_id?: string | null
           facial_data?: string | null
           first_name: string
           gender: string
@@ -1609,6 +1612,7 @@ export type Database = {
           medications?: string | null
           notes?: string | null
           phone?: string | null
+          pointclickcare_id?: string | null
           room_number?: string | null
           updated_at?: string
           user_id?: string | null
@@ -1622,6 +1626,7 @@ export type Database = {
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
+          epic_id?: string | null
           facial_data?: string | null
           first_name?: string
           gender?: string
@@ -1634,6 +1639,7 @@ export type Database = {
           medications?: string | null
           notes?: string | null
           phone?: string | null
+          pointclickcare_id?: string | null
           room_number?: string | null
           updated_at?: string
           user_id?: string | null
@@ -1955,7 +1961,7 @@ export type Database = {
           id: string
           last_updated: string
           metric_date: string
-          system_uptime: unknown | null
+          system_uptime: unknown
           total_patients: number | null
           total_users: number | null
         }
@@ -1966,7 +1972,7 @@ export type Database = {
           id?: string
           last_updated?: string
           metric_date: string
-          system_uptime?: unknown | null
+          system_uptime?: unknown
           total_patients?: number | null
           total_users?: number | null
         }
@@ -1977,7 +1983,7 @@ export type Database = {
           id?: string
           last_updated?: string
           metric_date?: string
-          system_uptime?: unknown | null
+          system_uptime?: unknown
           total_patients?: number | null
           total_users?: number | null
         }
@@ -2096,6 +2102,10 @@ export type Database = {
           remaining_credits: number | null
           role: string | null
           specialty: string | null
+          subscription_end_date: string | null
+          subscription_plan: string | null
+          subscription_start_date: string | null
+          subscription_status: string | null
           total_credits: number | null
           updated_at: string
           user_id: string
@@ -2114,6 +2124,10 @@ export type Database = {
           remaining_credits?: number | null
           role?: string | null
           specialty?: string | null
+          subscription_end_date?: string | null
+          subscription_plan?: string | null
+          subscription_start_date?: string | null
+          subscription_status?: string | null
           total_credits?: number | null
           updated_at?: string
           user_id: string
@@ -2132,6 +2146,10 @@ export type Database = {
           remaining_credits?: number | null
           role?: string | null
           specialty?: string | null
+          subscription_end_date?: string | null
+          subscription_plan?: string | null
+          subscription_start_date?: string | null
+          subscription_status?: string | null
           total_credits?: number | null
           updated_at?: string
           user_id?: string
@@ -2255,10 +2273,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      analyze_tables: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      analyze_tables: { Args: never; Returns: boolean }
       assess_health_risks: {
         Args: { assessment_data: Json; patient_id_param: string }
         Returns: Json
@@ -2316,10 +2331,7 @@ export type Database = {
           scheduled: number
         }[]
       }
-      get_auth_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_auth_user_id: { Args: never; Returns: string }
       get_care_coins_analytics: {
         Args: { timeframe_param: string; user_id_param: string }
         Returns: {
@@ -2329,7 +2341,7 @@ export type Database = {
         }[]
       }
       get_common_diagnoses: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           name: string
           value: number
@@ -2340,7 +2352,7 @@ export type Database = {
         Returns: Json
       }
       get_patient_demographics: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           name: string
           value: number
@@ -2356,7 +2368,7 @@ export type Database = {
         }[]
       }
       get_provider_performance: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           "Dr. Brown": number
           "Dr. Johnson": number
@@ -2372,22 +2384,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_current_user: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      is_own_profile: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      user_can_access_patients: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_current_user: { Args: { user_id: string }; Returns: boolean }
+      is_own_profile: { Args: { user_id: string }; Returns: boolean }
+      user_can_access_patients: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role:

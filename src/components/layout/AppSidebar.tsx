@@ -24,6 +24,7 @@ import {
   Shield,
   Briefcase,
   Package,
+  Database,
   DollarSign,
   Zap,
   Wallet,
@@ -102,6 +103,7 @@ export function AppSidebar() {
       group: "Administration",
       items: [
         { title: "Food", icon: Utensils, path: "/food" },
+        { title: "EHR Import", icon: Database, path: "/ehr-import" },
         { title: "Audit Logs", icon: ShieldIcon, path: "/audit-logs" },
         { title: "Settings", icon: Settings, path: "/settings" },
         { title: "Profile", icon: Users, path: "/profile" },
