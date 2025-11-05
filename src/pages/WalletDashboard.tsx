@@ -4,6 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { CareCoinsDashboard } from '@/components/wallet/CareCoinsDashboard';
+import { TokenDeployer } from '@/components/wallet/TokenDeployer';
+import { CareCoinOperations } from '@/components/wallet/CareCoinOperations';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const WalletDashboard = () => {
   const { isAuthenticated } = useAuth();
@@ -23,10 +26,28 @@ const WalletDashboard = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">CareCoin Wallet</h1>
-        <p className="text-muted-foreground">Manage your CareCoins and transactions</p>
+        <p className="text-muted-foreground">Real cryptocurrency for healthcare rewards</p>
       </div>
       
-      <CareCoinsDashboard />
+      <Tabs defaultValue="dashboard" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="deploy">Deploy Token</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard">
+          <CareCoinsDashboard />
+        </TabsContent>
+
+        <TabsContent value="deploy">
+          <TokenDeployer />
+        </TabsContent>
+
+        <TabsContent value="operations">
+          <CareCoinOperations />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

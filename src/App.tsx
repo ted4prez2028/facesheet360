@@ -18,6 +18,7 @@ import PatientDetails from './pages/PatientDetails';
 import WoundCare from './pages/WoundCare';
 import WoundCareDashboard from './pages/WoundCareDashboard';
 import AuditLogs from './pages/AuditLogs';
+import SecurityCompliance from './pages/SecurityCompliance';
 import Subscription from './pages/Subscription';
 import PharmacistDashboard from './pages/PharmacistDashboard';
 import PatientManagement from './pages/PatientManagement';
@@ -233,17 +234,29 @@ function App() {
                     </RequireAuth>
                   }
                 />
-                <Route
-                  path="/settings"
-                  element={
-                    <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <Settings />
-                        </DashboardLayout>
-                      </CommunicationProvider>
-                    </RequireAuth>
-                  }
+                 <Route
+                   path="/settings"
+                   element={
+                     <RequireAuth>
+                       <CommunicationProvider>
+                         <DashboardLayout>
+                           <Settings />
+                         </DashboardLayout>
+                       </CommunicationProvider>
+                     </RequireAuth>
+                   }
+                 />
+                 <Route
+                   path="/security"
+                   element={
+                     <RequireAuth>
+                       <CommunicationProvider>
+                         <DashboardLayout>
+                           <SecurityCompliance />
+                         </DashboardLayout>
+                       </CommunicationProvider>
+                     </RequireAuth>
+                   }
                  />
                  <Route
                    path="/taxi"

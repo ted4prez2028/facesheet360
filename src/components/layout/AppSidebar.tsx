@@ -30,6 +30,7 @@ import {
   Wallet,
   Utensils,
   Shield as ShieldIcon,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -105,6 +106,7 @@ export function AppSidebar() {
         { title: "Food", icon: Utensils, path: "/food" },
         { title: "EHR Import", icon: Database, path: "/ehr-import" },
         { title: "Audit Logs", icon: ShieldIcon, path: "/audit-logs" },
+        { title: "Security & Compliance", icon: Lock, path: "/security" },
         { title: "Settings", icon: Settings, path: "/settings" },
         { title: "Profile", icon: Users, path: "/profile" },
       ],
