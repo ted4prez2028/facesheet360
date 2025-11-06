@@ -108,7 +108,7 @@ function App() {
                     <RequireAuth>
                       <CommunicationProvider>
                         <DashboardLayout>
-                          <PatientDetails />
+                          <PatientManagement />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>
