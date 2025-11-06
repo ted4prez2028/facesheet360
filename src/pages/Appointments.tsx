@@ -61,20 +61,9 @@ const Appointments = () => {
 
   const handleCreateAppointment = (data: Appointment) => {
     createAppointment.mutate(data, {
-      onSuccess: (newAppointment) => {
+      onSuccess: () => {
         setShowNewAppointmentDialog(false);
-        if (newAppointment?.id) {
-          const formatted = {
-            id: String(newAppointment.id),
-            patientName: `${newAppointment.patients?.first_name ?? ''} ${newAppointment.patients?.last_name ?? ''}`.trim() || 'Unknown Patient',
-            patientId: newAppointment.patient_id,
-            date: new Date(newAppointment.appointment_date),
-            type: newAppointment.notes?.split(':')[0] || 'Appointment',
-            duration: 30,
-            notes: newAppointment.notes || ''
-          };
-          setAppointmentsData(prev => [...prev, formatted]);
-        }
+        // Query will automatically refetch and update appointmentsData via useEffect
       }
     });
   };
