@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sheet, 
   SheetContent, 
@@ -16,7 +16,8 @@ import {
   X,
   Minimize2,
   Building2,
-  Filter
+  Filter,
+  UserPlus
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -26,8 +27,10 @@ import { useLocation } from 'react-router-dom';
 import { useCommunication } from '@/hooks/useCommunication';
 import { useAuth } from '@/hooks/useAuth';
 import ChatWindow from './ChatWindow';
+import GroupChatWindow from './GroupChatWindow';
 import VideoCallInterface from './VideoCallInterface';
 import MessageSearch from './MessageSearch';
+import CreateGroupChatDialog from './CreateGroupChatDialog';
 import {
   Select,
   SelectContent,
@@ -35,12 +38,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatSession {
   id: string;
   contactId: string;
   contactName: string;
   isMinimized: boolean;
+  isGroup?: boolean;
+  groupId?: string;
+}
+
+interface GroupChat {
+  id: string;
+  name: string;
+  participant_count: number;
 }
 
 const CommunicationHub = () => {
@@ -50,6 +62,8 @@ const CommunicationHub = () => {
   const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
   const [organizationFilter, setOrganizationFilter] = useState<string>('all');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
   const location = useLocation();
   const { user } = useAuth();
   const { users, conversations, loading, error, fetchUsers } = useCommunication();
@@ -60,6 +74,40 @@ const CommunicationHub = () => {
   if (isHomePage) {
     return null;
   }
+
+  // Load group chats
+  useEffect(() => {
+    const loadGroupChats = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('group_conversations')
+          .select(`
+            id,
+            name,
+            group_participants(count)
+          `)
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        const formatted = data?.map(g => ({
+          id: g.id,
+          name: g.name,
+          participant_count: (g.group_participants as any[])?.[0]?.count || 0
+        })) || [];
+
+        setGroupChats(formatted);
+      } catch (error) {
+        console.error('Error loading group chats:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadGroupChats();
+    }
+  }, [isOpen, user?.id]);
 
   // Fetch data when modal opens
   const handleToggleContacts = () => {
@@ -91,11 +139,11 @@ const CommunicationHub = () => {
 
   const openChat = (contactId: string, contactName: string, contactOrg?: string) => {
     // Check if chat is already open
-    const existingChat = chatSessions.find(chat => chat.contactId === contactId);
+    const existingChat = chatSessions.find(chat => chat.contactId === contactId && !chat.isGroup);
     if (existingChat) {
       // Un-minimize if it was minimized
       setChatSessions(prev => prev.map(chat => 
-        chat.contactId === contactId 
+        chat.contactId === contactId && !chat.isGroup
           ? { ...chat, isMinimized: false }
           : chat
       ));
@@ -107,11 +155,38 @@ const CommunicationHub = () => {
       id: `chat-${contactId}-${Date.now()}`,
       contactId,
       contactName,
-      isMinimized: false
+      isMinimized: false,
+      isGroup: false
     };
 
     setChatSessions(prev => [...prev, newChat]);
     setIsOpen(false); // Close contacts list when opening chat
+  };
+
+  const openGroupChat = (groupId: string, groupName: string) => {
+    // Check if group chat is already open
+    const existingChat = chatSessions.find(chat => chat.groupId === groupId);
+    if (existingChat) {
+      setChatSessions(prev => prev.map(chat => 
+        chat.groupId === groupId
+          ? { ...chat, isMinimized: false }
+          : chat
+      ));
+      return;
+    }
+
+    // Create new group chat session
+    const newChat: ChatSession = {
+      id: `group-${groupId}-${Date.now()}`,
+      contactId: groupId,
+      contactName: groupName,
+      isMinimized: false,
+      isGroup: true,
+      groupId
+    };
+
+    setChatSessions(prev => [...prev, newChat]);
+    setIsOpen(false);
   };
 
   const closeChat = (chatId: string) => {
@@ -248,6 +323,16 @@ const CommunicationHub = () => {
           </SheetHeader>
           
           <div className="mt-6 space-y-4">
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setIsCreateGroupOpen(true)}
+                className="flex-1 gap-2"
+                size="sm"
+              >
+                <UserPlus className="h-4 w-4" />
+                New Group Chat
+              </Button>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -277,7 +362,41 @@ const CommunicationHub = () => {
               </Select>
             </div>
             
-            <div className="h-[calc(100vh-240px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-340px)] overflow-y-auto pr-2">
+              {/* Group Chats Section */}
+              {groupChats.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium mb-2 text-muted-foreground">Group Chats</h3>
+                  <div className="space-y-2">
+                    {groupChats.map(group => (
+                      <Card
+                        key={group.id}
+                        className="cursor-pointer transition-all hover:shadow-md border-l-4 border-l-primary/20 hover:border-l-primary"
+                        onClick={() => openGroupChat(group.id, group.name)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 bg-primary text-primary-foreground">
+                              <AvatarFallback>
+                                <Users className="h-5 w-5" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">{group.name}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                {group.participant_count} members
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  <div className="my-4 border-t" />
+                </div>
+              )}
+
+              {/* Direct Messages Section */}
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -422,22 +541,38 @@ const CommunicationHub = () => {
           style={{
             position: 'fixed',
             bottom: '1rem',
-            right: `${140 + (index * 330)}px`,
+            right: `${140 + (index * 410)}px`,
             zIndex: 35
           }}
         >
-          <ChatWindow
-            contactId={chat.contactId}
-            contactName={chat.contactName}
-            contactOrganization={users.find(u => u.id === chat.contactId)?.organization}
-            onClose={() => closeChat(chat.id)}
-            onMinimize={() => minimizeChat(chat.id)}
-            onStartCall={() => handleStartCall(chat.contactId, chat.contactName)}
-            onStartVideoCall={() => handleStartVideoCall(chat.contactId, chat.contactName)}
-          />
+          {chat.isGroup ? (
+            <GroupChatWindow
+              groupId={chat.groupId!}
+              groupName={chat.contactName}
+              onClose={() => closeChat(chat.id)}
+              onMinimize={() => minimizeChat(chat.id)}
+            />
+          ) : (
+            <ChatWindow
+              contactId={chat.contactId}
+              contactName={chat.contactName}
+              contactOrganization={users.find(u => u.id === chat.contactId)?.organization}
+              onClose={() => closeChat(chat.id)}
+              onMinimize={() => minimizeChat(chat.id)}
+              onStartCall={() => handleStartCall(chat.contactId, chat.contactName)}
+              onStartVideoCall={() => handleStartVideoCall(chat.contactId, chat.contactName)}
+            />
+          )}
         </div>
       ))}
       
+      {/* Create Group Dialog */}
+      <CreateGroupChatDialog
+        isOpen={isCreateGroupOpen}
+        onClose={() => setIsCreateGroupOpen(false)}
+        onGroupCreated={openGroupChat}
+      />
+
       {/* Video Call Interface */}
       {activeVideoCall && (
         <VideoCallInterface
