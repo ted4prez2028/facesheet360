@@ -19,7 +19,7 @@ export interface User {
 
 export interface Patient {
   id: string;
-  name: string; // Primary field from database
+  name?: string; // Primary field from database (optional for backward compatibility)
   first_name?: string; // Computed from name for compatibility
   last_name?: string; // Computed from name for compatibility
   age?: number;
