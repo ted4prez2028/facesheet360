@@ -1,52 +1,70 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { useUser, useClerk } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
 export interface AuthContextType {
-  user: User | null;
+  user: SupabaseUser | null;
+  session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, userData?: any) => Promise<void>;
   signOut: () => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
-  updateUserProfile: (updates: Partial<User>) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
   authError: string | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isSignedIn, user: clerkUser, isLoaded } = useUser();
-  const { signOut: clerkSignOut } = useClerk();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Sync Clerk user with local profile
   useEffect(() => {
-    if (!isLoaded) return;
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('🔐 Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+        
+        // Sync profile when user signs in
+        if (session?.user && event === 'SIGNED_IN') {
+          setTimeout(() => {
+            syncUserProfile(session.user);
+          }, 0);
+        }
+      }
+    );
 
-    console.log('🔐 Clerk auth state:', { isSignedIn, userId: clerkUser?.id });
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔍 Initial session check:', session?.user?.id);
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+      
+      // Sync profile if user exists
+      if (session?.user) {
+        setTimeout(() => {
+          syncUserProfile(session.user);
+        }, 0);
+      }
+    });
 
-    if (isSignedIn && clerkUser) {
-      fetchOrCreateProfile(clerkUser.id, clerkUser);
-    } else {
-      setUser(null);
-    }
-  }, [isSignedIn, clerkUser, isLoaded]);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
-  const fetchOrCreateProfile = async (clerkId: string, clerkUser: any) => {
+  const syncUserProfile = async (user: SupabaseUser) => {
     try {
-      console.log('🔍 Fetching profile for Clerk user:', clerkId);
-
-      const { data, error } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('clerk_user_id', clerkId)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -54,108 +72,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      if (!data) {
-        console.log('🆕 Creating new profile for Clerk user');
-        const { data: newProfile, error: insertError } = await supabase
+      if (!profile) {
+        console.log('🆕 Creating new profile for user');
+        const { error: insertError } = await supabase
           .from('profiles')
           .insert({
-            clerk_user_id: clerkId,
-            email: clerkUser.primaryEmailAddress?.emailAddress || '',
-            name: clerkUser.fullName || clerkUser.firstName || 'User',
-          })
-          .select()
-          .single();
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.name || '',
+          });
 
         if (insertError) {
           console.error('❌ Error creating profile:', insertError);
-          return;
         }
-
-        setUser({
-          id: newProfile.id,
-          email: newProfile.email,
-          name: newProfile.name || '',
-          role: newProfile.role || 'patient',
-          care_coins_balance: 0,
-        });
-      } else {
-        setUser({
-          id: data.id,
-          email: data.email,
-          name: data.name || '',
-          role: data.role || 'patient',
-          care_coins_balance: 0,
-        });
       }
     } catch (error) {
-      console.error('💥 Error in fetchOrCreateProfile:', error);
+      console.error('💥 Error syncing profile:', error);
     }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    setAuthError('Please use the /auth page to sign in with Clerk');
-    toast.error('Please use the /auth page to sign in');
-    throw new Error('Use Clerk authentication at /auth');
-  };
-
-  const signUp = async (email: string, password: string, userData?: any) => {
-    setAuthError('Please use the /auth page to sign up with Clerk');
-    toast.error('Please use the /auth page to sign up');
-    throw new Error('Use Clerk authentication at /auth');
   };
 
   const signOut = async () => {
     try {
-      await clerkSignOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       setUser(null);
+      setSession(null);
       toast.success('Signed out successfully');
     } catch (error: any) {
+      console.error('❌ Error signing out:', error);
+      setAuthError(error.message);
       toast.error(error.message || 'Failed to sign out');
       throw error;
     }
   };
 
-  const logout = signOut; // Alias for signOut
-  const login = signIn; // Alias for signIn
-
-  const updateProfile = async (updates: Partial<User>) => {
-    if (!user) throw new Error('No user logged in');
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      setUser(prev => prev ? { ...prev, ...updates } : null);
-      toast.success('Profile updated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update profile');
-      throw error;
-    }
-  };
-
-  const updateUserProfile = updateProfile; // Alias for updateProfile
+  const logout = signOut; // Alias for compatibility
 
   const value = {
     user,
-    isAuthenticated: isSignedIn && !!user,
-    isLoading: !isLoaded,
-    signIn,
-    signUp,
+    session,
+    isAuthenticated: !!session,
+    isLoading,
     signOut,
-    logout: signOut,
-    updateProfile,
-    updateUserProfile: updateProfile,
-    login: signIn,
-    authError
+    logout,
+    authError,
   };
 
   console.log('🔐 AuthContext state:', { 
-    isAuthenticated: isSignedIn && !!user, 
-    isLoading: !isLoaded, 
+    isAuthenticated: !!session, 
+    isLoading, 
     hasUser: !!user, 
     userId: user?.id 
   });
@@ -165,4 +130,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 // Temporary export to maintain compatibility while we migrate imports
 export { useAuth } from '@/hooks/useAuth';
-
