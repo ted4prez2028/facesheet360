@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from '@/integrations/supabase/client';
@@ -59,6 +58,7 @@ export const useAppointmentsToday = () => {
       }));
     },
     enabled: !!user?.id,
+    retry: 1,
     staleTime: 5 * 60 * 1000 // 5 minutes
   });
 };
