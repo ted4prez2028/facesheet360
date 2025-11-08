@@ -77,19 +77,26 @@ serve(async (req) => {
 
     console.log('Analyzing pharmacy data with AI...');
 
-    // Call OpenAI for intelligent analysis
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a healthcare pharmacy AI analyst for an automated daily monitoring system. Analyze pharmacy data and identify urgent issues requiring immediate attention. Focus on:
+    // Helper function for retry with exponential backoff
+    const callOpenAIWithRetry = async (maxRetries = 3) => {
+      let lastError;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`OpenAI API call attempt ${attempt}/${maxRetries}`);
+          
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are a healthcare pharmacy AI analyst for an automated daily monitoring system. Analyze pharmacy data and identify urgent issues requiring immediate attention. Focus on:
 1. CRITICAL medication refill predictions (medications running low)
 2. URGENT adherence patterns (concerning drops in adherence)
 3. SAFETY alerts (potential risks to patients)
@@ -104,22 +111,63 @@ Return a JSON object with this structure:
   "costSavings": [{ "opportunity": "description", "estimatedSavings": "amount" }],
   "safetyAlerts": [{ "alert": "description", "priority": "high|medium|low", "action": "required action" }]
 }`
-          },
-          {
-            role: 'user',
-            content: `This is an automated daily analysis. Analyze this pharmacy data and identify urgent issues:\n\n${JSON.stringify(dataSummary, null, 2)}`
-          }
-        ],
-        max_tokens: 2000,
-        temperature: 0.7
-      })
-    });
+                },
+                {
+                  role: 'user',
+                  content: `This is an automated daily analysis. Analyze this pharmacy data and identify urgent issues:\n\n${JSON.stringify(dataSummary, null, 2)}`
+                }
+              ],
+              max_tokens: 2000,
+              temperature: 0.7
+            })
+          });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
-    }
+          if (response.ok) {
+            return response;
+          }
+
+          // Handle rate limiting specifically
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('retry-after');
+            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 2000;
+            
+            if (attempt < maxRetries) {
+              console.log(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              continue;
+            }
+            
+            lastError = new Error(`OpenAI rate limit exceeded after ${maxRetries} attempts. Your API key may need higher limits or wait for quota reset.`);
+            break;
+          }
+
+          // For other errors
+          const errorText = await response.text();
+          console.error(`OpenAI API error (attempt ${attempt}):`, response.status, errorText);
+          
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            continue;
+          }
+
+          lastError = new Error(`OpenAI API error: ${response.status}`);
+          break;
+
+        } catch (error) {
+          console.error(`API call attempt ${attempt} failed:`, error);
+          lastError = error;
+          
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            continue;
+          }
+        }
+      }
+      
+      throw lastError;
+    };
+
+    const response = await callOpenAIWithRetry();
 
     const aiResult = await response.json();
     const insights = JSON.parse(aiResult.choices[0].message.content);
@@ -235,11 +283,19 @@ Return a JSON object with this structure:
 
   } catch (error) {
     console.error('Error in daily-pharmacy-analysis:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isRateLimit = errorMessage.includes('Rate limit') || errorMessage.includes('429');
+    
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      success: false 
+      error: errorMessage,
+      success: false,
+      retryable: isRateLimit,
+      suggestion: isRateLimit 
+        ? 'OpenAI rate limit reached. The system will retry automatically on the next scheduled run.' 
+        : 'Analysis failed. Check function logs for details.'
     }), {
-      status: 500,
+      status: isRateLimit ? 429 : 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

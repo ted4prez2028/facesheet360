@@ -104,9 +104,21 @@ export const PredictiveInsightsTab: React.FC = () => {
       } else {
         throw new Error(data?.error || 'Failed to generate insights');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating insights:', error);
-      toast.error('Failed to generate AI insights');
+      
+      // Handle specific error types with user-friendly messages
+      if (error?.message?.includes('Rate limit') || error?.message?.includes('429')) {
+        toast.error('⏳ OpenAI rate limit reached. Please wait 2-3 minutes before trying again.', {
+          duration: 6000,
+        });
+      } else if (error?.message?.includes('API key')) {
+        toast.error('OpenAI API key issue. Please verify your API key is valid and has credits.', {
+          duration: 6000,
+        });
+      } else {
+        toast.error('Failed to generate AI insights. Please try again later.');
+      }
     } finally {
       setIsGenerating(false);
     }

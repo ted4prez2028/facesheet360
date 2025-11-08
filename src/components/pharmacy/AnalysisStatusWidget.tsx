@@ -64,10 +64,24 @@ export const AnalysisStatusWidget: React.FC = () => {
 
         toast.success(`Analysis complete! Generated ${data.analyticsStored} insights.`);
         loadLastAnalysis();
+      } else {
+        throw new Error(data?.error || 'Analysis failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running analysis:', error);
-      toast.error('Failed to run analysis');
+      
+      // Handle specific error types
+      if (error?.message?.includes('Rate limit') || error?.message?.includes('429')) {
+        toast.error('OpenAI rate limit exceeded. Please wait a few minutes and try again.', {
+          duration: 5000,
+        });
+      } else if (error?.message?.includes('OpenAI API key')) {
+        toast.error('OpenAI API configuration issue. Please check your API key.', {
+          duration: 5000,
+        });
+      } else {
+        toast.error('Failed to run analysis. Please try again later.');
+      }
     } finally {
       setIsRunning(false);
     }
