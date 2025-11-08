@@ -67,9 +67,10 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="light">
             <AuthProvider>
-              <SessionTimeout />
-              <UserPreferencesProvider>
-              <Routes>
+              <CommunicationProvider>
+                <SessionTimeout />
+                <UserPreferencesProvider>
+                <Routes>
                 <Route path="/" element={
                   <RequireAuth>
                     <Navigate to="/dashboard" replace />
@@ -84,11 +85,9 @@ function App() {
                   path="/dashboard"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <Dashboard />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <Dashboard />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -96,11 +95,9 @@ function App() {
                   path="/patients"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <PatientManagement />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <PatientManagement />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -108,11 +105,9 @@ function App() {
                   path="/patients/:id"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <PatientDetails />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <PatientDetails />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -120,11 +115,9 @@ function App() {
                   path="/wound-care"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <WoundCareDashboard />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <WoundCareDashboard />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -132,11 +125,9 @@ function App() {
                   path="/profile"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <ProfilePage />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <ProfilePage />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -144,11 +135,9 @@ function App() {
                   path="/subscription"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <Subscription />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <Subscription />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -156,11 +145,9 @@ function App() {
                   path="/pharmacy"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <PharmacistDashboard />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <PharmacistDashboard />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -168,11 +155,9 @@ function App() {
                   path="/appointments"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <Appointments />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <Appointments />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -180,11 +165,9 @@ function App() {
                   path="/analytics"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <Analytics />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <Analytics />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -192,11 +175,9 @@ function App() {
                   path="/wallet-dashboard"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <WalletDashboard />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <WalletDashboard />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -204,11 +185,9 @@ function App() {
                   path="/my-chart"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <MyChartPage />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <MyChartPage />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -216,11 +195,9 @@ function App() {
                   path="/doctor-accounts"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <DoctorAccounts />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <DoctorAccounts />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -228,11 +205,9 @@ function App() {
                   path="/food"
                   element={
                     <RequireAuth>
-                      <CommunicationProvider>
-                        <DashboardLayout>
-                          <FoodPage />
-                        </DashboardLayout>
-                      </CommunicationProvider>
+                      <DashboardLayout>
+                        <FoodPage />
+                      </DashboardLayout>
                     </RequireAuth>
                   }
                 />
@@ -240,11 +215,9 @@ function App() {
                    path="/settings"
                    element={
                      <RequireAuth>
-                       <CommunicationProvider>
-                         <DashboardLayout>
-                           <Settings />
-                         </DashboardLayout>
-                       </CommunicationProvider>
+                       <DashboardLayout>
+                         <Settings />
+                       </DashboardLayout>
                      </RequireAuth>
                    }
                  />
@@ -252,11 +225,9 @@ function App() {
                    path="/security"
                    element={
                      <RequireAuth>
-                       <CommunicationProvider>
-                         <DashboardLayout>
-                           <SecurityCompliance />
-                         </DashboardLayout>
-                       </CommunicationProvider>
+                       <DashboardLayout>
+                         <SecurityCompliance />
+                       </DashboardLayout>
                      </RequireAuth>
                    }
                  />
@@ -264,11 +235,9 @@ function App() {
                    path="/taxi"
                    element={
                      <RequireAuth>
-                       <CommunicationProvider>
-                         <DashboardLayout>
-                           <TaxiPage />
-                         </DashboardLayout>
-                       </CommunicationProvider>
+                       <DashboardLayout>
+                         <TaxiPage />
+                       </DashboardLayout>
                      </RequireAuth>
                    }
                  />
@@ -276,11 +245,9 @@ function App() {
                    path="/communication"
                    element={
                      <RequireAuth>
-                       <CommunicationProvider>
-                         <DashboardLayout>
-                           <Communication />
-                         </DashboardLayout>
-                       </CommunicationProvider>
+                       <DashboardLayout>
+                         <Communication />
+                       </DashboardLayout>
                      </RequireAuth>
                    }
                  />
@@ -288,11 +255,9 @@ function App() {
                    path="/audit-logs"
                    element={
                      <RequireAuth>
-                       <CommunicationProvider>
-                         <DashboardLayout>
-                           <AuditLogs />
-                         </DashboardLayout>
-                       </CommunicationProvider>
+                       <DashboardLayout>
+                         <AuditLogs />
+                       </DashboardLayout>
                      </RequireAuth>
                    }
                  />
@@ -300,11 +265,9 @@ function App() {
                     path="/ehr-import"
                     element={
                       <RequireAuth>
-                        <CommunicationProvider>
-                          <DashboardLayout>
-                            <EHRImport />
-                          </DashboardLayout>
-                        </CommunicationProvider>
+                        <DashboardLayout>
+                          <EHRImport />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -312,11 +275,9 @@ function App() {
                     path="/carecoins-history"
                     element={
                       <RequireAuth>
-                        <CommunicationProvider>
-                          <DashboardLayout>
-                            <CareCoinsHistory />
-                          </DashboardLayout>
-                        </CommunicationProvider>
+                        <DashboardLayout>
+                          <CareCoinsHistory />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
@@ -324,18 +285,17 @@ function App() {
                     path="/carecoins-analytics"
                     element={
                       <RequireAuth>
-                        <CommunicationProvider>
-                          <DashboardLayout>
-                            <CareCoinsAnalytics />
-                          </DashboardLayout>
-                        </CommunicationProvider>
+                        <DashboardLayout>
+                          <CareCoinsAnalytics />
+                        </DashboardLayout>
                       </RequireAuth>
                     }
                   />
-                  <Route path="*" element={<NotFound />} />
+                   <Route path="*" element={<NotFound />} />
                </Routes>
               <Toaster />
               </UserPreferencesProvider>
+              </CommunicationProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryClientProvider>
