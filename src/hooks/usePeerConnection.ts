@@ -23,17 +23,84 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [connectionQuality, setConnectionQuality] = useState<'excellent' | 'good' | 'poor' | 'disconnected'>('disconnected');
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
   
   const mediaConnectionRef = useRef<MediaConnection | null>(null);
   const dataConnectionRef = useRef<DataConnection | null>(null);
   const recognitionRef = useRef<any>(null);
   const incomingCallRef = useRef<MediaConnection | null>(null);
   const onTranscriptionRef = useRef(onTranscription);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const qualityCheckIntervalRef = useRef<NodeJS.Timeout>();
+  const conversationIdRef = useRef<string | null>(null);
 
   // Keep the ref updated
   useEffect(() => {
     onTranscriptionRef.current = onTranscription;
   }, [onTranscription]);
+
+  // Monitor connection quality
+  useEffect(() => {
+    if (!isCallActive || !mediaConnectionRef.current) return;
+
+    const checkQuality = () => {
+      const pc = mediaConnectionRef.current?.peerConnection;
+      if (!pc) return;
+
+      pc.getStats().then(stats => {
+        stats.forEach(report => {
+          if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+            const packetsLost = report.packetsLost || 0;
+            const packetsReceived = report.packetsReceived || 1;
+            const lossRate = packetsLost / (packetsLost + packetsReceived);
+
+            if (lossRate < 0.02) {
+              setConnectionQuality('excellent');
+            } else if (lossRate < 0.05) {
+              setConnectionQuality('good');
+            } else {
+              setConnectionQuality('poor');
+            }
+          }
+        });
+      });
+    };
+
+    qualityCheckIntervalRef.current = setInterval(checkQuality, 2000);
+
+    return () => {
+      if (qualityCheckIntervalRef.current) {
+        clearInterval(qualityCheckIntervalRef.current);
+      }
+    };
+  }, [isCallActive]);
+
+  // Reconnection logic with exponential backoff
+  const attemptReconnection = useCallback((remotePeerId: string, attemptNumber: number) => {
+    if (attemptNumber > 5) {
+      setCallError('Failed to reconnect after multiple attempts');
+      setIsReconnecting(false);
+      return;
+    }
+
+    const backoffTime = Math.min(1000 * Math.pow(2, attemptNumber), 30000);
+    console.log(`Reconnection attempt ${attemptNumber} in ${backoffTime}ms`);
+
+    reconnectTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsReconnecting(true);
+        await makeCall(remotePeerId);
+        setReconnectAttempts(0);
+        setIsReconnecting(false);
+      } catch (error) {
+        console.error('Reconnection failed:', error);
+        attemptReconnection(remotePeerId, attemptNumber + 1);
+        setReconnectAttempts(attemptNumber + 1);
+      }
+    }, backoffTime);
+  }, []);
 
   // Initialize peer connection - only once per component lifecycle
   useEffect(() => {
@@ -44,6 +111,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       setPeerId(id);
       setIsConnected(true);
       setPeer(newPeer);
+      setConnectionQuality('good');
     });
 
     newPeer.on('call', (call) => {
@@ -63,12 +131,30 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       });
     });
 
+    newPeer.on('disconnected', () => {
+      console.log('Peer disconnected');
+      setConnectionQuality('disconnected');
+      if (isCallActive && peerId) {
+        const remotePeer = mediaConnectionRef.current?.peer;
+        if (remotePeer) {
+          attemptReconnection(remotePeer, 0);
+        }
+      }
+    });
+
     newPeer.on('error', (error) => {
       console.error('Peer error:', error);
       setCallError(error.message);
+      setConnectionQuality('disconnected');
     });
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (qualityCheckIntervalRef.current) {
+        clearInterval(qualityCheckIntervalRef.current);
+      }
       newPeer.destroy();
     };
   }, []); // Empty dependency array - only run once
@@ -301,6 +387,9 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
     localStream,
     remoteStream,
     callError,
+    connectionQuality,
+    isReconnecting,
+    reconnectAttempts,
     makeCall,
     answerCall,
     rejectCall,
@@ -310,6 +399,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
     startScreenShare,
     stopScreenShare,
     isScreenSharing: !!screenStream,
-    clearError: () => setCallError(null)
+    clearError: () => setCallError(null),
+    setConversationId: (id: string) => { conversationIdRef.current = id; }
   };
 };
