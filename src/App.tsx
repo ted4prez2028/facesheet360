@@ -2,13 +2,16 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ClerkProvider } from '@clerk/clerk-react';
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import { ErrorBoundary } from '@/components/security/ErrorBoundary';
 import { SessionTimeout } from '@/components/security/SessionTimeout';
+import { CLERK_PUBLISHABLE_KEY } from '@/lib/clerk';
 import Index from './pages/Index';
+import Auth from './pages/Auth';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
 import PostPaymentAuth from './pages/PostPaymentAuth';
@@ -42,6 +45,10 @@ import Communication from './pages/Communication';
 const queryClient = new QueryClient();
 
 function App() {
+  if (!CLERK_PUBLISHABLE_KEY) {
+    console.warn('Missing Clerk Publishable Key. Add VITE_CLERK_PUBLISHABLE_KEY to .env');
+  }
+
   const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, isLoading } = useAuth();
 
@@ -61,13 +68,14 @@ function App() {
   };
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="light">
-            <AuthProvider>
-              <SessionTimeout />
-              <UserPreferencesProvider>
-              <Routes>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY || ''}>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider defaultTheme="light">
+              <AuthProvider>
+                <SessionTimeout />
+                <UserPreferencesProvider>
+                <Routes>
                 <Route path="/" element={
                   <RequireAuth>
                     <Navigate to="/dashboard" replace />
@@ -75,6 +83,7 @@ function App() {
                 } />
                 <Route path="/landing" element={<Index />} />
                 <Route path="/login" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
                 <Route path="/post-payment-auth" element={<PostPaymentAuth />} />
@@ -309,11 +318,12 @@ function App() {
                  <Route path="*" element={<NotFound />} />
                </Routes>
               <Toaster />
-              </UserPreferencesProvider>
-            </AuthProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </BrowserRouter>
+               </UserPreferencesProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </BrowserRouter>
+      </ClerkProvider>
     </ErrorBoundary>
   );
 }
