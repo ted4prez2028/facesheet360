@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useAppointments, useCreateAppointment } from "@/hooks/useAppointments";
 import { Appointment } from "@/lib/api/appointmentApi";
 import AppointmentForm from "@/components/appointments/AppointmentForm";
@@ -27,28 +27,38 @@ interface CalendarAppointment {
 
 const Appointments = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [calendarView, setCalendarView] = useState("week");
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [showNewAppointmentDialog, setShowNewAppointmentDialog] = useState(false);
 
   const { data: appointments = [] } = useAppointments();
-  const [appointmentsData, setAppointmentsData] = useState<CalendarAppointment[]>([]);
   const createAppointment = useCreateAppointment();
 
-  useEffect(() => {
+  // Transform and filter appointments without causing infinite loop
+  const appointmentsData = useMemo(() => {
     const formatted = appointments
-      .filter((a: any) => a.id) // Filter out any items without valid IDs
+      .filter((a: any) => a.id)
       .map((a: any) => ({
-        id: String(a.id), // Ensure ID is always a string
+        id: String(a.id),
         patientName: a.patients?.name || 'Unknown Patient',
         patientId: a.patient_id,
         date: new Date(a.scheduled_time),
         type: a.appointment_type || 'Appointment',
+        status: a.status || 'scheduled',
         duration: a.duration_minutes || 30,
         notes: a.notes || ''
       }));
-    setAppointmentsData(formatted);
-  }, [appointments]);
+
+    // Apply filters
+    return formatted.filter((apt) => {
+      const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || apt.status === statusFilter;
+      const matchesType = typeFilter === "all" || apt.type.toLowerCase() === typeFilter.toLowerCase();
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [appointments, searchTerm, statusFilter, typeFilter]);
 
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
@@ -149,7 +159,7 @@ const Appointments = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-wrap">
             <div className="relative w-full sm:w-80">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -161,19 +171,32 @@ const Appointments = () => {
               />
             </div>
             
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-            
-            <Select defaultValue="doctor">
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="View as" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="doctor">View as Doctor</SelectItem>
-                <SelectItem value="nurse">View as Nurse</SelectItem>
-                <SelectItem value="therapist">View as Therapist</SelectItem>
-                <SelectItem value="all">View all staff</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="check-up">Check-up</SelectItem>
+                <SelectItem value="follow-up">Follow-up</SelectItem>
+                <SelectItem value="consultation">Consultation</SelectItem>
+                <SelectItem value="procedure">Procedure</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+                <SelectItem value="therapy">Therapy</SelectItem>
               </SelectContent>
             </Select>
           </div>
