@@ -1143,6 +1143,10 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
           id: string
           is_read: boolean | null
           platform: string | null
@@ -1155,6 +1159,10 @@ export type Database = {
           content: string
           conversation_id: string
           created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           is_read?: boolean | null
           platform?: string | null
@@ -1167,6 +1175,10 @@ export type Database = {
           content?: string
           conversation_id?: string
           created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           is_read?: boolean | null
           platform?: string | null

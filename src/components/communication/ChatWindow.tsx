@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle } from 'lucide-react';
+import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle, Paperclip, Check, CheckCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import FileAttachment from './FileAttachment';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -19,6 +21,10 @@ interface Message {
   message_type?: string;
   platform: string;
   is_read?: boolean;
+  file_url?: string;
+  file_name?: string;
+  file_type?: string;
+  file_size?: number;
 }
 
 interface ChatWindowProps {
@@ -46,7 +52,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [contactIsTyping, setContactIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Flush any offline messages when coming online
   useEffect(() => {
@@ -167,12 +179,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     loadMessages();
   }, [user?.id, contactId]);
 
-  // Real-time message subscription
+  // Real-time message subscription and typing indicators
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !user?.id) return;
 
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`conversation:${conversationId}`)
       .on(
         'postgres_changes',
         {
@@ -184,26 +196,144 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         (payload) => {
           const newMessage = payload.new as Message;
           setMessages(prev => {
-            // Avoid duplicates
             if (prev.find(msg => msg.id === newMessage.id)) {
               return prev;
             }
             return [...prev, newMessage];
           });
+
+          // Mark as read if we're the recipient
+          if (newMessage.recipient_id === user.id) {
+            markMessageAsRead(newMessage.id);
+          }
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        (payload) => {
+          const updatedMessage = payload.new as Message;
+          setMessages(prev =>
+            prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
+          );
+        }
+      )
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        const contactPresence = presenceState[contactId];
+        if (contactPresence && contactPresence.length > 0) {
+          const state = contactPresence[0] as any;
+          setContactIsTyping(state?.typing === true);
+        } else {
+          setContactIsTyping(false);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ user_id: user.id, typing: false });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, user?.id, contactId]);
+
+  // Handle typing indicator
+  const handleTyping = () => {
+    if (!conversationId || !user?.id) return;
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    if (!isTyping) {
+      setIsTyping(true);
+      const channel = supabase.channel(`conversation:${conversationId}`);
+      channel.track({ user_id: user.id, typing: true });
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      const channel = supabase.channel(`conversation:${conversationId}`);
+      channel.track({ user_id: user.id, typing: false });
+    }, 1000);
+  };
+
+  const markMessageAsRead = async (messageId: string) => {
+    try {
+      await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', messageId);
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload images, PDFs, or Word documents.');
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+  const uploadFile = async (file: File): Promise<{ fileUrl: string; fileName: string; fileType: string; fileSize: number } | null> => {
+    try {
+      setUploadingFile(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      return {
+        fileUrl: fileName,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      };
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Failed to upload file');
+      return null;
+    } finally {
+      setUploadingFile(false);
+    }
+  };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user?.id || !conversationId) return;
+    if ((!newMessage.trim() && !selectedFile) || !user?.id || !conversationId) return;
+
+    let fileData = null;
+    if (selectedFile) {
+      fileData = await uploadFile(selectedFile);
+      if (!fileData) return;
+    }
 
     const messageData = {
-      content: newMessage.trim(),
+      content: newMessage.trim() || (selectedFile ? `Sent ${selectedFile.name}` : ''),
       conversation_id: conversationId,
       sender_id: user.id,
       recipient_id: contactId,
@@ -211,7 +341,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       platform: 'web',
       user_id: user.id,
       created_at: new Date().toISOString(),
-      is_read: false
+      is_read: false,
+      ...(fileData && {
+        file_url: fileData.fileUrl,
+        file_name: fileData.fileName,
+        file_type: fileData.fileType,
+        file_size: fileData.fileSize
+      })
     };
 
     // Optimistically add message to UI
@@ -221,6 +357,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     };
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
 
     try {
       const { data, error } = await supabase
@@ -231,13 +369,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       if (error) throw error;
 
-      // Replace temp message with real message
       setMessages(prev =>
         prev.map(msg => (msg.id === tempMessage.id ? data : msg))
       );
     } catch (error) {
       console.error('Error sending message:', error);
-      // Queue message for later sync
       const stored = localStorage.getItem('offlineMessages');
       const queue = stored ? JSON.parse(stored) : [];
       queue.push({ ...messageData, client_id: tempMessage.id });
@@ -249,6 +385,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    } else {
+      handleTyping();
     }
   };
 
@@ -347,32 +485,100 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                       : 'bg-muted'
                   }`}
                 >
-                  <p className="text-sm break-words">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {formatTime(message.created_at)}
-                  </p>
+                  {message.file_url && (
+                    <div className="mb-2">
+                      <FileAttachment
+                        fileUrl={message.file_url}
+                        fileName={message.file_name || 'file'}
+                        fileType={message.file_type || 'application/octet-stream'}
+                        fileSize={message.file_size || 0}
+                      />
+                    </div>
+                  )}
+                  {message.content && (
+                    <p className="text-sm break-words">{message.content}</p>
+                  )}
+                  <div className="flex items-center gap-1 mt-1">
+                    <p className="text-xs opacity-70">
+                      {formatTime(message.created_at)}
+                    </p>
+                    {message.sender_id === user?.id && (
+                      <span className="text-xs opacity-70">
+                        {message.is_read ? (
+                          <CheckCheck className="h-3 w-3 inline" />
+                        ) : (
+                          <Check className="h-3 w-3 inline" />
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
+          )}
+          {contactIsTyping && (
+            <div className="flex justify-start">
+              <div className="bg-muted px-3 py-2 rounded-lg">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+              </div>
+            </div>
           )}
           <div ref={messagesEndRef} />
         </div>
         
         {/* Input area */}
         <div className="p-3 border-t bg-muted/30">
+          {selectedFile && (
+            <div className="mb-2">
+              <FileAttachment
+                fileUrl=""
+                fileName={selectedFile.name}
+                fileType={selectedFile.type}
+                fileSize={selectedFile.size}
+                onRemove={() => {
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+                isPreview
+              />
+            </div>
+          )}
           <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx"
+              onChange={handleFileSelect}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFile || !conversationId}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                handleTyping();
+              }}
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1 text-sm"
-              disabled={loading || !conversationId}
+              disabled={loading || !conversationId || uploadingFile}
             />
             <Button 
               onClick={handleSendMessage}
               size="sm" 
-              disabled={!newMessage.trim() || loading || !conversationId}
+              disabled={(!newMessage.trim() && !selectedFile) || loading || !conversationId || uploadingFile}
             >
               <Send className="h-4 w-4" />
             </Button>
