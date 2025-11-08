@@ -83,6 +83,8 @@ export const addPatient = async (patient: Partial<Patient>) => {
     const { data, error } = await supabase
       .from("patients")
       .insert({
+        first_name: patient.first_name,
+        last_name: patient.last_name,
         name: `${patient.first_name} ${patient.last_name}`,
         date_of_birth: patient.date_of_birth,
         gender: patient.gender,

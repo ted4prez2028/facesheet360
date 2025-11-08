@@ -1687,10 +1687,12 @@ export type Database = {
           emergency_contact: string | null
           emergency_phone: string | null
           facial_data: string | null
+          first_name: string
           gender: string | null
           id: string
           insurance_policy_number: string | null
           insurance_provider: string | null
+          last_name: string
           medical_record_number: string | null
           name: string
           phone: string | null
@@ -1711,10 +1713,12 @@ export type Database = {
           emergency_contact?: string | null
           emergency_phone?: string | null
           facial_data?: string | null
+          first_name?: string
           gender?: string | null
           id?: string
           insurance_policy_number?: string | null
           insurance_provider?: string | null
+          last_name?: string
           medical_record_number?: string | null
           name: string
           phone?: string | null
@@ -1735,10 +1739,12 @@ export type Database = {
           emergency_contact?: string | null
           emergency_phone?: string | null
           facial_data?: string | null
+          first_name?: string
           gender?: string | null
           id?: string
           insurance_policy_number?: string | null
           insurance_provider?: string | null
+          last_name?: string
           medical_record_number?: string | null
           name?: string
           phone?: string | null
