@@ -21,7 +21,10 @@ export const getPatientNotes = async (patientId: string) => {
     .eq('patient_id', patientId)
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching patient notes:', error);
+    throw error;
+  }
   return data;
 };
 

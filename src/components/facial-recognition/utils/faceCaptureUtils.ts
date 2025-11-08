@@ -14,6 +14,8 @@ const loadFaceApiModels = async () => {
   try {
     const MODEL_URL = '/models';
     
+    console.log('Loading face detection models from:', MODEL_URL);
+    
     await Promise.all([
       faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -22,9 +24,11 @@ const loadFaceApiModels = async () => {
     
     modelsLoaded = true;
     console.log('Face detection models loaded successfully');
+    toast.success('Face detection ready');
     return true;
   } catch (error) {
     console.error('Error loading face detection models:', error);
+    toast.error('Failed to load face detection models. Please refresh the page.');
     return false;
   }
 };

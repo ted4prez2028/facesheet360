@@ -46,17 +46,19 @@ export const usePatientNotes = (patientId: string) => {
     }
   });
 
-  // Return data in the format expected by components
+  // Transform the data to match expected format
+  const notes = query.data?.map((note: any) => ({
+    id: note.id,
+    type: note.note_type,
+    content: note.note_content,
+    date: note.created_at,
+    provider: note.users?.name || 'Unknown',
+    providerId: note.created_by
+  })) || [];
+
   return {
     ...query,
-    notes: query.data?.map((note: any) => ({
-      id: note.id,
-      type: note.note_type,
-      content: note.note_content,
-      date: note.created_at,
-      provider: note.users?.name || 'Unknown',
-      providerId: note.created_by
-    })) || [],
+    notes,
     addNote: addNoteMutation
   };
 };

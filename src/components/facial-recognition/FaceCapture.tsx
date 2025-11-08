@@ -69,17 +69,20 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     
     try {
       const success = await initializeCamera(videoRef);
-      setHasVideoStream(success);
       
       if (!success) {
-        setError("Failed to start camera. Please try again.");
+        setError("Camera initialization failed. Please check camera permissions and try again.");
+        setHasVideoStream(false);
       } else {
+        setHasVideoStream(true);
         // Start face detection loop
         startFaceDetection();
       }
     } catch (err) {
       console.error('Error starting camera:', err);
-      setError("Failed to start camera. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Camera error: ${errorMessage}`);
+      setHasVideoStream(false);
     } finally {
       setIsLoading(false);
     }
