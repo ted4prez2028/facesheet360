@@ -40,7 +40,7 @@ const Appointments = () => {
       .filter((a: any) => a.id) // Filter out any items without valid IDs
       .map((a: any) => ({
         id: String(a.id), // Ensure ID is always a string
-        patientName: `${a.patients?.first_name ?? ''} ${a.patients?.last_name ?? ''}`.trim() || 'Unknown Patient',
+        patientName: a.patients ? `${a.patients.first_name || ''} ${a.patients.last_name || ''}`.trim() : 'Unknown Patient',
         patientId: a.patient_id,
         date: new Date(a.appointment_date),
         type: a.notes?.split(':')[0] || 'Appointment',
@@ -66,7 +66,7 @@ const Appointments = () => {
         if (newAppointment?.id) {
           const formatted = {
             id: String(newAppointment.id),
-            patientName: `${newAppointment.patients?.first_name ?? ''} ${newAppointment.patients?.last_name ?? ''}`.trim() || 'Unknown Patient',
+            patientName: newAppointment.patients ? `${newAppointment.patients.first_name || ''} ${newAppointment.patients.last_name || ''}`.trim() : 'Unknown Patient',
             patientId: newAppointment.patient_id,
             date: new Date(newAppointment.appointment_date),
             type: newAppointment.notes?.split(':')[0] || 'Appointment',
