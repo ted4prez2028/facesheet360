@@ -36,17 +36,18 @@ serve(async (req) => {
       );
     }
 
-    // Create client with the user JWT to verify authentication
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    // Extract JWT token from "Bearer <token>"
+    const token = authHeader.replace('Bearer ', '');
     
-    // Verify authentication using getUser() which works with JWT tokens
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Create client to verify the JWT token
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Verify authentication by passing the JWT token directly
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
       console.error("User verification failed:", userError);
       return new Response(
-        JSON.stringify({ error: "Authentication required", details: "Auth session missing!" }),
+        JSON.stringify({ error: "Authentication required", details: userError?.message || "Invalid token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
