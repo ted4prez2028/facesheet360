@@ -16,7 +16,7 @@ export const getPatientNotes = async (patientId: string) => {
     .from('patient_notes')
     .select(`
       *,
-      users:created_by(name, email)
+      users!patient_notes_created_by_fkey(name, email)
     `)
     .eq('patient_id', patientId)
     .order('created_at', { ascending: false });

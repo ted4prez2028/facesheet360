@@ -97,38 +97,99 @@ export const detectFaceInCanvas = async (
   canvasElement: HTMLCanvasElement
 ): Promise<boolean> => {
   if (!modelsLoaded) {
-    await loadFaceApiModels();
+    const loaded = await loadFaceApiModels();
+    if (!loaded) return false;
+  }
+  
+  // Check if video is ready
+  if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
+    return false;
   }
   
   // Get canvas context and clear previous drawings
   const ctx = canvasElement.getContext('2d');
   if (!ctx) return false;
   
-  // Set canvas dimensions to match video
-  canvasElement.width = videoElement.videoWidth;
-  canvasElement.height = videoElement.videoHeight;
-  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  // Get the display dimensions
+  const displayWidth = videoElement.clientWidth;
+  const displayHeight = videoElement.clientHeight;
+  
+  // Set canvas dimensions to match video display size
+  canvasElement.width = displayWidth;
+  canvasElement.height = displayHeight;
+  ctx.clearRect(0, 0, displayWidth, displayHeight);
   
   try {
-    // Detect faces in the video stream
-    const detections = await faceapi.detectAllFaces(videoElement);
+    // Detect faces in the video stream with optimized settings
+    const detections = await faceapi
+      .detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+      .withFaceLandmarks()
+      .withFaceDescriptors();
     
     if (detections.length === 0) {
       return false;
     }
     
+    // Calculate scaling factors
+    const scaleX = displayWidth / videoElement.videoWidth;
+    const scaleY = displayHeight / videoElement.videoHeight;
+    
     // Draw rectangles around detected faces
     detections.forEach(detection => {
-      const { x, y, width, height } = detection.box;
+      const { x, y, width, height } = detection.detection.box;
       
-      // Draw green rectangle
+      // Scale coordinates to match canvas size
+      const scaledX = x * scaleX;
+      const scaledY = y * scaleY;
+      const scaledWidth = width * scaleX;
+      const scaledHeight = height * scaleY;
+      
+      // Draw green rectangle with rounded corners effect
       ctx.strokeStyle = '#22c55e'; // Green-500
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x, y, width, height);
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#22c55e';
+      ctx.shadowBlur = 10;
+      ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+      
+      // Reset shadow for fill
+      ctx.shadowBlur = 0;
       
       // Add green semi-transparent overlay
-      ctx.fillStyle = 'rgba(34, 197, 94, 0.15)'; // Green-500 with 15% opacity
-      ctx.fillRect(x, y, width, height);
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+      ctx.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
+      
+      // Draw corner accents
+      const cornerLength = 20;
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#10b981'; // Green-600
+      
+      // Top-left corner
+      ctx.beginPath();
+      ctx.moveTo(scaledX, scaledY + cornerLength);
+      ctx.lineTo(scaledX, scaledY);
+      ctx.lineTo(scaledX + cornerLength, scaledY);
+      ctx.stroke();
+      
+      // Top-right corner
+      ctx.beginPath();
+      ctx.moveTo(scaledX + scaledWidth - cornerLength, scaledY);
+      ctx.lineTo(scaledX + scaledWidth, scaledY);
+      ctx.lineTo(scaledX + scaledWidth, scaledY + cornerLength);
+      ctx.stroke();
+      
+      // Bottom-left corner
+      ctx.beginPath();
+      ctx.moveTo(scaledX, scaledY + scaledHeight - cornerLength);
+      ctx.lineTo(scaledX, scaledY + scaledHeight);
+      ctx.lineTo(scaledX + cornerLength, scaledY + scaledHeight);
+      ctx.stroke();
+      
+      // Bottom-right corner
+      ctx.beginPath();
+      ctx.moveTo(scaledX + scaledWidth - cornerLength, scaledY + scaledHeight);
+      ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight);
+      ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight - cornerLength);
+      ctx.stroke();
     });
     
     return true;

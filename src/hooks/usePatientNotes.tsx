@@ -14,7 +14,8 @@ export const usePatientNotes = (patientId: string) => {
   const query = useQuery({
     queryKey: ['patient-notes', patientId],
     queryFn: () => getPatientNotes(patientId),
-    enabled: !!patientId
+    enabled: !!patientId,
+    retry: 3
   });
 
   const addNoteMutation = useMutation({

@@ -162,10 +162,16 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
         ) : (
           <>
             <div className="relative w-full max-w-md">
-              <video ref={videoRef} className="w-full rounded-md" />
+              <video 
+                ref={videoRef} 
+                className="w-full rounded-md" 
+                autoPlay 
+                playsInline 
+                muted
+              />
               <canvas 
                 ref={faceDetectionCanvasRef} 
-                className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                className="absolute top-0 left-0 w-full h-full rounded-md pointer-events-none"
               />
               <canvas ref={canvasRef} className="hidden" />
               
