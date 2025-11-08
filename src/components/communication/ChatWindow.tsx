@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle, Paperclip, Check, CheckCheck } from 'lucide-react';
+import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle, Paperclip, Check, CheckCheck, Play } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
+import VoiceRecorder from './VoiceRecorder';
+import MessageReactions from './MessageReactions';
 import { toast } from 'sonner';
 
 interface Message {
@@ -25,6 +27,7 @@ interface Message {
   file_name?: string;
   file_type?: string;
   file_size?: number;
+  voice_duration?: number;
 }
 
 interface ChatWindowProps {
@@ -56,6 +59,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [uploadingFile, setUploadingFile] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [contactIsTyping, setContactIsTyping] = useState(false);
+  const [voiceBlob, setVoiceBlob] = useState<{ blob: Blob; transcription: string; duration: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -323,17 +327,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
+  const handleVoiceRecorded = async (blob: Blob, transcription: string, duration: number) => {
+    setVoiceBlob({ blob, transcription, duration });
+  };
+
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedFile) || !user?.id || !conversationId) return;
+    if ((!newMessage.trim() && !selectedFile && !voiceBlob) || !user?.id || !conversationId) return;
 
     let fileData = null;
     if (selectedFile) {
       fileData = await uploadFile(selectedFile);
       if (!fileData) return;
+    } else if (voiceBlob) {
+      // Upload voice message
+      fileData = await uploadFile(new File([voiceBlob.blob], 'voice-message.webm', { type: 'audio/webm' }));
+      if (!fileData) return;
     }
 
     const messageData = {
-      content: newMessage.trim() || (selectedFile ? `Sent ${selectedFile.name}` : ''),
+      content: newMessage.trim() || (voiceBlob ? voiceBlob.transcription : selectedFile ? `Sent ${selectedFile.name}` : ''),
       conversation_id: conversationId,
       sender_id: user.id,
       recipient_id: contactId,
@@ -347,6 +359,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         file_name: fileData.fileName,
         file_type: fileData.fileType,
         file_size: fileData.fileSize
+      }),
+      ...(voiceBlob && {
+        voice_duration: voiceBlob.duration
       })
     };
 
@@ -358,6 +373,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
     setSelectedFile(null);
+    setVoiceBlob(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
     try {
@@ -485,7 +501,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                       : 'bg-muted'
                   }`}
                 >
-                  {message.file_url && (
+                  {message.file_url && message.file_type?.startsWith('audio/') ? (
+                    <div className="mb-2">
+                      <div className="flex items-center gap-2 p-2 rounded bg-muted/50">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Play className="h-4 w-4" />
+                        </Button>
+                        <div className="flex-1">
+                          <p className="text-xs font-medium">Voice Message</p>
+                          <p className="text-xs text-muted-foreground">
+                            {message.voice_duration ? `${message.voice_duration}s` : 'Audio'}
+                          </p>
+                        </div>
+                      </div>
+                      {message.content && (
+                        <p className="text-xs text-muted-foreground mt-1 italic">
+                          "{message.content}"
+                        </p>
+                      )}
+                    </div>
+                  ) : message.file_url ? (
                     <div className="mb-2">
                       <FileAttachment
                         fileUrl={message.file_url}
@@ -494,10 +529,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                         fileSize={message.file_size || 0}
                       />
                     </div>
-                  )}
-                  {message.content && (
+                  ) : null}
+                  {message.content && !message.file_type?.startsWith('audio/') && (
                     <p className="text-sm break-words">{message.content}</p>
                   )}
+                  <MessageReactions messageId={message.id} isOwnMessage={message.sender_id === user?.id} />
                   <div className="flex items-center gap-1 mt-1">
                     <p className="text-xs opacity-70">
                       {formatTime(message.created_at)}
@@ -547,6 +583,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               />
             </div>
           )}
+          {voiceBlob && (
+            <div className="mb-2 p-2 rounded bg-muted border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Play className="h-4 w-4" />
+                  <div>
+                    <p className="text-sm font-medium">Voice message ready</p>
+                    <p className="text-xs text-muted-foreground">{voiceBlob.duration}s - "{voiceBlob.transcription}"</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setVoiceBlob(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="flex gap-2">
             <input
               ref={fileInputRef}
@@ -560,10 +617,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               size="sm"
               className="h-10 w-10 p-0"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingFile || !conversationId}
+              disabled={uploadingFile || !conversationId || !!voiceBlob}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
+            <VoiceRecorder
+              onVoiceRecorded={handleVoiceRecorded}
+              disabled={!conversationId || !!selectedFile || !!voiceBlob}
+            />
             <Input
               value={newMessage}
               onChange={(e) => {
@@ -573,12 +634,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1 text-sm"
-              disabled={loading || !conversationId || uploadingFile}
+              disabled={loading || !conversationId || uploadingFile || !!voiceBlob}
             />
             <Button 
               onClick={handleSendMessage}
               size="sm" 
-              disabled={(!newMessage.trim() && !selectedFile) || loading || !conversationId || uploadingFile}
+              disabled={(!newMessage.trim() && !selectedFile && !voiceBlob) || loading || !conversationId || uploadingFile}
             >
               <Send className="h-4 w-4" />
             </Button>

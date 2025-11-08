@@ -1,12 +1,36 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, UserPlus, Building2 } from 'lucide-react';
+import { Users, UserPlus, Building2, FlaskConical } from 'lucide-react';
 import CommunicationHub from '@/components/communication/CommunicationHub';
 import { InviteProviderDialog } from '@/components/communication/InviteProviderDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function Communication() {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
+
+  const handleCreateTestDoctor = async () => {
+    setIsCreatingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-test-doctor');
+
+      if (error) throw error;
+
+      toast.success('Test doctor account created!', {
+        description: `Email: ${data.email}\nPassword: ${data.password}`,
+        duration: 10000,
+      });
+
+      console.log('Test doctor credentials:', data);
+    } catch (error) {
+      console.error('Error creating test doctor:', error);
+      toast.error('Failed to create test doctor account');
+    } finally {
+      setIsCreatingTest(false);
+    }
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -18,10 +42,21 @@ export default function Communication() {
           </h1>
           <p className="text-muted-foreground">Secure HIPAA-compliant messaging and calling</p>
         </div>
-        <Button onClick={() => setIsInviteDialogOpen(true)} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Invite Provider
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsInviteDialogOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Invite Provider
+          </Button>
+          <Button 
+            onClick={handleCreateTestDoctor} 
+            variant="outline" 
+            disabled={isCreatingTest}
+            className="gap-2"
+          >
+            <FlaskConical className="h-4 w-4" />
+            Create Test Doctor
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3 mb-6">

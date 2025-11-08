@@ -27,6 +27,7 @@ import { useCommunication } from '@/hooks/useCommunication';
 import { useAuth } from '@/hooks/useAuth';
 import ChatWindow from './ChatWindow';
 import VideoCallInterface from './VideoCallInterface';
+import MessageSearch from './MessageSearch';
 import {
   Select,
   SelectContent,
@@ -48,6 +49,7 @@ const CommunicationHub = () => {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
   const [organizationFilter, setOrganizationFilter] = useState<string>('all');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
   const { users, conversations, loading, error, fetchUsers } = useCommunication();
@@ -169,8 +171,31 @@ const CommunicationHub = () => {
     setActiveVideoCall({ contactId, contactName });
   };
 
+  const handleSearchResultClick = (conversationId: string, messageId: string) => {
+    // Find the conversation and open chat
+    const conversationsArray = Object.values(conversations);
+    const conversation = conversationsArray.find(c => c.id === conversationId);
+    if (conversation) {
+      const otherUserId = conversation.participant_1_id === user?.id 
+        ? conversation.participant_2_id 
+        : conversation.participant_1_id;
+      const contact = users.find(u => u.id === otherUserId);
+      if (contact) {
+        openChat(contact.id, contact.name || 'Unknown', contact.organization);
+      }
+    }
+  };
+
   return (
     <>
+      {/* Message Search */}
+      {isSearchOpen && (
+        <MessageSearch
+          onClose={() => setIsSearchOpen(false)}
+          onResultClick={handleSearchResultClick}
+        />
+      )}
+
       {/* Communication Hub Button */}
       <Button 
         variant="outline" 
@@ -205,9 +230,20 @@ const CommunicationHub = () => {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Communication
+            <SheetTitle className="flex items-center gap-2 justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Communication
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0"
+                onClick={() => setIsSearchOpen(true)}
+                title="Search messages"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
             </SheetTitle>
           </SheetHeader>
           
