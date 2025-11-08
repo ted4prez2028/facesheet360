@@ -41,12 +41,12 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
     
-    // Verify authentication
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-    if (sessionError || !session) {
-      console.error("Session verification failed:", sessionError);
+    // Verify authentication using getUser() which works with JWT tokens
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      console.error("User verification failed:", userError);
       return new Response(
-        JSON.stringify({ error: "Authentication required", details: sessionError?.message }),
+        JSON.stringify({ error: "Authentication required", details: "Auth session missing!" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -56,10 +56,10 @@ serve(async (req) => {
     let targetUserId;
     try {
       requestBody = await req.json();
-      targetUserId = requestBody.userId || session.user.id;
+      targetUserId = requestBody.userId || user.id;
     } catch (e) {
       // If request body can't be parsed, use the authenticated user's ID
-      targetUserId = session.user.id;
+      targetUserId = user.id;
     }
     
     console.log(`Fetching roles for user ID: ${targetUserId}`);
