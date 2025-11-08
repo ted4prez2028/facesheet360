@@ -55,12 +55,16 @@ interface CarePlan {
   id: string;
   title: string;
   description?: string;
-  goals: string[];
-  interventions: string[];
-  ai_generated: boolean;
+  goals?: string;
+  interventions?: string;
+  ai_generated?: boolean;
   status: string;
-  start_date: string;
-  target_date?: string;
+  start_date?: string;
+  end_date?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  patient_id: string;
 }
 
 interface PointClickCareEHRProps {
@@ -613,32 +617,22 @@ export const PointClickCareEHR: React.FC<PointClickCareEHRProps> = ({ patientId 
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-medium mb-2">Goals</h4>
-                        <ul className="space-y-1">
-                          {plan.goals.map((goal, index) => (
-                            <li key={index} className="text-sm text-gray-600 flex items-start">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                              {goal}
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="text-sm text-gray-600">
+                          {plan.goals || 'No goals specified'}
+                        </div>
                       </div>
                       
                       <div>
                         <h4 className="font-medium mb-2">Interventions</h4>
-                        <ul className="space-y-1">
-                          {plan.interventions.map((intervention, index) => (
-                            <li key={index} className="text-sm text-gray-600 flex items-start">
-                              <Clock className="h-4 w-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                              {intervention}
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="text-sm text-gray-600">
+                          {plan.interventions || 'No interventions specified'}
+                        </div>
                       </div>
                     </div>
 
                     <div className="mt-4 text-sm text-gray-500">
-                      <span>Start Date: {plan.start_date}</span>
-                      {plan.target_date && <span> • Target Date: {plan.target_date}</span>}
+                      <span>Start Date: {plan.start_date || 'Not set'}</span>
+                      {plan.end_date && <span> • End Date: {plan.end_date}</span>}
                     </div>
                   </CardContent>
                 </Card>

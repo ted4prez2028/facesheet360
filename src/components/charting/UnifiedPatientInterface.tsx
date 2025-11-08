@@ -167,8 +167,9 @@ const UnifiedPatientInterface = ({
   // Convert local patient data to full Patient type
   const enhancedPatientData: Patient | undefined = patientData ? {
     id: patientData.id,
-    first_name: patientData.name?.split(' ')[0] || '',
-    last_name: patientData.name?.split(' ').slice(1).join(' ') || '',
+    name: patientData.name,
+    first_name: patientData.name?.split(' ')[0],
+    last_name: patientData.name?.split(' ').slice(1).join(' '),
     date_of_birth: patientData.date_of_birth || '1990-01-01',
     gender: patientData.gender || 'Not specified',
     phone: '',

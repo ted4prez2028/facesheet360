@@ -17,7 +17,7 @@ export const useWallet = () => {
 
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('care_coins_balance')
         .eq('id', user.id)
         .single();

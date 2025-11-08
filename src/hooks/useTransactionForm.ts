@@ -22,7 +22,7 @@ export const useTransactionForm = () => {
     try {
       // Find recipient by email
       const { data: recipient, error: recipientError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('id')
         .eq('email', data.recipientEmail)
         .single();

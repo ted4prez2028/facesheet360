@@ -44,7 +44,7 @@ export const PatientAutocomplete: React.FC<PatientAutocompleteProps> = ({
       .single();
     
     if (data) {
-      setSelectedPatient(data as Patient);
+      setSelectedPatient(data as any as Patient);
     }
   };
 
@@ -65,7 +65,7 @@ export const PatientAutocomplete: React.FC<PatientAutocompleteProps> = ({
       const { data, error } = await query;
 
       if (!error && data) {
-        setPatients(data as Patient[]);
+        setPatients(data as any as Patient[]);
       }
     } catch (error) {
       console.error('Error fetching patients:', error);

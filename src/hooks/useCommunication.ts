@@ -9,7 +9,6 @@ export interface User {
   role: string;
   online_status: boolean;
   specialty?: string;
-  organization?: string;
   last_seen?: string;
 }
 
@@ -17,7 +16,9 @@ export interface Conversation {
   id: string;
   participant_1_id: string;
   participant_2_id: string;
-  last_message_at: string;
+  last_message_at?: string;
+  created_at: string;
+  updated_at: string;
   last_message?: {
     id: string;
     content: string;
@@ -40,29 +41,11 @@ export const useCommunication = () => {
     setError(null);
     
     try {
-      // Get current user's organization
-      const { data: currentUserData, error: userError } = await supabase
-        .from('users')
-        .select('organization')
-        .eq('user_id', user.id)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching user organization:', userError);
-        return;
-      }
-
-      if (!currentUserData?.organization) {
-        setUsers([]);
-        return;
-      }
-
-      // Fetch all users in the same organization (excluding current user)
+      // Fetch all users from profiles (excluding current user)
       const { data: orgUsers, error: orgError } = await supabase
-        .from('users')
-        .select('id, name, email, role, online_status, specialty, organization, last_seen')
-        .eq('organization', currentUserData.organization)
-        .neq('user_id', user.id)
+        .from('profiles')
+        .select('id, name, email, role, online_status, specialty, last_seen')
+        .neq('id', user.id)
         .order('online_status', { ascending: false }) // Online users first
         .order('last_seen', { ascending: false });
 
@@ -72,11 +55,11 @@ export const useCommunication = () => {
         return;
       }
 
-      setUsers(orgUsers || []);
+      setUsers((orgUsers || []) as User[]);
       
       // Fetch conversations for each user
       if (orgUsers && orgUsers.length > 0) {
-        await fetchConversations(orgUsers);
+        await fetchConversations(orgUsers as User[]);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -117,6 +100,7 @@ export const useCommunication = () => {
 
           userConversations[contact.id] = {
             ...conversation,
+            last_message_at: conversation.updated_at,
             last_message: lastMessage || undefined
           };
         } else {
@@ -125,6 +109,8 @@ export const useCommunication = () => {
             id: '',
             participant_1_id: participant1,
             participant_2_id: participant2,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
             last_message_at: new Date().toISOString(),
             last_message: undefined
           };
@@ -142,12 +128,12 @@ export const useCommunication = () => {
 
     try {
       await supabase
-        .from('users')
+        .from('profiles')
         .update({ 
           online_status: isOnline,
           last_seen: isOnline ? null : new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('id', user.id);
     } catch (error) {
       console.error('Error updating online status:', error);
     }
@@ -186,7 +172,7 @@ export const useCommunication = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'users'
+          table: 'profiles'
         },
         (payload) => {
           if (payload.eventType === 'UPDATE') {

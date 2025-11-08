@@ -46,7 +46,7 @@ const fetchDashboardData = async (userId: string): Promise<DashboardData> => {
 
     // Get user's care coins balance
     const { data: userData } = await supabase
-      .from('users')
+      .from('profiles')
       .select('care_coins_balance')
       .eq('id', userId)
       .single();

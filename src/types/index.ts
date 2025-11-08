@@ -16,9 +16,9 @@ export interface User {
 
 export interface Patient {
   id: string;
-  first_name: string;
-  last_name: string;
-  name?: string;
+  name: string;
+  first_name?: string;
+  last_name?: string;
   age?: number;
   date_of_birth: string;
   gender: string;
@@ -168,11 +168,17 @@ export interface CareCoinsTransaction {
 export interface CarePlan {
   id: string;
   patient_id: string;
-  content: string;
-  status: 'active' | 'completed' | 'draft';
-  is_ai_generated: boolean;
+  title: string;
+  description?: string;
+  goals?: string;
+  interventions?: string;
+  status: string;
+  ai_generated?: boolean;
   created_at: string;
   updated_at: string;
+  created_by: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface VitalSigns {

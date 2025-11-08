@@ -57,8 +57,28 @@ const AIEvolutionDashboard: React.FC = () => {
           .limit(30)
       ]);
 
-      if (improvementsResponse.data) setImprovements(improvementsResponse.data);
-      if (metricsResponse.data) setMetrics(metricsResponse.data);
+      if (improvementsResponse.data) {
+        setImprovements(improvementsResponse.data.map(imp => ({
+          ...imp,
+          title: imp.improvement_type || 'Improvement',
+          implementation_status: imp.status || 'proposed',
+          completion_time: imp.created_at
+        })) as any);
+      }
+      if (metricsResponse.data) {
+        setMetrics(metricsResponse.data.map(m => ({
+          metric_date: m.recorded_at,
+          total_improvements: 0,
+          ui_improvements: 0,
+          performance_improvements: 0,
+          feature_additions: 0,
+          bug_fixes: 0,
+          accessibility_improvements: 0,
+          lines_of_code_added: 0,
+          files_modified: 0,
+          avg_impact_score: m.metric_value || 0
+        })) as any);
+      }
     } catch (error) {
       console.error('Error fetching AI evolution data:', error);
     } finally {

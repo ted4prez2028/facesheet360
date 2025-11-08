@@ -298,12 +298,12 @@ const TaxiService = () => {
                         {ride.status.replace('_', ' ').toUpperCase()}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {getRideTypeLabel(ride.ride_type)}
+                        Standard Ride
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign className="h-4 w-4" />
-                      {ride.estimated_cost_carecoins} CC
+                      100 CC
                     </div>
                   </div>
 
@@ -330,10 +330,10 @@ const TaxiService = () => {
                         <div className="font-medium">Driver: {ride.driver_name}</div>
                         <div className="text-sm text-muted-foreground">{ride.vehicle_info}</div>
                       </div>
-                      {ride.estimated_arrival_time && (
+                      {ride.estimated_arrival && (
                         <div className="flex items-center gap-1 text-sm">
                           <Clock className="h-4 w-4" />
-                          ETA: {new Date(ride.estimated_arrival_time).toLocaleTimeString()}
+                          ETA: {new Date(ride.estimated_arrival).toLocaleTimeString()}
                         </div>
                       )}
                     </div>

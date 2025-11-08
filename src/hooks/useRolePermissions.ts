@@ -57,9 +57,9 @@ export const useRolePermissions = () => {
         try {
           console.log("Falling back to direct query for user roles");
           
-          // We'll try to get the user's role from the users table
+          // We'll try to get the user's role from the profiles table
           const { data: userData, error: userError } = await supabase
-            .from('users')
+            .from('profiles')
             .select('role')
             .eq('id', user.id)
             .single();
@@ -68,7 +68,7 @@ export const useRolePermissions = () => {
             throw userError;
           }
           
-          // If user has a role in the users table, use that
+          // If user has a role in the profiles table, use that
           if (userData?.role) {
             setUserRoles([userData.role as HealthcareRole]);
             setIsLoading(false);

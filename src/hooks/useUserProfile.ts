@@ -8,7 +8,7 @@ export const useUserProfile = (userId: string) => {
     queryKey: ['userProfile', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
@@ -37,7 +37,7 @@ export const useUpdateUser = () => {
       if (updates.organization) dbData.organization = updates.organization;
       
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .update(dbData)
         .eq('id', id)
         .select();

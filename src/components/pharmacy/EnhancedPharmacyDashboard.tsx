@@ -454,7 +454,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{order.medication_name}</h3>
-                      <p className="text-gray-600">Patient: {order.patient?.first_name} {order.patient?.last_name}</p>
+                      <p className="text-gray-600">Patient: {(order as any).patient?.name || 'Unknown'}</p>
                       <p className="text-sm text-gray-500">Administered on: {new Date(order.start_date).toLocaleDateString()}</p>
                     </div>
                     <Badge className="bg-green-100 text-green-800">Administered</Badge>
@@ -471,7 +471,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{order.medication_name}</h3>
-                      <p className="text-gray-600">Patient: {order.patient?.first_name} {order.patient?.last_name}</p>
+                      <p className="text-gray-600">Patient: {(order as any).patient?.name || 'Unknown'}</p>
                       <p className="text-sm text-gray-500">Discontinued on: {new Date(order.start_date).toLocaleDateString()}</p>
                     </div>
                     <Badge className="bg-red-100 text-red-800">Discontinued</Badge>
@@ -555,7 +555,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                     <SelectContent>
                       {patients.map((patient) => (
                         <SelectItem key={patient.id} value={patient.id}>
-                          {patient.first_name} {patient.last_name} - MRN: {patient.medical_record_number}
+                          {patient.name} - MRN: {patient.medical_record_number}
                         </SelectItem>
                       ))}
                     </SelectContent>

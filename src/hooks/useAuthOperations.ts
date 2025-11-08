@@ -110,7 +110,7 @@ export const useAuthOperations = (
       };
       
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .update(dbUpdate)
         .eq('id', user.id)
         .select();
