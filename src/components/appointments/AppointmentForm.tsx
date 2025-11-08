@@ -65,9 +65,7 @@ const AppointmentForm = ({
   const timeSlots = Array.from({ length: 48 }, (_, i) => {
     const hour = Math.floor(i / 2);
     const minute = (i % 2) * 30;
-    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    const displayTime = format(new Date(2000, 0, 1, hour, minute), "h:mm a");
-    return { value: timeString, label: displayTime };
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   });
   
   const handleSubmit = () => {
@@ -147,9 +145,9 @@ const AppointmentForm = ({
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
             <SelectContent>
-              {timeSlots.map((slot) => (
-                <SelectItem key={slot.value} value={slot.value}>
-                  {slot.label}
+              {timeSlots.map((time) => (
+                <SelectItem key={time} value={time}>
+                  {format(new Date().setHours(parseInt(time.split(':')[0]), parseInt(time.split(':')[1])), "h:mm a")}
                 </SelectItem>
               ))}
             </SelectContent>

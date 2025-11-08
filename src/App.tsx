@@ -9,7 +9,6 @@ import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import { ErrorBoundary } from '@/components/security/ErrorBoundary';
 import { SessionTimeout } from '@/components/security/SessionTimeout';
 import Index from './pages/Index';
-import Login from './pages/Login';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
 import PostPaymentAuth from './pages/PostPaymentAuth';
@@ -62,20 +61,20 @@ function App() {
   };
   return (
     <ErrorBoundary>
-        <BrowserRouter>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider defaultTheme="light">
-              <AuthProvider>
-                <SessionTimeout />
-                <UserPreferencesProvider>
-                <Routes>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider defaultTheme="light">
+            <AuthProvider>
+              <SessionTimeout />
+              <UserPreferencesProvider>
+              <Routes>
                 <Route path="/" element={
                   <RequireAuth>
                     <Navigate to="/dashboard" replace />
                   </RequireAuth>
                 } />
                 <Route path="/landing" element={<Index />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/login" element={<Index />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
                 <Route path="/post-payment-auth" element={<PostPaymentAuth />} />
@@ -109,7 +108,7 @@ function App() {
                     <RequireAuth>
                       <CommunicationProvider>
                         <DashboardLayout>
-                          <PatientManagement />
+                          <PatientDetails />
                         </DashboardLayout>
                       </CommunicationProvider>
                     </RequireAuth>
@@ -309,12 +308,12 @@ function App() {
                  />
                  <Route path="*" element={<NotFound />} />
                </Routes>
-               <Toaster />
-                </UserPreferencesProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </QueryClientProvider>
-        </BrowserRouter>
+              <Toaster />
+              </UserPreferencesProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

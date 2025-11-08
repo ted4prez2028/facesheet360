@@ -1,32 +1,24 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Printer, LinkIcon, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { 
+  Edit, 
+  Printer, 
+  LinkIcon,
+  FileText
+} from 'lucide-react';
 import { Patient } from '@/types';
 import { Avatar } from '@/components/ui/avatar';
 
 interface PatientHeaderProps {
   patient: Patient;
   calculateAge: (dateOfBirth: string) => number;
-  onBack?: () => void;
 }
 
-const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, calculateAge, onBack }) => {
+const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, calculateAge }) => {
   return (
-    <>
-      {onBack && (
-        <div className="mb-4">
-          <Button
-            variant="ghost"
-            onClick={onBack}
-            className="text-primary hover:text-primary/80 text-sm font-medium p-0 h-auto"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Patients
-          </Button>
-        </div>
-      )}
-      <div className="border-b pb-4">
+    <div className="border-b pb-4">
       <div className="flex justify-between items-start">
         <div className="flex">
           <Avatar className="h-16 w-16 rounded-sm mr-4">
@@ -83,7 +75,6 @@ const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, calculateAge, on
         </div>
       </div>
     </div>
-    </>
   );
 }
 

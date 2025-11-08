@@ -1,18 +1,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import PatientList from "@/components/charting/PatientList";
+import UnifiedPatientInterface from "@/components/charting/UnifiedPatientInterface";
 import AddPatientSheet from "@/components/charting/AddPatientSheet";
 import { usePatientSelection } from "@/hooks/usePatientSelection";
-import { usePatient } from "@/hooks/usePatient";
-import PatientTabs from "@/components/patientview/PatientTabs";
-import PatientHeader from "@/components/patientview/PatientHeader";
-import { Spinner } from "@/components/ui/spinner";
 
 const PatientManagement = () => {
   const { user } = useAuth();
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [initialTab, setInitialTab] = useState<string | undefined>();
@@ -20,24 +15,17 @@ const PatientManagement = () => {
   const { 
     selectedPatient, 
     setSelectedPatient, 
+    selectedPatientData,
     patients,
     isLoading
   } = usePatientSelection(user?.id);
-
-  const { patient: fullPatientData, isLoading: patientLoading } = usePatient(selectedPatient || '');
-
-  // Handle URL parameter for patient ID
-  useEffect(() => {
-    if (id && id !== selectedPatient) {
-      setSelectedPatient(id);
-    }
-  }, [id, selectedPatient, setSelectedPatient]);
 
   // Handle tab parameter from URL
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab) {
       setInitialTab(tab);
+      // Clear the tab parameter from URL after using it
       setSearchParams(prev => {
         const newParams = new URLSearchParams(prev);
         newParams.delete('tab');
@@ -45,24 +33,6 @@ const PatientManagement = () => {
       });
     }
   }, [searchParams, setSearchParams]);
-
-  const calculateAge = (dateOfBirth: string) => {
-    const dob = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
-  const handleBackToList = () => {
-    setSelectedPatient(null);
-    if (id) {
-      navigate('/patients');
-    }
-  };
 
   return (
     <div className="h-full overflow-hidden">
@@ -83,21 +53,14 @@ const PatientManagement = () => {
         
         {/* Show unified patient interface when a patient is selected */}
         {selectedPatient && (
-          <div className="flex-1 flex flex-col h-full overflow-auto">
-            {patientLoading ? (
-              <div className="flex justify-center items-center h-96">
-                <Spinner size="lg" />
-              </div>
-            ) : fullPatientData ? (
-              <div className="container mx-auto px-4 py-8">
-                <PatientHeader 
-                  patient={fullPatientData} 
-                  calculateAge={calculateAge}
-                  onBack={handleBackToList}
-                />
-                <PatientTabs patientId={selectedPatient} />
-              </div>
-            ) : null}
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <UnifiedPatientInterface 
+              selectedPatient={selectedPatient}
+              patientData={selectedPatientData}
+              userId={user?.id}
+              onBack={() => setSelectedPatient(null)}
+              initialTab={initialTab}
+            />
           </div>
         )}
       </div>
