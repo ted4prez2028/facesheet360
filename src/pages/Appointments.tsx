@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useAppointments, useCreateAppointment } from "@/hooks/useAppointments";
 import { Appointment } from "@/lib/api/appointmentApi";
 import AppointmentForm from "@/components/appointments/AppointmentForm";
+import AppointmentStatistics from "@/components/appointments/AppointmentStatistics";
+import RescheduleAppointmentDialog from "@/components/appointments/RescheduleAppointmentDialog";
 import { ChevronLeft, ChevronRight, Clock, Filter, MoreHorizontal, Plus, Search, User } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay, addWeeks, subWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,7 @@ const Appointments = () => {
   const [calendarView, setCalendarView] = useState("week");
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [showNewAppointmentDialog, setShowNewAppointmentDialog] = useState(false);
+  const [rescheduleAppointment, setRescheduleAppointment] = useState<Appointment | null>(null);
 
   const { data: appointments = [] } = useAppointments();
   const createAppointment = useCreateAppointment();
@@ -237,6 +240,7 @@ const Appointments = () => {
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="statistics">Statistics</TabsTrigger>
           </TabsList>
           
           <TabsContent value="calendar" className="mt-6">
@@ -378,12 +382,25 @@ const Appointments = () => {
                                         <MoreHorizontal className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                                      <DropdownMenuItem>Reschedule</DropdownMenuItem>
-                                      <DropdownMenuItem>Cancel Appointment</DropdownMenuItem>
-                                      <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                                    </DropdownMenuContent>
+                                     <DropdownMenuContent align="end">
+                                       <DropdownMenuItem>View Details</DropdownMenuItem>
+                                       <DropdownMenuItem 
+                                         onClick={() => setRescheduleAppointment({
+                                           id: appointment.id,
+                                           patient_id: appointment.patientId,
+                                           provider_id: user?.id || "",
+                                           scheduled_time: appointment.date.toISOString(),
+                                           appointment_type: appointment.type,
+                                           status: appointment.status,
+                                           notes: appointment.notes,
+                                           duration_minutes: appointment.duration
+                                         } as Appointment)}
+                                       >
+                                         Reschedule
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem>Cancel Appointment</DropdownMenuItem>
+                                       <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </div>
                               </div>
@@ -470,7 +487,19 @@ const Appointments = () => {
               </CardFooter>
             </Card>
           </TabsContent>
+
+          <TabsContent value="statistics" className="mt-6">
+            <AppointmentStatistics />
+          </TabsContent>
         </Tabs>
+
+        {rescheduleAppointment && (
+          <RescheduleAppointmentDialog
+            appointment={rescheduleAppointment}
+            open={!!rescheduleAppointment}
+            onOpenChange={(open) => !open && setRescheduleAppointment(null)}
+          />
+        )}
     </div>
   );
 };
