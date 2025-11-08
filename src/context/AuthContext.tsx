@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔍 Fetching user profile for:', userId);
       
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
@@ -148,10 +148,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Creating new user profile in database...');
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .insert({
           id: userId,
-          user_id: userId,
           email: authUser.user?.email || '',
           name: authUser.user?.user_metadata?.name || 'User',
           role: (authUser.user?.user_metadata?.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
@@ -244,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .update(updates)
         .eq('id', user.id);
 

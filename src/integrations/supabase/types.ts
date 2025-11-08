@@ -464,6 +464,45 @@ export type Database = {
           },
         ]
       }
+      carecoin_analytics: {
+        Row: {
+          active_users: number | null
+          admin_fees: number | null
+          charting_revenue: number | null
+          created_at: string | null
+          date: string
+          id: string
+          inflow: number | null
+          outflow: number | null
+          total_transactions: number | null
+          total_volume: number | null
+        }
+        Insert: {
+          active_users?: number | null
+          admin_fees?: number | null
+          charting_revenue?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          inflow?: number | null
+          outflow?: number | null
+          total_transactions?: number | null
+          total_volume?: number | null
+        }
+        Update: {
+          active_users?: number | null
+          admin_fees?: number | null
+          charting_revenue?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          inflow?: number | null
+          outflow?: number | null
+          total_transactions?: number | null
+          total_volume?: number | null
+        }
+        Relationships: []
+      }
       carecoin_contract: {
         Row: {
           abi: Json | null
@@ -496,6 +535,56 @@ export type Database = {
           transaction_hash?: string | null
         }
         Relationships: []
+      }
+      charting_profits: {
+        Row: {
+          admin_share: number
+          chart_record_id: string | null
+          chart_type: string
+          created_at: string | null
+          id: string
+          patient_id: string
+          patient_share: number
+          provider_id: string
+          provider_share: number
+          status: string | null
+          total_amount: number
+        }
+        Insert: {
+          admin_share?: number
+          chart_record_id?: string | null
+          chart_type: string
+          created_at?: string | null
+          id?: string
+          patient_id: string
+          patient_share?: number
+          provider_id: string
+          provider_share?: number
+          status?: string | null
+          total_amount?: number
+        }
+        Update: {
+          admin_share?: number
+          chart_record_id?: string | null
+          chart_type?: string
+          created_at?: string | null
+          id?: string
+          patient_id?: string
+          patient_share?: number
+          provider_id?: string
+          provider_share?: number
+          status?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "charting_profits_chart_record_id_fkey"
+            columns: ["chart_record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_notes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversations: {
         Row: {
@@ -1063,6 +1152,7 @@ export type Database = {
       }
       patient_notes: {
         Row: {
+          carecoins_distributed: boolean | null
           created_at: string | null
           created_by: string
           id: string
@@ -1073,6 +1163,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          carecoins_distributed?: boolean | null
           created_at?: string | null
           created_by: string
           id?: string
@@ -1083,6 +1174,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          carecoins_distributed?: boolean | null
           created_at?: string | null
           created_by?: string
           id?: string

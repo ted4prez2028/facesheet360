@@ -26,7 +26,7 @@ const UserTransferForm = () => {
     try {
       // Find recipient by email
       const { data: recipient } = await supabase
-        .from('users')
+        .from('profiles')
         .select('id, name')
         .eq('email', formData.recipientEmail)
         .single();
@@ -46,6 +46,7 @@ const UserTransferForm = () => {
       const { error } = await supabase
         .from('care_coins_transactions')
         .insert({
+          user_id: user.id,
           amount: -amount,
           from_user_id: user.id,
           to_user_id: recipient.id,

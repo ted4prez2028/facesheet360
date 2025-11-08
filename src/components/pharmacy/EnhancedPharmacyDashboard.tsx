@@ -35,16 +35,14 @@ interface MedicationOrder {
   instructions?: string;
   prescribed_by: string;
   patient?: {
-    first_name: string;
-    last_name: string;
+    name: string;
     medical_record_number: string;
   };
 }
 
 interface Patient {
   id: string;
-  first_name: string;
-  last_name: string;
+  name: string;
   medical_record_number: string;
   date_of_birth: string;
 }
@@ -93,8 +91,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
         .select(`
           *,
           patients:patient_id (
-            first_name,
-            last_name,
+            name,
             medical_record_number
           )
         `)
@@ -103,8 +100,8 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
       // Load patients
       const { data: patientsData, error: patientsError } = await supabase
         .from('patients')
-        .select('id, first_name, last_name, medical_record_number, date_of_birth')
-        .order('last_name');
+        .select('id, name, medical_record_number, date_of_birth')
+        .order('name');
 
       // Load inventory
       // Mock pharmacy inventory data since table doesn't exist
@@ -222,8 +219,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
 
   const filteredOrders = medicationOrders.filter(order => {
     const matchesSearch = order.medication_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.patient?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.patient?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.patient?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.patient?.medical_record_number?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = filterStatus === 'all' || order.status === filterStatus;
@@ -389,7 +385,7 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                           <div>
                             <span className="font-medium">Patient:</span>
-                            <div>{order.patient?.first_name} {order.patient?.last_name}</div>
+                            <div>{order.patient?.name}</div>
                             <div className="text-xs">MRN: {order.patient?.medical_record_number}</div>
                           </div>
                           <div>

@@ -14,14 +14,17 @@ interface Ride {
   id: string;
   pickup_location: string;
   dropoff_location: string;
-  ride_type: string;
   status: string;
-  estimated_cost_carecoins: number;
-  estimated_arrival_time: string;
+  estimated_arrival?: string;
+  scheduled_time: string;
   driver_name?: string;
-  driver_phone?: string;
   vehicle_info?: string;
   created_at: string;
+  patient_id?: string;
+  user_id: string;
+  actual_pickup_time?: string;
+  actual_dropoff_time?: string;
+  updated_at?: string;
 }
 
 const TaxiService = () => {
@@ -50,7 +53,7 @@ const TaxiService = () => {
     if (!user) return;
     
     const { data } = await supabase
-      .from('users')
+      .from('profiles')
       .select('care_coins_balance')
       .eq('id', user.id)
       .single();
