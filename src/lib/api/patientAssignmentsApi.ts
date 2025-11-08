@@ -15,7 +15,7 @@ export const getPatientAssignments = async (patientId: string) => {
     .from('patient_assignments')
     .select(`
       *,
-      users:assigned_to(id, name, email, role)
+      assigned_user:assigned_to(id, name, email, role)
     `)
     .eq('patient_id', patientId)
     .order('assigned_at', { ascending: false });
@@ -47,12 +47,12 @@ export const deletePatientAssignment = async (id: string) => {
 
 export const getUsersByRole = async (role?: string) => {
   let query = supabase
-    .from('users')
+    .from('profiles')
     .select('id, name, email, role')
     .order('name');
 
   if (role) {
-    query = query.eq('role', role);
+    query = query.eq('role', role as any);
   }
 
   const { data, error } = await query;

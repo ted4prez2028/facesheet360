@@ -1,160 +1,165 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Car, Clock, DollarSign, Navigation } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Car, MapPin, Calendar, DollarSign, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { PatientAutocomplete } from '@/components/common/PatientAutocomplete';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 
 interface Ride {
   id: string;
   pickup_location: string;
   dropoff_location: string;
   status: string;
-  estimated_arrival?: string;
   scheduled_time: string;
-  driver_name?: string;
-  vehicle_info?: string;
-  created_at: string;
+  estimated_arrival: string;
   patient_id?: string;
-  user_id: string;
-  actual_pickup_time?: string;
-  actual_dropoff_time?: string;
-  updated_at?: string;
 }
 
-const TaxiService = () => {
+export const TaxiService = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [rides, setRides] = useState<Ride[]>([]);
-  const [isBooking, setIsBooking] = useState(false);
-  const [formData, setFormData] = useState({
-    pickupLocation: '',
-    dropoffLocation: '',
-    rideType: 'to_facility',
-    patientId: '',
-    scheduledTime: ''
-  });
-
+  const queryClient = useQueryClient();
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [dropoffLocation, setDropoffLocation] = useState('');
+  const [selectedRideType, setSelectedRideType] = useState('standard');
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [userCareCoins, setUserCareCoins] = useState(0);
 
+  // Fetch user's CareCoin balance
   useEffect(() => {
-    if (user) {
-      fetchRides();
-      fetchUserCareCoins();
-    }
+    const fetchUserCareCoins = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('care_coins_balance')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setUserCareCoins(data.care_coins_balance || 0);
+      }
+    };
+
+    fetchUserCareCoins();
   }, [user]);
 
-  const fetchUserCareCoins = async () => {
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from('profiles')
-      .select('care_coins_balance')
-      .eq('id', user.id)
-      .single();
-    
-    setUserCareCoins(data?.care_coins_balance || 0);
-  };
-
-  const fetchRides = async () => {
-    if (!user) return;
-
-    try {
+  // Fetch rides
+  const { data: rides = [] } = useQuery({
+    queryKey: ['rides', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
         .from('rides')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-      if (error) {
-        console.error('Error fetching rides:', error);
-        return;
+      if (error) throw error;
+      return data as Ride[];
+    },
+    enabled: !!user,
+  });
+
+  // Book ride mutation
+  const bookRide = useMutation({
+    mutationFn: async (rideDetails: {
+      pickupLocation: string;
+      dropoffLocation: string;
+      rideType: string;
+      scheduledTime?: string;
+      patientId?: string;
+      estimatedCost: number;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      // Check user's CareCoin balance first
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('care_coins_balance')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileData || profileData.care_coins_balance < rideDetails.estimatedCost) {
+        throw new Error('Insufficient CareCoins balance');
       }
-
-      setRides(data || []);
-    } catch (error) {
-      console.error('Error in fetchRides:', error);
-    }
-  };
-
-  const handleBookRide = async () => {
-    if (!user) return;
-
-    setIsBooking(true);
-
-    try {
-      // Calculate estimated cost (base rate + distance estimate)
-      const estimatedCost = calculateEstimatedCost(formData.rideType);
 
       const { data, error } = await supabase.functions.invoke('book-ride', {
         body: {
           userId: user.id,
-          pickupLocation: formData.pickupLocation,
-          dropoffLocation: formData.dropoffLocation,
-          rideType: formData.rideType,
-          patientId: formData.patientId || null,
-          scheduledTime: formData.scheduledTime || null,
-          estimatedCost
+          ...rideDetails
         }
       });
 
       if (error) throw error;
-
-      toast({
-        title: 'Ride Booked Successfully',
-        description: `Your ${formData.rideType.replace('_', ' ')} ride has been booked. Estimated cost: ${estimatedCost} CareCoins`,
-      });
-
-      // Reset form
-      setFormData({
-        pickupLocation: '',
-        dropoffLocation: '',
-        rideType: 'to_facility',
-        patientId: '',
-        scheduledTime: ''
-      });
-
-      // Refresh rides list
-      fetchRides();
-      fetchUserCareCoins();
-
-    } catch (error) {
-      console.error('Error booking ride:', error);
-      toast({
-        title: 'Booking Failed',
-        description: 'Unable to book ride. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsBooking(false);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rides'] });
+      queryClient.invalidateQueries({ queryKey: ['care-coins-balance'] });
+      toast.success('Ride booked successfully! CareCoins deducted from your balance.');
+      setPickupLocation('');
+      setDropoffLocation('');
+      setScheduledTime('');
+      // Refresh balance
+      (async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('care_coins_balance')
+          .eq('id', user!.id)
+          .single();
+        if (data) setUserCareCoins(data.care_coins_balance || 0);
+      })();
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to book ride: ${error.message}`);
     }
+  });
+
+  const handleBookRide = () => {
+    if (!pickupLocation || !dropoffLocation) {
+      toast.error('Please enter pickup and dropoff locations');
+      return;
+    }
+
+    // Calculate estimated cost based on ride type
+    const estimatedCost = selectedRideType === 'premium' ? 100 : 
+                         selectedRideType === 'wheelchair' ? 75 : 50;
+
+    if (userCareCoins < estimatedCost) {
+      toast.error(`Insufficient CareCoins. You need ${estimatedCost} CareCoins but have ${userCareCoins}`);
+      return;
+    }
+
+    bookRide.mutate({
+      pickupLocation,
+      dropoffLocation,
+      rideType: selectedRideType,
+      scheduledTime: scheduledTime || undefined,
+      patientId: selectedPatient?.id,
+      estimatedCost
+    });
   };
 
   const calculateEstimatedCost = (rideType: string): number => {
     const baseCosts = {
-      to_facility: 50,
-      from_facility: 50,
-      between_facilities: 75,
-      to_appointment: 60,
-      home: 40
+      standard: 50,
+      premium: 100,
+      wheelchair: 75
     };
     return baseCosts[rideType as keyof typeof baseCosts] || 50;
-  };
-
-  const getRideTypeLabel = (type: string) => {
-    const labels = {
-      to_facility: 'To Healthcare Facility',
-      from_facility: 'From Healthcare Facility',
-      between_facilities: 'Between Facilities',
-      to_appointment: 'To Appointment',
-      home: 'To Home'
-    };
-    return labels[type as keyof typeof labels] || type;
   };
 
   const getStatusColor = (status: string) => {
@@ -194,165 +199,134 @@ const TaxiService = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Car className="h-5 w-5" />
-            Book a Ride
+            Book a Ride with CareCoins
           </CardTitle>
           <CardDescription>
-            Book transportation using CareCoins. Rides are tracked in real-time with driver location and estimated arrival times.
+            Pay for transportation using your earned CareCoins. Standard rides: 50 CC, Wheelchair accessible: 75 CC, Premium: 100 CC
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="pickup">Pickup Location</Label>
+              <Label htmlFor="pickup">
+                <MapPin className="h-4 w-4 inline mr-2" />
+                Pickup Location
+              </Label>
               <Input
                 id="pickup"
                 placeholder="Enter pickup address"
-                value={formData.pickupLocation}
-                onChange={(e) => setFormData(prev => ({ ...prev, pickupLocation: e.target.value }))}
+                value={pickupLocation}
+                onChange={(e) => setPickupLocation(e.target.value)}
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="dropoff">Dropoff Location</Label>
+              <Label htmlFor="dropoff">
+                <MapPin className="h-4 w-4 inline mr-2" />
+                Dropoff Location
+              </Label>
               <Input
                 id="dropoff"
-                placeholder="Enter destination address"
-                value={formData.dropoffLocation}
-                onChange={(e) => setFormData(prev => ({ ...prev, dropoffLocation: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="rideType">Ride Type</Label>
-              <Select value={formData.rideType} onValueChange={(value) => setFormData(prev => ({ ...prev, rideType: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select ride type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="to_facility">To Healthcare Facility (50 CC)</SelectItem>
-                  <SelectItem value="from_facility">From Healthcare Facility (50 CC)</SelectItem>
-                  <SelectItem value="between_facilities">Between Facilities (75 CC)</SelectItem>
-                  <SelectItem value="to_appointment">To Appointment (60 CC)</SelectItem>
-                  <SelectItem value="home">To Home (40 CC)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="scheduledTime">Scheduled Time (Optional)</Label>
-              <Input
-                id="scheduledTime"
-                type="datetime-local"
-                value={formData.scheduledTime}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheduledTime: e.target.value }))}
+                placeholder="Enter dropoff address"
+                value={dropoffLocation}
+                onChange={(e) => setDropoffLocation(e.target.value)}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="patientId">Patient ID (Optional)</Label>
+            <Label htmlFor="ride-type">Ride Type</Label>
+            <Select value={selectedRideType} onValueChange={setSelectedRideType}>
+              <SelectTrigger id="ride-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="standard">Standard (50 CareCoins)</SelectItem>
+                <SelectItem value="wheelchair">Wheelchair Accessible (75 CareCoins)</SelectItem>
+                <SelectItem value="premium">Premium (100 CareCoins)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="scheduled-time">
+              <Calendar className="h-4 w-4 inline mr-2" />
+              Scheduled Time (Optional)
+            </Label>
             <Input
-              id="patientId"
-              placeholder="For patient transport"
-              value={formData.patientId}
-              onChange={(e) => setFormData(prev => ({ ...prev, patientId: e.target.value }))}
+              id="scheduled-time"
+              type="datetime-local"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Estimated Cost: {calculateEstimatedCost(formData.rideType)} CareCoins
-            </div>
-            <Button 
-              onClick={handleBookRide} 
-              disabled={isBooking || !formData.pickupLocation || !formData.dropoffLocation}
-              className="min-w-32"
-            >
-              {isBooking ? 'Booking...' : 'Book Ride'}
-            </Button>
+          <div className="space-y-2">
+            <Label>Patient (Optional)</Label>
+            <PatientAutocomplete
+              onSelect={setSelectedPatient}
+              value={selectedPatient}
+            />
           </div>
+
+          <div className="bg-muted p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Estimated Cost:</span>
+              <span className="text-lg font-bold text-primary">
+                {calculateEstimatedCost(selectedRideType)} CareCoins
+              </span>
+            </div>
+          </div>
+
+          <Button 
+            onClick={handleBookRide} 
+            disabled={bookRide.isPending}
+            className="w-full"
+          >
+            {bookRide.isPending ? 'Booking...' : 'Book Ride with CareCoins'}
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Active and Recent Rides */}
+      {/* Recent Rides */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Navigation className="h-5 w-5" />
-            Your Rides
-          </CardTitle>
-          <CardDescription>Track your current and recent ride requests</CardDescription>
+          <CardTitle>Recent Rides</CardTitle>
+          <CardDescription>Your ride history</CardDescription>
         </CardHeader>
         <CardContent>
-          {rides.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No rides booked yet. Book your first ride above!
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {rides.map((ride) => (
-                <div key={ride.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${getStatusColor(ride.status)} text-white`}>
-                        {ride.status.replace('_', ' ').toUpperCase()}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Standard Ride
-                      </span>
+          <div className="space-y-3">
+            {rides.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">No rides yet</p>
+            ) : (
+              rides.map((ride) => (
+                <div
+                  key={ride.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium">{ride.pickup_location}</div>
+                    <div className="text-sm text-muted-foreground">
+                      to {ride.dropoff_location}
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="h-4 w-4" />
-                      100 CC
+                    <div className="text-xs text-muted-foreground mt-1">
+                      <Clock className="h-3 w-3 inline mr-1" />
+                      {new Date(ride.scheduled_time).toLocaleString()}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 mt-0.5 text-green-500" />
-                      <div>
-                        <div className="font-medium">Pickup</div>
-                        <div className="text-muted-foreground">{ride.pickup_location}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 mt-0.5 text-red-500" />
-                      <div>
-                        <div className="font-medium">Dropoff</div>
-                        <div className="text-muted-foreground">{ride.dropoff_location}</div>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 rounded text-xs text-white ${getStatusColor(ride.status)}`}
+                    >
+                      {ride.status}
+                    </span>
                   </div>
-
-                  {ride.driver_name && (
-                    <div className="flex items-center justify-between bg-muted p-3 rounded">
-                      <div>
-                        <div className="font-medium">Driver: {ride.driver_name}</div>
-                        <div className="text-sm text-muted-foreground">{ride.vehicle_info}</div>
-                      </div>
-                      {ride.estimated_arrival && (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Clock className="h-4 w-4" />
-                          ETA: {new Date(ride.estimated_arrival).toLocaleTimeString()}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {(ride.status === 'driver_assigned' || ride.status === 'en_route') && (
-                    <Button variant="outline" size="sm" className="w-full">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Track Driver on Map
-                    </Button>
-                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 };
-
-export default TaxiService;

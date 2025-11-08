@@ -100,7 +100,7 @@ const UnifiedPatientInterface = ({
   const { data: labResults = [] } = useLabResults(selectedPatient);
   const { data: medications = [] } = useMedications(selectedPatient);
   const { data: imaging = [] } = useImagingRecordsChart(selectedPatient);
-  const { data: notes = [] } = usePatientNotes(selectedPatient);
+  const { notes = [] } = usePatientNotes(selectedPatient);
   
   // Room number state
   const [roomNumber, setRoomNumber] = useState('');

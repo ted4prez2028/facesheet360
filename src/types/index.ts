@@ -155,6 +155,7 @@ export interface Prescription {
 // CareCoins types
 export interface CareCoinsTransaction {
   id: string;
+  user_id: string;
   amount: number;
   transaction_type: 'transfer' | 'reward' | 'purchase' | 'deposit' | 'withdrawal' | 'platform_fee' | 'earned' | 'spent';
   description?: string;
@@ -163,6 +164,7 @@ export interface CareCoinsTransaction {
   to_user_id?: string;
   reward_category?: string;
   metadata?: Record<string, unknown>;
+  status?: string;
 }
 
 export interface CarePlan {

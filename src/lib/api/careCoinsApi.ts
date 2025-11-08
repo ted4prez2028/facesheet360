@@ -22,9 +22,15 @@ export const careCoinsApi = {
   },
 
   async createTransaction(transaction: Omit<CareCoinsTransaction, 'id' | 'created_at'>): Promise<CareCoinsTransaction> {
+    // Ensure user_id is set (fallback to from_user_id if not provided)
+    const txData = {
+      ...transaction,
+      user_id: transaction.user_id || transaction.from_user_id || transaction.to_user_id,
+    };
+
     const { data, error } = await supabase
       .from('care_coins_transactions')
-      .insert([transaction])
+      .insert([txData])
       .select()
       .single();
 

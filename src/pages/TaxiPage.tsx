@@ -1,5 +1,5 @@
 import React from 'react';
-import TaxiService from '@/components/taxi/TaxiService';
+import { TaxiService } from '@/components/taxi/TaxiService';
 
 const TaxiPage = () => {
   return (

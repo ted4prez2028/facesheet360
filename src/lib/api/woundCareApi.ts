@@ -11,13 +11,13 @@ export type { WoundRecord };
 export const getWoundRecordsByPatientId = async (patientId: string): Promise<WoundRecord[]> => {
   try {
     const { data, error } = await supabase
-      .from('wounds')
+      .from('wound_assessments')
       .select('*')
       .eq('patient_id', patientId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data as any;
   } catch (error) {
     console.error("Error fetching wound records:", error);
     toast.error("Failed to load wound records");
@@ -33,14 +33,14 @@ export const createWoundRecord = async (
 ): Promise<WoundRecord | null> => {
   try {
     const { data, error } = await supabase
-      .from('wounds')
-      .insert(woundRecord)
+      .from('wound_assessments')
+      .insert([woundRecord as any])
       .select()
       .single();
 
     if (error) throw error;
     toast.success("Wound record created successfully");
-    return data;
+    return data as any;
   } catch (error) {
     console.error("Error creating wound record:", error);
     toast.error("Failed to create wound record");
@@ -57,15 +57,15 @@ export const updateWoundRecord = async (
 ): Promise<WoundRecord | null> => {
   try {
     const { data, error } = await supabase
-      .from('wounds')
-      .update(updates)
+      .from('wound_assessments')
+      .update(updates as any)
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
     toast.success("Wound record updated successfully");
-    return data;
+    return data as any;
   } catch (error) {
     console.error("Error updating wound record:", error);
     toast.error("Failed to update wound record");
@@ -79,7 +79,7 @@ export const updateWoundRecord = async (
 export const deleteWoundRecord = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('wounds')
+      .from('wound_assessments')
       .delete()
       .eq('id', id);
 

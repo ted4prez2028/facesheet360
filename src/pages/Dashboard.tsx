@@ -32,22 +32,16 @@ const Dashboard = () => {
   }
 
   // Render dashboard based on user role
-  switch (user.role) {
-    case "admin":
-      return <AdminDashboard />;
-    case "doctor":
-      return <DoctorDashboard />;
-    case "nurse":
-      return <NurseDashboard />;
-    case "cna":
-      return <CNADashboard />;
-    case "patient":
-      return <PatientDashboard />;
-    case "therapist":
-      return <SocialWorkerDashboard />;
-    default:
-      return <DoctorDashboard />;
-  }
+  const roleMap: Record<string, React.ReactElement> = {
+    admin: <AdminDashboard />,
+    doctor: <DoctorDashboard />,
+    nurse: <NurseDashboard />,
+    cna: <CNADashboard />,
+    patient: <PatientDashboard />,
+    therapist: <SocialWorkerDashboard />,
+  };
+
+  return roleMap[user.role as string] || <DoctorDashboard />;
 };
 
 export default Dashboard;

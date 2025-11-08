@@ -9,7 +9,7 @@ import { User } from "@/types";
 export const getUsers = async () => {
   try {
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .select("*")
       .order("name", { ascending: true });
 
@@ -29,7 +29,7 @@ export const getUsers = async () => {
 export const getUserById = async (id: string) => {
   try {
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .select("*")
       .eq("id", id)
       .maybeSingle();
@@ -52,7 +52,7 @@ export const getUserById = async (id: string) => {
 export const getUserProfile = async (id: string) => {
   try {
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .select("*")
       .eq("id", id)
       .maybeSingle();
@@ -82,7 +82,7 @@ export const updateUser = async (id: string, updates: Partial<User>) => {
     };
 
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .update(updatedUser)
       .eq("id", id)
       .select()
@@ -107,7 +107,7 @@ export const updateUser = async (id: string, updates: Partial<User>) => {
 export const updateUserOnlineStatus = async (id: string, isOnline: boolean) => {
   try {
     const { data, error } = await supabase
-      .from("users")
+      .from("profiles")
       .update({ 
         online_status: isOnline,
         last_seen: new Date().toISOString()

@@ -48,6 +48,7 @@ export const {
 // CareCoins API functions
 export const transferCareCoins = async (fromId: string, toId: string, amount: number) => {
   return careCoinsApi.careCoinsApi.createTransaction({
+    user_id: fromId,
     from_user_id: fromId,
     to_user_id: toId,
     amount,

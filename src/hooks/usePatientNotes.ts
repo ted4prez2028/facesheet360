@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const usePatientNotes = (patientId?: string) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["patient-notes", patientId],
     queryFn: async () => {
       if (!patientId) return [];
@@ -22,21 +22,24 @@ export const usePatientNotes = (patientId?: string) => {
     },
     enabled: !!patientId,
   });
-};
 
-export const useCreatePatientNote = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const addNote = useMutation({
     mutationFn: async (noteData: {
-      patient_id: string;
-      note_type: string;
-      note_content: string;
-      created_by: string;
+      patientId: string;
+      providerId: string;
+      content: string;
+      noteType: string;
     }) => {
       const { data, error } = await supabase
         .from("patient_notes")
-        .insert([noteData])
+        .insert([{
+          patient_id: noteData.patientId,
+          created_by: noteData.providerId,
+          note_content: noteData.content,
+          note_type: noteData.noteType,
+        }])
         .select()
         .single();
 
@@ -46,9 +49,9 @@ export const useCreatePatientNote = () => {
       try {
         await supabase.functions.invoke("distribute-charting-profit", {
           body: {
-            patientId: noteData.patient_id,
-            providerId: noteData.created_by,
-            chartType: noteData.note_type,
+            patientId: noteData.patientId,
+            providerId: noteData.providerId,
+            chartType: noteData.noteType,
             noteId: data.id,
           },
         });
@@ -62,7 +65,7 @@ export const useCreatePatientNote = () => {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["patient-notes", variables.patient_id] });
+      queryClient.invalidateQueries({ queryKey: ["patient-notes", variables.patientId] });
       queryClient.invalidateQueries({ queryKey: ["care-coins-balance"] });
     },
     onError: (error) => {
@@ -70,4 +73,20 @@ export const useCreatePatientNote = () => {
       toast.error("Failed to create patient note");
     },
   });
+
+  // Transform the data to match expected format
+  const notes = query.data?.map((note: any) => ({
+    id: note.id,
+    type: note.note_type,
+    content: note.note_content,
+    date: note.created_at,
+    provider: note.creator?.name || 'Unknown',
+    carecoins_distributed: note.carecoins_distributed,
+  })) || [];
+
+  return {
+    notes,
+    isLoading: query.isLoading,
+    addNote,
+  };
 };
