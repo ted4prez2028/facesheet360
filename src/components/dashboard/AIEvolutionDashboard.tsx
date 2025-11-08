@@ -13,52 +13,29 @@ import { useAdminStatus } from '@/hooks/useAdminStatus';
 interface AIImprovement {
   id: string;
   improvement_type: string;
-  title: string;
   description: string;
-  implementation_status: string;
-  impact_score: number;
-  completion_time: string;
+  code_changes: string | null;
+  status: string;
+  impact_score: number | null;
   created_at: string;
-}
-
-interface EvolutionMetrics {
-  metric_date: string;
-  total_improvements: number;
-  ui_improvements: number;
-  performance_improvements: number;
-  feature_additions: number;
-  bug_fixes: number;
-  accessibility_improvements: number;
-  lines_of_code_added: number;
-  files_modified: number;
-  avg_impact_score: number;
 }
 
 const AIEvolutionDashboard: React.FC = () => {
   const { toast } = useToast();
   const { isAdmin, isLoading: adminLoading } = useAdminStatus();
   const [improvements, setImprovements] = useState<AIImprovement[]>([]);
-  const [metrics, setMetrics] = useState<EvolutionMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [triggeringAI, setTriggeringAI] = useState(false);
 
   const fetchData = async () => {
     try {
-      const [improvementsResponse, metricsResponse] = await Promise.all([
-        supabase
-          .from('ai_improvements')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(20),
-        supabase
-          .from('app_evolution_metrics')
-          .select('*')
-          .order('metric_date', { ascending: false })
-          .limit(30)
-      ]);
+      const improvementsResponse = await supabase
+        .from('ai_improvements')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
 
       if (improvementsResponse.data) setImprovements(improvementsResponse.data);
-      if (metricsResponse.data) setMetrics(metricsResponse.data);
     } catch (error) {
       console.error('Error fetching AI evolution data:', error);
     } finally {
@@ -184,9 +161,10 @@ const AIEvolutionDashboard: React.FC = () => {
     );
   }
 
-  const totalImprovements = metrics[0]?.total_improvements || 0;
-  const recentMetrics = metrics.slice(0, 7);
-  const avgImpactScore = metrics[0]?.avg_impact_score || 0;
+  const totalImprovements = improvements.length;
+  const avgImpactScore = improvements.length > 0 
+    ? improvements.reduce((acc, imp) => acc + (imp.impact_score || 0), 0) / improvements.length 
+    : 0;
 
   if (loading) {
     return (
@@ -272,8 +250,8 @@ const AIEvolutionDashboard: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Files Modified</p>
-                <p className="text-2xl font-bold">{metrics[0]?.files_modified || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">Improvements</p>
+                <p className="text-2xl font-bold">{improvements.length}</p>
               </div>
               <FileText className="w-8 h-8 text-purple-500" />
             </div>
@@ -284,8 +262,8 @@ const AIEvolutionDashboard: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Code Added</p>
-                <p className="text-2xl font-bold">{metrics[0]?.lines_of_code_added || 0}</p>
+                <p className="text-sm font-medium text-muted-foreground">Recent Activity</p>
+                <p className="text-2xl font-bold">{improvements.filter(i => i.status === 'implemented').length}</p>
               </div>
               <Code className="w-8 h-8 text-orange-500" />
             </div>
@@ -352,7 +330,7 @@ const AIEvolutionDashboard: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         {getTypeIcon(improvement.improvement_type)}
-                        <h3 className="font-semibold">{improvement.title}</h3>
+                        <h3 className="font-semibold">{improvement.improvement_type}</h3>
                         <Badge variant="outline" className="text-xs">
                           Impact: {improvement.impact_score}/10
                         </Badge>
@@ -367,9 +345,9 @@ const AIEvolutionDashboard: React.FC = () => {
                         </span>
                         <Badge 
                           variant="secondary" 
-                          className={`${getStatusColor(improvement.implementation_status)} text-white`}
+                          className={`${getStatusColor(improvement.status)} text-white`}
                         >
-                          {improvement.implementation_status}
+                          {improvement.status}
                         </Badge>
                       </div>
                     </div>
@@ -381,63 +359,30 @@ const AIEvolutionDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="metrics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Improvement Types</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">UI Enhancements</span>
-                    <span className="font-semibold">{metrics[0]?.ui_improvements || 0}</span>
-                  </div>
-                  <Progress value={(metrics[0]?.ui_improvements || 0) * 10} className="h-2" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Performance</span>
-                    <span className="font-semibold">{metrics[0]?.performance_improvements || 0}</span>
-                  </div>
-                  <Progress value={(metrics[0]?.performance_improvements || 0) * 10} className="h-2" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">New Features</span>
-                    <span className="font-semibold">{metrics[0]?.feature_additions || 0}</span>
-                  </div>
-                  <Progress value={(metrics[0]?.feature_additions || 0) * 10} className="h-2" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Bug Fixes</span>
-                    <span className="font-semibold">{metrics[0]?.bug_fixes || 0}</span>
-                  </div>
-                  <Progress value={(metrics[0]?.bug_fixes || 0) * 10} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Weekly Evolution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentMetrics.map((metric, index) => (
-                    <div key={metric.metric_date} className="flex justify-between items-center">
-                      <span className="text-sm">
-                        {new Date(metric.metric_date).toLocaleDateString()}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{metric.total_improvements}</span>
-                        <div className="w-20">
-                          <Progress value={metric.total_improvements * 20} className="h-2" />
-                        </div>
-                      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Improvement Types</CardTitle>
+              <CardDescription>Breakdown by category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(
+                  improvements.reduce((acc, imp) => {
+                    acc[imp.improvement_type] = (acc[imp.improvement_type] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>)
+                ).map(([type, count]) => (
+                  <div key={type}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm">{type}</span>
+                      <span className="font-semibold">{count}</span>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    <Progress value={(count / improvements.length) * 100} className="h-2" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

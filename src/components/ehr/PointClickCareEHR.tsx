@@ -55,12 +55,15 @@ interface CarePlan {
   id: string;
   title: string;
   description?: string;
-  goals: string[];
-  interventions: string[];
-  ai_generated: boolean;
+  goals?: string;
+  interventions?: string;
   status: string;
   start_date: string;
-  target_date?: string;
+  end_date?: string;
+  created_at: string;
+  created_by: string;
+  patient_id: string;
+  updated_at: string;
 }
 
 interface PointClickCareEHRProps {
@@ -370,9 +373,9 @@ export const PointClickCareEHR: React.FC<PointClickCareEHRProps> = ({ patientId 
                       {carePlans.map((plan) => (
                         <div key={plan.id} className="text-sm">
                           <div className="font-medium">{plan.title}</div>
-                          <Badge variant={plan.ai_generated ? "default" : "secondary"} className="text-xs">
-                            {plan.ai_generated ? "AI Generated" : "Manual"}
-                          </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {plan.status}
+                        </Badge>
                         </div>
                       ))}
                     </div>
@@ -600,9 +603,9 @@ export const PointClickCareEHR: React.FC<PointClickCareEHRProps> = ({ patientId 
                         <h3 className="font-semibold text-lg">{plan.title}</h3>
                         {plan.description && <p className="text-gray-600 mt-1">{plan.description}</p>}
                       </div>
-                      <div className="flex space-x-2">
-                        <Badge variant={plan.ai_generated ? "default" : "secondary"}>
-                          {plan.ai_generated ? "AI Generated" : "Manual"}
+                      <div>
+                        <Badge variant="secondary">
+                          Manual
                         </Badge>
                         <Badge variant={plan.status === 'active' ? 'default' : 'secondary'}>
                           {plan.status}
@@ -610,35 +613,21 @@ export const PointClickCareEHR: React.FC<PointClickCareEHRProps> = ({ patientId 
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div>
                         <h4 className="font-medium mb-2">Goals</h4>
-                        <ul className="space-y-1">
-                          {plan.goals.map((goal, index) => (
-                            <li key={index} className="text-sm text-gray-600 flex items-start">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                              {goal}
-                            </li>
-                          ))}
-                        </ul>
+                        <p className="text-sm text-gray-600">{plan.goals || 'No goals specified'}</p>
                       </div>
                       
                       <div>
                         <h4 className="font-medium mb-2">Interventions</h4>
-                        <ul className="space-y-1">
-                          {plan.interventions.map((intervention, index) => (
-                            <li key={index} className="text-sm text-gray-600 flex items-start">
-                              <Clock className="h-4 w-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                              {intervention}
-                            </li>
-                          ))}
-                        </ul>
+                        <p className="text-sm text-gray-600">{plan.interventions || 'No interventions specified'}</p>
                       </div>
                     </div>
 
                     <div className="mt-4 text-sm text-gray-500">
                       <span>Start Date: {plan.start_date}</span>
-                      {plan.target_date && <span> • Target Date: {plan.target_date}</span>}
+                      {plan.end_date && <span> • End Date: {plan.end_date}</span>}
                     </div>
                   </CardContent>
                 </Card>

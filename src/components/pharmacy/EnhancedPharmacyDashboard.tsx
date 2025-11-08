@@ -103,11 +103,10 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
       // Load patients
       const { data: patientsData, error: patientsError } = await supabase
         .from('patients')
-        .select('id, first_name, last_name, medical_record_number, date_of_birth')
-        .order('last_name');
+        .select('id, name, medical_record_number, date_of_birth, gender, created_at, updated_at')
+        .order('name');
 
-      // Load inventory
-      // Mock pharmacy inventory data since table doesn't exist
+      // Load inventory - mock data since table doesn't exist
       const inventoryData = [
         { id: '1', name: 'Acetaminophen', quantity: 100, unit: 'tablets' },
         { id: '2', name: 'Ibuprofen', quantity: 75, unit: 'tablets' },
@@ -120,7 +119,11 @@ export const EnhancedPharmacyDashboard: React.FC = () => {
       if (inventoryError) throw inventoryError;
 
       setMedicationOrders(ordersData || []);
-      setPatients(patientsData || []);
+      setPatients((patientsData || []).map(p => ({
+        ...p,
+        first_name: '',
+        last_name: ''
+      } as Patient)));
       setInventory(inventoryData || []);
     } catch (error) {
       console.error('Error loading pharmacy data:', error);
