@@ -42,7 +42,15 @@ export const EnhancedPatientCard = ({
     return age;
   };
 
-  const initials = `${patient.first_name[0]}${patient.last_name[0]}`.toUpperCase();
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const initials = getInitials(patient.name);
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -56,7 +64,7 @@ export const EnhancedPatientCard = ({
             </Avatar>
             <div>
               <h3 className="font-semibold text-lg">
-                {patient.first_name} {patient.last_name}
+                {patient.name}
               </h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>{calculateAge(patient.date_of_birth)} years</span>

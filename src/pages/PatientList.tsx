@@ -55,8 +55,9 @@ const PatientListPage = () => {
   };
 
   const filteredPatients = patients.filter(patient => {
-    const matchesQuery = patient.first_name.toLowerCase().includes(query.toLowerCase()) ||
-      patient.last_name.toLowerCase().includes(query.toLowerCase());
+    const matchesQuery = patient.name?.toLowerCase().includes(query.toLowerCase()) ||
+      patient.medical_record_number?.toLowerCase().includes(query.toLowerCase()) ||
+      patient.email?.toLowerCase().includes(query.toLowerCase());
     
     if (filter === 'all') return matchesQuery;
     // Add more filter conditions as needed
