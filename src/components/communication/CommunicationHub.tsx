@@ -17,7 +17,8 @@ import {
   Minimize2,
   Building2,
   Filter,
-  UserPlus
+  UserPlus,
+  BellOff
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,7 @@ import GroupChatWindow from './GroupChatWindow';
 import VideoCallInterface from './VideoCallInterface';
 import MessageSearch from './MessageSearch';
 import CreateGroupChatDialog from './CreateGroupChatDialog';
+import NotificationPreferences from './NotificationPreferences';
 import {
   Select,
   SelectContent,
@@ -63,6 +65,7 @@ const CommunicationHub = () => {
   const [organizationFilter, setOrganizationFilter] = useState<string>('all');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [isNotificationPrefsOpen, setIsNotificationPrefsOpen] = useState(false);
   const [groupChats, setGroupChats] = useState<GroupChat[]>([]);
   const location = useLocation();
   const { user } = useAuth();
@@ -310,15 +313,26 @@ const CommunicationHub = () => {
                 <Users className="h-5 w-5" />
                 Communication
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0"
-                onClick={() => setIsSearchOpen(true)}
-                title="Search messages"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setIsNotificationPrefsOpen(true)}
+                  title="Notification preferences"
+                >
+                  <BellOff className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={() => setIsSearchOpen(true)}
+                  title="Search messages"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
             </SheetTitle>
           </SheetHeader>
           
@@ -571,6 +585,12 @@ const CommunicationHub = () => {
         isOpen={isCreateGroupOpen}
         onClose={() => setIsCreateGroupOpen(false)}
         onGroupCreated={openGroupChat}
+      />
+
+      {/* Notification Preferences */}
+      <NotificationPreferences
+        isOpen={isNotificationPrefsOpen}
+        onClose={() => setIsNotificationPrefsOpen(false)}
       />
 
       {/* Video Call Interface */}

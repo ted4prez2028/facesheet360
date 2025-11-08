@@ -852,6 +852,9 @@ export type Database = {
           file_url: string | null
           group_id: string
           id: string
+          is_pinned: boolean | null
+          pinned_at: string | null
+          pinned_by: string | null
           sender_id: string
           voice_duration: number | null
         }
@@ -864,6 +867,9 @@ export type Database = {
           file_url?: string | null
           group_id: string
           id?: string
+          is_pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           sender_id: string
           voice_duration?: number | null
         }
@@ -876,6 +882,9 @@ export type Database = {
           file_url?: string | null
           group_id?: string
           id?: string
+          is_pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           sender_id?: string
           voice_duration?: number | null
         }
@@ -1365,6 +1374,54 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          group_id: string | null
+          id: string
+          is_muted: boolean | null
+          muted_until: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          is_muted?: boolean | null
+          muted_until?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          is_muted?: boolean | null
+          muted_until?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_conversations"
             referencedColumns: ["id"]
           },
         ]

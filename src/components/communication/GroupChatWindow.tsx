@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { X, Send, Minimize2, Users, Paperclip, Play, Settings } from 'lucide-react';
+import { X, Send, Minimize2, Users, Paperclip, Play, Settings, Pin, BellOff, Bell } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
@@ -24,6 +24,9 @@ interface GroupMessage {
   voice_duration?: number;
   sender_name?: string;
   sender_role?: string;
+  is_pinned?: boolean;
+  pinned_by?: string;
+  pinned_at?: string;
 }
 
 interface Participant {
@@ -55,6 +58,7 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [voiceBlob, setVoiceBlob] = useState<{ blob: Blob; transcription: string; duration: number } | null>(null);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,7 +101,30 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
     };
 
     loadParticipants();
+    checkMuteStatus();
   }, [groupId]);
+
+  // Check if group is muted
+  const checkMuteStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('is_muted, muted_until')
+        .eq('user_id', user?.id)
+        .eq('group_id', groupId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        const now = new Date();
+        const mutedUntil = data.muted_until ? new Date(data.muted_until) : null;
+        setIsMuted(data.is_muted && (!mutedUntil || mutedUntil > now));
+      }
+    } catch (error) {
+      console.error('Error checking mute status:', error);
+    }
+  };
 
   // Load messages
   useEffect(() => {
@@ -193,6 +220,70 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
     }
   };
 
+  const togglePin = async (messageId: string, currentlyPinned: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('group_messages')
+        .update({ 
+          is_pinned: !currentlyPinned,
+          pinned_by: !currentlyPinned ? user?.id : null,
+          pinned_at: !currentlyPinned ? new Date().toISOString() : null
+        })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { 
+              ...msg, 
+              is_pinned: !currentlyPinned,
+              pinned_by: !currentlyPinned ? user?.id : undefined,
+              pinned_at: !currentlyPinned ? new Date().toISOString() : undefined
+            }
+          : msg
+      ));
+
+      toast.success(currentlyPinned ? 'Message unpinned' : 'Message pinned');
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      toast.error('Failed to pin message');
+    }
+  };
+
+  const toggleMute = async () => {
+    try {
+      if (isMuted) {
+        // Unmute
+        const { error } = await supabase
+          .from('notification_preferences')
+          .delete()
+          .eq('user_id', user?.id)
+          .eq('group_id', groupId);
+
+        if (error) throw error;
+        setIsMuted(false);
+        toast.success('Notifications enabled');
+      } else {
+        // Mute
+        const { error } = await supabase
+          .from('notification_preferences')
+          .upsert({
+            user_id: user?.id,
+            group_id: groupId,
+            is_muted: true
+          });
+
+        if (error) throw error;
+        setIsMuted(true);
+        toast.success('Notifications muted');
+      }
+    } catch (error) {
+      console.error('Error toggling mute:', error);
+      toast.error('Failed to update notification settings');
+    }
+  };
+
   const uploadFile = async (file: File) => {
     try {
       const fileExt = file.name.split('.').pop();
@@ -269,6 +360,8 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
     });
   };
 
+  const pinnedMessages = messages.filter(m => m.is_pinned);
+
   return (
     <Card className="w-96 h-[500px] shadow-lg bg-background border flex flex-col">
       <CardHeader className="pb-2 px-4 py-3 border-b">
@@ -285,6 +378,15 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-muted"
+              onClick={toggleMute}
+              title={isMuted ? 'Unmute notifications' : 'Mute notifications'}
+            >
+              {isMuted ? <BellOff className="h-3 w-3" /> : <Bell className="h-3 w-3" />}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -338,6 +440,24 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
           </ScrollArea>
         ) : (
           <>
+            {pinnedMessages.length > 0 && (
+              <div className="px-4 py-2 bg-muted/30 border-b">
+                <p className="text-xs font-medium mb-2 flex items-center gap-1">
+                  <Pin className="h-3 w-3" />
+                  Pinned Messages
+                </p>
+                <div className="space-y-1">
+                  {pinnedMessages.map(msg => (
+                    <div key={msg.id} className="text-xs p-2 rounded bg-background border">
+                      <span className="font-medium">{msg.sender_name}: </span>
+                      <span className="text-muted-foreground">
+                        {msg.content.substring(0, 50)}{msg.content.length > 50 ? '...' : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <ScrollArea className="flex-1 px-4 py-3">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
@@ -351,7 +471,7 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
               ) : (
                 <div className="space-y-3">
                   {messages.map(message => (
-                    <div key={message.id} className="space-y-1">
+                    <div key={message.id} className="space-y-1 group">
                       <div className="flex items-baseline gap-2">
                         <span className="text-xs font-medium">
                           {message.sender_id === user?.id ? 'You' : message.sender_name}
@@ -359,6 +479,14 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
                         <span className="text-xs text-muted-foreground">
                           {formatTime(message.created_at)}
                         </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => togglePin(message.id, message.is_pinned || false)}
+                        >
+                          <Pin className={`h-3 w-3 ${message.is_pinned ? 'fill-current' : ''}`} />
+                        </Button>
                       </div>
                       <div className={`inline-block max-w-[85%] px-3 py-2 rounded-lg ${
                         message.sender_id === user?.id
