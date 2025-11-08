@@ -1387,9 +1387,12 @@ export type Database = {
           driver_name: string | null
           dropoff_location: string
           estimated_arrival: string | null
+          estimated_arrival_time: string | null
+          estimated_cost_carecoins: number | null
           id: string
           patient_id: string | null
           pickup_location: string
+          ride_type: string | null
           scheduled_time: string
           status: string | null
           updated_at: string | null
@@ -1403,9 +1406,12 @@ export type Database = {
           driver_name?: string | null
           dropoff_location: string
           estimated_arrival?: string | null
+          estimated_arrival_time?: string | null
+          estimated_cost_carecoins?: number | null
           id?: string
           patient_id?: string | null
           pickup_location: string
+          ride_type?: string | null
           scheduled_time: string
           status?: string | null
           updated_at?: string | null
@@ -1419,9 +1425,12 @@ export type Database = {
           driver_name?: string | null
           dropoff_location?: string
           estimated_arrival?: string | null
+          estimated_arrival_time?: string | null
+          estimated_cost_carecoins?: number | null
           id?: string
           patient_id?: string | null
           pickup_location?: string
+          ride_type?: string | null
           scheduled_time?: string
           status?: string | null
           updated_at?: string | null
@@ -1610,6 +1619,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_balance: {
+        Args: { amount: number; user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

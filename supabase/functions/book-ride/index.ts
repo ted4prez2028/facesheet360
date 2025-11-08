@@ -40,7 +40,7 @@ serve(async (req) => {
 
     // Check user's CareCoin balance
     const { data: userData, error: userError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('care_coins_balance, name, email')
       .eq('id', userId)
       .single();
@@ -78,7 +78,7 @@ serve(async (req) => {
 
     // Deduct CareCoins (hold them until ride completion)
     const { error: balanceError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({ care_coins_balance: userData.care_coins_balance - estimatedCost })
       .eq('id', userId);
 
@@ -92,17 +92,11 @@ serve(async (req) => {
     await supabase
       .from('care_coins_transactions')
       .insert({
+        user_id: userId,
         from_user_id: userId,
-        amount: estimatedCost,
+        amount: -estimatedCost,
         transaction_type: 'spent',
-        description: `Ride booking: ${rideType.replace('_', ' ')} - ${pickupLocation} to ${dropoffLocation}`,
-        reward_category: 'transportation',
-        metadata: {
-          ride_id: ride.id,
-          ride_type: rideType,
-          pickup_location: pickupLocation,
-          dropoff_location: dropoffLocation
-        }
+        description: `Ride booking: ${rideType.replace('_', ' ')} - ${pickupLocation} to ${dropoffLocation}`
       });
 
     // Send notification to ride dispatch system
