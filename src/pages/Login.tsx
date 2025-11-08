@@ -9,9 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResendEmail, setShowResendEmail] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
     name: "",
@@ -55,6 +58,7 @@ const Login = () => {
       const errorMsg = error?.message || "Failed to login";
       
       if (errorMsg.includes("Email not confirmed")) {
+        setShowResendEmail(true);
         toast({
           title: "Email Not Confirmed",
           description: "Please check your email and click the confirmation link before logging in.",
@@ -74,6 +78,41 @@ const Login = () => {
         });
       }
       setIsSubmitting(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!loginData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setResendingEmail(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: loginData.email,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email Sent",
+        description: "Confirmation email has been resent. Please check your inbox.",
+      });
+      setShowResendEmail(false);
+    } catch (error: any) {
+      toast({
+        title: "Failed to Resend",
+        description: error?.message || "Could not resend confirmation email.",
+        variant: "destructive",
+      });
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -200,6 +239,29 @@ const Login = () => {
                       disabled={isSubmitting}
                     />
                   </div>
+                  {showResendEmail && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Didn't receive the confirmation email?
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResendEmail}
+                        disabled={resendingEmail}
+                      >
+                        {resendingEmail ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          "Resend Confirmation Email"
+                        )}
+                      </Button>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">Password</Label>
