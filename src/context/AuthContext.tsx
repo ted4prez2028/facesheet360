@@ -176,20 +176,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setAuthError(null);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
       
-      toast.success('Signed in successfully');
+      if (!data.session) {
+        throw new Error('No session created');
+      }
+      
+      console.log('✅ Sign in successful');
       // Don't set isLoading to false here - let onAuthStateChange handle it
     } catch (error: any) {
+      console.error('❌ Sign in failed:', error);
       const errorMessage = error.message || 'Failed to sign in';
       setAuthError(errorMessage);
-      toast.error(errorMessage);
-      setIsLoading(false); // Only set to false on error
+      setIsLoading(false);
       throw error;
     }
   };
@@ -200,7 +207,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
       
-      const { error } = await supabase.auth.signUp({
+      console.log('🔐 Starting sign up process...');
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -209,13 +217,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign up error:', error);
+        throw error;
+      }
       
-      toast.success('Account created successfully! Please check your email to verify your account.');
+      console.log('✅ Sign up successful, user created:', data.user?.id);
     } catch (error: any) {
+      console.error('❌ Sign up failed:', error);
       const errorMessage = error.message || 'Failed to sign up';
       setAuthError(errorMessage);
-      toast.error(errorMessage);
       throw error;
     } finally {
       setIsLoading(false);
