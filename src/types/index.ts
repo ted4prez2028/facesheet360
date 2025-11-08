@@ -38,6 +38,7 @@ export interface Patient {
   medical_history?: string;
   notes?: string;
   facial_data?: string;
+  avatar_url?: string;
   user_id?: string;
   status?: string;
   lastVisit?: string;

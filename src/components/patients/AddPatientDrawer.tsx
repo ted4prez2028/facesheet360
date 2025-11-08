@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import PatientFormFields from "./PatientFormFields";
+import { PatientAvatarUpload } from "./PatientAvatarUpload";
 import { usePatientForm } from "@/hooks/usePatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
 
 interface AddPatientDrawerProps {
   open: boolean;
@@ -22,6 +24,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
 }) => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   const {
     formState,
@@ -68,6 +71,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
 
   const handleClose = () => {
     resetForm();
+    setAvatarUrl(null);
     onOpenChange(false);
   };
 
@@ -93,12 +97,23 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
         )}
         
         <form onSubmit={handleSubmitPatient} className="px-4 space-y-6">
-          <PatientFormFields
-            formData={formState}
-            onChange={updateField}
-            onSave={isAuthenticated ? handleSavePatient : undefined}
-            isLoading={formState.isLoading}
-          />
+          <div className="space-y-4">
+            <div className="pb-4 border-b">
+              <label className="text-sm font-medium mb-2 block">Patient Photo</label>
+              <PatientAvatarUpload
+                patientName={`${formState.firstName} ${formState.lastName}`.trim() || 'New Patient'}
+                currentAvatarUrl={avatarUrl || undefined}
+                onAvatarChange={setAvatarUrl}
+              />
+            </div>
+            
+            <PatientFormFields
+              formData={formState}
+              onChange={updateField}
+              onSave={isAuthenticated ? handleSavePatient : undefined}
+              isLoading={formState.isLoading}
+            />
+          </div>
           
           <DrawerFooter className="flex flex-col gap-3 mt-6">
             <Button

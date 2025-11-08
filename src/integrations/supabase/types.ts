@@ -1368,6 +1368,7 @@ export type Database = {
         Row: {
           address: string | null
           admission_date: string | null
+          avatar_url: string | null
           created_at: string | null
           date_of_birth: string | null
           discharge_date: string | null
@@ -1391,6 +1392,7 @@ export type Database = {
         Insert: {
           address?: string | null
           admission_date?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           discharge_date?: string | null
@@ -1414,6 +1416,7 @@ export type Database = {
         Update: {
           address?: string | null
           admission_date?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           discharge_date?: string | null

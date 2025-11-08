@@ -13,15 +13,19 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users } from 'lucide-react';
+import { Users, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { PatientFilters, PatientFilterOptions } from '@/components/patients/PatientFilters';
+import { BulkImportDialog } from '@/components/patients/BulkImportDialog';
 
 const PatientListPage = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [filters, setFilters] = useState<PatientFilterOptions>({});
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isFaceIdDialogOpen, setIsFaceIdDialogOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
   const { data: patients = [], isLoading, error, refetch } = useQuery({
@@ -54,14 +58,46 @@ const PatientListPage = () => {
     }
   };
 
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const filteredPatients = patients.filter(patient => {
+    // Search query filter
     const matchesQuery = patient.name?.toLowerCase().includes(query.toLowerCase()) ||
       patient.medical_record_number?.toLowerCase().includes(query.toLowerCase()) ||
       patient.email?.toLowerCase().includes(query.toLowerCase());
     
-    if (filter === 'all') return matchesQuery;
-    // Add more filter conditions as needed
-    return matchesQuery;
+    if (!matchesQuery) return false;
+
+    // Status filter
+    if (filters.status && filters.status !== 'all') {
+      if (patient.status !== filters.status) return false;
+    }
+
+    // Gender filter
+    if (filters.gender && filters.gender !== 'all') {
+      if (patient.gender !== filters.gender) return false;
+    }
+
+    // Age range filter
+    if (patient.date_of_birth) {
+      const age = calculateAge(patient.date_of_birth);
+      if (filters.ageMin !== undefined && age < filters.ageMin) return false;
+      if (filters.ageMax !== undefined && age > filters.ageMax) return false;
+    }
+
+    // Assigned provider filter (would need patient_assignments join)
+    // TODO: Implement when patient assignments are loaded
+
+    return true;
   });
 
   return (
@@ -75,12 +111,28 @@ const PatientListPage = () => {
           </div>
         </div>
 
-        <PatientToolbar
-          filter={query}
-          onFilterChange={setQuery}
-          isAuthenticated={isAuthenticated}
-          setIsAddPatientOpen={setIsAddPatientOpen}
-          setIsFaceIdDialogOpen={setIsFaceIdDialogOpen}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <PatientToolbar
+            filter={query}
+            onFilterChange={setQuery}
+            isAuthenticated={isAuthenticated}
+            setIsAddPatientOpen={setIsAddPatientOpen}
+            setIsFaceIdDialogOpen={setIsFaceIdDialogOpen}
+          />
+          
+          <Button
+            onClick={() => setIsBulkImportOpen(true)}
+            variant="outline"
+            className="gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Bulk Import
+          </Button>
+        </div>
+
+        <PatientFilters 
+          onFilterChange={setFilters}
+          providers={[]} 
         />
         
         {isLoading ? (
@@ -123,6 +175,12 @@ const PatientListPage = () => {
           open={isAddPatientOpen} 
           onOpenChange={setIsAddPatientOpen} 
           onPatientAdded={() => refetch()} 
+        />
+
+        <BulkImportDialog
+          open={isBulkImportOpen}
+          onOpenChange={setIsBulkImportOpen}
+          onImportComplete={() => refetch()}
         />
     </div>
   );

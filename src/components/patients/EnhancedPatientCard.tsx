@@ -4,7 +4,7 @@
 
 import { Patient } from '@/types';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Phone, Mail, FileText, MoreVertical } from 'lucide-react';
@@ -58,6 +58,7 @@ export const EnhancedPatientCard = ({
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 border-2 border-primary/20">
+              <AvatarImage src={patient.avatar_url || undefined} alt={patient.name} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
                 {initials}
               </AvatarFallback>
