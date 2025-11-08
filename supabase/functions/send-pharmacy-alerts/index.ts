@@ -22,16 +22,49 @@ serve(async (req) => {
 
     const { insights, urgentOnly = false } = await req.json();
 
-    // Get pharmacists and doctors
+    // Get pharmacists and doctors with their notification preferences
     const { data: recipients, error: recipientsError } = await supabaseClient
       .from('profiles')
-      .select('email, name, role')
+      .select(`
+        email, 
+        name, 
+        role,
+        id,
+        pharmacy_notification_preferences (
+          email_enabled,
+          safety_alerts_enabled,
+          safety_alerts_min_priority,
+          refill_alerts_enabled,
+          refill_alerts_min_urgency,
+          adherence_alerts_enabled,
+          inventory_alerts_enabled,
+          cost_savings_alerts_enabled
+        )
+      `)
       .in('role', ['pharmacist', 'doctor'])
       .not('email', 'is', null);
 
     if (recipientsError) throw recipientsError;
 
-    console.log(`Found ${recipients?.length || 0} recipients`);
+    // Filter recipients based on their preferences
+    const filteredRecipients = recipients?.filter((r: any) => {
+      const prefs = r.pharmacy_notification_preferences?.[0];
+      
+      // If no preferences set, include by default
+      if (!prefs) return true;
+      
+      // Check if email is enabled
+      if (!prefs.email_enabled) return false;
+      
+      // Check specific alert type preferences
+      const hasSafetyAlerts = insights.safetyAlerts?.length > 0 && prefs.safety_alerts_enabled;
+      const hasRefillAlerts = insights.refillPredictions?.length > 0 && prefs.refill_alerts_enabled;
+      const hasAdherenceAlerts = insights.adherenceInsights?.length > 0 && prefs.adherence_alerts_enabled;
+      
+      return hasSafetyAlerts || hasRefillAlerts || hasAdherenceAlerts;
+    }) || [];
+
+    console.log(`Found ${filteredRecipients.length} recipients after filtering preferences`);
 
     // Prepare email content
     const refillAlerts = insights.refillPredictions?.filter((p: any) => 
@@ -148,8 +181,8 @@ serve(async (req) => {
       </html>
     `;
 
-    // Send emails to all recipients
-    const emailPromises = recipients?.map(async (recipient) => {
+    // Send emails to filtered recipients
+    const emailPromises = filteredRecipients.map(async (recipient: any) => {
       try {
         const result = await resend.emails.send({
           from: "Facesheet360 Pharmacy <onboarding@resend.dev>",

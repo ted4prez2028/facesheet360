@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Package, Truck, ClipboardList, BarChart3, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, Package, Truck, ClipboardList, BarChart3, Bell, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import PrescriptionFillingTab from './PrescriptionFillingTab';
 import MedicationAdministrationTab from './MedicationAdministrationTab';
 import DeliveryTrackingTab from './DeliveryTrackingTab';
 import InventoryManagementTab from './InventoryManagementTab';
 import PredictiveInsightsTab from './PredictiveInsightsTab';
+import AnalysisStatusWidget from './AnalysisStatusWidget';
 
 interface PharmacyStats {
   pendingFills: number;
@@ -121,6 +124,12 @@ export const ComprehensivePharmacyDashboard: React.FC = () => {
           <h1 className="text-3xl font-bold">Comprehensive Pharmacy Management</h1>
           <p className="text-muted-foreground">End-to-end medication management and predictive analytics</p>
         </div>
+        <Link to="/pharmacy/notifications">
+          <Button variant="outline" className="gap-2">
+            <Settings className="h-4 w-4" />
+            Notification Preferences
+          </Button>
+        </Link>
       </div>
 
       {/* Alerts Bar */}
@@ -145,7 +154,9 @@ export const ComprehensivePharmacyDashboard: React.FC = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <AnalysisStatusWidget />
+        
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -169,7 +180,9 @@ export const ComprehensivePharmacyDashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950 dark:to-violet-900">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">

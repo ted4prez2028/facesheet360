@@ -176,6 +176,22 @@ Return a JSON object with this structure:
       }
     }
 
+    // Store analysis history
+    const { error: historyError } = await supabaseClient
+      .from('pharmacy_analysis_history')
+      .insert({
+        total_insights: analyticsToInsert.length,
+        safety_alerts: insights.safetyAlerts?.length || 0,
+        refill_predictions: insights.refillPredictions?.length || 0,
+        adherence_issues: insights.adherenceInsights?.length || 0,
+        run_type: 'automated',
+        insights_data: insights
+      });
+
+    if (historyError) {
+      console.error('Error storing history:', historyError);
+    }
+
     // Send email alerts if there are urgent findings
     const hasUrgentFindings = 
       insights.safetyAlerts?.some((a: any) => a.priority === 'high') ||
@@ -210,6 +226,7 @@ Return a JSON object with this structure:
       insights,
       analyticsStored: analyticsToInsert.length,
       emailsSent: emailResult?.emailsSent || 0,
+      totalRecipients: emailResult?.totalRecipients || 0,
       hasUrgentFindings,
       analysisDate: new Date().toISOString()
     }), {

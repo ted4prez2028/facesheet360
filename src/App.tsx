@@ -21,6 +21,7 @@ import AuditLogs from './pages/AuditLogs';
 import SecurityCompliance from './pages/SecurityCompliance';
 import Subscription from './pages/Subscription';
 import PharmacistDashboard from './pages/PharmacistDashboard';
+import PharmacyNotificationPreferences from './pages/PharmacyNotificationPreferences';
 import PatientManagement from './pages/PatientManagement';
 import { Toaster } from "@/components/ui/toaster"
 import ProfilePage from './pages/ProfilePage';
@@ -147,6 +148,16 @@ function App() {
                     <RequireAuth>
                       <DashboardLayout>
                         <PharmacistDashboard />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/pharmacy/notifications"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <PharmacyNotificationPreferences />
                       </DashboardLayout>
                     </RequireAuth>
                   }
