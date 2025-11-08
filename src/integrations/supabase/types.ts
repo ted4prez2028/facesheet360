@@ -1438,50 +1438,38 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_url: string | null
-          bio: string | null
           care_coins_balance: number | null
-          clerk_user_id: string | null
           created_at: string | null
-          email: string
+          email: string | null
           id: string
           last_seen: string | null
           name: string | null
           online_status: boolean | null
-          phone: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
+          role: string | null
           specialty: string | null
           updated_at: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
           care_coins_balance?: number | null
-          clerk_user_id?: string | null
           created_at?: string | null
-          email: string
+          email?: string | null
           id: string
           last_seen?: string | null
           name?: string | null
           online_status?: boolean | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
+          role?: string | null
           specialty?: string | null
           updated_at?: string | null
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
           care_coins_balance?: number | null
-          clerk_user_id?: string | null
           created_at?: string | null
-          email?: string
+          email?: string | null
           id?: string
           last_seen?: string | null
           name?: string | null
           online_status?: boolean | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
+          role?: string | null
           specialty?: string | null
           updated_at?: string | null
         }
