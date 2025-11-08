@@ -393,6 +393,7 @@ const CommunicationHub = () => {
           <ChatWindow
             contactId={chat.contactId}
             contactName={chat.contactName}
+            contactOrganization={users.find(u => u.id === chat.contactId)?.organization}
             onClose={() => closeChat(chat.id)}
             onMinimize={() => minimizeChat(chat.id)}
             onStartCall={() => handleStartCall(chat.contactId, chat.contactName)}

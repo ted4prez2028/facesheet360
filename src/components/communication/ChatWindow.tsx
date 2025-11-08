@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { X, Send, Phone, Video, Minimize2, MessageSquare } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -23,6 +24,7 @@ interface Message {
 interface ChatWindowProps {
   contactId: string;
   contactName: string;
+  contactOrganization?: string;
   onClose: () => void;
   onMinimize?: () => void;
   onStartCall: () => void;
@@ -31,18 +33,20 @@ interface ChatWindowProps {
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
   contactId, 
-  contactName, 
+  contactName,
+  contactOrganization,
   onClose, 
   onMinimize,
   onStartCall, 
   onStartVideoCall 
 }) => {
+  const { user } = useAuth();
+  const isCrossOrganization = contactOrganization && user?.organization && contactOrganization !== user.organization;
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
 
   // Flush any offline messages when coming online
   useEffect(() => {
@@ -306,6 +310,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         </div>
       </CardHeader>
+      
+      {isCrossOrganization && (
+        <Alert variant="destructive" className="mx-3 mt-2 mb-0 border-warning bg-warning/10">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            <strong>Cross-Organization Communication:</strong> You are communicating with a provider from a different organization ({contactOrganization}). Ensure proper consent and HIPAA compliance before sharing patient information.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <CardContent className="p-0 flex flex-col h-80">
         {/* Messages area */}

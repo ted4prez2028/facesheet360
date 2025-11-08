@@ -1448,6 +1448,7 @@ export type Database = {
           last_seen: string | null
           name: string | null
           online_status: boolean | null
+          organization: string | null
           role: string | null
           specialty: string | null
           updated_at: string | null
@@ -1460,6 +1461,7 @@ export type Database = {
           last_seen?: string | null
           name?: string | null
           online_status?: boolean | null
+          organization?: string | null
           role?: string | null
           specialty?: string | null
           updated_at?: string | null
@@ -1472,6 +1474,7 @@ export type Database = {
           last_seen?: string | null
           name?: string | null
           online_status?: boolean | null
+          organization?: string | null
           role?: string | null
           specialty?: string | null
           updated_at?: string | null
