@@ -20,6 +20,8 @@ const AppointmentStatusBadge = ({ status, className }: AppointmentStatusBadgePro
         return "bg-gray-50 text-gray-700 border-gray-200";
       case 'cancelled':
         return "bg-red-50 text-red-700 border-red-200";
+      case 'no-show':
+        return "bg-orange-50 text-orange-700 border-orange-200";
       default:
         return "bg-gray-50 text-gray-700 border-gray-200";
     }

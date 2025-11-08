@@ -77,6 +77,8 @@ const NotificationCenter = () => {
         return <span className="text-yellow-500">🪙</span>;
       case 'food_delivery':
         return <span className="text-purple-500">🍽️</span>;
+      case 'warning':
+        return <span className="text-red-600">⚠️</span>;
       default:
         return <span className="text-gray-500">📢</span>;
     }
@@ -110,7 +112,13 @@ const NotificationCenter = () => {
               {notifications.map((notification) => (
                 <div 
                   key={notification.id} 
-                  className={`p-3 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+                  className={`p-3 hover:bg-accent transition-colors cursor-pointer ${
+                    !notification.read 
+                      ? notification.type === 'warning' 
+                        ? 'bg-destructive/10 border-l-4 border-l-destructive' 
+                        : 'bg-primary/10'
+                      : ''
+                  }`}
                   onClick={() => handleRead(notification.id)}
                 >
                   <div className="flex items-start gap-2">
@@ -118,7 +126,9 @@ const NotificationCenter = () => {
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium">{notification.title}</div>
+                      <div className={`font-medium ${notification.type === 'warning' ? 'text-destructive' : ''}`}>
+                        {notification.title}
+                      </div>
                       <div className="text-sm text-muted-foreground">{notification.message}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         {format(new Date(notification.created_at), 'MMM d, h:mm a')}

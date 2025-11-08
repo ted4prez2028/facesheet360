@@ -17,15 +17,19 @@ export type CreateNotificationInput = Omit<Notification, "id" | "created_at">;
 
 /**
  * Get all notifications for a user (filtered for specific types only)
+ * Only shows unread notifications if they are upcoming
+ * Shows all read notifications regardless of time
  */
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
-  const allowedTypes = ['pharmacy', 'appointment', 'patient', 'wound_care', 'carecoin', 'food_delivery'];
+  const allowedTypes = ['pharmacy', 'appointment', 'patient', 'wound_care', 'carecoin', 'food_delivery', 'warning'];
+  const now = new Date().toISOString();
   
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
     .in('type', allowedTypes)
+    .or(`read.eq.true,event_time.is.null,event_time.gte.${now}`)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
