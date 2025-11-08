@@ -1,32 +1,53 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+import DoctorDashboard from "@/components/dashboard/DoctorDashboard";
+import NurseDashboard from "@/components/dashboard/NurseDashboard";
+import CNADashboard from "@/components/dashboard/CNADashboard";
+import PatientDashboard from "@/components/dashboard/PatientDashboard";
+import AdminDashboard from "@/components/dashboard/AdminDashboard";
+import SocialWorkerDashboard from "@/components/dashboard/SocialWorkerDashboard";
 
-import React from 'react';
-import DashboardTabs from '@/components/dashboard/DashboardTabs';
-import { PageHeader } from '@/components/common/PageHeader';
-import { useAppointmentsToday } from '@/hooks/useAppointmentsToday';
-import { usePendingTasks } from '@/hooks/usePendingTasks';
-import { useRecentPatients } from '@/hooks/useRecentPatients';
+const Dashboard = () => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
 
-export default function Dashboard() {
-  const { data: appointments = [], isLoading: appointmentsLoading } = useAppointmentsToday();
-  const { data: pendingTasks = [], isLoading: tasksLoading } = usePendingTasks();
-  const { data: recentPatients = [], isLoading: patientsLoading } = useRecentPatients();
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <PageHeader
-        title="Dashboard"
-        description="Welcome back! Here's your healthcare overview."
-        showEncryption={true}
-      />
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-      <DashboardTabs 
-        recentPatients={recentPatients}
-        todayAppointments={appointments}
-        pendingTasks={pendingTasks}
-        isRecentPatientsLoading={patientsLoading}
-        isAppointmentsLoading={appointmentsLoading}
-        isTasksLoading={tasksLoading}
-      />
-    </div>
-  );
-}
+  if (!user) {
+    return null;
+  }
+
+  // Render dashboard based on user role
+  switch (user.role) {
+    case "admin":
+      return <AdminDashboard />;
+    case "doctor":
+      return <DoctorDashboard />;
+    case "nurse":
+      return <NurseDashboard />;
+    case "cna":
+      return <CNADashboard />;
+    case "patient":
+      return <PatientDashboard />;
+    case "therapist":
+      return <SocialWorkerDashboard />;
+    default:
+      return <DoctorDashboard />;
+  }
+};
+
+export default Dashboard;

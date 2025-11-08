@@ -47,9 +47,14 @@ export const useAddPrescription = () => {
   return useMutation({
     mutationFn: async (prescription: Omit<Prescription, "id" | "created_at" | "updated_at">) => {
       try {
+        const prescriptionData = {
+          ...prescription,
+          prescribed_by: prescription.provider_id
+        };
+        
         const { data, error } = await supabase
           .from("medication_orders")
-          .insert([prescription])
+          .insert([prescriptionData])
           .select()
           .single();
 

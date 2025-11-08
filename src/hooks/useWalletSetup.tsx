@@ -60,12 +60,13 @@ export const useWalletSetup = () => {
       // 1. Create a transaction record
       const { error: txError } = await supabase
         .from('care_coins_transactions')
-        .insert({
+        .insert([{
           amount: 1,
+          user_id: user.id,
           to_user_id: user.id,
-          transaction_type: 'welcome',
+          transaction_type: 'earned',
           description: 'Welcome bonus for connecting your wallet'
-        });
+        }]);
       
       if (txError) throw txError;
       

@@ -18,9 +18,8 @@ export const createCallLightRequest = async (requestData: CallLightRequestPayloa
     .from('call_lights')
     .insert({
       patient_id: requestData.patient_id,
-      room_number: requestData.room_number,
+      room_number: requestData.room_number || 'N/A',
       reason: requestData.request_type,
-      notes: requestData.message,
       status: 'active'
     })
     .select()
@@ -33,7 +32,7 @@ export const createCallLightRequest = async (requestData: CallLightRequestPayloa
     patient_id: data.patient_id,
     room_number: data.room_number,
     request_type: data.reason,
-    message: data.notes,
+    message: requestData.message,
     status: data.status as 'active' | 'in_progress' | 'completed',
     created_at: data.activated_at
   };
@@ -56,7 +55,7 @@ export const getPatientCallLightHistory = async (patientId: string): Promise<Cal
     patient_id: record.patient_id,
     room_number: record.room_number,
     request_type: record.reason,
-    message: record.notes,
+    message: record.reason,
     status: record.status as 'active' | 'in_progress' | 'completed',
     created_at: record.activated_at,
     completed_at: record.resolved_at,
@@ -78,7 +77,7 @@ export const getActiveCallLights = async (): Promise<CallLightRequest[]> => {
     patient_id: record.patient_id,
     room_number: record.room_number,
     request_type: record.reason,
-    message: record.notes,
+    message: record.reason,
     status: record.status as 'active' | 'in_progress' | 'completed',
     created_at: record.activated_at
   }));
@@ -109,7 +108,7 @@ export const updateCallLightRequest = async (
     patient_id: data.patient_id,
     room_number: data.room_number,
     request_type: data.reason,
-    message: data.notes,
+    message: updates.message,
     status: data.status as 'active' | 'in_progress' | 'completed',
     created_at: data.activated_at,
     completed_at: data.resolved_at,

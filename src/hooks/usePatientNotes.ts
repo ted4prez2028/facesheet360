@@ -1,6 +1,28 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+export const usePatientNotes = (patientId?: string) => {
+  return useQuery({
+    queryKey: ["patient-notes", patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
+      
+      const { data, error } = await supabase
+        .from("patient_notes")
+        .select(`
+          *,
+          creator:created_by(name, email)
+        `)
+        .eq("patient_id", patientId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!patientId,
+  });
+};
 
 export const useCreatePatientNote = () => {
   const queryClient = useQueryClient();

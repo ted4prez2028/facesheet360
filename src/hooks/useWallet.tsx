@@ -48,12 +48,13 @@ export const useWallet = () => {
       // Create transaction record
       const { error } = await supabase
         .from('care_coins_transactions')
-        .insert({
+        .insert([{
           amount,
+          user_id: user.id,
           transaction_type: 'deposit',
           description: 'Added funds',
           to_user_id: user.id
-        });
+        }]);
 
       if (error) throw error;
 
@@ -80,12 +81,13 @@ export const useWallet = () => {
       // Create transaction record
       const { error } = await supabase
         .from('care_coins_transactions')
-        .insert({
+        .insert([{
           amount: -amount,
+          user_id: user.id,
           transaction_type: 'withdrawal',
           description: 'Withdrew funds',
           from_user_id: user.id
-        });
+        }]);
 
       if (error) throw error;
 

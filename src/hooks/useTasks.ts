@@ -4,16 +4,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Task {
-  id: string;
-  patient_id: string;
-  task_description: string;
-  position: string;
-  frequency: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
+  id?: string;
+  patient_id?: string;
+  title: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  category?: string;
+  assigned_to: string;
+  created_by?: string;
+  due_date?: string;
+  created_at?: string;
+  updated_at?: string;
   completed_at?: string;
-  completed_by?: string;
 }
 
 export function useTasks(patientId: string) {
@@ -29,7 +32,7 @@ export function useTasks(patientId: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Task[];
+      return (data || []) as Task[];
     }
   });
 

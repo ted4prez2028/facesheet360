@@ -17,20 +17,14 @@ export const careCoinsApi = {
 
     return (data || []).map(item => ({
       ...item,
-      transaction_type: item.transaction_type as CareCoinsTransaction['transaction_type'],
-      metadata: item.metadata as Record<string, unknown> || {}
+      transaction_type: item.transaction_type as CareCoinsTransaction['transaction_type']
     }));
   },
 
   async createTransaction(transaction: Omit<CareCoinsTransaction, 'id' | 'created_at'>): Promise<CareCoinsTransaction> {
-    const transactionData = {
-      ...transaction,
-      metadata: transaction.metadata ? JSON.stringify(transaction.metadata) : null
-    };
-
     const { data, error } = await supabase
       .from('care_coins_transactions')
-      .insert(transactionData)
+      .insert([transaction])
       .select()
       .single();
 
@@ -41,14 +35,13 @@ export const careCoinsApi = {
 
     return {
       ...data,
-      transaction_type: data.transaction_type as CareCoinsTransaction['transaction_type'],
-      metadata: data.metadata ? JSON.parse(data.metadata as string) : {}
+      transaction_type: data.transaction_type as CareCoinsTransaction['transaction_type']
     };
   },
 
   async getBillPayments(userId: string): Promise<CareCoinsBillPayment[]> {
     const { data, error } = await supabase
-      .from('care_coins_bill_payments')
+      .from('bill_payments')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -58,22 +51,13 @@ export const careCoinsApi = {
       throw error;
     }
 
-    return (data || []).map(item => ({
-      ...item,
-      status: item.status as CareCoinsBillPayment['status'],
-      bill_info: item.bill_info as Record<string, unknown> || {}
-    }));
+    return (data || []) as any[];
   },
 
   async createBillPayment(payment: Omit<CareCoinsBillPayment, 'id' | 'created_at' | 'updated_at'>): Promise<CareCoinsBillPayment> {
-    const paymentData = {
-      ...payment,
-      bill_info: payment.bill_info ? JSON.stringify(payment.bill_info) : null
-    };
-
     const { data, error } = await supabase
-      .from('care_coins_bill_payments')
-      .insert(paymentData)
+      .from('bill_payments')
+      .insert([payment as any])
       .select()
       .single();
 
@@ -82,26 +66,22 @@ export const careCoinsApi = {
       throw error;
     }
 
-    return {
-      ...data,
-      status: data.status as CareCoinsBillPayment['status'],
-      bill_info: data.bill_info ? JSON.parse(data.bill_info as string) : {}
-    };
+    return data as any;
   },
 
   async getAchievements(userId: string): Promise<CareCoinsAchievement[]> {
     const { data, error } = await supabase
-      .from('care_coins_achievements')
+      .from('achievements')
       .select('*')
       .eq('user_id', userId)
-      .order('achieved_at', { ascending: false });
+      .order('earned_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching achievements:', error);
       throw error;
     }
 
-    return data || [];
+    return (data || []) as any[];
   }
 };
 

@@ -72,8 +72,6 @@ const AdminDashboard = () => {
       </div>
 
       <StatisticsCards />
-
-      <DashboardCharts />
     </div>
   );
 };
