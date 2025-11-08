@@ -50,10 +50,10 @@ const TaxiService = () => {
     if (!user) return;
     
     const { data } = await supabase
-      .from('users')
+      .from('profiles')
       .select('care_coins_balance')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
     
     setUserCareCoins(data?.care_coins_balance || 0);
   };

@@ -109,8 +109,8 @@ export const useAuthOperations = (
         profile_image: userData.profile_image,
       };
       
-      const { data, error } = await supabase
-        .from('users')
+      const { data, error} = await supabase
+        .from('profiles')
         .update(dbUpdate)
         .eq('id', user.id)
         .select();
