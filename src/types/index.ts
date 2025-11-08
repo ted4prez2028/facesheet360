@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'doctor' | 'nurse' | 'therapist' | 'cna';
+  role: 'doctor' | 'nurse' | 'therapist' | 'cna' | 'admin' | 'pharmacist' | 'patient';
   specialty?: string;
   profile_image?: string;
   care_coins_balance: number;
@@ -12,24 +12,30 @@ export interface User {
   last_seen?: string;
   created_at: string;
   updated_at: string;
+  bio?: string;
+  phone?: string;
+  avatar_url?: string;
 }
 
 export interface Patient {
   id: string;
-  first_name: string;
-  last_name: string;
-  name?: string;
+  name: string; // Changed from first_name/last_name to match database
+  first_name?: string; // Kept for backward compatibility
+  last_name?: string; // Kept for backward compatibility
   age?: number;
-  date_of_birth: string;
-  gender: string;
+  date_of_birth?: string;
+  gender?: string;
   phone?: string;
   email?: string;
   address?: string;
   room_number?: string;
   medical_record_number?: string;
   insurance_provider?: string;
+  insurance_policy_number?: string;
   insurance_number?: string;
   policy_number?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
@@ -42,8 +48,11 @@ export interface Patient {
   status?: string;
   lastVisit?: string;
   imgUrl?: string | null;
-  created_at: string;
-  updated_at: string;
+  admission_date?: string;
+  discharge_date?: string;
+  primary_physician?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Appointment {
@@ -168,9 +177,17 @@ export interface CareCoinsTransaction {
 export interface CarePlan {
   id: string;
   patient_id: string;
-  content: string;
-  status: 'active' | 'completed' | 'draft';
-  is_ai_generated: boolean;
+  title: string;
+  description?: string;
+  goals?: string;
+  interventions?: string;
+  content?: string;
+  status: 'active' | 'completed' | 'draft' | 'inactive';
+  ai_generated?: boolean;
+  is_ai_generated?: boolean; // Alias for compatibility
+  created_by: string;
+  start_date?: string;
+  end_date?: string;
   created_at: string;
   updated_at: string;
 }
