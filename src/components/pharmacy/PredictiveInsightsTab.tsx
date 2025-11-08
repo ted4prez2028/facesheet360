@@ -85,61 +85,28 @@ export const PredictiveInsightsTab: React.FC = () => {
     try {
       setIsGenerating(true);
 
-      // In a real implementation, this would call an AI service
-      // For now, we'll generate sample insights based on current data
-
-      // Load recent MAR data to analyze adherence
-      const { data: marData, error: marError } = await supabase
-        .from('medication_administration_records')
-        .select('*')
-        .gte('administered_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
-      if (marError) throw marError;
-
-      // Calculate adherence rates
-      const medicationAdherence: any = {};
-      marData?.forEach(record => {
-        if (!medicationAdherence[record.medication_name]) {
-          medicationAdherence[record.medication_name] = { given: 0, total: 0 };
-        }
-        medicationAdherence[record.medication_name].total++;
-        if (record.status === 'given') {
-          medicationAdherence[record.medication_name].given++;
-        }
+      const { data, error } = await supabase.functions.invoke('generate-pharmacy-insights', {
+        body: {}
       });
 
-      // Store new analytics
-      const newAnalytics: any[] = [];
-      Object.keys(medicationAdherence).forEach(medName => {
-        const data = medicationAdherence[medName];
-        const adherenceRate = (data.given / data.total) * 100;
+      if (error) throw error;
 
-        newAnalytics.push({
-          medication_name: medName,
-          metric_type: 'adherence_rate',
-          metric_value: adherenceRate,
-          confidence_score: Math.min(0.95, data.total / 90), // More data = higher confidence
-          metadata: {
-            total_doses: data.total,
-            given_doses: data.given,
-            analysis_period: '30_days'
-          }
-        });
-      });
-
-      if (newAnalytics.length > 0) {
-        const { error: insertError } = await supabase
-          .from('pharmacy_analytics')
-          .insert(newAnalytics);
-
-        if (insertError) throw insertError;
+      if (data?.success) {
+        toast.success(`AI insights generated! Analyzed ${data.analyticsStored} data points.`);
+        
+        // Show summary of insights
+        const insights = data.insights;
+        if (insights.safetyAlerts?.length > 0) {
+          toast.warning(`${insights.safetyAlerts.length} safety alert(s) detected - check recommendations below`);
+        }
+        
+        loadInsights();
+      } else {
+        throw new Error(data?.error || 'Failed to generate insights');
       }
-
-      toast.success('AI insights generated');
-      loadInsights();
     } catch (error) {
       console.error('Error generating insights:', error);
-      toast.error('Failed to generate insights');
+      toast.error('Failed to generate AI insights');
     } finally {
       setIsGenerating(false);
     }
