@@ -14,7 +14,9 @@ import {
   Search,
   CircleIcon,
   X,
-  Minimize2
+  Minimize2,
+  Building2,
+  Filter
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -22,8 +24,16 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLocation } from 'react-router-dom';
 import { useCommunication } from '@/hooks/useCommunication';
+import { useAuth } from '@/hooks/useAuth';
 import ChatWindow from './ChatWindow';
 import VideoCallInterface from './VideoCallInterface';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ChatSession {
   id: string;
@@ -37,7 +47,9 @@ const CommunicationHub = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [activeVideoCall, setActiveVideoCall] = useState<{contactId: string, contactName: string} | null>(null);
+  const [organizationFilter, setOrganizationFilter] = useState<string>('all');
   const location = useLocation();
+  const { user } = useAuth();
   const { users, conversations, loading, error, fetchUsers } = useCommunication();
   
   // Hide on homepage
@@ -55,15 +67,27 @@ const CommunicationHub = () => {
     setIsOpen(!isOpen);
   };
 
-  // Filter users based on search term
-  const filteredUsers = users.filter(user =>
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique organizations
+  const organizations = Array.from(new Set(users.map(u => u.organization).filter(Boolean)));
 
-  const openChat = (contactId: string, contactName: string) => {
+  // Filter users based on search term and organization
+  const filteredUsers = users.filter(contact => {
+    const matchesSearch = 
+      contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.specialty?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesOrg = 
+      organizationFilter === 'all' || 
+      organizationFilter === 'same' && contact.organization === user?.organization ||
+      organizationFilter === 'different' && contact.organization !== user?.organization ||
+      organizationFilter === contact.organization;
+    
+    return matchesSearch && matchesOrg;
+  });
+
+  const openChat = (contactId: string, contactName: string, contactOrg?: string) => {
     // Check if chat is already open
     const existingChat = chatSessions.find(chat => chat.contactId === contactId);
     if (existingChat) {
@@ -190,12 +214,31 @@ const CommunicationHub = () => {
           <div className="mt-6 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search contacts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
+              <Input
+                placeholder="Search contacts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={organizationFilter} onValueChange={setOrganizationFilter}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Filter by organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Organizations</SelectItem>
+                  <SelectItem value="same">My Organization</SelectItem>
+                  <SelectItem value="different">Other Organizations</SelectItem>
+                  {organizations.map((org) => (
+                    <SelectItem key={org} value={org || 'unknown'}>
+                      {org || 'Unknown Org'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="h-[calc(100vh-240px)] overflow-y-auto pr-2">
@@ -225,7 +268,7 @@ const CommunicationHub = () => {
                     <Card 
                       key={contact.id}
                       className="cursor-pointer transition-all hover:shadow-md border-l-4 border-l-primary/20 hover:border-l-primary"
-                      onClick={() => openChat(contact.id, contact.name || 'Unknown User')}
+                      onClick={() => openChat(contact.id, contact.name || 'Unknown User', contact.organization)}
                     >
                       <CardContent className="p-3">
                         <div className="flex items-center justify-between">
@@ -256,6 +299,12 @@ const CommunicationHub = () => {
                                 >
                                   {contact.role || 'User'}
                                 </Badge>
+                                {contact.organization && contact.organization !== user?.organization && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <Building2 className="h-3 w-3 mr-1" />
+                                    External
+                                  </Badge>
+                                )}
                               </div>
                               <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground truncate">
@@ -264,6 +313,12 @@ const CommunicationHub = () => {
                                 {contact.specialty && (
                                   <p className="text-xs text-muted-foreground">
                                     {contact.specialty}
+                                  </p>
+                                )}
+                                {contact.organization && (
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Building2 className="h-3 w-3" />
+                                    {contact.organization}
                                   </p>
                                 )}
                                 {/* Message preview */}

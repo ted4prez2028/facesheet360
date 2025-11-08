@@ -10,6 +10,7 @@ export interface User {
   online_status: boolean;
   specialty?: string;
   last_seen?: string;
+  organization?: string;
 }
 
 export interface Conversation {
@@ -41,11 +42,15 @@ export const useCommunication = () => {
     setError(null);
     
     try {
-      // Fetch all users from profiles (excluding current user)
+      // Healthcare provider roles only
+      const healthcareRoles = ['doctor', 'nurse', 'pharmacist', 'therapist', 'cna', 'social_worker'];
+      
+      // Fetch healthcare providers from profiles (excluding current user)
       const { data: orgUsers, error: orgError } = await supabase
         .from('profiles')
-        .select('id, name, email, role, online_status, specialty, last_seen')
+        .select('id, name, email, role, online_status, specialty, last_seen, organization')
         .neq('id', user.id)
+        .in('role', healthcareRoles)
         .order('online_status', { ascending: false }) // Online users first
         .order('last_seen', { ascending: false });
 
