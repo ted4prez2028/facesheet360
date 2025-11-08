@@ -10,7 +10,6 @@ import {
   Appointment 
 } from "@/lib/api/appointmentApi";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
 
 // Keys for react-query
 const appointmentsKey = "appointments";
@@ -19,40 +18,26 @@ const patientAppointmentsKey = "patient-appointments";
 
 // Hook to fetch all appointments
 export const useAppointments = () => {
-  const { user } = useAuth();
-  
   return useQuery({
-    queryKey: [appointmentsKey, user?.id],
+    queryKey: [appointmentsKey],
     queryFn: getAppointments,
-    enabled: !!user?.id,
-    retry: 1,
-    staleTime: 30000,
   });
 };
 
 // Hook to fetch today's appointments
 export const useTodayAppointments = (providerId?: string) => {
-  const { user } = useAuth();
-  
   return useQuery({
     queryKey: [todayAppointmentsKey, providerId],
     queryFn: () => getTodayAppointments(providerId),
-    enabled: !!user?.id,
-    retry: 1,
-    staleTime: 30000,
   });
 };
 
 // Hook to fetch appointments for a specific patient
 export const usePatientAppointments = (patientId: string) => {
-  const { user } = useAuth();
-  
   return useQuery({
     queryKey: [patientAppointmentsKey, patientId],
     queryFn: () => getPatientAppointments(patientId),
-    enabled: !!patientId && !!user?.id,
-    retry: 1,
-    staleTime: 30000,
+    enabled: !!patientId, // Only run query if patientId is provided
   });
 };
 

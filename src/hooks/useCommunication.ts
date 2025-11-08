@@ -9,6 +9,7 @@ export interface User {
   role: string;
   online_status: boolean;
   specialty?: string;
+  organization?: string;
   last_seen?: string;
 }
 
@@ -39,11 +40,29 @@ export const useCommunication = () => {
     setError(null);
     
     try {
-      // Fetch all profiles (excluding current user)
+      // Get current user's organization
+      const { data: currentUserData, error: userError } = await supabase
+        .from('users')
+        .select('organization')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user organization:', userError);
+        return;
+      }
+
+      if (!currentUserData?.organization) {
+        setUsers([]);
+        return;
+      }
+
+      // Fetch all users in the same organization (excluding current user)
       const { data: orgUsers, error: orgError } = await supabase
-        .from('profiles')
-        .select('id, name, email, role, online_status, specialty, last_seen')
-        .neq('id', user.id)
+        .from('users')
+        .select('id, name, email, role, online_status, specialty, organization, last_seen')
+        .eq('organization', currentUserData.organization)
+        .neq('user_id', user.id)
         .order('online_status', { ascending: false }) // Online users first
         .order('last_seen', { ascending: false });
 
@@ -123,12 +142,12 @@ export const useCommunication = () => {
 
     try {
       await supabase
-        .from('profiles')
+        .from('users')
         .update({ 
           online_status: isOnline,
           last_seen: isOnline ? null : new Date().toISOString()
         })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
     } catch (error) {
       console.error('Error updating online status:', error);
     }
@@ -167,7 +186,7 @@ export const useCommunication = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'profiles'
+          table: 'users'
         },
         (payload) => {
           if (payload.eventType === 'UPDATE') {

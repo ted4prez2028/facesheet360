@@ -9,24 +9,21 @@ export const useAdminStatus = () => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!isAuthenticated || !user?.id) {
+      if (!isAuthenticated || !user) {
         setIsAdmin(false);
         setIsLoading(false);
         return;
       }
 
       try {
-        // Check if user has admin role using has_role function
-        const { data, error } = await supabase.rpc('has_role', {
-          _user_id: user.id,
-          _role: 'admin'
-        });
+        // Check if user has admin role
+        const { data, error } = await supabase.rpc('is_admin');
         
         if (error) {
           console.error('Error checking admin status:', error);
           setIsAdmin(false);
         } else {
-          setIsAdmin(data === true);
+          setIsAdmin(data || false);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);

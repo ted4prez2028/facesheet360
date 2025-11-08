@@ -16,9 +16,9 @@ export interface User {
 
 export interface Patient {
   id: string;
-  name?: string; // Main name field in DB
-  first_name?: string; // Optional for backward compatibility
-  last_name?: string; // Optional for backward compatibility
+  first_name: string;
+  last_name: string;
+  name?: string;
   age?: number;
   date_of_birth: string;
   gender: string;
@@ -28,13 +28,11 @@ export interface Patient {
   room_number?: string;
   medical_record_number?: string;
   insurance_provider?: string;
-  insurance_number?: string; // Maps to insurance_policy_number
+  insurance_number?: string;
   policy_number?: string;
-  emergency_contact_name?: string; // Maps to emergency_contact
-  emergency_contact_phone?: string; // Maps to emergency_phone
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
   emergency_contact_relation?: string;
-  emergency_contact?: string; // Actual DB field
-  emergency_phone?: string; // Actual DB field
   allergies?: string;
   medications?: string;
   medical_history?: string;

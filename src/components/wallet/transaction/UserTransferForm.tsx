@@ -26,10 +26,10 @@ const UserTransferForm = () => {
     try {
       // Find recipient by email
       const { data: recipient } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id, name')
         .eq('email', formData.recipientEmail)
-        .maybeSingle();
+        .single();
 
       if (!recipient) {
         toast.error('User not found');

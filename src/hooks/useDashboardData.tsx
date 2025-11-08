@@ -46,10 +46,10 @@ const fetchDashboardData = async (userId: string): Promise<DashboardData> => {
 
     // Get user's care coins balance
     const { data: userData } = await supabase
-      .from('profiles')
+      .from('users')
       .select('care_coins_balance')
       .eq('id', userId)
-      .maybeSingle();
+      .single();
 
     return {
       activePatients: activePatients || 0,
@@ -155,14 +155,14 @@ export const useDashboardData = () => {
       .subscribe();
 
     // Subscribe to care coins changes
-    const profilesChannel = supabase
-      .channel('profiles-changes')
+    const usersChannel = supabase
+      .channel('users-changes')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'profiles',
+          table: 'users',
           filter: `id=eq.${userId}`
         },
         () => {
@@ -173,7 +173,7 @@ export const useDashboardData = () => {
       )
       .subscribe();
 
-    channels.push(patientsChannel, appointmentsChannel, callLightsChannel, tasksChannel, profilesChannel);
+    channels.push(patientsChannel, appointmentsChannel, callLightsChannel, tasksChannel, usersChannel);
 
     return () => {
       channels.forEach(channel => {

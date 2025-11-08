@@ -68,8 +68,8 @@ Deno.serve(async (req) => {
       throw new Error('Missing ALCHEMY_API_KEY or DEPLOYER_PRIVATE_KEY environment variables');
     }
 
-    console.log('Connecting to Sepolia testnet...');
-    const provider = new ethers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`);
+    console.log('Connecting to Ethereum mainnet...');
+    const provider = new ethers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
     const wallet = new ethers.Wallet(deployerPrivateKey, provider);
 
     console.log('Deployer address:', wallet.address);
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     console.log('Deployer balance:', ethers.formatEther(balance), 'ETH');
 
     if (balance === 0n) {
-      throw new Error('Insufficient Sepolia ETH. Get free test ETH from https://sepoliafaucet.com');
+      throw new Error('Insufficient funds for deployment. Please fund the deployer wallet with ETH.');
     }
 
     // Create contract factory
@@ -105,9 +105,9 @@ Deno.serve(async (req) => {
     const decimals = await contract.decimals();
     const totalSupply = await contract.totalSupply();
 
-    // Transfer 4,500 tokens to the deployer to initialize the fund
-    console.log('Transferring 4,500 CARE tokens to deployer:', deployerAddress);
-    const transferAmount = ethers.parseUnits('4500', decimals);
+    // Transfer 100 tokens to the deployer
+    console.log('Transferring 100 CARE tokens to deployer:', deployerAddress);
+    const transferAmount = ethers.parseUnits('100', decimals);
     const transferTx = await contract.transfer(deployerAddress, transferAmount);
     await transferTx.wait();
     console.log('Transfer completed:', transferTx.hash);
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
       .insert({
         contract_address: contractAddress,
         deployer_address: deployerAddress,
-        network: 'sepolia',
+        network: 'mainnet',
         transaction_hash: deployTx.deploymentTransaction()?.hash,
         deployed_by: null, // Will be set by RLS
         contract_details: {
@@ -140,17 +140,17 @@ Deno.serve(async (req) => {
       contractAddress: contractAddress,
       transactionHash: deployTx.deploymentTransaction()?.hash,
       transferHash: transferTx.hash,
-      network: 'sepolia',
+      network: 'mainnet',
       contractDetails: {
         name: name,
         symbol: symbol,
         decimals: Number(decimals),
         totalSupply: ethers.formatUnits(totalSupply, decimals),
         owner: wallet.address,
-        deployerReward: '4500'
+        deployerReward: '100'
       },
       abi: CONTRACT_ABI,
-      message: "CareCoin deployed on Sepolia testnet! 4,500 CARE tokens sent to deployer to initialize the fund."
+      message: "CareCoin deployed successfully! 100 CARE tokens sent to deployer."
     };
 
     console.log('Deployment successful:', response);

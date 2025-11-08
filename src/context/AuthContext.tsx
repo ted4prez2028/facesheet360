@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔍 Fetching user profile for:', userId);
       
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
@@ -127,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: (data.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
         specialty: data.specialty,
         care_coins_balance: data.care_coins_balance || 0,
+        organization: data.organization,
         online_status: data.online_status,
         last_seen: data.last_seen,
         created_at: data.created_at,
@@ -147,9 +148,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Creating new user profile in database...');
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .insert({
           id: userId,
+          user_id: userId,
           email: authUser.user?.email || '',
           name: authUser.user?.user_metadata?.name || 'User',
           role: (authUser.user?.user_metadata?.role as 'doctor' | 'nurse' | 'therapist' | 'cna') || 'doctor',
@@ -174,27 +176,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setAuthError(null);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        console.error('Sign in error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      if (!data.session) {
-        throw new Error('No session created');
-      }
-      
-      console.log('✅ Sign in successful');
+      toast.success('Signed in successfully');
       // Don't set isLoading to false here - let onAuthStateChange handle it
     } catch (error: any) {
-      console.error('❌ Sign in failed:', error);
       const errorMessage = error.message || 'Failed to sign in';
       setAuthError(errorMessage);
-      setIsLoading(false);
+      toast.error(errorMessage);
+      setIsLoading(false); // Only set to false on error
       throw error;
     }
   };
@@ -205,8 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
       
-      console.log('🔐 Starting sign up process...');
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -215,16 +209,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) {
-        console.error('Sign up error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('✅ Sign up successful, user created:', data.user?.id);
+      toast.success('Account created successfully! Please check your email to verify your account.');
     } catch (error: any) {
-      console.error('❌ Sign up failed:', error);
       const errorMessage = error.message || 'Failed to sign up';
       setAuthError(errorMessage);
+      toast.error(errorMessage);
       throw error;
     } finally {
       setIsLoading(false);
@@ -253,7 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update(updates)
         .eq('id', user.id);
 

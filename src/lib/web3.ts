@@ -7,20 +7,6 @@ declare global {
   }
 }
 
-// Sepolia testnet configuration
-export const SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111 in decimal
-export const SEPOLIA_NETWORK = {
-  chainId: SEPOLIA_CHAIN_ID,
-  chainName: 'Sepolia Testnet',
-  nativeCurrency: {
-    name: 'Sepolia ETH',
-    symbol: 'ETH',
-    decimals: 18
-  },
-  rpcUrls: ['https://sepolia.infura.io/v3/', 'https://rpc.sepolia.org'],
-  blockExplorerUrls: ['https://sepolia.etherscan.io']
-};
-
 export const getProvider = () => {
   if (window.ethereum) {
     return new ethers.BrowserProvider(window.ethereum);
@@ -80,67 +66,6 @@ export const getCareCoinContract = async (signerOrProvider: ethers.Signer | ethe
   
   const contractABI = getStoredContractABI();
   return new ethers.Contract(contractAddress, contractABI, signerOrProvider);
-};
-
-// Switch to Sepolia network
-export const switchToSepolia = async () => {
-  if (!window.ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
-
-  try {
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: SEPOLIA_CHAIN_ID }],
-    });
-    return true;
-  } catch (switchError: any) {
-    // This error code indicates that the chain has not been added to MetaMask
-    if (switchError.code === 4902) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [SEPOLIA_NETWORK],
-        });
-        return true;
-      } catch (addError) {
-        console.error('Error adding Sepolia network:', addError);
-        throw addError;
-      }
-    }
-    throw switchError;
-  }
-};
-
-// Get current chain ID
-export const getCurrentChainId = async (): Promise<string> => {
-  if (!window.ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
-  return await window.ethereum.request({ method: 'eth_chainId' }) as string;
-};
-
-// Check if on Sepolia
-export const isOnSepolia = async (): Promise<boolean> => {
-  const chainId = await getCurrentChainId();
-  return chainId === SEPOLIA_CHAIN_ID;
-};
-
-// Get MetaMask balance for CareCoin token
-export const getTokenBalance = async (tokenAddress: string, walletAddress: string): Promise<string> => {
-  const provider = getProvider();
-  if (!provider) {
-    throw new Error('No provider available');
-  }
-
-  const contract = new ethers.Contract(
-    tokenAddress,
-    ['function balanceOf(address owner) view returns (uint256)'],
-    provider
-  );
-
-  const balance = await contract.balanceOf(walletAddress);
-  return ethers.formatEther(balance);
 };
 
 // MetaMask integration helpers

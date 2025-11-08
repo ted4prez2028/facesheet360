@@ -31,25 +31,23 @@ const Appointments = () => {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [showNewAppointmentDialog, setShowNewAppointmentDialog] = useState(false);
 
-  const { data: appointments = [], isLoading, error } = useAppointments();
+  const { data: appointments = [] } = useAppointments();
   const [appointmentsData, setAppointmentsData] = useState<CalendarAppointment[]>([]);
   const createAppointment = useCreateAppointment();
 
   useEffect(() => {
-    if (appointments && Array.isArray(appointments)) {
-      const formatted = appointments
-        .filter((a: any) => a?.id) // Filter out any items without valid IDs
-        .map((a: any) => ({
-          id: String(a.id), // Ensure ID is always a string
-          patientName: a.patients ? `${a.patients.first_name || ''} ${a.patients.last_name || ''}`.trim() : 'Unknown Patient',
-          patientId: a.patient_id,
-          date: new Date(a.scheduled_time),
-          type: a.appointment_type || 'Appointment',
-          duration: a.duration_minutes || 30,
-          notes: a.notes || ''
-        }));
-      setAppointmentsData(formatted);
-    }
+    const formatted = appointments
+      .filter((a: any) => a.id) // Filter out any items without valid IDs
+      .map((a: any) => ({
+        id: String(a.id), // Ensure ID is always a string
+        patientName: a.patients ? `${a.patients.first_name || ''} ${a.patients.last_name || ''}`.trim() : 'Unknown Patient',
+        patientId: a.patient_id,
+        date: new Date(a.scheduled_time),
+        type: a.appointment_type || 'Appointment',
+        duration: a.duration_minutes || 30,
+        notes: a.notes || ''
+      }));
+    setAppointmentsData(formatted);
   }, [appointments]);
 
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
@@ -114,23 +112,6 @@ const Appointments = () => {
     }
   };
   
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <div className="text-destructive text-lg">Failed to load appointments</div>
-        <p className="text-muted-foreground">Please refresh the page or try again later</p>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh]">
-        <div className="text-lg">Loading appointments...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
