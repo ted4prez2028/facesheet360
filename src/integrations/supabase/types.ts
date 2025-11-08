@@ -701,6 +701,55 @@ export type Database = {
           },
         ]
       }
+      goal_achievements: {
+        Row: {
+          achievement_date: string | null
+          goal_id: string
+          id: string
+          patient_id: string
+          reward_amount: number
+          transaction_id: string | null
+        }
+        Insert: {
+          achievement_date?: string | null
+          goal_id: string
+          id?: string
+          patient_id: string
+          reward_amount: number
+          transaction_id?: string | null
+        }
+        Update: {
+          achievement_date?: string | null
+          goal_id?: string
+          id?: string
+          patient_id?: string
+          reward_amount?: number
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_achievements_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "health_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_achievements_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_achievements_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "care_coins_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_calls: {
         Row: {
           created_at: string | null
@@ -733,6 +782,65 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      health_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_value: number
+          description: string | null
+          end_date: string | null
+          goal_type: string
+          id: string
+          patient_id: string
+          reward_amount: number
+          start_date: string
+          status: string
+          target_value: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          end_date?: string | null
+          goal_type: string
+          id?: string
+          patient_id: string
+          reward_amount?: number
+          start_date?: string
+          status?: string
+          target_value?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          end_date?: string | null
+          goal_type?: string
+          id?: string
+          patient_id?: string
+          reward_amount?: number
+          start_date?: string
+          status?: string
+          target_value?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_goals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       imaging_studies: {
         Row: {

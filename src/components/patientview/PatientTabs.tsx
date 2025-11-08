@@ -19,6 +19,7 @@ import DashboardTab from './DashboardTab';
 import ProfileTab from './ProfileTab';
 import WoundCareTab from './WoundCareTab';
 import { FoodOrderingSection } from '../food-order/FoodOrderingSection';
+import { HealthGoalsDashboard } from '../health-goals/HealthGoalsDashboard';
 
 interface PatientTabsProps {
   patientId: string;
@@ -54,6 +55,7 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
             <TabsTrigger className="data-[state=active]:bg-white" value="care-plan">Care Plan</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="tasks">Tasks</TabsTrigger>
             <TabsTrigger className="data-[state=active]:bg-white" value="documents">Documents</TabsTrigger>
+            <TabsTrigger className="data-[state=active]:bg-white" value="goals">Health Goals</TabsTrigger>
           </TabsList>
         </div>
       </div>
@@ -133,6 +135,10 @@ const PatientTabs: React.FC<PatientTabsProps> = ({ patientId }) => {
 
         <TabsContent value="food">
           <FoodOrderingSection patientId={patientId} />
+        </TabsContent>
+
+        <TabsContent value="goals">
+          <HealthGoalsDashboard patientId={patientId} />
         </TabsContent>
       </div>
     </Tabs>
