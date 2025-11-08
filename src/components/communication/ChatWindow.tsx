@@ -153,9 +153,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             .select()
             .single();
           
-          if (!createError) {
+          if (createError) {
+            console.error('Error creating conversation:', createError);
+            toast.error('Failed to create conversation. Please try again.');
+          } else {
             conversation = newConv;
           }
+        }
+
+        if (convError && !conversation) {
+          console.error('Error fetching conversation:', convError);
+          toast.error('Failed to load conversation. Please try again.');
         }
 
         if (conversation) {
@@ -166,15 +174,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             .eq('conversation_id', conversation.id)
             .order('created_at', { ascending: true });
 
-          if (!msgError && messagesData) {
+          if (msgError) {
+            console.error('Error loading messages:', msgError);
+            toast.error('Failed to load messages.');
+          } else if (messagesData) {
             setMessages(messagesData);
           }
           
           // Store conversation ID for sending messages
           setConversationId(conversation.id);
+        } else {
+          toast.error('Unable to establish conversation. Please check permissions and try again.');
         }
       } catch (error) {
         console.error('Error loading messages:', error);
+        toast.error('An unexpected error occurred while loading the conversation.');
       } finally {
         setLoading(false);
       }
