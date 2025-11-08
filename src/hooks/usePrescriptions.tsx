@@ -13,12 +13,11 @@ export const usePrescriptions = (patientId?: string) => {
     queryFn: async (): Promise<Prescription[]> => {
       try {
         const query = supabase
-          .from("prescriptions")
+          .from("medication_orders")
           .select(`
             *,
             patients!inner(
-              first_name,
-              last_name,
+              name,
               medical_record_number
             )
           `)
@@ -31,7 +30,7 @@ export const usePrescriptions = (patientId?: string) => {
         const { data, error } = await query;
         
         if (error) throw error;
-        return data as Prescription[];
+        return (data as any) as Prescription[];
       } catch (error) {
         console.error("Error fetching prescriptions:", error);
         toast.error("Failed to load prescriptions");
@@ -49,13 +48,13 @@ export const useAddPrescription = () => {
     mutationFn: async (prescription: Omit<Prescription, "id" | "created_at" | "updated_at">) => {
       try {
         const { data, error } = await supabase
-          .from("prescriptions")
+          .from("medication_orders")
           .insert(prescription)
           .select()
           .single();
 
         if (error) throw error;
-        return data as Prescription;
+        return (data as any) as Prescription;
       } catch (error) {
         console.error("Error adding prescription:", error);
         throw error;
@@ -82,7 +81,7 @@ export const useAdministerPrescription = () => {
       
       try {
         const { data, error } = await supabase
-          .from("prescriptions")
+          .from("medication_orders")
           .update({
             status: "administered",
             administered_by: user.id,
@@ -93,7 +92,7 @@ export const useAdministerPrescription = () => {
           .single();
 
         if (error) throw error;
-        return data as Prescription;
+        return (data as any) as Prescription;
       } catch (error) {
         console.error("Error administering prescription:", error);
         throw error;
@@ -124,14 +123,14 @@ export const useUpdatePrescriptionStatus = () => {
         }
         
         const { data, error } = await supabase
-          .from("prescriptions")
+          .from("medication_orders")
           .update(updateData)
           .eq("id", id)
           .select()
           .single();
 
         if (error) throw error;
-        return data as Prescription;
+        return (data as any) as Prescription;
       } catch (error) {
         console.error("Error updating prescription status:", error);
         throw error;

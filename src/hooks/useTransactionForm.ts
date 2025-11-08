@@ -42,6 +42,7 @@ export const useTransactionForm = () => {
       const { error: transactionError } = await supabase
         .from('care_coins_transactions')
         .insert({
+          user_id: user.id,
           amount: -data.amount,
           from_user_id: user.id,
           to_user_id: recipient.id,

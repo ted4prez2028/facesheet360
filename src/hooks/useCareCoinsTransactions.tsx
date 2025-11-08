@@ -74,6 +74,7 @@ export const useCareCoinsTransactions = () => {
     if (!user?.id) throw new Error('User not authenticated');
 
     const newTransaction = {
+      user_id: user.id,
       amount: transactionData.amount,
       transaction_type: transactionData.transaction_type,
       description: transactionData.description,

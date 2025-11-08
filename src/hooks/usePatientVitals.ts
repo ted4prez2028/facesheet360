@@ -10,19 +10,26 @@ export function usePatientVitals(patientId: string) {
       if (!patientId) return null;
       
       const { data, error } = await supabase
-        .from('vital_signs')
+        .from('patient_vitals')
         .select('*')
         .eq('patient_id', patientId)
-        .order('date_recorded', { ascending: false })
+        .order('recorded_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching patient vitals:', error);
         return null;
       }
 
-      return data as VitalSigns;
+      if (!data) return null;
+
+      // Map patient_vitals to VitalSigns format
+      return {
+        ...data,
+        date_recorded: data.recorded_at,
+        updated_at: data.created_at
+      } as VitalSigns;
     },
     enabled: !!patientId
   });

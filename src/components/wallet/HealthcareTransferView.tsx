@@ -41,6 +41,7 @@ const HealthcareTransferView: React.FC = () => {
       const { error } = await supabase
         .from('care_coins_transactions')
         .insert({
+          user_id: user.id,
           from_user_id: user.id,
           to_user_id: recipientId,
           amount: transferAmount,

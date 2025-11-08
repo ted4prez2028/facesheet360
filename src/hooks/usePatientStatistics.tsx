@@ -65,10 +65,10 @@ export const usePatientHealthMetrics = (patientId?: string) => {
 
       try {
         const { data, error } = await supabase
-          .from('vital_signs')
+          .from('patient_vitals')
           .select('*')
           .eq('patient_id', patientId)
-          .order('date_recorded', { ascending: false })
+          .order('recorded_at', { ascending: false })
           .limit(6);
 
         if (error) throw error;
@@ -83,7 +83,7 @@ export const usePatientHealthMetrics = (patientId?: string) => {
           return {
             name: month,
             heartRate: vitalData?.heart_rate || 75,
-            bloodPressure: parseInt(vitalData?.blood_pressure?.split('/')[0] || '120'),
+            bloodPressure: vitalData?.blood_pressure_systolic || 120,
             o2Saturation: vitalData?.oxygen_saturation || 98
           };
         });

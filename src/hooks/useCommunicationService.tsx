@@ -75,15 +75,38 @@ export const useCommunicationService = () => {
     }
   };
 
-  const sendMessage = async (content: string, recipientId: string) => {
+  const sendMessage = async (content: string, recipientId: string, conversationId?: string) => {
     if (!user?.id) throw new Error('User not authenticated');
+
+    // Create or get conversation if not provided
+    let finalConversationId = conversationId;
+    if (!finalConversationId) {
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(participant_1_id.eq.${user.id},participant_2_id.eq.${recipientId}),and(participant_1_id.eq.${recipientId},participant_2_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (existingConv) {
+        finalConversationId = existingConv.id;
+      } else {
+        const { data: newConv } = await supabase
+          .from('conversations')
+          .insert({ participant_1_id: user.id, participant_2_id: recipientId })
+          .select('id')
+          .single();
+        finalConversationId = newConv?.id;
+      }
+    }
 
     const messageData = {
       content,
+      sender_id: user.id,
+      recipient_id: recipientId,
+      conversation_id: finalConversationId!,
       author: user.name || 'Unknown',
       platform: 'web',
       user_id: user.id,
-      created_at: new Date().toISOString(),
       is_read: false
     };
 

@@ -21,17 +21,17 @@ export const useCreateCarePlan = () => {
     mutationFn: async (input: CarePlanInput) => {
       const { data, error } = await supabase
         .from('care_plans')
-        .insert({
+        .insert([{
           patient_id: input.patient_id,
           title: input.title,
           description: input.description,
           start_date: input.start_date,
-          target_date: input.target_date,
-          goals: input.goals,
-          interventions: input.interventions,
+          end_date: input.target_date,
+          goals: typeof input.goals === 'string' ? input.goals : JSON.stringify(input.goals),
+          interventions: typeof input.interventions === 'string' ? input.interventions : JSON.stringify(input.interventions),
           status: input.status,
           created_by: input.created_by
-        })
+        } as any])
         .select()
         .single();
 
