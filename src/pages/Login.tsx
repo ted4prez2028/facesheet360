@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,8 @@ import {
 } from "@clerk/clerk-react";
 
 const Login = () => {
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'login';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
@@ -31,7 +33,7 @@ const Login = () => {
     role: "doctor",
   });
   const { toast } = useToast();
-  const { login, signUp, isAuthenticated, isLoading, authError } = useAuth();
+  const { login, signUp, signOut, isAuthenticated, isLoading, authError } = useAuth();
   const navigate = useNavigate();
   const { isLoaded: signInLoaded, signIn } = useSignIn();
   const { isLoaded: signUpLoaded, signUp: clerkSignUp } = useSignUp();
@@ -39,14 +41,14 @@ const Login = () => {
 
   useEffect(() => {
     console.log("Login page auth state:", { isAuthenticated, isLoading, authError, isSignedIn });
-    if (!isLoading && (isAuthenticated || isSignedIn)) {
-      console.log("User is authenticated, redirecting to dashboard");
-      // Small delay to ensure state is fully updated
+    // Only redirect if authenticated AND trying to access login tab (not register)
+    if (!isLoading && (isAuthenticated || isSignedIn) && initialTab === 'login') {
+      console.log("User is authenticated and on login tab, redirecting to dashboard");
       setTimeout(() => {
         navigate('/dashboard', { replace: true });
       }, 100);
     }
-  }, [isAuthenticated, isLoading, navigate, isSignedIn]);
+  }, [isAuthenticated, isLoading, navigate, isSignedIn, initialTab]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -139,12 +141,6 @@ const Login = () => {
     );
   }
 
-  if (isAuthenticated || isSignedIn) {
-    console.log("Already authenticated, redirecting to dashboard immediately");
-    navigate('/dashboard', { replace: true });
-    return null;
-  }
-
   const socialProviders = [
     { name: 'Google', provider: 'google', icon: '🔍', color: 'bg-red-500 hover:bg-red-600' },
     { name: 'Facebook', provider: 'facebook', icon: '📘', color: 'bg-blue-600 hover:bg-blue-700' },
@@ -166,7 +162,7 @@ const Login = () => {
         </div>
         
         <SignedOut>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={initialTab} className="w-full">
             {authError && (
               <div className="mb-4 text-center text-red-500">
                 <p>Error: {authError}</p>
@@ -390,17 +386,29 @@ const Login = () => {
         <SignedIn>
           <Card className="border-health-200 shadow-lg text-center">
             <CardHeader>
-              <CardTitle>Welcome!</CardTitle>
-              <CardDescription>You are signed in</CardDescription>
+              <CardTitle>You're Already Logged In</CardTitle>
+              <CardDescription>You can go to your dashboard or log out to create a new account</CardDescription>
             </CardHeader>
-            <CardContent>
-              <UserButton afterSignOutUrl="/login" />
-              <Button 
-                onClick={() => navigate('/dashboard')} 
-                className="mt-4 w-full bg-health-600 hover:bg-health-700"
-              >
-                Go to Dashboard
-              </Button>
+            <CardContent className="space-y-4">
+              <UserButton afterSignOutUrl="/login?tab=register" />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => navigate('/dashboard')} 
+                  className="flex-1 bg-health-600 hover:bg-health-700"
+                >
+                  Go to Dashboard
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    await signOut();
+                    navigate('/login?tab=register');
+                  }} 
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Log Out
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </SignedIn>
