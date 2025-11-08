@@ -1750,6 +1750,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_analysis_history: {
+        Row: {
+          adherence_issues: number
+          analysis_date: string
+          created_at: string
+          emails_sent: number
+          id: string
+          insights_data: Json | null
+          refill_predictions: number
+          run_type: string
+          safety_alerts: number
+          total_insights: number
+          triggered_by: string | null
+        }
+        Insert: {
+          adherence_issues?: number
+          analysis_date?: string
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          insights_data?: Json | null
+          refill_predictions?: number
+          run_type?: string
+          safety_alerts?: number
+          total_insights?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          adherence_issues?: number
+          analysis_date?: string
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          insights_data?: Json | null
+          refill_predictions?: number
+          run_type?: string
+          safety_alerts?: number
+          total_insights?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       pharmacy_analytics: {
         Row: {
           confidence_score: number | null
@@ -1842,6 +1884,54 @@ export type Database = {
           reorder_threshold?: number
           unit?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      pharmacy_notification_preferences: {
+        Row: {
+          adherence_alerts_enabled: boolean
+          cost_savings_alerts_enabled: boolean
+          created_at: string
+          daily_summary_enabled: boolean
+          email_enabled: boolean
+          id: string
+          inventory_alerts_enabled: boolean
+          refill_alerts_enabled: boolean
+          refill_alerts_min_urgency: string
+          safety_alerts_enabled: boolean
+          safety_alerts_min_priority: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adherence_alerts_enabled?: boolean
+          cost_savings_alerts_enabled?: boolean
+          created_at?: string
+          daily_summary_enabled?: boolean
+          email_enabled?: boolean
+          id?: string
+          inventory_alerts_enabled?: boolean
+          refill_alerts_enabled?: boolean
+          refill_alerts_min_urgency?: string
+          safety_alerts_enabled?: boolean
+          safety_alerts_min_priority?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adherence_alerts_enabled?: boolean
+          cost_savings_alerts_enabled?: boolean
+          created_at?: string
+          daily_summary_enabled?: boolean
+          email_enabled?: boolean
+          id?: string
+          inventory_alerts_enabled?: boolean
+          refill_alerts_enabled?: boolean
+          refill_alerts_min_urgency?: string
+          safety_alerts_enabled?: boolean
+          safety_alerts_min_priority?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
