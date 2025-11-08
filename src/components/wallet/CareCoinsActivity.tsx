@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowUpRight, ArrowDownLeft, ExternalLink } from "lucide-react";
 import { useCareCoinsTransactions } from "@/hooks/useCareCoinsTransactions";
+import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,8 @@ export const CareCoinsActivity: React.FC<CareCoinsActivityProps> = ({
   onViewAll, 
   className 
 }) => {
-  const { transactions = [], isLoading } = useCareCoinsTransactions();
+  const { user } = useAuth();
+  const { transactions = [], isLoading } = useCareCoinsTransactions({ userId: user?.id || '' });
 
   const getTransactionIcon = (type: string) => {
     switch (type) {

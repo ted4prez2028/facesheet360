@@ -1,105 +1,56 @@
-
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { CareCoinsTransaction } from '@/types';
 
-export interface CareCoinsTransaction {
-  id: string;
-  amount: number;
-  transaction_type: string;
-  description: string;
-  created_at: string;
-  from_user_id?: string;
-  to_user_id?: string;
-  from_user?: {
-    name: string;
-  };
-  to_user?: {
-    name: string;
-  };
+interface UseCareCoinsTransactionsOptions {
+  userId: string;
+  category?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
-export const useCareCoinsTransactions = () => {
-  const [transactions, setTransactions] = useState<CareCoinsTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+export const useCareCoinsTransactions = (options: UseCareCoinsTransactionsOptions) => {
+  const { userId, category, startDate, endDate } = options;
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchTransactions();
-    }
-  }, [user?.id]);
+  const query = useQuery({
+    queryKey: ['care-coins-transactions', userId, category, startDate, endDate],
+    queryFn: async () => {
+      if (!userId) return [];
 
-  const fetchTransactions = async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('care_coins_transactions')
-        .select(`
-          *
-        `)
-        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .select('*')
+        .or(`user_id.eq.${userId},from_user_id.eq.${userId},to_user_id.eq.${userId}`)
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      const formattedTransactions = (data || []).map(transaction => ({
-        id: transaction.id,
-        amount: transaction.amount,
-        transaction_type: transaction.transaction_type,
-        description: transaction.description || '',
-        created_at: transaction.created_at,
-        from_user_id: transaction.from_user_id,
-        to_user_id: transaction.to_user_id,
-        from_user: { name: 'Unknown User' },
-        to_user: { name: 'Unknown User' }
-      }));
-      
-      setTransactions(formattedTransactions);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      // Filter by category
+      if (category) {
+        query = query.eq('transaction_type', category);
+      }
 
-  const createTransaction = async (transactionData: {
-    amount: number;
-    transaction_type: string;
-    description: string;
-    to_user_id?: string;
-  }) => {
-    if (!user?.id) throw new Error('User not authenticated');
+      // Filter by date range
+      if (startDate) {
+        query = query.gte('created_at', new Date(startDate).toISOString());
+      }
+      if (endDate) {
+        query = query.lte('created_at', new Date(endDate + 'T23:59:59').toISOString());
+      }
 
-    const newTransaction = {
-      user_id: user.id,
-      amount: transactionData.amount,
-      transaction_type: transactionData.transaction_type,
-      description: transactionData.description,
-      from_user_id: user.id,
-      to_user_id: transactionData.to_user_id
-    };
+      const { data, error } = await query;
 
-    const { data, error } = await supabase
-      .from('care_coins_transactions')
-      .insert([newTransaction])
-      .select()
-      .single();
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        throw error;
+      }
 
-    if (error) throw error;
-
-    // Refresh transactions after creating a new one
-    await fetchTransactions();
-    
-    return data;
-  };
+      return data as CareCoinsTransaction[];
+    },
+    enabled: !!userId,
+  });
 
   return {
-    transactions,
-    isLoading,
-    createTransaction,
-    refreshTransactions: fetchTransactions
+    transactions: query.data,
+    isLoading: query.isLoading,
+    error: query.error,
   };
 };

@@ -18,7 +18,7 @@ const AdminDashboard = () => {
           <p className="text-muted-foreground">System-wide overview and management</p>
         </div>
         <Button 
-          onClick={() => navigate("/carecoin-analytics")}
+          onClick={() => navigate("/carecoins-analytics")}
           className="bg-primary hover:bg-primary/90"
         >
           View CareCoins Analytics

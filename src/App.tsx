@@ -38,6 +38,8 @@ import { FoodPage } from './pages/Food';
 import TaxiPage from './pages/TaxiPage';
 import MyChartPage from './pages/MyChart';
 import Communication from './pages/Communication';
+import CareCoinsHistory from './pages/CareCoinsHistory';
+import CareCoinsAnalytics from './pages/CareCoinsAnalytics';
 
 const queryClient = new QueryClient();
 
@@ -294,19 +296,43 @@ function App() {
                      </RequireAuth>
                    }
                  />
-                 <Route
-                   path="/ehr-import"
-                   element={
-                     <RequireAuth>
-                       <CommunicationProvider>
-                         <DashboardLayout>
-                           <EHRImport />
-                         </DashboardLayout>
-                       </CommunicationProvider>
-                     </RequireAuth>
-                   }
-                 />
-                 <Route path="*" element={<NotFound />} />
+                  <Route
+                    path="/ehr-import"
+                    element={
+                      <RequireAuth>
+                        <CommunicationProvider>
+                          <DashboardLayout>
+                            <EHRImport />
+                          </DashboardLayout>
+                        </CommunicationProvider>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/carecoins-history"
+                    element={
+                      <RequireAuth>
+                        <CommunicationProvider>
+                          <DashboardLayout>
+                            <CareCoinsHistory />
+                          </DashboardLayout>
+                        </CommunicationProvider>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/carecoins-analytics"
+                    element={
+                      <RequireAuth>
+                        <CommunicationProvider>
+                          <DashboardLayout>
+                            <CareCoinsAnalytics />
+                          </DashboardLayout>
+                        </CommunicationProvider>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
                </Routes>
               <Toaster />
               </UserPreferencesProvider>
