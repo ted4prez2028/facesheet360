@@ -28,8 +28,14 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
   const dataConnectionRef = useRef<DataConnection | null>(null);
   const recognitionRef = useRef<any>(null);
   const incomingCallRef = useRef<MediaConnection | null>(null);
+  const onTranscriptionRef = useRef(onTranscription);
 
-  // Initialize peer connection
+  // Keep the ref updated
+  useEffect(() => {
+    onTranscriptionRef.current = onTranscription;
+  }, [onTranscription]);
+
+  // Initialize peer connection - only once per component lifecycle
   useEffect(() => {
     const newPeer = new Peer();
     
@@ -51,8 +57,8 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
       dataConnectionRef.current = conn;
       
       conn.on('data', (data: any) => {
-        if (data.type === 'transcription' && onTranscription) {
-          onTranscription(data.text);
+        if (data.type === 'transcription' && onTranscriptionRef.current) {
+          onTranscriptionRef.current(data.text);
         }
       });
     });
@@ -65,7 +71,7 @@ export const usePeerConnection = (options: UsePeerConnectionOptions = {}) => {
     return () => {
       newPeer.destroy();
     };
-  }, [onTranscription]);
+  }, []); // Empty dependency array - only run once
 
   // Setup speech recognition for transcription
   useEffect(() => {
