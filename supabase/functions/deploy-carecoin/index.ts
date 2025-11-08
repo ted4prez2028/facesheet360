@@ -105,9 +105,9 @@ Deno.serve(async (req) => {
     const decimals = await contract.decimals();
     const totalSupply = await contract.totalSupply();
 
-    // Transfer 100 tokens to the deployer
-    console.log('Transferring 100 CARE tokens to deployer:', deployerAddress);
-    const transferAmount = ethers.parseUnits('100', decimals);
+    // Transfer 4,500 tokens to the deployer to initialize the fund
+    console.log('Transferring 4,500 CARE tokens to deployer:', deployerAddress);
+    const transferAmount = ethers.parseUnits('4500', decimals);
     const transferTx = await contract.transfer(deployerAddress, transferAmount);
     await transferTx.wait();
     console.log('Transfer completed:', transferTx.hash);
@@ -147,10 +147,10 @@ Deno.serve(async (req) => {
         decimals: Number(decimals),
         totalSupply: ethers.formatUnits(totalSupply, decimals),
         owner: wallet.address,
-        deployerReward: '100'
+        deployerReward: '4500'
       },
       abi: CONTRACT_ABI,
-      message: "CareCoin deployed on Sepolia testnet! 100 CARE tokens sent to deployer."
+      message: "CareCoin deployed on Sepolia testnet! 4,500 CARE tokens sent to deployer to initialize the fund."
     };
 
     console.log('Deployment successful:', response);
