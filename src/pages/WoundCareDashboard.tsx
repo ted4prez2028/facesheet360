@@ -4,22 +4,36 @@ import { usePatients } from '@/hooks/usePatients';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Stethoscope, Search, User, Eye } from 'lucide-react';
+import { Stethoscope, Search, User, Eye, ScanFace } from 'lucide-react';
 import { useState } from 'react';
+import FaceIdentificationDialog from '@/components/facial-recognition/FaceIdentificationDialog';
+import { PatientAutocomplete } from '@/components/common/PatientAutocomplete';
 
 const WoundCareDashboard = () => {
   const navigate = useNavigate();
   const { data: patients, isLoading } = usePatients();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFaceIdDialogOpen, setIsFaceIdDialogOpen] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
 
-  const filteredPatients = patients?.filter(patient =>
-    patient.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.medical_record_number?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredPatients = searchTerm && patients 
+    ? patients.filter(patient =>
+        patient.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.medical_record_number?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : patients || [];
 
   const handlePatientSelect = (patientId: string) => {
     navigate(`/patients/${patientId}?tab=wound-care`);
+  };
+
+  const handleAutocompleteSelect = (patientId: string) => {
+    handlePatientSelect(patientId);
+  };
+
+  const handleFaceIdSuccess = (patientId: string) => {
+    handlePatientSelect(patientId);
   };
 
   if (isLoading) {
@@ -44,10 +58,29 @@ const WoundCareDashboard = () => {
           </div>
         </div>
         
-        <div className="relative max-w-md">
+        <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
+          <div className="flex-1">
+            <PatientAutocomplete
+              value={selectedPatientId}
+              onSelect={handleAutocompleteSelect}
+              placeholder="Search patients by name or MRN..."
+            />
+          </div>
+          
+          <Button
+            onClick={() => setIsFaceIdDialogOpen(true)}
+            variant="outline"
+            className="gap-2"
+          >
+            <ScanFace className="h-4 w-4" />
+            Face ID Search
+          </Button>
+        </div>
+
+        <div className="relative max-w-md mt-4">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search patients..."
+            placeholder="Or filter by typing..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -122,6 +155,12 @@ const WoundCareDashboard = () => {
           ))}
         </div>
       )}
+
+      <FaceIdentificationDialog
+        isOpen={isFaceIdDialogOpen}
+        onClose={() => setIsFaceIdDialogOpen(false)}
+        onIdentificationSuccess={handleFaceIdSuccess}
+      />
     </div>
   );
 };
