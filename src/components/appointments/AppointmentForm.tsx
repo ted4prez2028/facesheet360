@@ -31,23 +31,25 @@ const AppointmentForm = ({
   const [formData, setFormData] = useState<Partial<Appointment>>({
     patient_id: initialData?.patient_id || "",
     provider_id: initialData?.provider_id || user?.id || "",
-    appointment_date: initialData?.appointment_date || new Date().toISOString(),
+    scheduled_time: initialData?.scheduled_time || new Date().toISOString(),
+    appointment_type: initialData?.appointment_type || "check-up",
     status: initialData?.status || "scheduled",
     notes: initialData?.notes || "",
+    duration_minutes: initialData?.duration_minutes || 30,
   });
   
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    initialData?.appointment_date ? new Date(initialData.appointment_date) : new Date()
+    initialData?.scheduled_time ? new Date(initialData.scheduled_time) : new Date()
   );
   
   const [selectedTime, setSelectedTime] = useState<string>(
-    initialData?.appointment_date 
-      ? format(new Date(initialData.appointment_date), "HH:mm") 
+    initialData?.scheduled_time 
+      ? format(new Date(initialData.scheduled_time), "HH:mm") 
       : format(new Date().setMinutes(0), "HH:mm")
   );
   
-  const [appointmentType, setAppointmentType] = useState(initialData?.notes?.split(':')[0] || "check-up");
-  const [duration, setDuration] = useState<string>("30");
+  const [appointmentType, setAppointmentType] = useState(initialData?.appointment_type || "check-up");
+  const [duration, setDuration] = useState<string>(String(initialData?.duration_minutes || 30));
   
   useEffect(() => {
     if (selectedDate) {
@@ -57,10 +59,12 @@ const AppointmentForm = ({
       
       setFormData(prev => ({
         ...prev,
-        appointment_date: newDate.toISOString()
+        scheduled_time: newDate.toISOString(),
+        appointment_type: appointmentType,
+        duration_minutes: parseInt(duration)
       }));
     }
-  }, [selectedDate, selectedTime]);
+  }, [selectedDate, selectedTime, appointmentType, duration]);
   
   const timeSlots = Array.from({ length: 48 }, (_, i) => {
     const hour = Math.floor(i / 2);
@@ -74,13 +78,14 @@ const AppointmentForm = ({
       return;
     }
     
-    const notes = `${appointmentType}: ${formData.notes || ''}`;
-    
     onSubmit({
-      ...formData,
-      notes,
       patient_id: formData.patient_id as string,
       provider_id: formData.provider_id as string,
+      scheduled_time: formData.scheduled_time as string,
+      appointment_type: formData.appointment_type as string,
+      status: formData.status as string,
+      notes: formData.notes,
+      duration_minutes: formData.duration_minutes,
     } as Appointment);
   };
 

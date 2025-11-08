@@ -35,27 +35,27 @@ export const useAppointmentsToday = () => {
             last_name
           )
         `)
-        .gte('appointment_date', todayStart.toISOString())
-        .lt('appointment_date', todayEnd.toISOString())
-        .order('appointment_date', { ascending: true });
+        .gte('scheduled_time', todayStart.toISOString())
+        .lt('scheduled_time', todayEnd.toISOString())
+        .order('scheduled_time', { ascending: true });
 
       if (error) {
         console.error('Error fetching appointments:', error);
         return [];
       }
 
-      return (data || []).map(appointment => ({
+      return (data || []).map((appointment: any) => ({
         id: appointment.id,
         patient: appointment.patients 
           ? `${appointment.patients.first_name} ${appointment.patients.last_name}`
           : 'Unknown Patient',
-        time: new Date(appointment.appointment_date).toLocaleTimeString('en-US', {
+        time: new Date(appointment.scheduled_time).toLocaleTimeString('en-US', {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true
         }),
-        type: appointment.notes || 'Appointment',
-        duration: 30 // Default duration in minutes as number
+        type: appointment.appointment_type || 'Appointment',
+        duration: appointment.duration_minutes || 30
       }));
     },
     enabled: !!user?.id,

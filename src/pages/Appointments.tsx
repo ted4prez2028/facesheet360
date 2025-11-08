@@ -42,9 +42,9 @@ const Appointments = () => {
         id: String(a.id), // Ensure ID is always a string
         patientName: a.patients ? `${a.patients.first_name || ''} ${a.patients.last_name || ''}`.trim() : 'Unknown Patient',
         patientId: a.patient_id,
-        date: new Date(a.appointment_date),
-        type: a.notes?.split(':')[0] || 'Appointment',
-        duration: 30,
+        date: new Date(a.scheduled_time),
+        type: a.appointment_type || 'Appointment',
+        duration: a.duration_minutes || 30,
         notes: a.notes || ''
       }));
     setAppointmentsData(formatted);
@@ -61,20 +61,9 @@ const Appointments = () => {
 
   const handleCreateAppointment = (data: Appointment) => {
     createAppointment.mutate(data, {
-      onSuccess: (newAppointment) => {
+      onSuccess: () => {
         setShowNewAppointmentDialog(false);
-        if (newAppointment?.id) {
-          const formatted = {
-            id: String(newAppointment.id),
-            patientName: newAppointment.patients ? `${newAppointment.patients.first_name || ''} ${newAppointment.patients.last_name || ''}`.trim() : 'Unknown Patient',
-            patientId: newAppointment.patient_id,
-            date: new Date(newAppointment.appointment_date),
-            type: newAppointment.notes?.split(':')[0] || 'Appointment',
-            duration: 30,
-            notes: newAppointment.notes || ''
-          };
-          setAppointmentsData(prev => [...prev, formatted]);
-        }
+        // Query invalidation will automatically update the list
       }
     });
   };

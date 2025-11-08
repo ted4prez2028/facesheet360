@@ -5,9 +5,11 @@ export interface Appointment {
   id?: string;
   patient_id: string;
   provider_id: string;
-  appointment_date: string;
+  scheduled_time: string;
+  appointment_type: string;
   status: string;
   notes?: string;
+  duration_minutes?: number;
 }
 
 export const getAppointments = async () => {
@@ -18,7 +20,7 @@ export const getAppointments = async () => {
         *,
         patients(id, first_name, last_name, medical_record_number)
       `)
-      .order('appointment_date', { ascending: true });
+      .order('scheduled_time', { ascending: true });
 
     if (error) throw error;
     return data;
@@ -37,7 +39,7 @@ export const getPatientAppointments = async (patientId: string) => {
         patients(id, first_name, last_name, medical_record_number)
       `)
       .eq('patient_id', patientId)
-      .order('appointment_date', { ascending: true });
+      .order('scheduled_time', { ascending: true });
 
     if (error) throw error;
     return data;
@@ -58,15 +60,15 @@ export const getTodayAppointments = async (providerId?: string) => {
       *,
       patients(id, first_name, last_name, medical_record_number)
     `)
-    .gte('appointment_date', startOfToday)
-    .lte('appointment_date', endOfToday);
+    .gte('scheduled_time', startOfToday)
+    .lte('scheduled_time', endOfToday);
   
   if (providerId) {
     query = query.eq('provider_id', providerId);
   }
   
   try {
-    const { data, error } = await query.order('appointment_date', { ascending: true });
+    const { data, error } = await query.order('scheduled_time', { ascending: true });
     if (error) throw error;
     return data;
   } catch (error) {
@@ -77,14 +79,9 @@ export const getTodayAppointments = async (providerId?: string) => {
 
 export const addAppointment = async (appointment: Appointment) => {
   try {
-    const formattedAppointment = {
-      ...appointment,
-      appointment_date: appointment.appointment_date
-    };
-    
     const { data, error } = await supabase
       .from('appointments')
-      .insert(formattedAppointment)
+      .insert([appointment] as any)
       .select(`
         *,
         patients(id, first_name, last_name, medical_record_number)
@@ -101,14 +98,9 @@ export const addAppointment = async (appointment: Appointment) => {
 
 export const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
   try {
-    const formattedUpdates = {
-      ...updates,
-      appointment_date: updates.appointment_date || undefined
-    };
-    
     const { data, error } = await supabase
       .from('appointments')
-      .update(formattedUpdates)
+      .update(updates)
       .eq('id', id)
       .select(`
         *,
