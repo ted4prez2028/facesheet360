@@ -155,7 +155,7 @@ const Index = () => {
                 <div className="mt-4 text-center">
                   <p className="text-white/80 text-sm">
                     Don't have an account?{" "}
-                    <Link to="/login?tab=register" className="text-white underline hover:text-white/80">
+                    <Link to="/login" className="text-white underline hover:text-white/80">
                       Sign up here
                     </Link>
                   </p>
