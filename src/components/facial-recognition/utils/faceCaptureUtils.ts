@@ -50,17 +50,24 @@ export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElemen
       videoRef.current.srcObject = stream;
       
       // Load face-api models while camera is initializing
-      await loadFaceApiModels();
+      const modelsLoaded = await loadFaceApiModels();
+      if (!modelsLoaded) {
+        toast.error("Failed to load face detection models");
+        return false;
+      }
       
       return new Promise((resolve) => {
         if (videoRef.current) {
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(err => {
+          videoRef.current.onloadedmetadata = async () => {
+            try {
+              await videoRef.current?.play();
+              console.log('Camera started successfully');
+              resolve(true);
+            } catch (err) {
               console.error("Autoplay error:", err);
               toast.error("Failed to start camera. Autoplay might be disabled.");
               resolve(false);
-            });
-            resolve(true);
+            }
           };
         } else {
           resolve(false);
@@ -206,22 +213,80 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
   }
 
   try {
-    const faceData = await detectFaces(capturedImage);
-    if (!faceData) {
-      toast.error("No face detected. Please try again.");
+    if (!modelsLoaded) {
+      const loaded = await loadFaceApiModels();
+      if (!loaded) {
+        toast.error("Failed to load face detection models");
+        return null;
+      }
+    }
+
+    // Create an image element from the captured image
+    const img = new Image();
+    img.src = capturedImage;
+    
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    // Detect face and extract descriptor
+    const detection = await faceapi
+      .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection) {
+      toast.error("No face detected in the image. Please try again.");
       return null;
     }
 
+    const capturedDescriptor = Array.from(detection.descriptor);
+    
+    // Get all patients with facial data
     const patients = await getPatientByFacialData();
     if (!patients || patients.length === 0) {
       toast.error("No patients with facial data found.");
       return null;
     }
 
-    const matchedPatient = await matchPatientByFace(faceData, patients);
-    if (matchedPatient) {
-      toast.success(`Patient identified: ${matchedPatient.first_name} ${matchedPatient.last_name}`);
-      return matchedPatient;
+    // Find best match using Euclidean distance
+    let bestMatch: Patient | null = null;
+    let bestDistance = Infinity;
+    const MATCH_THRESHOLD = 0.6; // Lower is better match
+
+    for (const patient of patients) {
+      if (!patient.facial_data) continue;
+      
+      try {
+        const storedData = JSON.parse(patient.facial_data);
+        if (!storedData.descriptor) continue;
+        
+        const storedDescriptor = storedData.descriptor;
+        
+        // Calculate Euclidean distance
+        const distance = Math.sqrt(
+          capturedDescriptor.reduce((sum, val, i) => {
+            const diff = val - storedDescriptor[i];
+            return sum + diff * diff;
+          }, 0)
+        );
+        
+        console.log(`Distance to ${patient.first_name} ${patient.last_name}: ${distance}`);
+        
+        if (distance < bestDistance && distance < MATCH_THRESHOLD) {
+          bestDistance = distance;
+          bestMatch = patient;
+        }
+      } catch (err) {
+        console.error('Error parsing facial data for patient:', patient.id, err);
+      }
+    }
+
+    if (bestMatch) {
+      const confidence = ((1 - (bestDistance / MATCH_THRESHOLD)) * 100).toFixed(1);
+      toast.success(`Patient identified: ${bestMatch.first_name} ${bestMatch.last_name} (${confidence}% match)`);
+      return bestMatch;
     } else {
       toast.error("No matching patient found.");
       return null;
@@ -243,16 +308,50 @@ export const registerFace = async (
   }
 
   try {
-    // Process the face using simplified approach without relying on external model loading
-    // Just store the image data for now
+    if (!modelsLoaded) {
+      const loaded = await loadFaceApiModels();
+      if (!loaded) {
+        toast.error("Failed to load face detection models");
+        return null;
+      }
+    }
+
+    // Create an image element from the captured image
+    const img = new Image();
+    img.src = capturedImage;
+    
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    // Detect face and extract descriptor
+    const detection = await faceapi
+      .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection) {
+      toast.error("No face detected in the image. Please try again.");
+      return null;
+    }
+
+    // Extract the 128-dimensional face descriptor
+    const descriptor = Array.from(detection.descriptor);
+    
+    // Store both the image and the descriptor
     const faceData = {
       image: capturedImage,
-      timestamp: new Date().toISOString()
+      descriptor: descriptor,
+      timestamp: new Date().toISOString(),
+      confidence: detection.detection.score
     };
     
-    // Convert to string
+    // Convert to string for storage
     const faceDataString = JSON.stringify(faceData);
-    toast.success("Image captured successfully");
+    
+    console.log('Face registered with descriptor length:', descriptor.length);
+    toast.success("Face registered successfully!");
     
     return faceDataString;
   } catch (err: unknown) {
