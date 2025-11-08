@@ -87,8 +87,7 @@ const Login = () => {
                 <SignIn
                   appearance={clerkAppearance}
                   redirectUrl="/dashboard"
-                  signUpUrl="/login#signup"
-                  routing="hash"
+                  signUpUrl="/login"
                 />
               </TabsContent>
 
@@ -96,8 +95,7 @@ const Login = () => {
                 <SignUp
                   appearance={clerkAppearance}
                   redirectUrl="/dashboard"
-                  signInUrl="/login#signin"
-                  routing="hash"
+                  signInUrl="/login"
                 />
               </TabsContent>
             </Tabs>
