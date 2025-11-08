@@ -40,7 +40,7 @@ const Appointments = () => {
       .filter((a: any) => a.id) // Filter out any items without valid IDs
       .map((a: any) => ({
         id: String(a.id), // Ensure ID is always a string
-        patientName: a.patients ? `${a.patients.first_name || ''} ${a.patients.last_name || ''}`.trim() : 'Unknown Patient',
+        patientName: a.patients?.name || 'Unknown Patient',
         patientId: a.patient_id,
         date: new Date(a.scheduled_time),
         type: a.appointment_type || 'Appointment',

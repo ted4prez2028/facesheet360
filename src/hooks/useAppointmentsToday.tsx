@@ -31,8 +31,7 @@ export const useAppointmentsToday = () => {
         .select(`
           *,
           patients:patient_id (
-            first_name,
-            last_name
+            name
           )
         `)
         .gte('scheduled_time', todayStart.toISOString())
@@ -46,9 +45,7 @@ export const useAppointmentsToday = () => {
 
       return (data || []).map((appointment: any) => ({
         id: appointment.id,
-        patient: appointment.patients 
-          ? `${appointment.patients.first_name} ${appointment.patients.last_name}`
-          : 'Unknown Patient',
+        patient: appointment.patients?.name || 'Unknown Patient',
         time: new Date(appointment.scheduled_time).toLocaleTimeString('en-US', {
           hour: 'numeric',
           minute: '2-digit',
