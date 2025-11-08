@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { CareCoinsDashboard } from '@/components/wallet/CareCoinsDashboard';
 import { TokenDeployer } from '@/components/wallet/TokenDeployer';
 import { CareCoinOperations } from '@/components/wallet/CareCoinOperations';
+import { MetaMaskBalance } from '@/components/wallet/MetaMaskBalance';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const WalletDashboard = () => {
@@ -32,12 +33,17 @@ const WalletDashboard = () => {
       <Tabs defaultValue="dashboard" className="space-y-6">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="metamask">MetaMask Balance</TabsTrigger>
           <TabsTrigger value="deploy">Deploy Token</TabsTrigger>
           <TabsTrigger value="operations">Operations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
           <CareCoinsDashboard />
+        </TabsContent>
+
+        <TabsContent value="metamask">
+          <MetaMaskBalance />
         </TabsContent>
 
         <TabsContent value="deploy">

@@ -91,7 +91,7 @@ export function MetaMaskIntegration({
               asChild
             >
               <a
-                href={`https://etherscan.io/address/${finalAddress}`}
+                href={`https://sepolia.etherscan.io/address/${finalAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -124,11 +124,14 @@ export function MetaMaskIntegration({
           <AlertDescription className="text-sm">
             <strong>How to use:</strong>
             <ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>Make sure you're connected to Ethereum mainnet in MetaMask</li>
+              <li>Make sure you're connected to Sepolia testnet in MetaMask</li>
               <li>Click "Add CareCoin to MetaMask" button above</li>
               <li>Approve the token addition in MetaMask</li>
               <li>The CARE token will appear in your MetaMask wallet</li>
             </ol>
+            <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
+              <strong className="text-yellow-800">Note:</strong> <span className="text-yellow-700">Sepolia is a free testnet. You can get free Sepolia ETH from <a href="https://sepoliafaucet.com" target="_blank" rel="noopener noreferrer" className="underline">SepoliaFaucet.com</a> to pay for transactions.</span>
+            </div>
           </AlertDescription>
         </Alert>
       </CardContent>

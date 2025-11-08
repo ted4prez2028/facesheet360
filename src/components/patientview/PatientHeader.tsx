@@ -54,11 +54,6 @@ const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, calculateAge }) 
         
         <div className="space-x-2 flex">
           <Button variant="outline" className="flex items-center gap-1" size="sm">
-            <LinkIcon className="h-4 w-4" />
-            <span>Care Profile</span>
-          </Button>
-          
-          <Button variant="outline" className="flex items-center gap-1" size="sm">
             <Edit className="h-4 w-4" />
             <span>Edit</span>
           </Button>
@@ -66,11 +61,6 @@ const PatientHeader: React.FC<PatientHeaderProps> = ({ patient, calculateAge }) 
           <Button variant="outline" className="flex items-center gap-1" size="sm">
             <Printer className="h-4 w-4" />
             <span>Print</span>
-          </Button>
-          
-          <Button variant="outline" className="flex items-center gap-1" size="sm">
-            <FileText className="h-4 w-4" />
-            <span>PointClickCare Connect</span>
           </Button>
         </div>
       </div>
