@@ -16,8 +16,11 @@ export const useAdminStatus = () => {
       }
 
       try {
-        // Check if user has admin role
-        const { data, error } = await supabase.rpc('is_admin');
+        // Check if user has admin role using has_role function
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
         
         if (error) {
           console.error('Error checking admin status:', error);

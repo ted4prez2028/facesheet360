@@ -19,9 +19,9 @@ export interface User {
 
 export interface Patient {
   id: string;
-  name: string; // Changed from first_name/last_name to match database
-  first_name?: string; // Kept for backward compatibility
-  last_name?: string; // Kept for backward compatibility
+  name: string; // Primary field from database
+  first_name?: string; // Computed from name for compatibility
+  last_name?: string; // Computed from name for compatibility
   age?: number;
   date_of_birth?: string;
   gender?: string;
@@ -32,12 +32,11 @@ export interface Patient {
   medical_record_number?: string;
   insurance_provider?: string;
   insurance_policy_number?: string;
-  insurance_number?: string;
-  policy_number?: string;
+  insurance_number?: string; // Alias for insurance_policy_number
   emergency_contact?: string;
+  emergency_contact_name?: string; // Part of emergency_contact
   emergency_phone?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
+  emergency_contact_phone?: string; // Alias for emergency_phone
   emergency_contact_relation?: string;
   allergies?: string;
   medications?: string;
@@ -46,11 +45,11 @@ export interface Patient {
   facial_data?: string;
   user_id?: string;
   status?: string;
-  lastVisit?: string;
-  imgUrl?: string | null;
   admission_date?: string;
   discharge_date?: string;
   primary_physician?: string;
+  lastVisit?: string;
+  imgUrl?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -59,11 +58,16 @@ export interface Appointment {
   id: string;
   patient_id: string;
   provider_id: string;
-  appointment_date: string;
+  scheduled_time: string; // Database field name
+  appointment_date?: string; // Alias for backward compatibility
+  appointment_type: string;
   status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
+  duration_minutes?: number;
+  location?: string;
   notes?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
 }
 
 export interface TodayAppointment {
@@ -183,13 +187,11 @@ export interface CarePlan {
   interventions?: string;
   content?: string;
   status: 'active' | 'completed' | 'draft' | 'inactive';
-  ai_generated?: boolean;
-  is_ai_generated?: boolean; // Alias for compatibility
   created_by: string;
   start_date?: string;
   end_date?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface VitalSigns {
@@ -297,3 +299,5 @@ export interface CareCoinsAchievement {
 }
 
 export * from './auth';
+export * from './ride';
+export * from './dashboard';
