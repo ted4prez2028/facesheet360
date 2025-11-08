@@ -37,7 +37,7 @@ export function useTasks(patientId: string) {
     mutationFn: async (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('tasks')
-        .insert(task)
+        .insert([task])
         .select()
         .single();
 

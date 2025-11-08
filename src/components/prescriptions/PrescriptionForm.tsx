@@ -13,6 +13,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAddPrescription } from "@/hooks/usePrescriptions";
 import { useAuth } from "@/context/AuthContext";
+import { PatientAutocomplete } from "@/components/common/PatientAutocomplete";
 
 interface PrescriptionFormProps {
   patientId: string;

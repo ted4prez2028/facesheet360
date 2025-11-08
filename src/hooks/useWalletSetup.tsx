@@ -71,7 +71,7 @@ export const useWalletSetup = () => {
       
       // 2. Update user's CareCoins balance
       const { error: updateError } = await supabase
-        .from('users')
+        .from('profiles')
         .update({ care_coins_balance: 1 })
         .eq('id', user.id);
       

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { usePatients } from "@/hooks/usePatients";
 import { Appointment } from "@/lib/api/appointmentApi";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { PatientAutocomplete } from "@/components/common/PatientAutocomplete";
 
 interface AppointmentFormProps {
   initialData?: Partial<Appointment>;
@@ -26,7 +26,6 @@ const AppointmentForm = ({
   isLoading = false
 }: AppointmentFormProps) => {
   const { user } = useAuth();
-  const { data: patients, isLoading: isPatientsLoading } = usePatients();
   
   const [formData, setFormData] = useState<Partial<Appointment>>({
     patient_id: initialData?.patient_id || "",
@@ -93,25 +92,11 @@ const AppointmentForm = ({
     <div className="grid gap-6">
       <div className="grid gap-2">
         <Label htmlFor="patient">Patient</Label>
-        <Select
+        <PatientAutocomplete
           value={formData.patient_id}
-          onValueChange={(value) => setFormData({ ...formData, patient_id: value })}
-          disabled={isLoading || isPatientsLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={isPatientsLoading ? "Loading patients..." : "Select patient"} />
-          </SelectTrigger>
-          <SelectContent>
-            {patients?.map((patient) => (
-              <SelectItem 
-                key={patient.id} 
-                value={patient.id}
-              >
-                {`${patient.first_name} ${patient.last_name} ${patient.medical_record_number ? `(${patient.medical_record_number})` : ''}`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onSelect={(patientId) => setFormData({ ...formData, patient_id: patientId })}
+          placeholder="Search patient by name or MRN..."
+        />
       </div>
       
       <div className="grid grid-cols-2 gap-4">

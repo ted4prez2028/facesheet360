@@ -23,21 +23,21 @@ export const useWoundCare = (patientId: string) => {
     queryKey: ['woundRecords', patientId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('wounds')
+        .from('wound_assessments')
         .select('*')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as WoundRecord[];
+      return data as any as WoundRecord[];
     },
   });
 
   const createWound = useMutation({
     mutationFn: async (newRecord: Omit<WoundRecord, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('wounds')
-        .insert([newRecord])
+        .from('wound_assessments')
+        .insert([newRecord as any])
         .select()
         .single();
 
@@ -52,8 +52,8 @@ export const useWoundCare = (patientId: string) => {
   const updateWound = useMutation({
     mutationFn: async ({ id, updates }: { id: string, updates: Partial<WoundRecord> }) => {
       const { data, error } = await supabase
-        .from('wounds')
-        .update(updates)
+        .from('wound_assessments')
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
@@ -69,7 +69,7 @@ export const useWoundCare = (patientId: string) => {
   const deleteWound = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('wounds')
+        .from('wound_assessments')
         .delete()
         .eq('id', id);
 

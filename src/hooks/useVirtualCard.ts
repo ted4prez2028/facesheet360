@@ -22,20 +22,10 @@ export const useVirtualCard = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('care_coins_cards')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        const cardData = data[0] as CareCoinsCard;
-        setCard(cardData);
-        setCards(data as CareCoinsCard[]);
-      }
+      // Virtual cards not implemented in database yet
+      // Return mock data for now
+      setCard(null);
+      setCards([]);
     } catch (error) {
       console.error('Error fetching card:', error);
     } finally {
@@ -50,23 +40,8 @@ export const useVirtualCard = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('care_coins_cards')
-        .insert({
-          user_id: user.id,
-          card_type: 'virtual' as const,
-          status: 'active' as const,
-          limit_amount: 1000
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const cardData = data as CareCoinsCard;
-      setCard(cardData);
-      setCards(prev => [...prev, cardData]);
-      toast.success('Virtual card created successfully');
+      // Virtual cards not implemented in database yet
+      toast.info('Virtual card feature coming soon');
     } catch (error) {
       console.error('Error creating card:', error);
       toast.error('Failed to create card');

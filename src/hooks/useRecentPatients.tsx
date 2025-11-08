@@ -27,22 +27,21 @@ export const useRecentPatients = (limit: number = 5) => {
     queryKey: ['recent-patients', limit],
     queryFn: async (): Promise<RecentPatient[]> => {
       try {
-        // Fetch recent chart records
+        // Fetch recent patient notes as a proxy for recent patients
         const { data: chartRecords, error: chartError } = await supabase
-          .from('chart_records')
+          .from('patient_notes')
           .select(`
             id,
-            record_date,
-            diagnosis,
+            created_at,
+            note_content,
             patient_id,
             patients:patient_id (
               id,
-              first_name,
-              last_name,
+              name,
               date_of_birth
             )
           `)
-          .order('record_date', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(limit);
 
         if (chartError) throw chartError;
@@ -56,7 +55,7 @@ export const useRecentPatients = (limit: number = 5) => {
         return chartRecords
           .filter(record => record.patients) // Filter out any records with missing patient data
           .map(record => {
-            const patient = record.patients as PatientInfo;
+            const patient = record.patients as any;
             
             // Calculate age
             const birthDate = new Date(patient.date_of_birth);
@@ -67,7 +66,7 @@ export const useRecentPatients = (limit: number = 5) => {
               age--;
             }
 
-            const recordDate = new Date(record.record_date);
+            const recordDate = new Date(record.created_at);
             const now = new Date();
             const diffTime = Math.abs(now.getTime() - recordDate.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -84,22 +83,20 @@ export const useRecentPatients = (limit: number = 5) => {
               lastVisit = recordDate.toLocaleDateString();
             }
 
-            // Determine status based on diagnosis or randomly if not available
+            // Determine status from note content
             let status = "Stable";
-            if (record.diagnosis) {
-              const diagnosisLower = record.diagnosis.toLowerCase();
-              if (diagnosisLower.includes("critical") || diagnosisLower.includes("severe")) {
-                status = "Critical";
-              } else if (diagnosisLower.includes("follow")) {
-                status = "Follow-up";
-              }
+            const noteContentLower = (record.note_content || "").toLowerCase();
+            if (noteContentLower.includes("critical") || noteContentLower.includes("severe")) {
+              status = "Critical";
+            } else if (noteContentLower.includes("follow")) {
+              status = "Follow-up";
             }
 
             return {
               id: patient.id,
-              name: `${patient.first_name} ${patient.last_name}`,
+              name: patient.name,
               age,
-              condition: record.diagnosis || "General checkup",
+              condition: record.note_content ? record.note_content.substring(0, 50) + "..." : "General note",
               lastVisit,
               status
             };

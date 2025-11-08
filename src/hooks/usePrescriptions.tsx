@@ -49,7 +49,7 @@ export const useAddPrescription = () => {
       try {
         const { data, error } = await supabase
           .from("medication_orders")
-          .insert(prescription)
+          .insert([prescription])
           .select()
           .single();
 
