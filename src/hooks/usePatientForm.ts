@@ -85,7 +85,7 @@ export const usePatientForm = (onSuccess: () => void) => {
     }
   };
 
-  const submitForm = async () => {
+  const submitForm = async (avatarUrl?: string | null, facialData?: string | null) => {
     if (!validateForm()) return false;
     
     const hasSession = await verifySession();
@@ -104,6 +104,8 @@ export const usePatientForm = (onSuccess: () => void) => {
         insurance_provider: formState.insuranceProvider || undefined,
         insurance_number: formState.policyNumber || undefined,
         address: formState.address || undefined,
+        avatar_url: avatarUrl || undefined,
+        facial_data: facialData || undefined,
       };
       
       console.log("Submitting patient data:", patientData);

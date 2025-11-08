@@ -17,6 +17,7 @@ import { Users, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { PatientFilters, PatientFilterOptions } from '@/components/patients/PatientFilters';
 import { BulkImportDialog } from '@/components/patients/BulkImportDialog';
+import FaceIdentificationDialog from '@/components/facial-recognition/FaceIdentificationDialog';
 
 const PatientListPage = () => {
   const navigate = useNavigate();
@@ -181,6 +182,12 @@ const PatientListPage = () => {
           open={isBulkImportOpen}
           onOpenChange={setIsBulkImportOpen}
           onImportComplete={() => refetch()}
+        />
+
+        <FaceIdentificationDialog
+          isOpen={isFaceIdDialogOpen}
+          onClose={() => setIsFaceIdDialogOpen(false)}
+          onIdentificationSuccess={(patientId) => navigate(`/patients/${patientId}`)}
         />
     </div>
   );

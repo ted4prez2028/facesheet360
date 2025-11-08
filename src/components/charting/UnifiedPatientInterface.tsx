@@ -13,6 +13,7 @@ import LabResultsPanel from "./LabResultsPanel";
 import ImagingPanel from "./ImagingPanel";
 import NotesSection from "./NotesSection";
 import CareTeamAssignments from "@/components/patients/CareTeamAssignments";
+import FaceRegistration from "@/components/facial-recognition/FaceRegistration";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -349,6 +350,13 @@ const UnifiedPatientInterface = ({
               {/* Overview Tab */}
               <TabsContent value="overview" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
                 <div className="space-y-6">
+                  {/* Facial Recognition Section */}
+                  {selectedPatient && (
+                    <FaceRegistration 
+                      patientId={selectedPatient}
+                    />
+                  )}
+
                   {/* Patient Info Summary */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card>

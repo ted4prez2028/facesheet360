@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import PatientFormFields from "./PatientFormFields";
 import { PatientAvatarUpload } from "./PatientAvatarUpload";
+import PatientFacialCapture from "./PatientFacialCapture";
 import { usePatientForm } from "@/hooks/usePatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -25,6 +26,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [facialData, setFacialData] = useState<string | null>(null);
   
   const {
     formState,
@@ -53,7 +55,7 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
     }
     
     console.log("Submitting patient form with data:", formState);
-    await submitForm();
+    await submitForm(avatarUrl, facialData);
   };
   
   const handleSavePatient = () => {
@@ -66,12 +68,13 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
       return;
     }
     
-    submitForm();
+    submitForm(avatarUrl, facialData);
   };
 
   const handleClose = () => {
     resetForm();
     setAvatarUrl(null);
+    setFacialData(null);
     onOpenChange(false);
   };
 
@@ -104,6 +107,13 @@ export const AddPatientDrawer: React.FC<AddPatientDrawerProps> = ({
                 patientName={`${formState.firstName} ${formState.lastName}`.trim() || 'New Patient'}
                 currentAvatarUrl={avatarUrl || undefined}
                 onAvatarChange={setAvatarUrl}
+              />
+            </div>
+
+            <div className="pb-4 border-b">
+              <PatientFacialCapture
+                facialData={facialData}
+                onCapture={setFacialData}
               />
             </div>
             
