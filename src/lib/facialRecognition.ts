@@ -34,6 +34,12 @@ export const loadFaceDetectionModels = async (onProgress?: ModelProgressCallback
   if (modelsLoaded) return;
   
   try {
+    // Check if offline first
+    if (!navigator.onLine) {
+      console.log('📴 Device is offline - skipping model download');
+      throw new Error('Device is offline. Facial recognition requires an internet connection for first-time setup.');
+    }
+    
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
     
     // Check cache stats
@@ -130,7 +136,21 @@ export const loadFaceDetectionModels = async (onProgress?: ModelProgressCallback
     
   } catch (error) {
     console.error('❌ Error loading face detection models:', error);
-    toast.error('Failed to load face detection models');
+    
+    // Provide user-friendly error messages
+    let errorMessage = 'Failed to load face detection models';
+    
+    if (error instanceof Error) {
+      if (error.message.includes('offline') || error.message.includes('network')) {
+        errorMessage = 'Network unavailable. Please check your connection and try again.';
+      } else if (error.message.includes('fetch')) {
+        errorMessage = 'Unable to download models. Please check your internet connection.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
+    toast.error(errorMessage);
     throw error;
   }
 };

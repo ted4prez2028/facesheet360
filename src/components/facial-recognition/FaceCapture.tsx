@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Patient } from '@/types';
-import { SwitchCamera, Volume2, VolumeX } from 'lucide-react';
+import { SwitchCamera, Volume2, VolumeX, WifiOff } from 'lucide-react';
 import { 
   checkCameraAvailability, 
   initializeCamera, 
@@ -26,6 +26,7 @@ import CameraControls from './components/CameraControls';
 import CapturedImage from './components/CapturedImage';
 import NoCameraState from './components/NoCameraState';
 import ModelLoadingProgress, { ModelProgress } from './ModelLoadingProgress';
+import OfflineIndicator from './OfflineIndicator';
 
 export type FaceCaptureProps = {
   mode?: 'register' | 'identify';
@@ -61,8 +62,38 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const [soundMuted, setSoundMuted] = useState(isSoundMuted());
   const [showFlash, setShowFlash] = useState(false);
   const [modelProgress, setModelProgress] = useState<ModelProgress[]>([]);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const animationFrameId = useRef<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('🌐 Network back online');
+      setIsOffline(false);
+      setError(null);
+    };
+
+    const handleOffline = () => {
+      console.log('📴 Network offline');
+      setIsOffline(true);
+      setError('You are offline. Facial recognition requires an internet connection.');
+      
+      // Stop camera if running
+      if (hasVideoStream) {
+        stopCamera(videoRef);
+        setHasVideoStream(false);
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [hasVideoStream]);
 
   const startFaceDetection = useCallback(() => {
     if (!videoRef.current || !faceDetectionCanvasRef.current) return;
@@ -165,6 +196,14 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     setCountdown(null);
     setModelProgress([]);
     
+    // Check if offline
+    if (!navigator.onLine) {
+      setError("You are offline. Facial recognition requires an internet connection.");
+      setIsLoading(false);
+      setIsLoadingModels(false);
+      return;
+    }
+    
     try {
       const { success, modelsLoaded } = await initializeCamera(
         videoRef, 
@@ -197,7 +236,14 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     } catch (err) {
       console.error('Error starting camera:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Camera error: ${errorMessage}`);
+      
+      // Provide user-friendly offline error
+      if (errorMessage.includes('offline') || errorMessage.includes('network')) {
+        setError('Network connection required. Please connect to the internet and try again.');
+      } else {
+        setError(`Camera error: ${errorMessage}`);
+      }
+      
       setHasVideoStream(false);
       setIsLoading(false);
       setIsLoadingModels(false);
@@ -301,6 +347,11 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     <Card>
       <div className="flex flex-col items-center justify-center p-4 space-y-4">
         <FaceCaptureError error={error} />
+        
+        {/* Offline Indicator */}
+        {isOffline && (
+          <OfflineIndicator onRetry={startCamera} />
+        )}
 
         {!hasCamera ? (
           <NoCameraState />

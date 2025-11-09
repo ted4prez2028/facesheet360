@@ -159,46 +159,60 @@ export const fetchModelWithCache = async (
     return cached;
   }
   
+  // Check if offline before attempting download
+  if (!navigator.onLine) {
+    throw new Error(`Cannot download ${modelName} - device is offline`);
+  }
+  
   // If not in cache, fetch from URL with progress tracking
   console.log(`📥 Downloading model ${modelName} from CDN...`);
-  const response = await fetch(url);
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch model ${modelName}: ${response.statusText}`);
-  }
-  
-  const contentLength = response.headers.get('content-length');
-  const total = contentLength ? parseInt(contentLength, 10) : 0;
-  
-  if (!response.body) {
-    throw new Error('Response body is null');
-  }
-  
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let receivedLength = 0;
-  
-  while (true) {
-    const { done, value } = await reader.read();
+  try {
+    const response = await fetch(url);
     
-    if (done) break;
-    
-    chunks.push(value);
-    receivedLength += value.length;
-    
-    if (total > 0 && onProgress) {
-      const progress = (receivedLength / total) * 100;
-      onProgress(progress);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch model ${modelName}: ${response.statusText}`);
     }
+    
+    const contentLength = response.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+    
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+    
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let receivedLength = 0;
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) break;
+      
+      chunks.push(value);
+      receivedLength += value.length;
+      
+      if (total > 0 && onProgress) {
+        const progress = (receivedLength / total) * 100;
+        onProgress(progress);
+      }
+    }
+    
+    const blob = new Blob(chunks as BlobPart[]);
+    
+    // Cache for next time (don't await to avoid blocking)
+    cacheModel(modelName, blob).catch(err => 
+      console.warn(`Failed to cache model ${modelName}:`, err)
+    );
+    
+    onProgress?.(100);
+    return blob;
+  } catch (error) {
+    // Add network-specific error context
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(`Network error downloading ${modelName}. Please check your connection.`);
+    }
+    throw error;
   }
-  
-  const blob = new Blob(chunks as BlobPart[]);
-  
-  // Cache for next time (don't await to avoid blocking)
-  cacheModel(modelName, blob).catch(err => 
-    console.warn(`Failed to cache model ${modelName}:`, err)
-  );
-  
-  onProgress?.(100);
-  return blob;
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import { ErrorBoundary } from '@/components/security/ErrorBoundary';
 import { SessionTimeout } from '@/components/security/SessionTimeout';
+import FacialRecognitionPreloader from '@/components/facial-recognition/FacialRecognitionPreloader';
 import Index from './pages/Index';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
@@ -71,6 +71,7 @@ function App() {
             <AuthProvider>
               <CommunicationProvider>
                 <SessionTimeout />
+                <FacialRecognitionPreloader />
                 <UserPreferencesProvider>
                 <Routes>
                 <Route path="/" element={
