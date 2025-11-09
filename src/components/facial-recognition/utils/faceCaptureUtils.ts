@@ -47,8 +47,8 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
       console.log('📥 First time loading - downloading from CDN...');
     }
     
-    // Fetch all model files with caching and create object URLs
-    const fileUrls = new Map<string, string>();
+    // Fetch all model files with caching
+    const modelBlobs = new Map<string, Blob>();
     
     // Initialize progress tracking
     const allFiles: string[] = [];
@@ -74,6 +74,7 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
     try {
       updateProgress(); // Initial state
       
+      // Fetch all model files
       for (const model of MODELS) {
         for (const fileName of model.files) {
           const blob = await fetchModelWithCache(
@@ -84,33 +85,38 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
               updateProgress();
             }
           );
-          const objectUrl = URL.createObjectURL(blob);
-          fileUrls.set(fileName, objectUrl);
+          modelBlobs.set(fileName, blob);
         }
       }
       
-      // Create temporary base path from first manifest file
-      const firstManifestUrl = fileUrls.get('ssd_mobilenetv1_model-weights_manifest.json')!;
-      const basePath = firstManifestUrl.substring(0, firstManifestUrl.lastIndexOf('/'));
-      
-      // Intercept fetch to return cached object URLs
+      // Intercept fetch to return cached blobs
       const originalFetch = window.fetch;
       window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         const url = typeof input === 'string' ? input : input.toString();
-        const fileName = url.split('/').pop() || '';
         
-        if (fileUrls.has(fileName)) {
-          return originalFetch(fileUrls.get(fileName)!, init);
+        // Check if this URL is requesting one of our model files
+        for (const [fileName, blob] of modelBlobs.entries()) {
+          if (url.includes(fileName) || url.endsWith(fileName)) {
+            console.log(`📦 Serving cached model: ${fileName}`);
+            return new Response(blob, {
+              status: 200,
+              statusText: 'OK',
+              headers: {
+                'Content-Type': fileName.endsWith('.json') ? 'application/json' : 'application/octet-stream',
+                'Content-Length': blob.size.toString()
+              }
+            });
+          }
         }
         
         return originalFetch(input, init);
       };
       
-      // Load models
+      // Load models using a dummy base path
       await Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri(basePath),
-        faceapi.nets.faceLandmark68Net.loadFromUri(basePath),
-        faceapi.nets.faceRecognitionNet.loadFromUri(basePath)
+        faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+        faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+        faceapi.nets.faceRecognitionNet.loadFromUri('/models')
       ]);
       
       // Restore original fetch
@@ -120,17 +126,11 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
       console.log('✅ Face detection models loaded successfully!');
       toast.success('Face detection ready');
       
-      // Clean up object URLs after a short delay
-      setTimeout(() => {
-        fileUrls.forEach(url => URL.revokeObjectURL(url));
-        console.log('🧹 Cleaned up temporary object URLs');
-      }, 1000);
-      
       return true;
       
     } catch (loadError) {
       // Clean up on error
-      fileUrls.forEach(url => URL.revokeObjectURL(url));
+      modelBlobs.clear();
       throw loadError;
     }
     
