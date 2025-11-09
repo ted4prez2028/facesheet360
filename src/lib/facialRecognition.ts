@@ -13,8 +13,8 @@ import {
 // Flag to track whether models are loaded
 let modelsLoaded = false;
 
-// Model configuration
-const MODEL_BASE_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+// Model configuration - using vladmandic/face-api repository
+const MODEL_BASE_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model';
 
 const MODELS = [
   { name: 'ssdMobilenetv1', files: ['ssd_mobilenetv1_model-weights_manifest.json', 'ssd_mobilenetv1_model-shard1', 'ssd_mobilenetv1_model-shard2'] },

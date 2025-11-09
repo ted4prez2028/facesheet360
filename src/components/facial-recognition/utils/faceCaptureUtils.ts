@@ -1,33 +1,101 @@
-
 import { toast } from 'sonner';
 import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import * as faceapi from 'face-api.js';
+import { 
+  fetchModelWithCache, 
+  getCacheStats 
+} from '@/lib/modelCache';
 
 let modelsLoaded = false;
 
-// Helper function to load face-api.js models
+// Model configuration - using vladmandic/face-api repository
+const MODEL_BASE_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model';
+
+const MODELS = [
+  { name: 'ssdMobilenetv1', files: ['ssd_mobilenetv1_model-weights_manifest.json', 'ssd_mobilenetv1_model-shard1', 'ssd_mobilenetv1_model-shard2'] },
+  { name: 'faceLandmark68Net', files: ['face_landmark_68_model-weights_manifest.json', 'face_landmark_68_model-shard1'] },
+  { name: 'faceRecognitionNet', files: ['face_recognition_model-weights_manifest.json', 'face_recognition_model-shard1', 'face_recognition_model-shard2'] }
+];
+
+// Helper function to load face-api.js models with caching
 const loadFaceApiModels = async () => {
   if (modelsLoaded) return true;
   
   try {
-    const MODEL_URL = '/models';
+    console.log('🚀 Loading face detection models (with IndexedDB cache)...');
     
-    console.log('Loading face detection models from:', MODEL_URL);
+    // Check cache stats
+    const stats = await getCacheStats();
+    if (stats.count > 0) {
+      console.log(`📊 Found ${stats.count} cached models (${(stats.totalSize / 1024 / 1024).toFixed(2)} MB)`);
+    } else {
+      console.log('📥 First time loading - downloading from CDN...');
+    }
     
-    await Promise.all([
-      faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]);
+    // Fetch all model files with caching and create object URLs
+    const fileUrls = new Map<string, string>();
     
-    modelsLoaded = true;
-    console.log('Face detection models loaded successfully');
-    toast.success('Face detection ready');
-    return true;
+    try {
+      for (const model of MODELS) {
+        for (const fileName of model.files) {
+          const blob = await fetchModelWithCache(
+            fileName,
+            `${MODEL_BASE_URL}/${fileName}`
+          );
+          const objectUrl = URL.createObjectURL(blob);
+          fileUrls.set(fileName, objectUrl);
+        }
+      }
+      
+      // Create temporary base path from first manifest file
+      const firstManifestUrl = fileUrls.get('ssd_mobilenetv1_model-weights_manifest.json')!;
+      const basePath = firstManifestUrl.substring(0, firstManifestUrl.lastIndexOf('/'));
+      
+      // Intercept fetch to return cached object URLs
+      const originalFetch = window.fetch;
+      window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+        const url = typeof input === 'string' ? input : input.toString();
+        const fileName = url.split('/').pop() || '';
+        
+        if (fileUrls.has(fileName)) {
+          return originalFetch(fileUrls.get(fileName)!, init);
+        }
+        
+        return originalFetch(input, init);
+      };
+      
+      // Load models
+      await Promise.all([
+        faceapi.nets.ssdMobilenetv1.loadFromUri(basePath),
+        faceapi.nets.faceLandmark68Net.loadFromUri(basePath),
+        faceapi.nets.faceRecognitionNet.loadFromUri(basePath)
+      ]);
+      
+      // Restore original fetch
+      window.fetch = originalFetch;
+      
+      modelsLoaded = true;
+      console.log('✅ Face detection models loaded successfully!');
+      toast.success('Face detection ready');
+      
+      // Clean up object URLs after a short delay
+      setTimeout(() => {
+        fileUrls.forEach(url => URL.revokeObjectURL(url));
+        console.log('🧹 Cleaned up temporary object URLs');
+      }, 1000);
+      
+      return true;
+      
+    } catch (loadError) {
+      // Clean up on error
+      fileUrls.forEach(url => URL.revokeObjectURL(url));
+      throw loadError;
+    }
+    
   } catch (error) {
-    console.error('Error loading face detection models:', error);
+    console.error('❌ Error loading face detection models:', error);
     toast.error('Failed to load face detection models. Please refresh the page.');
     return false;
   }
