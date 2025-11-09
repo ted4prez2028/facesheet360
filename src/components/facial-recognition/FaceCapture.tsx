@@ -73,8 +73,11 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       if (!success) {
         setError("Camera initialization failed. Please check camera permissions and try again.");
         setHasVideoStream(false);
+        setIsLoading(false);
       } else {
         setHasVideoStream(true);
+        setIsLoading(false);
+        setError(null); // Clear any previous errors
         // Start face detection loop
         startFaceDetection();
       }
@@ -83,7 +86,6 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(`Camera error: ${errorMessage}`);
       setHasVideoStream(false);
-    } finally {
       setIsLoading(false);
     }
   };

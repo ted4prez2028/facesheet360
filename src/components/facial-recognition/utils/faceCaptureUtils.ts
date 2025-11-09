@@ -53,12 +53,10 @@ export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElemen
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       
-      // Load face-api models while camera is initializing
-      const modelsLoaded = await loadFaceApiModels();
-      if (!modelsLoaded) {
-        toast.error("Failed to load face detection models");
-        return false;
-      }
+      // Load face-api models in background (don't block camera)
+      loadFaceApiModels().catch(err => {
+        console.error("Model loading failed:", err);
+      });
       
       return new Promise((resolve) => {
         if (videoRef.current) {
