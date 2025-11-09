@@ -1,5 +1,7 @@
 // Web Audio API based sound generation
 let audioContext: AudioContext | null = null;
+let isMuted = false;
+let globalVolume = 0.5; // Default volume (0-1)
 
 const getAudioContext = () => {
   if (!audioContext) {
@@ -10,6 +12,8 @@ const getAudioContext = () => {
 
 // Play a simple beep tone
 const playTone = (frequency: number, duration: number, volume: number = 0.3) => {
+  if (isMuted) return;
+  
   try {
     const ctx = getAudioContext();
     const oscillator = ctx.createOscillator();
@@ -21,7 +25,8 @@ const playTone = (frequency: number, duration: number, volume: number = 0.3) => 
     oscillator.frequency.value = frequency;
     oscillator.type = 'sine';
     
-    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+    const adjustedVolume = volume * globalVolume;
+    gainNode.gain.setValueAtTime(adjustedVolume, ctx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
     
     oscillator.start(ctx.currentTime);
@@ -46,3 +51,15 @@ export const playCaptureSuccessSound = () => {
 export const playCountdownSound = () => {
   playTone(440, 0.15, 0.25); // A4
 };
+
+// Sound control functions
+export const setMuted = (muted: boolean) => {
+  isMuted = muted;
+};
+
+export const setVolume = (volume: number) => {
+  globalVolume = Math.max(0, Math.min(1, volume)); // Clamp between 0 and 1
+};
+
+export const isSoundMuted = () => isMuted;
+export const getVolume = () => globalVolume;

@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Patient } from '@/types';
-import { SwitchCamera } from 'lucide-react';
+import { SwitchCamera, Volume2, VolumeX } from 'lucide-react';
 import { 
   checkCameraAvailability, 
   initializeCamera, 
@@ -13,7 +13,14 @@ import {
   detectFaceInCanvas,
   stopCamera
 } from './utils/faceCaptureUtils';
-import { playFaceDetectedSound, playCaptureSuccessSound, playCountdownSound } from '@/utils/soundEffects';
+import { 
+  playFaceDetectedSound, 
+  playCaptureSuccessSound, 
+  playCountdownSound,
+  setMuted,
+  isSoundMuted
+} from '@/utils/soundEffects';
+import { hapticLight, hapticSuccess, hapticMedium } from '@/utils/hapticFeedback';
 import FaceCaptureError from './components/FaceCaptureError';
 import CameraControls from './components/CameraControls';
 import CapturedImage from './components/CapturedImage';
@@ -50,6 +57,8 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [countdown, setCountdown] = useState<number | null>(null);
   const [hasPlayedDetectionSound, setHasPlayedDetectionSound] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(isSoundMuted());
+  const [showFlash, setShowFlash] = useState(false);
   const animationFrameId = useRef<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -68,6 +77,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
         // Play sound when face is first detected
         if (result.detected && !hasPlayedDetectionSound) {
           playFaceDetectedSound();
+          hapticLight();
           setHasPlayedDetectionSound(true);
         } else if (!result.detected) {
           setHasPlayedDetectionSound(false);
@@ -124,6 +134,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const startCountdown = () => {
     setCountdown(3);
     playCountdownSound();
+    hapticMedium();
     
     const countdownInterval = setInterval(() => {
       setCountdown(prev => {
@@ -134,6 +145,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
           return null;
         }
         playCountdownSound();
+        hapticMedium();
         return prev - 1;
       });
     }, 1000);
@@ -201,6 +213,12 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     await startCamera();
   };
 
+  const toggleMute = () => {
+    const newMutedState = !soundMuted;
+    setSoundMuted(newMutedState);
+    setMuted(newMutedState);
+  };
+
   const handleCapture = () => {
     // Clear countdown if active
     if (countdownTimerRef.current) {
@@ -211,9 +229,14 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     
     const imageDataURL = captureImage(videoRef, canvasRef);
     if (imageDataURL) {
+      // Show flash effect
+      setShowFlash(true);
+      setTimeout(() => setShowFlash(false), 300);
+      
       setCapturedImage(imageDataURL);
       setIsCaptured(true);
       playCaptureSuccessSound();
+      hapticSuccess();
       
       // Stop detection loop on capture
       if (animationFrameId.current !== null) {
@@ -287,6 +310,11 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
               />
               <canvas ref={canvasRef} className="hidden" />
               
+              {/* Camera Flash Effect */}
+              {showFlash && (
+                <div className="absolute top-0 left-0 w-full h-full bg-white rounded-md animate-fade-out pointer-events-none" />
+              )}
+              
               {/* Loading Models Overlay */}
               {isLoadingModels && hasVideoStream && (
                 <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-md">
@@ -324,15 +352,29 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
               
               {/* Camera Flip Button */}
               {hasVideoStream && !isCaptured && (
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute bottom-4 right-4 rounded-full shadow-lg"
-                  onClick={handleFlipCamera}
-                  disabled={isLoading}
-                >
-                  <SwitchCamera className="h-5 w-5" />
-                </Button>
+                <div className="absolute bottom-4 right-4 flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full shadow-lg bg-background/80 backdrop-blur-sm"
+                    onClick={toggleMute}
+                  >
+                    {soundMuted ? (
+                      <VolumeX className="h-5 w-5" />
+                    ) : (
+                      <Volume2 className="h-5 w-5" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full shadow-lg bg-background/80 backdrop-blur-sm"
+                    onClick={handleFlipCamera}
+                    disabled={isLoading}
+                  >
+                    <SwitchCamera className="h-5 w-5" />
+                  </Button>
+                </div>
               )}
             </div>
 
