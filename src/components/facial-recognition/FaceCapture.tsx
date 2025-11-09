@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Patient } from '@/types';
 import { 
@@ -40,7 +40,28 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hasVideoStream, setHasVideoStream] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   const animationFrameId = useRef<number | null>(null);
+
+  const startFaceDetection = useCallback(() => {
+    if (!videoRef.current || !faceDetectionCanvasRef.current) return;
+    
+    const detectFacesLoop = async () => {
+      if (videoRef.current && faceDetectionCanvasRef.current && hasVideoStream && !isCaptured) {
+        const faceDetected = await detectFaceInCanvas(
+          videoRef.current, 
+          faceDetectionCanvasRef.current
+        );
+        setFaceDetected(faceDetected);
+        
+        // Continue the loop
+        const id = requestAnimationFrame(detectFacesLoop);
+        animationFrameId.current = id;
+      }
+    };
+    
+    detectFacesLoop();
+  }, [hasVideoStream, isCaptured]);
 
   useEffect(() => {
     const checkCamera = async () => {
@@ -61,14 +82,22 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     };
   }, []);
 
+  // Start face detection when models are ready
+  useEffect(() => {
+    if (modelsReady && hasVideoStream && !isCaptured) {
+      startFaceDetection();
+    }
+  }, [modelsReady, hasVideoStream, isCaptured, startFaceDetection]);
+
   const startCamera = async () => {
     setIsLoading(true);
     setError(null);
     setIsCaptured(false);
     setCapturedImage(null);
+    setModelsReady(false);
     
     try {
-      const success = await initializeCamera(videoRef);
+      const { success, modelsLoaded } = await initializeCamera(videoRef, setModelsReady);
       
       if (!success) {
         setError("Camera initialization failed. Please check camera permissions and try again.");
@@ -77,9 +106,12 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       } else {
         setHasVideoStream(true);
         setIsLoading(false);
-        setError(null); // Clear any previous errors
-        // Start face detection loop
-        startFaceDetection();
+        setError(null);
+        
+        // Wait for models to be ready before starting face detection
+        if (modelsLoaded) {
+          setModelsReady(true);
+        }
       }
     } catch (err) {
       console.error('Error starting camera:', err);
@@ -88,26 +120,6 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       setHasVideoStream(false);
       setIsLoading(false);
     }
-  };
-  
-  const startFaceDetection = () => {
-    if (!videoRef.current || !faceDetectionCanvasRef.current) return;
-    
-    const detectFacesLoop = async () => {
-      if (videoRef.current && faceDetectionCanvasRef.current && hasVideoStream && !isCaptured) {
-        const faceDetected = await detectFaceInCanvas(
-          videoRef.current, 
-          faceDetectionCanvasRef.current
-        );
-        setFaceDetected(faceDetected);
-        
-        // Continue the loop
-        const id = requestAnimationFrame(detectFacesLoop);
-        animationFrameId.current = id;
-      }
-    };
-    
-    detectFacesLoop();
   };
 
   const handleCapture = () => {
@@ -190,7 +202,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
               
               {hasVideoStream && !isCaptured && (
                 <div className={`absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none transition-opacity duration-300 ${faceDetected ? 'opacity-100' : 'opacity-0'}`}>
-                  <div className={`text-white bg-green-500 bg-opacity-20 px-2 py-1 rounded-md ${faceDetected ? 'opacity-100' : 'opacity-0'}`}>
+                  <div className="text-white bg-green-600/20 backdrop-blur-sm px-3 py-1.5 rounded-md border border-green-500/30">
                     Face Detected
                   </div>
                 </div>

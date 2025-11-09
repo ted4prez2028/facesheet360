@@ -47,9 +47,11 @@ const CameraControls: React.FC<CameraControlsProps> = ({
           onClick={onCapture}
           disabled={isLoading || isCaptured || !isFaceDetected}
           className={`w-full max-w-md transition-colors ${
-            isFaceDetected ? 'bg-green-500 hover:bg-green-600' : 'bg-muted'
+            isFaceDetected ? 'bg-green-600 hover:bg-green-700 text-white' : ''
           }`}
+          variant={isFaceDetected ? 'default' : 'secondary'}
         >
+          <Camera className="mr-2 h-4 w-4" />
           {isFaceDetected ? 'Capture Face' : 'Waiting for face...'}
         </Button>
       )}

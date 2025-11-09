@@ -44,7 +44,10 @@ export const checkCameraAvailability = async (): Promise<boolean> => {
   }
 };
 
-export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElement>): Promise<boolean> => {
+export const initializeCamera = async (
+  videoRef: React.RefObject<HTMLVideoElement>,
+  onModelsReady?: (ready: boolean) => void
+): Promise<{ success: boolean; modelsLoaded: boolean }> => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user" },
@@ -53,10 +56,11 @@ export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElemen
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       
-      // Load face-api models in background (don't block camera)
-      loadFaceApiModels().catch(err => {
-        console.error("Model loading failed:", err);
-      });
+      // Load face-api models and wait for them
+      const modelsLoadedSuccessfully = await loadFaceApiModels();
+      if (onModelsReady) {
+        onModelsReady(modelsLoadedSuccessfully);
+      }
       
       return new Promise((resolve) => {
         if (videoRef.current) {
@@ -64,23 +68,23 @@ export const initializeCamera = async (videoRef: React.RefObject<HTMLVideoElemen
             try {
               await videoRef.current?.play();
               console.log('Camera started successfully');
-              resolve(true);
+              resolve({ success: true, modelsLoaded: modelsLoadedSuccessfully });
             } catch (err) {
               console.error("Autoplay error:", err);
               toast.error("Failed to start camera. Autoplay might be disabled.");
-              resolve(false);
+              resolve({ success: false, modelsLoaded: modelsLoadedSuccessfully });
             }
           };
         } else {
-          resolve(false);
+          resolve({ success: false, modelsLoaded: modelsLoadedSuccessfully });
         }
       });
     }
-    return false;
+    return { success: false, modelsLoaded: false };
   } catch (err: unknown) {
     console.error("Camera access error:", err);
     toast.error(err instanceof Error ? err.message : "Failed to access camera.");
-    return false;
+    return { success: false, modelsLoaded: false };
   }
 };
 

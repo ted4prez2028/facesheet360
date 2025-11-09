@@ -10,8 +10,8 @@ const FaceCaptureError: React.FC<FaceCaptureErrorProps> = ({ error }) => {
   if (!error) return null;
   
   return (
-    <div className="text-red-500 text-sm">
-      <AlertCircle className="mr-2 inline-block h-4 w-4 align-middle" />
+    <div className="text-destructive text-sm flex items-center">
+      <AlertCircle className="mr-2 h-4 w-4" />
       {error}
     </div>
   );
