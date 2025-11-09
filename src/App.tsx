@@ -41,6 +41,7 @@ import MyChartPage from './pages/MyChart';
 import Communication from './pages/Communication';
 import CareCoinsHistory from './pages/CareCoinsHistory';
 import CareCoinsAnalytics from './pages/CareCoinsAnalytics';
+import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,16 @@ function App() {
                     <RequireAuth>
                       <DashboardLayout>
                         <PatientDetails />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/facial-recognition-gallery"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <FacialRecognitionGalleryPage />
                       </DashboardLayout>
                     </RequireAuth>
                   }
