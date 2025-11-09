@@ -20,8 +20,8 @@ export type ModelProgressCallback = (models: Array<{
   progress: number;
 }>) => void;
 
-// Model configuration - using vladmandic/face-api from jsDelivr CDN
-const MODEL_BASE_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+// Model configuration - using vladmandic/face-api from GitHub
+const MODEL_BASE_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model';
 
 const MODELS = [
   { name: 'ssdMobilenetv1', files: ['ssd_mobilenetv1_model-weights_manifest.json', 'ssd_mobilenetv1_model.bin'] },
