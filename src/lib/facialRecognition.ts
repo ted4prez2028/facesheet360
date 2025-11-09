@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { storeFacialData } from './supabaseApi';
 import * as faceapi from 'face-api.js';
+import * as tf from '@tensorflow/tfjs-core';
 import { Patient } from '@/types';
 import { 
   fetchModelWithCache, 
@@ -39,6 +40,12 @@ export const loadFaceDetectionModels = async (onProgress?: ModelProgressCallback
       console.log('📴 Device is offline - skipping model download');
       throw new Error('Device is offline. Facial recognition requires an internet connection for first-time setup.');
     }
+    
+    // Initialize TensorFlow.js backend before loading models
+    console.log('🔧 Initializing TensorFlow.js backend...');
+    await tf.ready();
+    await tf.setBackend('webgl');
+    console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
     
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
     

@@ -3,6 +3,7 @@ import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import * as faceapi from 'face-api.js';
+import * as tf from '@tensorflow/tfjs-core';
 import { 
   fetchModelWithCache, 
   getCacheStats 
@@ -36,6 +37,12 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
       console.log('📴 Device is offline - cannot load models');
       throw new Error('Device is offline. Facial recognition requires an internet connection for first-time setup.');
     }
+    
+    // Initialize TensorFlow.js backend before loading models
+    console.log('🔧 Initializing TensorFlow.js backend...');
+    await tf.ready();
+    await tf.setBackend('webgl');
+    console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
     
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
     
