@@ -180,40 +180,71 @@ export const initializeCamera = async (
   onProgress?: ModelProgressCallback
 ): Promise<{ success: boolean; modelsLoaded: boolean }> => {
   try {
+    console.log('📹 Requesting camera access...');
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode },
     });
+    console.log('✅ Camera access granted');
 
     if (videoRef.current) {
+      console.log('📹 Setting video source...');
       videoRef.current.srcObject = stream;
       
       // Load face-api models and wait for them
+      console.log('🤖 Starting model load...');
       const modelsLoadedSuccessfully = await loadFaceApiModels(onProgress);
+      console.log('🤖 Models loaded:', modelsLoadedSuccessfully);
+      
       if (onModelsReady) {
+        console.log('📢 Calling onModelsReady callback');
         onModelsReady(modelsLoadedSuccessfully);
       }
       
       return new Promise((resolve) => {
         if (videoRef.current) {
+          console.log('⏳ Waiting for video metadata...');
           videoRef.current.onloadedmetadata = async () => {
+            console.log('✅ Video metadata loaded');
             try {
               await videoRef.current?.play();
-              console.log('Camera started successfully');
+              console.log('▶️ Camera started successfully');
               resolve({ success: true, modelsLoaded: modelsLoadedSuccessfully });
             } catch (err) {
-              console.error("Autoplay error:", err);
+              console.error("❌ Autoplay error:", err);
               toast.error("Failed to start camera. Autoplay might be disabled.");
               resolve({ success: false, modelsLoaded: modelsLoadedSuccessfully });
             }
           };
+          
+          // Add timeout in case metadata never loads
+          setTimeout(() => {
+            console.log('⚠️ Timeout: Video metadata event not fired, checking if video is ready...');
+            if (videoRef.current && videoRef.current.readyState >= 2) {
+              console.log('✅ Video is ready despite no metadata event, attempting to play...');
+              videoRef.current.play()
+                .then(() => {
+                  console.log('▶️ Camera started successfully after timeout');
+                  resolve({ success: true, modelsLoaded: modelsLoadedSuccessfully });
+                })
+                .catch((err) => {
+                  console.error("❌ Play error after timeout:", err);
+                  resolve({ success: false, modelsLoaded: modelsLoadedSuccessfully });
+                });
+            } else {
+              console.error('❌ Timeout: Video not ready');
+              resolve({ success: false, modelsLoaded: modelsLoadedSuccessfully });
+            }
+          }, 5000);
         } else {
+          console.error('❌ videoRef.current is null');
           resolve({ success: false, modelsLoaded: modelsLoadedSuccessfully });
         }
       });
     }
+    console.error('❌ videoRef.current was null initially');
     return { success: false, modelsLoaded: false };
   } catch (err: unknown) {
-    console.error("Camera access error:", err);
+    console.error("❌ Camera access error:", err);
     toast.error(err instanceof Error ? err.message : "Failed to access camera.");
     return { success: false, modelsLoaded: false };
   }
