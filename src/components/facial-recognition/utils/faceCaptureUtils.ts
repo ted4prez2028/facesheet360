@@ -108,20 +108,20 @@ export const captureImage = (
 export const detectFaceInCanvas = async (
   videoElement: HTMLVideoElement,
   canvasElement: HTMLCanvasElement
-): Promise<boolean> => {
+): Promise<{ detected: boolean; confidence: number }> => {
   if (!modelsLoaded) {
     const loaded = await loadFaceApiModels();
-    if (!loaded) return false;
+    if (!loaded) return { detected: false, confidence: 0 };
   }
   
   // Check if video is ready
   if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
-    return false;
+    return { detected: false, confidence: 0 };
   }
   
   // Get canvas context and clear previous drawings
   const ctx = canvasElement.getContext('2d');
-  if (!ctx) return false;
+  if (!ctx) return { detected: false, confidence: 0 };
   
   // Get the display dimensions
   const displayWidth = videoElement.clientWidth;
@@ -140,12 +140,18 @@ export const detectFaceInCanvas = async (
       .withFaceDescriptors();
     
     if (detections.length === 0) {
-      return false;
+      return { detected: false, confidence: 0 };
     }
     
     // Calculate scaling factors
     const scaleX = displayWidth / videoElement.videoWidth;
     const scaleY = displayHeight / videoElement.videoHeight;
+    
+    // Get the best detection (highest confidence)
+    const bestDetection = detections.reduce((best, current) => 
+      current.detection.score > best.detection.score ? current : best
+    );
+    const confidence = Math.round(bestDetection.detection.score * 100);
     
     // Draw rectangles around detected faces
     detections.forEach(detection => {
@@ -203,12 +209,27 @@ export const detectFaceInCanvas = async (
       ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight);
       ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight - cornerLength);
       ctx.stroke();
+      
+      // Draw confidence score
+      const fontSize = 16;
+      ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+      ctx.fillStyle = '#22c55e';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      const confidenceText = `${Math.round(detection.detection.score * 100)}%`;
+      const textWidth = ctx.measureText(confidenceText).width;
+      const textX = scaledX + scaledWidth / 2 - textWidth / 2;
+      const textY = scaledY - 10;
+      
+      // Draw text with outline for better visibility
+      ctx.strokeText(confidenceText, textX, textY);
+      ctx.fillText(confidenceText, textX, textY);
     });
     
-    return true;
+    return { detected: true, confidence };
   } catch (error) {
     console.error('Error detecting faces:', error);
-    return false;
+    return { detected: false, confidence: 0 };
   }
 };
 

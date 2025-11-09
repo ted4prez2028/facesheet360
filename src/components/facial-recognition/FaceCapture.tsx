@@ -40,7 +40,9 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hasVideoStream, setHasVideoStream] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
+  const [faceConfidence, setFaceConfidence] = useState(0);
   const [modelsReady, setModelsReady] = useState(false);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   const animationFrameId = useRef<number | null>(null);
 
   const startFaceDetection = useCallback(() => {
@@ -48,11 +50,12 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     
     const detectFacesLoop = async () => {
       if (videoRef.current && faceDetectionCanvasRef.current && hasVideoStream && !isCaptured) {
-        const faceDetected = await detectFaceInCanvas(
+        const result = await detectFaceInCanvas(
           videoRef.current, 
           faceDetectionCanvasRef.current
         );
-        setFaceDetected(faceDetected);
+        setFaceDetected(result.detected);
+        setFaceConfidence(result.confidence);
         
         // Continue the loop
         const id = requestAnimationFrame(detectFacesLoop);
@@ -95,14 +98,19 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     setIsCaptured(false);
     setCapturedImage(null);
     setModelsReady(false);
+    setIsLoadingModels(true);
     
     try {
-      const { success, modelsLoaded } = await initializeCamera(videoRef, setModelsReady);
+      const { success, modelsLoaded } = await initializeCamera(videoRef, (ready) => {
+        setModelsReady(ready);
+        setIsLoadingModels(false);
+      });
       
       if (!success) {
         setError("Camera initialization failed. Please check camera permissions and try again.");
         setHasVideoStream(false);
         setIsLoading(false);
+        setIsLoadingModels(false);
       } else {
         setHasVideoStream(true);
         setIsLoading(false);
@@ -111,6 +119,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
         // Wait for models to be ready before starting face detection
         if (modelsLoaded) {
           setModelsReady(true);
+          setIsLoadingModels(false);
         }
       }
     } catch (err) {
@@ -119,6 +128,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
       setError(`Camera error: ${errorMessage}`);
       setHasVideoStream(false);
       setIsLoading(false);
+      setIsLoadingModels(false);
     }
   };
 
@@ -200,10 +210,25 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
               />
               <canvas ref={canvasRef} className="hidden" />
               
-              {hasVideoStream && !isCaptured && (
-                <div className={`absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none transition-opacity duration-300 ${faceDetected ? 'opacity-100' : 'opacity-0'}`}>
-                  <div className="text-white bg-green-600/20 backdrop-blur-sm px-3 py-1.5 rounded-md border border-green-500/30">
-                    Face Detected
+              {/* Loading Models Overlay */}
+              {isLoadingModels && hasVideoStream && (
+                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-md">
+                  <div className="flex flex-col items-center gap-3 text-white">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="font-medium">Loading face detection models...</span>
+                    </div>
+                    <p className="text-sm text-white/80">This may take a few seconds</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Face Detected Indicator */}
+              {hasVideoStream && !isCaptured && !isLoadingModels && (
+                <div className={`absolute top-4 left-1/2 -translate-x-1/2 transition-all duration-300 ${faceDetected ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+                  <div className="text-white bg-green-600/90 backdrop-blur-sm px-4 py-2 rounded-full border border-green-400/30 shadow-lg flex items-center gap-2">
+                    <div className="h-2 w-2 bg-white rounded-full animate-pulse"></div>
+                    <span className="font-medium text-sm">Face Detected - {faceConfidence}%</span>
                   </div>
                 </div>
               )}
