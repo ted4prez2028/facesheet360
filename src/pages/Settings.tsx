@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileTab from "@/components/settings/ProfileTab";
 import NotificationsTab from "@/components/settings/NotificationsTab";
+import FacialRecognitionCacheTab from "@/components/settings/FacialRecognitionCacheTab";
 
 export default function Settings() {
   return (
@@ -17,6 +18,7 @@ export default function Settings() {
         <TabsList className="mb-8">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="facial-cache">Facial Recognition</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile">
@@ -25,6 +27,10 @@ export default function Settings() {
         
         <TabsContent value="notifications">
           <NotificationsTab />
+        </TabsContent>
+
+        <TabsContent value="facial-cache">
+          <FacialRecognitionCacheTab />
         </TabsContent>
       </Tabs>
     </div>

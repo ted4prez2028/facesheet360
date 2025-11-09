@@ -10,6 +10,13 @@ import {
 
 let modelsLoaded = false;
 
+// Progress callback type
+export type ModelProgressCallback = (models: Array<{
+  name: string;
+  status: 'pending' | 'downloading' | 'completed' | 'error';
+  progress: number;
+}>) => void;
+
 // Model configuration - using vladmandic/face-api repository
 const MODEL_BASE_URL = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model';
 
@@ -20,7 +27,7 @@ const MODELS = [
 ];
 
 // Helper function to load face-api.js models with caching
-const loadFaceApiModels = async () => {
+const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
   if (modelsLoaded) return true;
   
   try {
@@ -37,12 +44,39 @@ const loadFaceApiModels = async () => {
     // Fetch all model files with caching and create object URLs
     const fileUrls = new Map<string, string>();
     
+    // Initialize progress tracking
+    const allFiles: string[] = [];
+    MODELS.forEach(model => allFiles.push(...model.files));
+    const progressMap = new Map<string, number>();
+    allFiles.forEach(file => progressMap.set(file, 0));
+    
+    const updateProgress = () => {
+      if (onProgress) {
+        const modelProgress = allFiles.map(name => ({
+          name,
+          status: progressMap.get(name) === 100 
+            ? 'completed' as const
+            : progressMap.get(name)! > 0 
+            ? 'downloading' as const 
+            : 'pending' as const,
+          progress: progressMap.get(name) || 0
+        }));
+        onProgress(modelProgress);
+      }
+    };
+    
     try {
+      updateProgress(); // Initial state
+      
       for (const model of MODELS) {
         for (const fileName of model.files) {
           const blob = await fetchModelWithCache(
             fileName,
-            `${MODEL_BASE_URL}/${fileName}`
+            `${MODEL_BASE_URL}/${fileName}`,
+            (progress) => {
+              progressMap.set(fileName, progress);
+              updateProgress();
+            }
           );
           const objectUrl = URL.createObjectURL(blob);
           fileUrls.set(fileName, objectUrl);
@@ -115,7 +149,8 @@ export const checkCameraAvailability = async (): Promise<boolean> => {
 export const initializeCamera = async (
   videoRef: React.RefObject<HTMLVideoElement>,
   onModelsReady?: (ready: boolean) => void,
-  facingMode: 'user' | 'environment' = 'user'
+  facingMode: 'user' | 'environment' = 'user',
+  onProgress?: ModelProgressCallback
 ): Promise<{ success: boolean; modelsLoaded: boolean }> => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -126,7 +161,7 @@ export const initializeCamera = async (
       videoRef.current.srcObject = stream;
       
       // Load face-api models and wait for them
-      const modelsLoadedSuccessfully = await loadFaceApiModels();
+      const modelsLoadedSuccessfully = await loadFaceApiModels(onProgress);
       if (onModelsReady) {
         onModelsReady(modelsLoadedSuccessfully);
       }

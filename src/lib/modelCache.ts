@@ -146,18 +146,20 @@ export const getCacheStats = async (): Promise<{
   }
 };
 
-// Fetch model from URL with caching
+// Fetch model from URL with caching and progress tracking
 export const fetchModelWithCache = async (
   modelName: string,
-  url: string
+  url: string,
+  onProgress?: (progress: number) => void
 ): Promise<Blob> => {
   // Try to get from cache first
   const cached = await getCachedModel(modelName);
   if (cached) {
+    onProgress?.(100);
     return cached;
   }
   
-  // If not in cache, fetch from URL
+  // If not in cache, fetch from URL with progress tracking
   console.log(`📥 Downloading model ${modelName} from CDN...`);
   const response = await fetch(url);
   
@@ -165,12 +167,38 @@ export const fetchModelWithCache = async (
     throw new Error(`Failed to fetch model ${modelName}: ${response.statusText}`);
   }
   
-  const blob = await response.blob();
+  const contentLength = response.headers.get('content-length');
+  const total = contentLength ? parseInt(contentLength, 10) : 0;
+  
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
+  
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let receivedLength = 0;
+  
+  while (true) {
+    const { done, value } = await reader.read();
+    
+    if (done) break;
+    
+    chunks.push(value);
+    receivedLength += value.length;
+    
+    if (total > 0 && onProgress) {
+      const progress = (receivedLength / total) * 100;
+      onProgress(progress);
+    }
+  }
+  
+  const blob = new Blob(chunks as BlobPart[]);
   
   // Cache for next time (don't await to avoid blocking)
   cacheModel(modelName, blob).catch(err => 
     console.warn(`Failed to cache model ${modelName}:`, err)
   );
   
+  onProgress?.(100);
   return blob;
 };

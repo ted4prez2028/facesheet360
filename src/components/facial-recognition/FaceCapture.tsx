@@ -25,6 +25,7 @@ import FaceCaptureError from './components/FaceCaptureError';
 import CameraControls from './components/CameraControls';
 import CapturedImage from './components/CapturedImage';
 import NoCameraState from './components/NoCameraState';
+import ModelLoadingProgress, { ModelProgress } from './ModelLoadingProgress';
 
 export type FaceCaptureProps = {
   mode?: 'register' | 'identify';
@@ -59,6 +60,7 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
   const [hasPlayedDetectionSound, setHasPlayedDetectionSound] = useState(false);
   const [soundMuted, setSoundMuted] = useState(isSoundMuted());
   const [showFlash, setShowFlash] = useState(false);
+  const [modelProgress, setModelProgress] = useState<ModelProgress[]>([]);
   const animationFrameId = useRef<number | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -161,12 +163,20 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     setModelsReady(false);
     setIsLoadingModels(true);
     setCountdown(null);
+    setModelProgress([]);
     
     try {
-      const { success, modelsLoaded } = await initializeCamera(videoRef, (ready) => {
-        setModelsReady(ready);
-        setIsLoadingModels(false);
-      }, facingMode);
+      const { success, modelsLoaded } = await initializeCamera(
+        videoRef, 
+        (ready) => {
+          setModelsReady(ready);
+          setIsLoadingModels(false);
+        }, 
+        facingMode,
+        (progress) => {
+          setModelProgress(progress);
+        }
+      );
       
       if (!success) {
         setError("Camera initialization failed. Please check camera permissions and try again.");
@@ -317,14 +327,8 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
               
               {/* Loading Models Overlay */}
               {isLoadingModels && hasVideoStream && (
-                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-md">
-                  <div className="flex flex-col items-center gap-3 text-white">
-                    <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span className="font-medium">Loading face detection models...</span>
-                    </div>
-                    <p className="text-sm text-white/80">This may take a few seconds</p>
-                  </div>
+                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-md z-10">
+                  <ModelLoadingProgress models={modelProgress} />
                 </div>
               )}
               
