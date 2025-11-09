@@ -52,7 +52,7 @@ export const usePatientNotes = (patientId: string) => {
     type: note.note_type,
     content: note.note_content,
     date: note.created_at,
-    provider: note.users?.name || 'Unknown',
+    provider: note.created_by_user?.name || 'Unknown',
     providerId: note.created_by
   })) || [];
 
