@@ -46,11 +46,12 @@ export const checkCameraAvailability = async (): Promise<boolean> => {
 
 export const initializeCamera = async (
   videoRef: React.RefObject<HTMLVideoElement>,
-  onModelsReady?: (ready: boolean) => void
+  onModelsReady?: (ready: boolean) => void,
+  facingMode: 'user' | 'environment' = 'user'
 ): Promise<{ success: boolean; modelsLoaded: boolean }> => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
+      video: { facingMode },
     });
 
     if (videoRef.current) {
@@ -85,6 +86,14 @@ export const initializeCamera = async (
     console.error("Camera access error:", err);
     toast.error(err instanceof Error ? err.message : "Failed to access camera.");
     return { success: false, modelsLoaded: false };
+  }
+};
+
+export const stopCamera = (videoRef: React.RefObject<HTMLVideoElement>) => {
+  if (videoRef.current && videoRef.current.srcObject) {
+    const stream = videoRef.current.srcObject as MediaStream;
+    stream.getTracks().forEach(track => track.stop());
+    videoRef.current.srcObject = null;
   }
 };
 
