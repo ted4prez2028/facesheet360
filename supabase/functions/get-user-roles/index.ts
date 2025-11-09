@@ -89,16 +89,16 @@ serve(async (req) => {
     }
     
     // Fall back to getting role from users table
-    const { data: userData, error: userError } = await supabaseAdmin
+    const { data: userData, error: userDataError } = await supabaseAdmin
       .from('users')
       .select('role')
       .eq('id', targetUserId)
       .single();
     
-    if (userError) {
-      console.error("Error fetching user:", userError);
+    if (userDataError) {
+      console.error("Error fetching user:", userDataError);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch user role", details: userError.message }),
+        JSON.stringify({ error: "Failed to fetch user role", details: userDataError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
