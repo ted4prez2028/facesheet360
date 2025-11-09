@@ -21,9 +21,9 @@ export type ModelProgressCallback = (models: Array<{
 const MODEL_BASE_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
 
 const MODELS = [
-  { name: 'ssdMobilenetv1', files: ['ssd_mobilenetv1_model-weights_manifest.json', 'ssd_mobilenetv1_model-shard1', 'ssd_mobilenetv1_model-shard2'] },
-  { name: 'faceLandmark68Net', files: ['face_landmark_68_model-weights_manifest.json', 'face_landmark_68_model-shard1'] },
-  { name: 'faceRecognitionNet', files: ['face_recognition_model-weights_manifest.json', 'face_recognition_model-shard1', 'face_recognition_model-shard2'] }
+  { name: 'ssdMobilenetv1', files: ['ssd_mobilenetv1_model-weights_manifest.json', 'ssd_mobilenetv1_model.bin'] },
+  { name: 'faceLandmark68Net', files: ['face_landmark_68_model-weights_manifest.json', 'face_landmark_68_model.bin'] },
+  { name: 'faceRecognitionNet', files: ['face_recognition_model-weights_manifest.json', 'face_recognition_model.bin'] }
 ];
 
 // Helper function to load face-api.js models with caching
