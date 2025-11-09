@@ -13,8 +13,10 @@ export const loadFaceDetectionModels = async () => {
   if (modelsLoaded) return;
   
   try {
-    // Updated path - using absolute path to ensure models are found correctly
-    const MODEL_URL = '/models';
+    // Load models directly from CDN
+    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+    
+    console.log('Loading face detection models from CDN...');
     
     // Load the required models
     await Promise.all([
@@ -24,7 +26,7 @@ export const loadFaceDetectionModels = async () => {
     ]);
     
     modelsLoaded = true;
-    console.log('Face detection models loaded successfully');
+    console.log('Face detection models loaded successfully from CDN');
   } catch (error) {
     console.error('Error loading face detection models:', error);
     toast.error('Failed to load face detection models');

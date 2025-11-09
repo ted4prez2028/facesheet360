@@ -14,10 +14,7 @@ export interface PatientNote {
 export const getPatientNotes = async (patientId: string) => {
   const { data, error } = await supabase
     .from('patient_notes')
-    .select(`
-      *,
-      profiles!created_by(name, email)
-    `)
+    .select('*')
     .eq('patient_id', patientId)
     .order('created_at', { ascending: false });
 

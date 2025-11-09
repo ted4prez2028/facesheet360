@@ -10,10 +10,7 @@ export const usePatientNotes = (patientId?: string) => {
       
       const { data, error } = await supabase
         .from("patient_notes")
-        .select(`
-          *,
-          profiles!created_by(name, email)
-        `)
+        .select("*")
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false });
 
@@ -80,7 +77,7 @@ export const usePatientNotes = (patientId?: string) => {
     type: note.note_type,
     content: note.note_content,
     date: note.created_at,
-    provider: note.profiles?.name || 'Unknown',
+    provider: 'Provider',
     carecoins_distributed: note.carecoins_distributed,
   })) || [];
 
