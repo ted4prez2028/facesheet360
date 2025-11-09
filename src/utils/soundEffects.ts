@@ -1,52 +1,48 @@
-import { Howl } from 'howler';
+// Web Audio API based sound generation
+let audioContext: AudioContext | null = null;
 
-// Face detection sound (short beep)
-const faceDetectedSound = new Howl({
-  src: ['data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGJ1PjEaCEFKH3P8+CWRw0WYqPl4q1gGAY9k9r5xXApBSh+zvPjk0QIE12z7O6xVBIMRKbk8ctzIgcvgdP40oExDhxnvO7nvKdcITiS3/fPdi4KLH/N8+OURxEWYb3v8rf6=' ],
-  volume: 0.3,
-  sprite: {
-    beep: [0, 100]
+const getAudioContext = () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
-});
+  return audioContext;
+};
 
-// Capture success sound (positive chime)
-const captureSuccessSound = new Howl({
-  src: ['data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGJ1PjEaCEFKH3P8+CWRw0WYqPl4q1gGAY9k9r5xXApBSh+zvPjk0QIE12z7O6xVBIMRKbk8ctzIgcvgdP40oExDhxnvO7nvKdcITiS3/fPdi4KLH/N8+OURxEWYb3v8rf6=' ],
-  volume: 0.5,
-  sprite: {
-    success: [0, 300]
+// Play a simple beep tone
+const playTone = (frequency: number, duration: number, volume: number = 0.3) => {
+  try {
+    const ctx = getAudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + duration);
+  } catch (err) {
+    console.error('Error playing tone:', err);
   }
-});
+};
 
-// Countdown beep sound
-const countdownSound = new Howl({
-  src: ['data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGJ1PjEaCEFKH3P8+CWRw0WYqPl4q1gGAY9k9r5xXApBSh+zvPjk0QIE12z7O6xVBIMRKbk8ctzIgcvgdP40oExDhxnvO7nvKdcITiS3/fPdi4KLH/N8+OURxEWYb3v8rf6=' ],
-  volume: 0.4,
-  sprite: {
-    tick: [0, 150]
-  }
-});
-
+// Face detection sound (short higher pitch beep)
 export const playFaceDetectedSound = () => {
-  try {
-    faceDetectedSound.play('beep');
-  } catch (err) {
-    console.error('Error playing face detected sound:', err);
-  }
+  playTone(800, 0.1, 0.2);
 };
 
+// Capture success sound (pleasant two-tone chime)
 export const playCaptureSuccessSound = () => {
-  try {
-    captureSuccessSound.play('success');
-  } catch (err) {
-    console.error('Error playing capture success sound:', err);
-  }
+  playTone(523.25, 0.15, 0.3); // C5
+  setTimeout(() => playTone(659.25, 0.2, 0.3), 100); // E5
 };
 
+// Countdown beep sound (medium pitch)
 export const playCountdownSound = () => {
-  try {
-    countdownSound.play('tick');
-  } catch (err) {
-    console.error('Error playing countdown sound:', err);
-  }
+  playTone(440, 0.15, 0.25); // A4
 };
