@@ -115,11 +115,11 @@ export const loadFaceDetectionModels = async (onProgress?: ModelProgressCallback
         return originalFetch(input, init);
       };
       
-      // Load models using a dummy base path
+      // Load models from GitHub (fetch interceptor will serve cached versions)
       await Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-        faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-        faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_BASE_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_BASE_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_BASE_URL)
       ]);
       
       // Restore original fetch
