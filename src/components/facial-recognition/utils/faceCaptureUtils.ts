@@ -242,18 +242,27 @@ export const detectFaceInCanvas = async (
   canvasElement: HTMLCanvasElement
 ): Promise<{ detected: boolean; confidence: number }> => {
   if (!modelsLoaded) {
+    console.log('⚠️ Models not loaded, attempting to load...');
     const loaded = await loadFaceApiModels();
-    if (!loaded) return { detected: false, confidence: 0 };
+    if (!loaded) {
+      console.log('❌ Failed to load models');
+      return { detected: false, confidence: 0 };
+    }
+    console.log('✅ Models loaded successfully in detectFaceInCanvas');
   }
   
   // Check if video is ready
   if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
+    console.log('🎥 Video not ready yet, readyState:', videoElement.readyState);
     return { detected: false, confidence: 0 };
   }
   
   // Get canvas context and clear previous drawings
   const ctx = canvasElement.getContext('2d');
-  if (!ctx) return { detected: false, confidence: 0 };
+  if (!ctx) {
+    console.log('❌ Canvas context not available');
+    return { detected: false, confidence: 0 };
+  }
   
   // Get the display dimensions
   const displayWidth = videoElement.clientWidth;
@@ -264,12 +273,16 @@ export const detectFaceInCanvas = async (
   canvasElement.height = displayHeight;
   ctx.clearRect(0, 0, displayWidth, displayHeight);
   
+  console.log('🔍 Attempting face detection...');
+  
   try {
     // Detect faces in the video stream with optimized settings
     const detections = await faceapi
       .detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
       .withFaceLandmarks()
       .withFaceDescriptors();
+    
+    console.log(`👤 Detected ${detections.length} face(s)`);
     
     if (detections.length === 0) {
       return { detected: false, confidence: 0 };

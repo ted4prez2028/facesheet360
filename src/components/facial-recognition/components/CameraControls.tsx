@@ -47,7 +47,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
       {hasVideoStream && !isCaptured && (
         <Button
           onClick={onCapture}
-          disabled={isLoading || isCaptured || !isFaceDetected || countdown !== null}
+          disabled={isLoading || isCaptured || countdown !== null}
           className={`w-full max-w-md transition-colors ${
             isFaceDetected && countdown === null ? 'bg-green-600 hover:bg-green-700 text-white' : ''
           }`}
@@ -58,7 +58,7 @@ const CameraControls: React.FC<CameraControlsProps> = ({
             ? `Capturing in ${countdown}...` 
             : isFaceDetected 
               ? 'Capture Face' 
-              : 'Waiting for face...'}
+              : 'Capture Image'}
         </Button>
       )}
     </>
