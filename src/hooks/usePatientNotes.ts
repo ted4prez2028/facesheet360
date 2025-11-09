@@ -12,7 +12,7 @@ export const usePatientNotes = (patientId?: string) => {
         .from("patient_notes")
         .select(`
           *,
-          users!created_by(name, email)
+          profiles!created_by(name, email)
         `)
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false });
@@ -80,7 +80,7 @@ export const usePatientNotes = (patientId?: string) => {
     type: note.note_type,
     content: note.note_content,
     date: note.created_at,
-    provider: note.users?.name || 'Unknown',
+    provider: note.profiles?.name || 'Unknown',
     carecoins_distributed: note.carecoins_distributed,
   })) || [];
 
