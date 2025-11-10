@@ -26,7 +26,7 @@ serve(async (req) => {
       );
     }
 
-    // First validate that the request has a valid session
+    // Get JWT token from Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error("Missing Authorization header");
@@ -36,14 +36,17 @@ serve(async (req) => {
       );
     }
 
-    // Extract JWT token from "Bearer <token>"
-    const token = authHeader.replace('Bearer ', '');
+    // Create client with the authorization header to verify the user
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+    });
     
-    // Create client to verify the JWT token
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-    
-    // Verify authentication by passing the JWT token directly
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    // Verify authentication
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       console.error("User verification failed:", userError);
       return new Response(
