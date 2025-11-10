@@ -453,6 +453,19 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
   try {
     toast.loading("Analyzing facial features...", { id: 'face-identification' });
     
+    // Ensure TensorFlow backend is initialized
+    let backend = tf.getBackend();
+    if (!backend) {
+      console.log('⚠️ TensorFlow backend not initialized, reinitializing...');
+      await tf.setBackend('webgl');
+      await tf.ready();
+      backend = tf.getBackend();
+      if (!backend) {
+        toast.error("Failed to initialize TensorFlow backend", { id: 'face-identification' });
+        return null;
+      }
+    }
+    
     if (!modelsLoaded) {
       const loaded = await loadFaceApiModels();
       if (!loaded) {
@@ -571,6 +584,19 @@ export const registerFace = async (
 
   try {
     toast.loading("Analyzing facial features...", { id: 'face-registration' });
+    
+    // Ensure TensorFlow backend is initialized
+    let backend = tf.getBackend();
+    if (!backend) {
+      console.log('⚠️ TensorFlow backend not initialized, reinitializing...');
+      await tf.setBackend('webgl');
+      await tf.ready();
+      backend = tf.getBackend();
+      if (!backend) {
+        toast.error("Failed to initialize TensorFlow backend", { id: 'face-registration' });
+        return null;
+      }
+    }
     
     if (!modelsLoaded) {
       const loaded = await loadFaceApiModels();
