@@ -59,8 +59,11 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
   const [voiceBlob, setVoiceBlob] = useState<{ blob: Blob; transcription: string; duration: number } | null>(null);
   const [showParticipants, setShowParticipants] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Record<string, { user_id: string; user_name: string }>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingChannelRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -159,7 +162,7 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
     loadMessages();
   }, [groupId]);
 
-  // Real-time subscription
+  // Real-time subscription for messages
   useEffect(() => {
     const channel = supabase
       .channel(`group:${groupId}`)
@@ -206,6 +209,101 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
       supabase.removeChannel(channel);
     };
   }, [groupId, user?.id]);
+
+  // Real-time typing indicators using presence
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`group-typing:${groupId}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const typing: Record<string, { user_id: string; user_name: string }> = {};
+        
+        Object.keys(state).forEach(presenceKey => {
+          const presences = state[presenceKey];
+          presences.forEach((presence: any) => {
+            if (presence.user_id !== user?.id && presence.typing) {
+              typing[presence.user_id] = {
+                user_id: presence.user_id,
+                user_name: presence.user_name
+              };
+            }
+          });
+        });
+        
+        setTypingUsers(typing);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        newPresences.forEach((presence: any) => {
+          if (presence.user_id !== user?.id && presence.typing) {
+            setTypingUsers(prev => ({
+              ...prev,
+              [presence.user_id]: {
+                user_id: presence.user_id,
+                user_name: presence.user_name
+              }
+            }));
+          }
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        leftPresences.forEach((presence: any) => {
+          setTypingUsers(prev => {
+            const updated = { ...prev };
+            delete updated[presence.user_id];
+            return updated;
+          });
+        });
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          typingChannelRef.current = channel;
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      typingChannelRef.current = null;
+    };
+  }, [groupId, user?.id]);
+
+  const broadcastTyping = async (isTyping: boolean) => {
+    if (!typingChannelRef.current || !user?.id) return;
+
+    try {
+      const participant = participants.find(p => p.user_id === user.id);
+      await typingChannelRef.current.track({
+        user_id: user.id,
+        user_name: participant?.name || 'Unknown',
+        typing: isTyping,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('Error broadcasting typing status:', error);
+    }
+  };
+
+  const handleTyping = () => {
+    broadcastTyping(true);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      broadcastTyping(false);
+    }, 3000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      broadcastTyping(false);
+    };
+  }, []);
 
   const markMessageAsRead = async (messageId: string) => {
     try {
@@ -310,6 +408,12 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
 
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && !selectedFile && !voiceBlob) || !user?.id) return;
+
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    broadcastTyping(false);
 
     let fileData = null;
     if (selectedFile) {
@@ -516,11 +620,31 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
                         )}
                       </div>
                     </div>
-                  ))}
+                   ))}
                   <div ref={messagesEndRef} />
                 </div>
               )}
             </ScrollArea>
+
+            {Object.keys(typingUsers).length > 0 && (
+              <div className="px-4 py-2 border-t bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {Object.values(typingUsers).length === 1
+                      ? `${Object.values(typingUsers)[0].user_name} is typing...`
+                      : Object.values(typingUsers).length === 2
+                      ? `${Object.values(typingUsers)[0].user_name} and ${Object.values(typingUsers)[1].user_name} are typing...`
+                      : `${Object.values(typingUsers)[0].user_name}, ${Object.values(typingUsers)[1].user_name} and ${Object.values(typingUsers).length - 2} others are typing...`
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div className="p-3 border-t bg-muted/30">
               {selectedFile && (
@@ -587,7 +711,10 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
                 />
                 <Input
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTyping();
+                  }}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
