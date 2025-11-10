@@ -3,7 +3,8 @@ import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
 import { Patient } from '@/types';
 import * as faceapi from 'face-api.js';
-import * as tf from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-webgl';
 import { 
   fetchModelWithCache, 
   getCacheStats 
@@ -40,8 +41,8 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
     
     // Initialize TensorFlow.js backend before loading models
     console.log('🔧 Initializing TensorFlow.js backend...');
-    await tf.ready();
     await tf.setBackend('webgl');
+    await tf.ready();
     console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
     
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
@@ -279,30 +280,21 @@ export const detectFaceInCanvas = async (
   videoElement: HTMLVideoElement,
   canvasElement: HTMLCanvasElement
 ): Promise<{ detected: boolean; confidence: number }> => {
-  try {
-    // Ensure TensorFlow.js backend is ready
-    if (!tf.getBackend()) {
-      console.log('🔧 TensorFlow.js backend not ready, initializing...');
-      await tf.ready();
-      await tf.setBackend('webgl');
-      console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
-    }
-    
-    if (!modelsLoaded) {
-      console.log('⚠️ Models not loaded, attempting to load...');
-      const loaded = await loadFaceApiModels();
-      if (!loaded) {
-        console.log('❌ Failed to load models');
-        return { detected: false, confidence: 0 };
-      }
-      console.log('✅ Models loaded successfully in detectFaceInCanvas');
-    }
-    
-    // Check if video is ready
-    if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
-      console.log('🎥 Video not ready yet, readyState:', videoElement.readyState);
+  if (!modelsLoaded) {
+    console.log('⚠️ Models not loaded, attempting to load...');
+    const loaded = await loadFaceApiModels();
+    if (!loaded) {
+      console.log('❌ Failed to load models');
       return { detected: false, confidence: 0 };
     }
+    console.log('✅ Models loaded successfully in detectFaceInCanvas');
+  }
+  
+  // Check if video is ready
+  if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
+    console.log('🎥 Video not ready yet, readyState:', videoElement.readyState);
+    return { detected: false, confidence: 0 };
+  }
   
   // Get canvas context and clear previous drawings
   const ctx = canvasElement.getContext('2d');
@@ -421,10 +413,6 @@ export const detectFaceInCanvas = async (
     return { detected: true, confidence };
   } catch (error) {
     console.error('❌ Error detecting faces:', error);
-    return { detected: false, confidence: 0 };
-  }
-  } catch (error) {
-    console.error('❌ Critical error in detectFaceInCanvas:', error);
     return { detected: false, confidence: 0 };
   }
 };

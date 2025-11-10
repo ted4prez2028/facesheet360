@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { storeFacialData } from './supabaseApi';
 import * as faceapi from 'face-api.js';
-import * as tf from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-webgl';
 import { Patient } from '@/types';
 import { 
   fetchModelWithCache, 
@@ -43,8 +44,8 @@ export const loadFaceDetectionModels = async (onProgress?: ModelProgressCallback
     
     // Initialize TensorFlow.js backend before loading models
     console.log('🔧 Initializing TensorFlow.js backend...');
-    await tf.ready();
     await tf.setBackend('webgl');
+    await tf.ready();
     console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
     
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
