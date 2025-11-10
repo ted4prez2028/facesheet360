@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle, Paperclip, Check, CheckCheck, Play } from 'lucide-react';
+import { X, Send, Phone, Video, Minimize2, MessageSquare, AlertTriangle, Paperclip, Search, Play } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
 import VoiceRecorder from './VoiceRecorder';
-import MessageReactions from './MessageReactions';
+import EmojiPicker from './EmojiPicker';
+import MessageItem from './MessageItem';
 import { toast } from 'sonner';
 
 interface Message {
@@ -20,6 +21,8 @@ interface Message {
   recipient_id?: string;
   conversation_id?: string;
   created_at: string;
+  edited_at?: string;
+  deleted_at?: string;
   message_type?: string;
   platform: string;
   is_read?: boolean;
@@ -52,6 +55,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const { user } = useAuth();
   const isCrossOrganization = contactOrganization && user?.organization && contactOrganization !== user.organization;
   const [messages, setMessages] = useState<Message[]>([]);
+  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -60,6 +64,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [contactIsTyping, setContactIsTyping] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState<{ blob: Blob; transcription: string; duration: number } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -112,14 +118,31 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     return () => window.removeEventListener('online', flushOfflineMessages);
   }, [conversationId, user?.id]);
 
+  // Filter messages based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredMessages(messages);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = messages.filter(
+        (msg) =>
+          msg.content.toLowerCase().includes(query) ||
+          msg.author.toLowerCase().includes(query)
+      );
+      setFilteredMessages(filtered);
+    }
+  }, [messages, searchQuery]);
+
   // Scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!searchQuery) {
+      scrollToBottom();
+    }
+  }, [filteredMessages, searchQuery]);
 
   // Load messages for this conversation
   useEffect(() => {
@@ -167,7 +190,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         }
 
         if (conversation) {
-          // Load messages for this conversation
+          // Load ALL messages for this conversation (no limit)
           const { data: messagesData, error: msgError } = await supabase
             .from('messages')
             .select('*')
@@ -444,11 +467,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+  const refreshMessages = () => {
+    if (!conversationId) return;
+    
+    supabase
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (data) setMessages(data);
+      });
   };
 
   return (
@@ -465,6 +494,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <CardTitle className="text-sm font-medium">{contactName}</CardTitle>
           </div>
           <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0 hover:bg-muted"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <Search className="h-3 w-3" />
+            </Button>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -503,6 +540,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </CardHeader>
       
+      {showSearch && (
+        <div className="px-3 pt-2">
+          <Input
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="text-sm"
+          />
+        </div>
+      )}
+      
       {isCrossOrganization && (
         <Alert variant="destructive" className="mx-3 mt-2 mb-0 border-warning bg-warning/10">
           <AlertTriangle className="h-4 w-4" />
@@ -519,75 +567,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             </div>
-          ) : messages.length === 0 ? (
+          ) : filteredMessages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
               <MessageSquare className="h-8 w-8 mb-2 opacity-50" />
-              <p className="text-sm text-center">Start your conversation with {contactName}</p>
+              <p className="text-sm text-center">
+                {searchQuery ? 'No messages found' : `Start your conversation with ${contactName}`}
+              </p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
+            filteredMessages.map((message) => (
+              <MessageItem
                 key={message.id}
-                className={`flex ${
-                  message.sender_id === user?.id ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[80%] px-3 py-2 rounded-lg ${
-                    message.sender_id === user?.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  {message.file_url && message.file_type?.startsWith('audio/') ? (
-                    <div className="mb-2">
-                      <div className="flex items-center gap-2 p-2 rounded bg-muted/50">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <div className="flex-1">
-                          <p className="text-xs font-medium">Voice Message</p>
-                          <p className="text-xs text-muted-foreground">
-                            {message.voice_duration ? `${message.voice_duration}s` : 'Audio'}
-                          </p>
-                        </div>
-                      </div>
-                      {message.content && (
-                        <p className="text-xs text-muted-foreground mt-1 italic">
-                          "{message.content}"
-                        </p>
-                      )}
-                    </div>
-                  ) : message.file_url ? (
-                    <div className="mb-2">
-                      <FileAttachment
-                        fileUrl={message.file_url}
-                        fileName={message.file_name || 'file'}
-                        fileType={message.file_type || 'application/octet-stream'}
-                        fileSize={message.file_size || 0}
-                      />
-                    </div>
-                  ) : null}
-                  {message.content && !message.file_type?.startsWith('audio/') && (
-                    <p className="text-sm break-words">{message.content}</p>
-                  )}
-                  <MessageReactions messageId={message.id} isOwnMessage={message.sender_id === user?.id} />
-                  <div className="flex items-center gap-1 mt-1">
-                    <p className="text-xs opacity-70">
-                      {formatTime(message.created_at)}
-                    </p>
-                    {message.sender_id === user?.id && (
-                      <span className="text-xs opacity-70">
-                        {message.is_read ? (
-                          <CheckCheck className="h-3 w-3 inline" />
-                        ) : (
-                          <Check className="h-3 w-3 inline" />
-                        )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+                message={message}
+                isOwnMessage={message.sender_id === user?.id}
+                currentUserId={user?.id || ''}
+                onMessageUpdated={refreshMessages}
+              />
             ))
           )}
           {contactIsTyping && (
@@ -663,6 +658,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onVoiceRecorded={handleVoiceRecorded}
               disabled={!conversationId || !!selectedFile || !!voiceBlob}
             />
+            <EmojiPicker onEmojiSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
             <Input
               value={newMessage}
               onChange={(e) => {
