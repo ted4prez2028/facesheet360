@@ -100,35 +100,47 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     
     const detectFacesLoop = async () => {
       if (videoRef.current && faceDetectionCanvasRef.current && hasVideoStream && !isCaptured) {
-        const result = await detectFaceInCanvas(
-          videoRef.current, 
-          faceDetectionCanvasRef.current
-        );
-        setFaceDetected(result.detected);
-        setFaceConfidence(result.confidence);
-        
-        // Play sound when face is first detected
-        if (result.detected && !hasPlayedDetectionSound) {
-          playFaceDetectedSound();
-          hapticLight();
-          setHasPlayedDetectionSound(true);
-        } else if (!result.detected) {
-          setHasPlayedDetectionSound(false);
+        try {
+          const result = await detectFaceInCanvas(
+            videoRef.current, 
+            faceDetectionCanvasRef.current
+          );
+          setFaceDetected(result.detected);
+          setFaceConfidence(result.confidence);
+          
+          // Play sound when face is first detected
+          if (result.detected && !hasPlayedDetectionSound) {
+            playFaceDetectedSound();
+            hapticLight();
+            setHasPlayedDetectionSound(true);
+          } else if (!result.detected) {
+            setHasPlayedDetectionSound(false);
+          }
+          
+          // Start countdown if confidence > 90%
+          if (result.detected && result.confidence >= 90 && !countdown && !countdownTimerRef.current) {
+            startCountdown();
+          } else if (result.confidence < 90 && countdownTimerRef.current) {
+            // Cancel countdown if confidence drops
+            clearTimeout(countdownTimerRef.current);
+            countdownTimerRef.current = null;
+            setCountdown(null);
+          }
+          
+          // Continue the loop only if no errors
+          const id = requestAnimationFrame(detectFacesLoop);
+          animationFrameId.current = id;
+        } catch (err) {
+          console.error('❌ Face detection loop error:', err);
+          // Stop the detection loop on error
+          if (animationFrameId.current !== null) {
+            cancelAnimationFrame(animationFrameId.current);
+            animationFrameId.current = null;
+          }
+          setError('Face detection failed. Please try restarting the camera.');
+          setHasVideoStream(false);
+          stopCamera(videoRef);
         }
-        
-        // Start countdown if confidence > 90%
-        if (result.detected && result.confidence >= 90 && !countdown && !countdownTimerRef.current) {
-          startCountdown();
-        } else if (result.confidence < 90 && countdownTimerRef.current) {
-          // Cancel countdown if confidence drops
-          clearTimeout(countdownTimerRef.current);
-          countdownTimerRef.current = null;
-          setCountdown(null);
-        }
-        
-        // Continue the loop
-        const id = requestAnimationFrame(detectFacesLoop);
-        animationFrameId.current = id;
       }
     };
     
