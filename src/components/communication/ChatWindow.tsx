@@ -346,7 +346,31 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedFile && !voiceBlob) || !user?.id || !conversationId) return;
+    if ((!newMessage.trim() && !selectedFile && !voiceBlob) || !user?.id) return;
+
+    // Create conversation if it doesn't exist
+    if (!conversationId) {
+      try {
+        const participant1 = user.id < contactId ? user.id : contactId;
+        const participant2 = user.id < contactId ? contactId : user.id;
+        
+        const { data: newConv, error } = await supabase
+          .from('conversations')
+          .insert({
+            participant_1_id: participant1,
+            participant_2_id: participant2
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        setConversationId(newConv.id);
+      } catch (error) {
+        console.error('Error creating conversation:', error);
+        toast.error('Failed to create conversation');
+        return;
+      }
+    }
 
     let fileData = null;
     if (selectedFile) {
@@ -648,12 +672,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1 text-sm"
-              disabled={loading || !conversationId || uploadingFile || !!voiceBlob}
+              disabled={uploadingFile || !!voiceBlob}
             />
             <Button 
               onClick={handleSendMessage}
               size="sm" 
-              disabled={(!newMessage.trim() && !selectedFile && !voiceBlob) || loading || !conversationId || uploadingFile}
+              disabled={(!newMessage.trim() && !selectedFile && !voiceBlob) || uploadingFile}
             >
               <Send className="h-4 w-4" />
             </Button>
