@@ -2429,7 +2429,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      patient_audit_trail: {
+        Row: {
+          action_details: Json | null
+          created_at: string | null
+          event_type: string | null
+          id: string | null
+          patient_id: string | null
+          patient_name: string | null
+          user_id: string | null
+          user_name: string | null
+          user_role: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_user_role: {
