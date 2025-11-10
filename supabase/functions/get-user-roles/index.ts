@@ -36,21 +36,28 @@ serve(async (req) => {
       );
     }
 
-    // Create client with the authorization header to verify the user
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader,
-        },
-      },
-    });
-    
-    // Verify authentication
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
-      console.error("User verification failed:", userError);
+    // Extract JWT token from "Bearer <token>"
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) {
+      console.error("Invalid Authorization header format");
       return new Response(
-        JSON.stringify({ error: "Authentication required", details: userError?.message || "Invalid token" }),
+        JSON.stringify({ error: "Invalid Authorization header format" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create client to verify the JWT token
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Verify authentication by passing the JWT token
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !user) {
+      console.error("User verification failed:", userError?.message || userError);
+      return new Response(
+        JSON.stringify({ 
+          error: "Authentication required", 
+          details: userError?.message || "Invalid or expired token"
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
