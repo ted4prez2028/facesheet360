@@ -1426,6 +1426,42 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_shared: boolean | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          variables: Json | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_shared?: boolean | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          variables?: Json | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_shared?: boolean | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           author: string | null

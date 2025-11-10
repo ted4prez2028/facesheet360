@@ -10,6 +10,8 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
 import VoiceRecorder from './VoiceRecorder';
+import { MessageReadReceipts } from './MessageReadReceipts';
+import { TemplateInserter } from './TemplateInserter';
 import { toast } from 'sonner';
 
 interface GroupMessage {
@@ -583,6 +585,13 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
                         <span className="text-xs text-muted-foreground">
                           {formatTime(message.created_at)}
                         </span>
+                        {message.sender_id === user?.id && (
+                          <MessageReadReceipts
+                            messageId={message.id}
+                            groupId={groupId}
+                            totalParticipants={participants.length}
+                          />
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -708,6 +717,9 @@ const GroupChatWindow: React.FC<GroupChatWindowProps> = ({
                     setVoiceBlob({ blob, transcription, duration })
                   }
                   disabled={!!selectedFile || !!voiceBlob}
+                />
+                <TemplateInserter
+                  onInsert={(content) => setNewMessage(prev => prev + content)}
                 />
                 <Input
                   value={newMessage}
