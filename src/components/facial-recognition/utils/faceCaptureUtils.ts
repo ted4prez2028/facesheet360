@@ -4,7 +4,7 @@ import { getPatientByFacialData } from '@/lib/supabaseApi';
 import { saveFacialDataToHistory } from '@/lib/facialDataHistory';
 import { Patient } from '@/types';
 import * as faceapi from 'face-api.js';
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { 
   fetchModelWithCache, 
@@ -12,6 +12,46 @@ import {
 } from '@/lib/modelCache';
 
 let modelsLoaded = false;
+let backendInitialized = false;
+
+// Initialize TensorFlow backend on module load
+const initializeTensorFlowBackend = async (): Promise<boolean> => {
+  if (backendInitialized) {
+    console.log('✅ Backend already initialized');
+    return true;
+  }
+
+  try {
+    console.log('🔧 Initializing TensorFlow.js WebGL backend...');
+    
+    // Set the backend
+    await tf.setBackend('webgl');
+    
+    // Wait for it to be ready
+    await tf.ready();
+    
+    // Verify it's working
+    const backend = tf.getBackend();
+    if (!backend || backend !== 'webgl') {
+      console.error('❌ Backend not properly initialized:', backend);
+      return false;
+    }
+    
+    // Test with a simple operation to ensure backend is truly working
+    const testTensor = tf.tensor([1, 2, 3, 4]);
+    const result = testTensor.mul(2);
+    result.dispose();
+    testTensor.dispose();
+    
+    backendInitialized = true;
+    console.log('✅ TensorFlow.js WebGL backend initialized and tested successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to initialize TensorFlow backend:', error);
+    backendInitialized = false;
+    return false;
+  }
+};
 
 // Confidence thresholds
 const MIN_CONFIDENCE_THRESHOLD = 0.75; // 75% minimum confidence for registration
@@ -44,26 +84,11 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
       throw new Error('Device is offline. Facial recognition requires an internet connection for first-time setup.');
     }
     
-    // Initialize TensorFlow.js backend FIRST
-    console.log('🔧 Initializing TensorFlow.js backend...');
-    
-    // Ensure we have a clean backend state
-    if (tf.getBackend()) {
-      console.log('⚠️ Backend already exists, disposing...');
-      await tf.disposeVariables();
+    // Ensure TensorFlow backend is initialized FIRST
+    const backendReady = await initializeTensorFlowBackend();
+    if (!backendReady) {
+      throw new Error('Failed to initialize TensorFlow.js backend. Please refresh the page.');
     }
-    
-    // Set backend and wait for it to be fully ready
-    await tf.setBackend('webgl');
-    await tf.ready();
-    
-    // Verify backend is actually available
-    const backend = tf.getBackend();
-    if (!backend) {
-      throw new Error('Failed to initialize TensorFlow.js backend');
-    }
-    
-    console.log('✅ TensorFlow.js backend initialized:', backend);
     
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
     
@@ -300,22 +325,26 @@ export const detectFaceInCanvas = async (
   videoElement: HTMLVideoElement,
   canvasElement: HTMLCanvasElement
 ): Promise<{ detected: boolean; confidence: number }> => {
-  // Ensure TensorFlow backend is initialized
-  const backend = tf.getBackend();
-  if (!backend) {
-    console.log('⚠️ TensorFlow backend not initialized');
-    return { detected: false, confidence: 0 };
-  }
-  
-  if (!modelsLoaded) {
-    console.log('⚠️ Models not loaded, attempting to load...');
-    const loaded = await loadFaceApiModels();
-    if (!loaded) {
-      console.log('❌ Failed to load models');
-      return { detected: false, confidence: 0 };
+  try {
+    // Ensure TensorFlow backend is initialized
+    if (!backendInitialized) {
+      console.log('⚠️ Backend not initialized, initializing now...');
+      const success = await initializeTensorFlowBackend();
+      if (!success) {
+        console.error('❌ Failed to initialize backend');
+        return { detected: false, confidence: 0 };
+      }
     }
-    console.log('✅ Models loaded successfully in detectFaceInCanvas');
-  }
+    
+    if (!modelsLoaded) {
+      console.log('⚠️ Models not loaded, attempting to load...');
+      const loaded = await loadFaceApiModels();
+      if (!loaded) {
+        console.log('❌ Failed to load models');
+        return { detected: false, confidence: 0 };
+      }
+      console.log('✅ Models loaded successfully in detectFaceInCanvas');
+    }
   
   // Check if video is ready
   if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
@@ -339,9 +368,8 @@ export const detectFaceInCanvas = async (
   canvasElement.height = displayHeight;
   ctx.clearRect(0, 0, displayWidth, displayHeight);
   
-  console.log('🔍 Attempting face detection...');
-  
-  try {
+    console.log('🔍 Attempting face detection...');
+    
     // Detect faces in the video stream with optimized settings
     const detections = await faceapi
       .detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
@@ -439,7 +467,11 @@ export const detectFaceInCanvas = async (
     
     return { detected: true, confidence };
   } catch (error) {
-    console.error('❌ Error detecting faces:', error);
+    console.error('❌ Error detecting faces in main try block:', error);
+    // Check if it's a backend error
+    if (error instanceof Error && error.message.includes('backend')) {
+      console.error('🚨 Backend error detected, may need to reinitialize');
+    }
     return { detected: false, confidence: 0 };
   }
 };
@@ -454,13 +486,9 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
     toast.loading("Analyzing facial features...", { id: 'face-identification' });
     
     // Ensure TensorFlow backend is initialized
-    let backend = tf.getBackend();
-    if (!backend) {
-      console.log('⚠️ TensorFlow backend not initialized, reinitializing...');
-      await tf.setBackend('webgl');
-      await tf.ready();
-      backend = tf.getBackend();
-      if (!backend) {
+    if (!backendInitialized) {
+      const success = await initializeTensorFlowBackend();
+      if (!success) {
         toast.error("Failed to initialize TensorFlow backend", { id: 'face-identification' });
         return null;
       }
@@ -586,13 +614,9 @@ export const registerFace = async (
     toast.loading("Analyzing facial features...", { id: 'face-registration' });
     
     // Ensure TensorFlow backend is initialized
-    let backend = tf.getBackend();
-    if (!backend) {
-      console.log('⚠️ TensorFlow backend not initialized, reinitializing...');
-      await tf.setBackend('webgl');
-      await tf.ready();
-      backend = tf.getBackend();
-      if (!backend) {
+    if (!backendInitialized) {
+      const success = await initializeTensorFlowBackend();
+      if (!success) {
         toast.error("Failed to initialize TensorFlow backend", { id: 'face-registration' });
         return null;
       }
