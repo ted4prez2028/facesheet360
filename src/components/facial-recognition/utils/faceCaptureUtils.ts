@@ -39,11 +39,26 @@ const loadFaceApiModels = async (onProgress?: ModelProgressCallback) => {
       throw new Error('Device is offline. Facial recognition requires an internet connection for first-time setup.');
     }
     
-    // Initialize TensorFlow.js backend before loading models
+    // Initialize TensorFlow.js backend FIRST
     console.log('🔧 Initializing TensorFlow.js backend...');
+    
+    // Ensure we have a clean backend state
+    if (tf.getBackend()) {
+      console.log('⚠️ Backend already exists, disposing...');
+      await tf.disposeVariables();
+    }
+    
+    // Set backend and wait for it to be fully ready
     await tf.setBackend('webgl');
     await tf.ready();
-    console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
+    
+    // Verify backend is actually available
+    const backend = tf.getBackend();
+    if (!backend) {
+      throw new Error('Failed to initialize TensorFlow.js backend');
+    }
+    
+    console.log('✅ TensorFlow.js backend initialized:', backend);
     
     console.log('🚀 Loading face detection models (with IndexedDB cache)...');
     
@@ -280,6 +295,13 @@ export const detectFaceInCanvas = async (
   videoElement: HTMLVideoElement,
   canvasElement: HTMLCanvasElement
 ): Promise<{ detected: boolean; confidence: number }> => {
+  // Ensure TensorFlow backend is initialized
+  const backend = tf.getBackend();
+  if (!backend) {
+    console.log('⚠️ TensorFlow backend not initialized');
+    return { detected: false, confidence: 0 };
+  }
+  
   if (!modelsLoaded) {
     console.log('⚠️ Models not loaded, attempting to load...');
     const loaded = await loadFaceApiModels();
