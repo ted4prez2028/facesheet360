@@ -12,6 +12,10 @@ import {
 
 let modelsLoaded = false;
 
+// Confidence thresholds
+const MIN_CONFIDENCE_THRESHOLD = 0.75; // 75% minimum confidence for registration
+const MIN_IDENTIFICATION_CONFIDENCE = 0.6; // 60% minimum for identification (less strict)
+
 // Progress callback type
 export type ModelProgressCallback = (models: Array<{
   name: string;
@@ -446,10 +450,12 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
   }
 
   try {
+    toast.loading("Analyzing facial features...", { id: 'face-identification' });
+    
     if (!modelsLoaded) {
       const loaded = await loadFaceApiModels();
       if (!loaded) {
-        toast.error("Failed to load face detection models");
+        toast.error("Failed to load face detection models", { id: 'face-identification' });
         return null;
       }
     }
@@ -463,6 +469,8 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
       img.onerror = reject;
     });
 
+    toast.loading("Detecting face...", { id: 'face-identification' });
+
     // Detect face and extract descriptor
     const detection = await faceapi
       .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
@@ -470,16 +478,30 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
       .withFaceDescriptor();
 
     if (!detection) {
-      toast.error("No face detected in the image. Please try again.");
+      toast.error("No face detected in the image. Please try again.", { id: 'face-identification' });
       return null;
     }
+
+    // Validate confidence threshold
+    const confidence = detection.detection.score;
+    const confidencePercent = Math.round(confidence * 100);
+    
+    if (confidence < MIN_IDENTIFICATION_CONFIDENCE) {
+      toast.error(
+        `Image quality too low (${confidencePercent}%). Please capture a clearer image.`,
+        { id: 'face-identification', duration: 5000 }
+      );
+      return null;
+    }
+
+    toast.loading("Searching for matching patient...", { id: 'face-identification' });
 
     const capturedDescriptor = Array.from(detection.descriptor);
     
     // Get all patients with facial data
     const patients = await getPatientByFacialData();
     if (!patients || patients.length === 0) {
-      toast.error("No patients with facial data found.");
+      toast.error("No patients with facial data found.", { id: 'face-identification' });
       return null;
     }
 
@@ -518,15 +540,21 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
 
     if (bestMatch) {
       const confidence = ((1 - (bestDistance / MATCH_THRESHOLD)) * 100).toFixed(1);
-      toast.success(`Patient identified: ${bestMatch.first_name} ${bestMatch.last_name} (${confidence}% match)`);
+      toast.success(
+        `Patient identified: ${bestMatch.first_name} ${bestMatch.last_name} (${confidence}% match)`,
+        { id: 'face-identification' }
+      );
       return bestMatch;
     } else {
-      toast.error("No matching patient found.");
+      toast.error("No matching patient found.", { id: 'face-identification' });
       return null;
     }
   } catch (err: unknown) {
     console.error("Facial recognition error:", err);
-    toast.error(err instanceof Error ? err.message : "Failed to identify patient.");
+    toast.error(
+      err instanceof Error ? err.message : "Failed to identify patient.",
+      { id: 'face-identification' }
+    );
     return null;
   }
 };
@@ -541,10 +569,12 @@ export const registerFace = async (
   }
 
   try {
+    toast.loading("Analyzing facial features...", { id: 'face-registration' });
+    
     if (!modelsLoaded) {
       const loaded = await loadFaceApiModels();
       if (!loaded) {
-        toast.error("Failed to load face detection models");
+        toast.error("Failed to load face detection models", { id: 'face-registration' });
         return null;
       }
     }
@@ -558,6 +588,8 @@ export const registerFace = async (
       img.onerror = reject;
     });
 
+    toast.loading("Detecting face...", { id: 'face-registration' });
+
     // Detect face and extract descriptor
     const detection = await faceapi
       .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
@@ -565,9 +597,23 @@ export const registerFace = async (
       .withFaceDescriptor();
 
     if (!detection) {
-      toast.error("No face detected in the image. Please try again.");
+      toast.error("No face detected in the image. Please try again.", { id: 'face-registration' });
       return null;
     }
+
+    // Validate confidence threshold
+    const confidence = detection.detection.score;
+    const confidencePercent = Math.round(confidence * 100);
+    
+    if (confidence < MIN_CONFIDENCE_THRESHOLD) {
+      toast.error(
+        `Image quality too low (${confidencePercent}%). Please capture a clearer image with better lighting and ensure your face is clearly visible.`,
+        { id: 'face-registration', duration: 5000 }
+      );
+      return null;
+    }
+
+    toast.loading("Processing facial data...", { id: 'face-registration' });
 
     // Extract the 128-dimensional face descriptor
     const descriptor = Array.from(detection.descriptor);
@@ -577,19 +623,21 @@ export const registerFace = async (
       image: capturedImage,
       descriptor: descriptor,
       timestamp: new Date().toISOString(),
-      confidence: detection.detection.score
+      confidence: confidence
     };
     
     // Convert to string for storage
     const faceDataString = JSON.stringify(faceData);
     
     console.log('Face registered with descriptor length:', descriptor.length);
-    toast.success("Face registered successfully!");
+    console.log('Face confidence:', confidencePercent + '%');
+    
+    toast.success(`Face registered successfully! (${confidencePercent}% confidence)`, { id: 'face-registration' });
     
     return faceDataString;
   } catch (err: unknown) {
     console.error("Facial recognition error:", err);
-    toast.error(err instanceof Error ? err.message : "Failed to register face.");
+    toast.error(err instanceof Error ? err.message : "Failed to register face.", { id: 'face-registration' });
     return null;
   }
 };
