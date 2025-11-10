@@ -279,21 +279,30 @@ export const detectFaceInCanvas = async (
   videoElement: HTMLVideoElement,
   canvasElement: HTMLCanvasElement
 ): Promise<{ detected: boolean; confidence: number }> => {
-  if (!modelsLoaded) {
-    console.log('⚠️ Models not loaded, attempting to load...');
-    const loaded = await loadFaceApiModels();
-    if (!loaded) {
-      console.log('❌ Failed to load models');
+  try {
+    // Ensure TensorFlow.js backend is ready
+    if (!tf.getBackend()) {
+      console.log('🔧 TensorFlow.js backend not ready, initializing...');
+      await tf.ready();
+      await tf.setBackend('webgl');
+      console.log('✅ TensorFlow.js backend initialized:', tf.getBackend());
+    }
+    
+    if (!modelsLoaded) {
+      console.log('⚠️ Models not loaded, attempting to load...');
+      const loaded = await loadFaceApiModels();
+      if (!loaded) {
+        console.log('❌ Failed to load models');
+        return { detected: false, confidence: 0 };
+      }
+      console.log('✅ Models loaded successfully in detectFaceInCanvas');
+    }
+    
+    // Check if video is ready
+    if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
+      console.log('🎥 Video not ready yet, readyState:', videoElement.readyState);
       return { detected: false, confidence: 0 };
     }
-    console.log('✅ Models loaded successfully in detectFaceInCanvas');
-  }
-  
-  // Check if video is ready
-  if (videoElement.readyState !== videoElement.HAVE_ENOUGH_DATA) {
-    console.log('🎥 Video not ready yet, readyState:', videoElement.readyState);
-    return { detected: false, confidence: 0 };
-  }
   
   // Get canvas context and clear previous drawings
   const ctx = canvasElement.getContext('2d');
@@ -411,7 +420,11 @@ export const detectFaceInCanvas = async (
     
     return { detected: true, confidence };
   } catch (error) {
-    console.error('Error detecting faces:', error);
+    console.error('❌ Error detecting faces:', error);
+    return { detected: false, confidence: 0 };
+  }
+  } catch (error) {
+    console.error('❌ Critical error in detectFaceInCanvas:', error);
     return { detected: false, confidence: 0 };
   }
 };
