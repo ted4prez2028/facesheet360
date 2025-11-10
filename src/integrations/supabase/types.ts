@@ -651,6 +651,47 @@ export type Database = {
           },
         ]
       }
+      facial_data_history: {
+        Row: {
+          confidence: number | null
+          facial_data: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          patient_id: string
+          registered_at: string
+          registered_by: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          facial_data: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          patient_id: string
+          registered_at?: string
+          registered_by?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          facial_data?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          patient_id?: string
+          registered_at?: string
+          registered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facial_data_history_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       food_orders: {
         Row: {
           created_at: string | null

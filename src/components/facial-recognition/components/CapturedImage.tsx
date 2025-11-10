@@ -1,26 +1,35 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Check, AlertCircle, RotateCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 interface CapturedImageProps {
   capturedImage: string;
   isLoading: boolean;
   mode: 'identify' | 'register';
+  faceConfidence?: number;
   onIdentify: () => void;
   onRegister: () => void;
+  onRetake?: () => void;
 }
 
 const CapturedImage: React.FC<CapturedImageProps> = ({
   capturedImage,
   isLoading,
   mode,
+  faceConfidence = 0,
   onIdentify,
-  onRegister
+  onRegister,
+  onRetake
 }) => {
+  const confidencePercent = Math.round(faceConfidence);
+  const minConfidence = mode === 'register' ? 75 : 60;
+  const isQualitySufficient = confidencePercent >= minConfidence;
+  
   return (
-    <div className="flex flex-col items-center space-y-4">
+    <div className="flex flex-col items-center space-y-4 w-full">
       <div className="relative w-full max-w-md">
         <img
           src={capturedImage}
@@ -39,52 +48,90 @@ const CapturedImage: React.FC<CapturedImageProps> = ({
         )}
       </div>
       
-      {mode === 'register' && !isLoading && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-sm">
-            Ensure good lighting and a clear view of the face for best results. Minimum 75% confidence required.
-          </AlertDescription>
-        </Alert>
+      {mode === 'register' && !isLoading && faceConfidence > 0 && (
+        <div className="w-full max-w-md space-y-3">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Image Quality</span>
+              <span className={`font-bold ${isQualitySufficient ? 'text-green-600' : 'text-amber-600'}`}>
+                {confidencePercent}%
+              </span>
+            </div>
+            <Progress 
+              value={confidencePercent} 
+              className="h-2"
+            />
+          </div>
+          
+          {isQualitySufficient ? (
+            <Alert className="border-green-500 bg-green-50 dark:bg-green-950/20">
+              <Check className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-sm text-green-700 dark:text-green-400">
+                Excellent quality! This image meets the {minConfidence}% minimum threshold and is ready for registration.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
+                Quality below {minConfidence}% threshold. Consider retaking for better results with good lighting and clear face visibility.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
       )}
       
-      {mode === 'identify' ? (
-        <Button
-          onClick={onIdentify}
-          disabled={isLoading}
-          className="w-full max-w-md"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Identifying Patient
-            </>
-          ) : (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Identify Patient
-            </>
-          )}
-        </Button>
-      ) : (
-        <Button
-          onClick={onRegister}
-          disabled={isLoading}
-          className="w-full max-w-md"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Registering Face
-            </>
-          ) : (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Register Face
-            </>
-          )}
-        </Button>
-      )}
+      <div className="flex gap-2 w-full max-w-md">
+        {onRetake && (
+          <Button
+            onClick={onRetake}
+            disabled={isLoading}
+            variant="outline"
+            className="flex-1"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Retake
+          </Button>
+        )}
+        
+        {mode === 'identify' ? (
+          <Button
+            onClick={onIdentify}
+            disabled={isLoading}
+            className="flex-1"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Identifying
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Identify Patient
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button
+            onClick={onRegister}
+            disabled={isLoading}
+            className="flex-1"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Registering
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Register Face
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

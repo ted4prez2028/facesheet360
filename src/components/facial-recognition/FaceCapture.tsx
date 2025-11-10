@@ -316,6 +316,16 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
     }
   };
 
+  const handleRetake = () => {
+    setCapturedImage(null);
+    setIsCaptured(false);
+    setError(null);
+    // Restart face detection
+    if (modelsReady && hasVideoStream) {
+      startFaceDetection();
+    }
+  };
+
   const handleIdentify = async () => {
     if (!capturedImage) {
       setError("No image captured. Please capture an image first.");
@@ -460,8 +470,10 @@ const FaceCapture: React.FC<FaceCaptureProps> = ({
                 capturedImage={capturedImage}
                 isLoading={isLoading}
                 mode={mode}
+                faceConfidence={faceConfidence}
                 onIdentify={handleIdentify}
                 onRegister={handleRegisterFace}
+                onRetake={handleRetake}
               />
             ) : null}
           </>

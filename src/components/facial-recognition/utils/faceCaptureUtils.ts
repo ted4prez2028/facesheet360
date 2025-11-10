@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
+import { saveFacialDataToHistory } from '@/lib/facialDataHistory';
 import { Patient } from '@/types';
 import * as faceapi from 'face-api.js';
 import * as tf from '@tensorflow/tfjs';
@@ -628,6 +629,21 @@ export const registerFace = async (
     
     // Convert to string for storage
     const faceDataString = JSON.stringify(faceData);
+    
+    // Save to history if patient ID is provided
+    if (patientId) {
+      toast.loading("Saving to registration history...", { id: 'face-registration' });
+      const saved = await saveFacialDataToHistory(
+        patientId,
+        faceDataString,
+        confidence,
+        `Registered with ${confidencePercent}% confidence`
+      );
+      
+      if (!saved) {
+        console.warn('Failed to save to history, but continuing with registration');
+      }
+    }
     
     console.log('Face registered with descriptor length:', descriptor.length);
     console.log('Face confidence:', confidencePercent + '%');
