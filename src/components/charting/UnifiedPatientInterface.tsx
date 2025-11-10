@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,7 @@ const UnifiedPatientInterface = ({
   onBack,
   initialTab 
 }: UnifiedPatientInterfaceProps) => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(initialTab || 'overview');
   const [isAddingVitals, setIsAddingVitals] = useState(false);
   const [isAddingMedication, setIsAddingMedication] = useState(false);
@@ -213,6 +215,10 @@ const UnifiedPatientInterface = ({
 
       if (error) throw error;
 
+      // Invalidate vitals queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['patient-vitals'] });
+      queryClient.invalidateQueries({ queryKey: ['vitals', selectedPatient] });
+
       toast.success('Vitals added successfully');
       setNewVitals({
         temperature: '',
@@ -248,6 +254,10 @@ const UnifiedPatientInterface = ({
 
       if (error) throw error;
 
+      // Invalidate medication queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['medications'] });
+      queryClient.invalidateQueries({ queryKey: ['medication-orders', selectedPatient] });
+
       toast.success('Medication added successfully');
       setNewMedication({
         medication_name: '',
@@ -273,6 +283,11 @@ const UnifiedPatientInterface = ({
         .eq('id', selectedPatient);
 
       if (error) throw error;
+
+      // Invalidate all patient-related queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ['patient', selectedPatient] });
+      queryClient.invalidateQueries({ queryKey: ['charting-patients'] });
 
       toast.success('Room number updated successfully');
       setIsEditingRoom(false);

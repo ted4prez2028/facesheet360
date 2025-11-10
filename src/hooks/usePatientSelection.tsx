@@ -12,6 +12,10 @@ interface PatientForSelection {
   status: string;
   lastVisit: string;
   imgUrl: string | null;
+  room_number?: string;
+  date_of_birth?: string;
+  gender?: string;
+  medical_record_number?: string;
 }
 
 export const usePatientSelection = (userId?: string | null) => {
@@ -34,7 +38,11 @@ export const usePatientSelection = (userId?: string | null) => {
           age: calculateAge(patient.date_of_birth),
           status: "Active",
           lastVisit: new Date(patient.updated_at).toISOString().split('T')[0],
-          imgUrl: null
+          imgUrl: null,
+          room_number: (patient as any).room_number,
+          date_of_birth: patient.date_of_birth,
+          gender: patient.gender,
+          medical_record_number: patient.medical_record_number
         }));
       } catch (error) {
         console.error("Failed to fetch patients for charting:", error);
