@@ -15,6 +15,34 @@ let modelsLoaded = false;
 let backendInitialized = false;
 let backendInitPromise: Promise<void> | null = null;
 
+// Validate that TensorFlow engine and backend are accessible
+const validateBackend = (): boolean => {
+  try {
+    const engine = tf.engine();
+    if (!engine) {
+      console.error('❌ TensorFlow engine is undefined');
+      return false;
+    }
+    
+    const backend = tf.getBackend();
+    if (!backend) {
+      console.error('❌ TensorFlow backend is undefined');
+      return false;
+    }
+    
+    // Check if backend registry exists
+    if (!engine.backendNames || engine.backendNames().length === 0) {
+      console.error('❌ No backends registered');
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Backend validation error:', error);
+    return false;
+  }
+};
+
 // Initialize TensorFlow backend immediately at module load
 const initializeBackendSync = () => {
   if (!backendInitPromise) {
@@ -22,26 +50,56 @@ const initializeBackendSync = () => {
       try {
         console.log('🔧 Initializing TensorFlow.js WebGL backend (module load)...');
         
-        // Set backend to webgl
-        await tf.setBackend('webgl');
-        await tf.ready();
-        
-        const backend = tf.getBackend();
-        console.log('📊 TensorFlow backend:', backend);
-        
-        if (backend === 'webgl') {
-          // Test the backend with a simple operation
-          const testTensor = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-          const result = testTensor.square();
-          await result.data(); // Force computation
-          result.dispose();
-          testTensor.dispose();
-          
-          backendInitialized = true;
-          console.log('✅ TensorFlow WebGL backend initialized and verified');
-        } else {
-          console.error('❌ Failed to set WebGL backend, got:', backend);
+        // Ensure we have a clean state
+        try {
+          await tf.ready();
+        } catch (e) {
+          console.log('Initial ready failed, continuing...', e);
         }
+        
+        // Set backend to webgl with retries
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (attempts < maxAttempts) {
+          try {
+            await tf.setBackend('webgl');
+            await tf.ready();
+            
+            // Validate the backend
+            if (!validateBackend()) {
+              throw new Error('Backend validation failed');
+            }
+            
+            const backend = tf.getBackend();
+            console.log('📊 TensorFlow backend:', backend);
+            
+            if (backend === 'webgl') {
+              // Test the backend with a simple operation
+              const testTensor = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+              const result = testTensor.square();
+              await result.data(); // Force computation
+              result.dispose();
+              testTensor.dispose();
+              
+              backendInitialized = true;
+              console.log('✅ TensorFlow WebGL backend initialized and verified');
+              return;
+            } else {
+              throw new Error(`Failed to set WebGL backend, got: ${backend}`);
+            }
+          } catch (error) {
+            attempts++;
+            console.error(`❌ Backend initialization attempt ${attempts} failed:`, error);
+            
+            if (attempts < maxAttempts) {
+              console.log(`Retrying in ${attempts * 500}ms...`);
+              await new Promise(resolve => setTimeout(resolve, attempts * 500));
+            }
+          }
+        }
+        
+        throw new Error('Failed to initialize backend after multiple attempts');
       } catch (error) {
         console.error('❌ Backend initialization error:', error);
         backendInitialized = false;
@@ -54,16 +112,35 @@ const initializeBackendSync = () => {
 // Start initialization immediately
 initializeBackendSync();
 
-// Helper to ensure backend is ready
+// Helper to ensure backend is ready and re-initialize if needed
 const ensureBackendReady = async (): Promise<boolean> => {
-  if (backendInitialized) return true;
+  // First check if backend is already initialized and valid
+  if (backendInitialized && validateBackend()) {
+    return true;
+  }
+  
+  // If backend was initialized but is no longer valid, reset and re-initialize
+  if (backendInitialized && !validateBackend()) {
+    console.warn('⚠️ Backend was initialized but is no longer valid, re-initializing...');
+    backendInitialized = false;
+    backendInitPromise = null;
+  }
   
   // Wait for initialization to complete
   if (backendInitPromise) {
     await backendInitPromise;
+  } else {
+    // Start initialization if not already started
+    await initializeBackendSync();
   }
   
-  return backendInitialized;
+  // Final validation
+  const isValid = backendInitialized && validateBackend();
+  if (!isValid) {
+    console.error('❌ Backend initialization failed final validation');
+  }
+  
+  return isValid;
 };
 
 // Confidence thresholds
@@ -380,6 +457,16 @@ export const detectFaceInCanvas = async (
   
     console.log('🔍 Attempting face detection...');
     
+    // Re-validate backend before face detection
+    if (!validateBackend()) {
+      console.error('❌ Backend invalid before detection in canvas, attempting re-initialization...');
+      const reinitialized = await ensureBackendReady();
+      if (!reinitialized) {
+        console.error('❌ Failed to re-initialize backend');
+        return { detected: false, confidence: 0 };
+      }
+    }
+    
     // Detect faces in the video stream with optimized settings
     const detections = await faceapi
       .detectAllFaces(videoElement, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
@@ -521,6 +608,16 @@ export const identifyPatient = async (capturedImage: string): Promise<Patient | 
 
     toast.loading("Detecting face...", { id: 'face-identification' });
 
+    // Re-validate backend before face detection
+    if (!validateBackend()) {
+      console.error('❌ Backend invalid before detection, attempting re-initialization...');
+      const reinitialized = await ensureBackendReady();
+      if (!reinitialized) {
+        toast.error("TensorFlow backend initialization failed. Please refresh the page.", { id: 'face-identification' });
+        return null;
+      }
+    }
+
     // Detect face and extract descriptor
     const detection = await faceapi
       .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
@@ -646,6 +743,16 @@ export const registerFace = async (
     });
 
     toast.loading("Detecting face...", { id: 'face-registration' });
+
+    // Re-validate backend before face detection
+    if (!validateBackend()) {
+      console.error('❌ Backend invalid before detection, attempting re-initialization...');
+      const reinitialized = await ensureBackendReady();
+      if (!reinitialized) {
+        toast.error("TensorFlow backend initialization failed. Please refresh the page.", { id: 'face-registration' });
+        return null;
+      }
+    }
 
     // Detect face and extract descriptor
     const detection = await faceapi
