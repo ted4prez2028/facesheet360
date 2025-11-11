@@ -16,6 +16,9 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { WoundCameraCapture } from "@/components/wound-care/WoundCameraCapture";
+import { WoundMeasurementCapture } from "@/components/wound-care/WoundMeasurementCapture";
+import { WoundProgressTracker } from "@/components/wound-care/WoundProgressTracker";
+import type { WoundMeasurements } from "@/hooks/useWoundCare";
 
 interface WoundCareTabProps {
   patientId: string;
@@ -25,10 +28,14 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
   const [isAddWoundOpen, setIsAddWoundOpen] = useState(false);
   const [selectedWound, setSelectedWound] = useState<WoundRecord | null>(null);
   const [capturedImageData, setCapturedImageData] = useState<string | null>(null);
+  const [woundMeasurements, setWoundMeasurements] = useState<WoundMeasurements | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [useMeasurement, setUseMeasurement] = useState(false);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isProgressTrackerOpen, setIsProgressTrackerOpen] = useState(false);
+  const [progressLocation, setProgressLocation] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
@@ -44,6 +51,12 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
 
   const handleCameraCapture = (imageDataUrl: string) => {
     setCapturedImageData(imageDataUrl);
+    setShowCamera(false);
+  };
+
+  const handleMeasurementCapture = (imageDataUrl: string, measurements: WoundMeasurements) => {
+    setCapturedImageData(imageDataUrl);
+    setWoundMeasurements(measurements);
     setShowCamera(false);
   };
 
@@ -102,13 +115,16 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
         assessment: analysis?.assessment || null,
         stage: analysis?.stage || null,
         infection_status: analysis?.infection_status || null,
-        healing_status: analysis?.healing_status || null
+        healing_status: analysis?.healing_status || null,
+        measurements: woundMeasurements as any
       });
 
       // Reset form
       setCapturedImageData(null);
+      setWoundMeasurements(null);
       setLocation('');
       setDescription('');
+      setUseMeasurement(false);
       setIsAddWoundOpen(false);
       toast.success("Wound record created successfully");
     } catch (error) {
@@ -177,12 +193,23 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-2">
         <h2 className="text-lg font-semibold">Wound Care Management</h2>
-        <Button onClick={() => setIsAddWoundOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Wound Assessment
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setProgressLocation('');
+              setIsProgressTrackerOpen(true);
+            }}
+          >
+            View Progress
+          </Button>
+          <Button onClick={() => setIsAddWoundOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Assessment
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -220,18 +247,35 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
                   {wound.healing_status && renderStatusBadge(wound.healing_status)}
                 </div>
                 <p className="text-sm text-muted-foreground truncate">{wound.description}</p>
+                {wound.measurements && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    📏 {wound.measurements.width}mm × {wound.measurements.height}mm
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground mt-2">
                   Created: {format(new Date(wound.created_at), 'PP')}
                 </p>
               </CardContent>
               <CardFooter className="p-4 pt-0 flex justify-between">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => openDetailView(wound)}
-                >
-                  View Details
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openDetailView(wound)}
+                  >
+                    View Details
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setProgressLocation(wound.location);
+                      setIsProgressTrackerOpen(true);
+                    }}
+                  >
+                    Track Progress
+                  </Button>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -259,18 +303,45 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 gap-4">
               {!capturedImageData && !showCamera && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <Label>Wound Image</Label>
-                  <Button onClick={() => setShowCamera(true)} className="w-full">
-                    <Camera className="mr-2 h-4 w-4" />
-                    Open Camera
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      onClick={() => {
+                        setUseMeasurement(false);
+                        setShowCamera(true);
+                      }} 
+                      variant="outline"
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Quick Capture
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setUseMeasurement(true);
+                        setShowCamera(true);
+                      }}
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Measure Wound
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Use "Measure Wound" to capture with precise dimensions using a reference object
+                  </p>
                 </div>
               )}
 
-              {showCamera && (
+              {showCamera && !useMeasurement && (
                 <WoundCameraCapture
                   onCapture={handleCameraCapture}
+                  onCancel={handleCameraCancel}
+                />
+              )}
+
+              {showCamera && useMeasurement && (
+                <WoundMeasurementCapture
+                  onCapture={handleMeasurementCapture}
                   onCancel={handleCameraCancel}
                 />
               )}
@@ -285,10 +356,26 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
                       className="w-full h-auto max-h-[300px] object-contain"
                     />
                   </div>
+                  {woundMeasurements && (
+                    <div className="p-3 bg-muted rounded-md text-sm">
+                      <div className="font-medium mb-1">Measurements:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>Width: {woundMeasurements.width}{woundMeasurements.unit}</div>
+                        <div>Height: {woundMeasurements.height}{woundMeasurements.unit}</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Reference: {woundMeasurements.referenceType} ({woundMeasurements.referenceSize}mm)
+                      </div>
+                    </div>
+                  )}
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => setShowCamera(true)}
+                    onClick={() => {
+                      setShowCamera(true);
+                      setCapturedImageData(null);
+                      setWoundMeasurements(null);
+                    }}
                     className="w-full"
                   >
                     <Camera className="mr-2 h-4 w-4" />
@@ -439,6 +526,19 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
                           <p>{format(new Date(selectedWound.updated_at), 'PPpp')}</p>
                         </div>
                       )}
+
+                      {selectedWound.measurements && (
+                        <div>
+                          <h4 className="font-medium mb-1">Measurements:</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            <p>Width: {selectedWound.measurements.width}{selectedWound.measurements.unit}</p>
+                            <p>Height: {selectedWound.measurements.height}{selectedWound.measurements.unit}</p>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Reference: {selectedWound.measurements.referenceType} ({selectedWound.measurements.referenceSize}mm)
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -451,6 +551,29 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Progress Tracker Dialog */}
+      <Dialog open={isProgressTrackerOpen} onOpenChange={setIsProgressTrackerOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Wound Healing Progress Tracker</DialogTitle>
+            <DialogDescription>
+              Compare wound images over time to visualize healing progression
+            </DialogDescription>
+          </DialogHeader>
+          
+          <WoundProgressTracker 
+            woundRecords={woundRecords}
+            location={progressLocation}
+          />
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsProgressTrackerOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

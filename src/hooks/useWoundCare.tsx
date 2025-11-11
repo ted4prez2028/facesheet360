@@ -2,6 +2,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface WoundMeasurements {
+  width: number;
+  height: number;
+  depth?: number;
+  unit: 'cm' | 'mm';
+  referenceType: 'coin' | 'ruler' | 'custom';
+  referenceSize: number;
+}
+
 export interface WoundRecord {
   id: string;
   patient_id: string;
@@ -12,6 +21,7 @@ export interface WoundRecord {
   stage: string | null;
   infection_status: string | null;
   healing_status: string | null;
+  measurements?: WoundMeasurements | null;
   created_at: string;
   updated_at: string;
 }
