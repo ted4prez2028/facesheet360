@@ -1,5 +1,5 @@
 
-import { MoreHorizontal, Calendar } from "lucide-react";
+import { MoreHorizontal, Calendar, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -16,12 +16,14 @@ interface PatientDetailHeaderProps {
   patientName: string | undefined;
   patientId: string | undefined;
   patientAge: number | undefined;
+  onDischarge?: () => void;
 }
 
 const PatientDetailHeader = ({
   patientName,
   patientId,
-  patientAge
+  patientAge,
+  onDischarge
 }: PatientDetailHeaderProps) => {
   const navigate = useNavigate();
 
@@ -65,6 +67,11 @@ const PatientDetailHeader = ({
             <DropdownMenuItem>
               <Activity className="h-4 w-4 mr-2" />
               <span>Vital Signs</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onDischarge}>
+              <FileDown className="h-4 w-4 mr-2" />
+              <span>Discharge Patient</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
