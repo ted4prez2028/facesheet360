@@ -15,6 +15,7 @@ import ImagingPanel from "./ImagingPanel";
 import NotesSection from "./NotesSection";
 import CareTeamAssignments from "@/components/patients/CareTeamAssignments";
 import FaceRegistration from "@/components/facial-recognition/FaceRegistration";
+import WoundCareTab from "@/components/patientview/WoundCareTab";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -351,13 +352,14 @@ const UnifiedPatientInterface = ({
         
         <CardContent className="flex-1 flex flex-col overflow-hidden p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-7 shrink-0">
+            <TabsList className="grid w-full grid-cols-8 shrink-0">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="vitals">Vitals</TabsTrigger>
               <TabsTrigger value="medications">Medications</TabsTrigger>
               <TabsTrigger value="labs">Labs</TabsTrigger>
               <TabsTrigger value="imaging">Imaging</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
+              <TabsTrigger value="wound-care">Wound Care</TabsTrigger>
               <TabsTrigger value="care-team">Care Team</TabsTrigger>
             </TabsList>
 
@@ -599,6 +601,10 @@ const UnifiedPatientInterface = ({
                   providerId={userId}
                   notes={chartData.notes}
                 />
+              </TabsContent>
+
+              <TabsContent value="wound-care" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <WoundCareTab patientId={selectedPatient} />
               </TabsContent>
 
               <TabsContent value="care-team" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
