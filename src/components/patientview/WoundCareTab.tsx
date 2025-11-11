@@ -9,12 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { FileImage, Upload, Plus, Trash2, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
+import { FileImage, Upload, Plus, Trash2, RefreshCw, AlertTriangle, CheckCircle, Camera } from 'lucide-react';
 import { useWoundCare } from '@/hooks/useWoundCare';
 import { WoundRecord } from '@/hooks/useWoundCare';
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { WoundCameraCapture } from "@/components/wound-care/WoundCameraCapture";
 
 interface WoundCareTabProps {
   patientId: string;
@@ -23,8 +24,8 @@ interface WoundCareTabProps {
 const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
   const [isAddWoundOpen, setIsAddWoundOpen] = useState(false);
   const [selectedWound, setSelectedWound] = useState<WoundRecord | null>(null);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [capturedImageData, setCapturedImageData] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -41,25 +42,30 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
     analyzeWoundImage
   } = useWoundCare(patientId);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      if (file.type.includes('image/')) {
-        setSelectedImage(file);
-        const reader = new FileReader();
-        reader.onload = () => {
-          setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        toast.error("Please select an image file");
-      }
+  const handleCameraCapture = (imageDataUrl: string) => {
+    setCapturedImageData(imageDataUrl);
+    setShowCamera(false);
+  };
+
+  const handleCameraCancel = () => {
+    setShowCamera(false);
+  };
+
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
     }
+    return new Blob([u8arr], { type: mime });
   };
 
   const handleAddWound = async () => {
-    if (!selectedImage) {
-      toast.error("Please select an image");
+    if (!capturedImageData) {
+      toast.error("Please capture an image");
       return;
     }
 
@@ -70,8 +76,13 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
 
     try {
       setIsUploading(true);
+      
+      // Convert data URL to file
+      const blob = dataURLtoBlob(capturedImageData);
+      const file = new File([blob], `wound-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
       // Upload image
-      const imageUrl = await uploadImage(selectedImage);
+      const imageUrl = await uploadImage(file);
       if (!imageUrl) {
         toast.error("Failed to upload image");
         setIsUploading(false);
@@ -95,8 +106,7 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
       });
 
       // Reset form
-      setSelectedImage(null);
-      setImagePreview(null);
+      setCapturedImageData(null);
       setLocation('');
       setDescription('');
       setIsAddWoundOpen(false);
@@ -242,32 +252,48 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
           <DialogHeader>
             <DialogTitle>New Wound Assessment</DialogTitle>
             <DialogDescription>
-              Upload an image of the wound and provide details. The system will analyze the image.
+              Capture an image of the wound using your camera and provide details.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="image">Wound Image</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="flex-1"
-                  />
+              {!capturedImageData && !showCamera && (
+                <div className="flex flex-col gap-2">
+                  <Label>Wound Image</Label>
+                  <Button onClick={() => setShowCamera(true)} className="w-full">
+                    <Camera className="mr-2 h-4 w-4" />
+                    Open Camera
+                  </Button>
                 </div>
-              </div>
+              )}
 
-              {imagePreview && (
-                <div className="border rounded-md overflow-hidden">
-                  <img 
-                    src={imagePreview} 
-                    alt="Wound preview" 
-                    className="w-full h-auto max-h-[300px] object-contain"
-                  />
+              {showCamera && (
+                <WoundCameraCapture
+                  onCapture={handleCameraCapture}
+                  onCancel={handleCameraCancel}
+                />
+              )}
+
+              {capturedImageData && !showCamera && (
+                <div className="space-y-2">
+                  <Label>Captured Image</Label>
+                  <div className="border rounded-md overflow-hidden">
+                    <img 
+                      src={capturedImageData} 
+                      alt="Wound preview" 
+                      className="w-full h-auto max-h-[300px] object-contain"
+                    />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowCamera(true)}
+                    className="w-full"
+                  >
+                    <Camera className="mr-2 h-4 w-4" />
+                    Retake Photo
+                  </Button>
                 </div>
               )}
 
@@ -298,7 +324,7 @@ const WoundCareTab: React.FC<WoundCareTabProps> = ({ patientId }) => {
             <Button variant="outline" onClick={() => setIsAddWoundOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddWound} disabled={isUploading || isAnalyzing || !selectedImage}>
+            <Button onClick={handleAddWound} disabled={isUploading || isAnalyzing || !capturedImageData || showCamera}>
               {isUploading ? "Uploading..." : isAnalyzing ? "Analyzing..." : "Save & Analyze"}
             </Button>
           </DialogFooter>

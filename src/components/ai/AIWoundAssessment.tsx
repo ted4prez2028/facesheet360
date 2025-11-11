@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { WoundCameraCapture } from '@/components/wound-care/WoundCameraCapture';
 
 interface WoundAssessment {
   id: string;
@@ -60,66 +61,11 @@ export const AIWoundAssessment: React.FC<AIWoundAssessmentProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<WoundAssessment | null>(null);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  
   const { user } = useAuth();
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Use back camera on mobile
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast.error('Unable to access camera. Please use file upload instead.');
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
-      
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0);
-        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        setCapturedImage(imageDataUrl);
-        stopCamera();
-        setCurrentStep('details');
-      }
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageDataUrl = e.target?.result as string;
-        setCapturedImage(imageDataUrl);
-        setCurrentStep('details');
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleCameraCapture = (imageDataUrl: string) => {
+    setCapturedImage(imageDataUrl);
+    setCurrentStep('details');
   };
 
   const performAIAnalysis = async () => {
@@ -211,75 +157,10 @@ export const AIWoundAssessment: React.FC<AIWoundAssessmentProps> = ({
         {currentStep === 'capture' && (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Capture Wound Image</h3>
-            
-            {streamRef.current ? (
-              <div className="space-y-4">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full max-w-lg mx-auto rounded-lg border"
-                />
-                <canvas ref={canvasRef} className="hidden" />
-                <div className="flex justify-center space-x-4">
-                  <Button onClick={capturePhoto}>
-                    <Camera className="h-4 w-4 mr-2" />
-                    Capture Photo
-                  </Button>
-                  <Button variant="outline" onClick={stopCamera}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button onClick={startCamera} className="p-8">
-                    <div className="flex flex-col items-center">
-                      <Camera className="h-8 w-8 mb-2" />
-                      <span>Use Camera</span>
-                    </div>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-8"
-                  >
-                    <div className="flex flex-col items-center">
-                      <Upload className="h-8 w-8 mb-2" />
-                      <span>Upload Image</span>
-                    </div>
-                  </Button>
-                </div>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </div>
-            )}
-
-            {capturedImage && (
-              <div className="text-center">
-                <img 
-                  src={capturedImage} 
-                  alt="Captured wound" 
-                  className="max-w-lg mx-auto rounded-lg border"
-                />
-                <div className="mt-4 space-x-2">
-                  <Button onClick={() => setCurrentStep('details')}>
-                    Continue
-                  </Button>
-                  <Button variant="outline" onClick={() => setCapturedImage(null)}>
-                    Retake
-                  </Button>
-                </div>
-              </div>
-            )}
+            <WoundCameraCapture
+              onCapture={handleCameraCapture}
+              onCancel={() => {}}
+            />
           </div>
         )}
 
