@@ -1,5 +1,5 @@
 
-import { useWoundCare, WoundRecord } from './useWoundCare.tsx';
+import { useWoundCare, WoundRecord, WoundMeasurements } from './useWoundCare.tsx';
 
 export { useWoundCare };
-export type { WoundRecord };
+export type { WoundRecord, WoundMeasurements };
