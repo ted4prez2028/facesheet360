@@ -83,7 +83,6 @@ export function AppSidebar() {
       group: "Clinical",
       items: [
         { title: "Patient Monitoring", icon: Activity, path: "/patient-monitoring" },
-        { title: "Wound Care", icon: Stethoscope, path: "/patients?tab=wound-care" },
         { title: "Pharmacy", icon: Pill, path: "/pharmacy" },
         { title: "Analytics", icon: BarChart3, path: "/analytics" },
       ],

@@ -358,7 +358,7 @@ const UnifiedPatientInterface = ({
         
         <CardContent className="flex-1 flex flex-col overflow-hidden p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="w-full flex overflow-x-auto shrink-0">
+            <TabsList className="w-full flex flex-wrap gap-1 h-auto shrink-0">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>
