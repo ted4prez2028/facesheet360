@@ -17,6 +17,7 @@ import PatientList from './pages/PatientList';
 import PatientDetails from './pages/PatientDetails';
 import WoundCare from './pages/WoundCare';
 import WoundCareDashboard from './pages/WoundCareDashboard';
+import PatientMonitoring from './pages/PatientMonitoring';
 import AuditLogs from './pages/AuditLogs';
 import SecurityCompliance from './pages/SecurityCompliance';
 import Subscription from './pages/Subscription';
@@ -127,6 +128,16 @@ function App() {
                 <Route
                   path="/wound-care"
                   element={<Navigate to="/patients" replace />}
+                />
+                <Route
+                  path="/patient-monitoring"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout>
+                        <PatientMonitoring />
+                      </DashboardLayout>
+                    </RequireAuth>
+                  }
                 />
                 <Route
                   path="/profile"

@@ -15,6 +15,7 @@ import WoundCareTab from '@/components/patientview/WoundCareTab';
 import ImmunizationsTab from '@/components/patientview/ImmunizationsTab';
 import OverviewTab from '@/components/patientview/OverviewTab';
 import VitalsTab from '@/components/patientview/VitalsTab';
+import TimelineTab from '@/components/patientview/TimelineTab';
 import { SOAPNoteTab } from '@/components/patientview/SOAPNoteTab';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,7 @@ const PatientDetails = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
           <TabsList className="w-full justify-start overflow-x-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="vitals">Vitals</TabsTrigger>
             <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
@@ -80,6 +82,9 @@ const PatientDetails = () => {
           
           <TabsContent value="overview">
             <OverviewTab patientId={patient.id} />
+          </TabsContent>
+          <TabsContent value="timeline">
+            <TimelineTab patientId={patient.id} />
           </TabsContent>
           <TabsContent value="profile">
             <ProfileTab patientId={patient.id} />
