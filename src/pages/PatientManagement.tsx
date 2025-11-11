@@ -25,14 +25,9 @@ const PatientManagement = () => {
     const tab = searchParams.get('tab');
     if (tab) {
       setInitialTab(tab);
-      // Clear the tab parameter from URL after using it
-      setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        newParams.delete('tab');
-        return newParams;
-      });
+      // Don't clear the tab parameter - keep it in URL
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   return (
     <div className="h-full overflow-hidden">

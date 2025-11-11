@@ -16,6 +16,12 @@ import NotesSection from "./NotesSection";
 import CareTeamAssignments from "@/components/patients/CareTeamAssignments";
 import FaceRegistration from "@/components/facial-recognition/FaceRegistration";
 import WoundCareTab from "@/components/patientview/WoundCareTab";
+import TimelineTab from "@/components/patientview/TimelineTab";
+import ProfileTab from "@/components/patientview/ProfileTab";
+import { SOAPNoteTab } from "@/components/patientview/SOAPNoteTab";
+import MedicalDiagnosesTab from "@/components/patientview/MedicalDiagnosesTab";
+import AllergiesTab from "@/components/patientview/AllergiesTab";
+import ImmunizationsTab from "@/components/patientview/ImmunizationsTab";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -352,14 +358,20 @@ const UnifiedPatientInterface = ({
         
         <CardContent className="flex-1 flex flex-col overflow-hidden p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-8 shrink-0">
+            <TabsList className="w-full flex overflow-x-auto shrink-0">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline</TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="vitals">Vitals</TabsTrigger>
+              <TabsTrigger value="soap-notes">SOAP Notes</TabsTrigger>
               <TabsTrigger value="medications">Medications</TabsTrigger>
               <TabsTrigger value="labs">Labs</TabsTrigger>
               <TabsTrigger value="imaging">Imaging</TabsTrigger>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
+              <TabsTrigger value="medical-diagnoses">Diagnoses</TabsTrigger>
+              <TabsTrigger value="allergies">Allergies</TabsTrigger>
               <TabsTrigger value="wound-care">Wound Care</TabsTrigger>
+              <TabsTrigger value="immunizations">Immunizations</TabsTrigger>
+              <TabsTrigger value="notes">Notes</TabsTrigger>
               <TabsTrigger value="care-team">Care Team</TabsTrigger>
             </TabsList>
 
@@ -422,6 +434,16 @@ const UnifiedPatientInterface = ({
                   </div>
 
                 </div>
+              </TabsContent>
+
+              {/* Timeline Tab */}
+              <TabsContent value="timeline" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <TimelineTab patientId={selectedPatient} />
+              </TabsContent>
+
+              {/* Profile Tab */}
+              <TabsContent value="profile" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <ProfileTab patientId={selectedPatient} />
               </TabsContent>
 
               {/* Enhanced Vitals Tab */}
@@ -587,6 +609,11 @@ const UnifiedPatientInterface = ({
                 </div>
               </TabsContent>
 
+              {/* SOAP Notes Tab */}
+              <TabsContent value="soap-notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <SOAPNoteTab patientId={selectedPatient} />
+              </TabsContent>
+
               <TabsContent value="labs" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
                 <LabResultsPanel patientId={selectedPatient} />
               </TabsContent>
@@ -595,16 +622,32 @@ const UnifiedPatientInterface = ({
                 <ImagingPanel patientId={selectedPatient} />
               </TabsContent>
 
+              {/* Medical Diagnoses Tab */}
+              <TabsContent value="medical-diagnoses" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <MedicalDiagnosesTab patientId={selectedPatient} />
+              </TabsContent>
+
+              {/* Allergies Tab */}
+              <TabsContent value="allergies" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <AllergiesTab patientId={selectedPatient} />
+              </TabsContent>
+
+              {/* Wound Care Tab */}
+              <TabsContent value="wound-care" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <WoundCareTab patientId={selectedPatient} />
+              </TabsContent>
+
+              {/* Immunizations Tab */}
+              <TabsContent value="immunizations" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
+                <ImmunizationsTab patientId={selectedPatient} />
+              </TabsContent>
+
               <TabsContent value="notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
                 <NotesSection 
                   patientId={selectedPatient}
                   providerId={userId}
                   notes={chartData.notes}
                 />
-              </TabsContent>
-
-              <TabsContent value="wound-care" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-                <WoundCareTab patientId={selectedPatient} />
               </TabsContent>
 
               <TabsContent value="care-team" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
