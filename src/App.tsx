@@ -126,13 +126,7 @@ function App() {
                 />
                 <Route
                   path="/wound-care"
-                  element={
-                    <RequireAuth>
-                      <DashboardLayout>
-                        <WoundCareDashboard />
-                      </DashboardLayout>
-                    </RequireAuth>
-                  }
+                  element={<Navigate to="/patients" replace />}
                 />
                 <Route
                   path="/profile"

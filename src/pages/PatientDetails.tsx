@@ -13,7 +13,7 @@ import MedicalDiagnosesTab from '@/components/patientview/MedicalDiagnosesTab';
 import AllergiesTab from '@/components/patientview/AllergiesTab';
 import WoundCareTab from '@/components/patientview/WoundCareTab';
 import ImmunizationsTab from '@/components/patientview/ImmunizationsTab';
-import { PointClickCareEHR } from '@/components/ehr/PointClickCareEHR';
+import OverviewTab from '@/components/patientview/OverviewTab';
 import VitalsTab from '@/components/patientview/VitalsTab';
 import { SOAPNoteTab } from '@/components/patientview/SOAPNoteTab';
 import { useAuditLog } from '@/hooks/useAuditLog';
@@ -79,7 +79,7 @@ const PatientDetails = () => {
           </TabsList>
           
           <TabsContent value="overview">
-            <PointClickCareEHR patientId={patient.id} />
+            <OverviewTab patientId={patient.id} />
           </TabsContent>
           <TabsContent value="profile">
             <ProfileTab patientId={patient.id} />
