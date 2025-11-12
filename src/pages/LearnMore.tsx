@@ -14,7 +14,18 @@ import {
   CheckCircle,
   ArrowRight,
   Star,
-  User
+  User,
+  Scan,
+  Coins,
+  Car,
+  Brain,
+  Video,
+  BookOpen,
+  Activity,
+  Lock,
+  Pill,
+  TrendingUp,
+  HeartPulse
 } from 'lucide-react';
 
 const LearnMore = () => {
@@ -22,44 +33,80 @@ const LearnMore = () => {
 
   const features = [
     {
-      icon: <Users className="h-8 w-8 text-blue-600" />,
-      title: "Patient Management",
-      description: "Comprehensive patient records, medical history, and care coordination in one secure platform."
+      icon: <Scan className="h-8 w-8 text-blue-600" />,
+      title: "Facial Recognition",
+      description: "AI-powered patient identification using face-api.js with 75%+ accuracy, secure facial descriptors, and complete audit trails."
     },
     {
-      icon: <Calendar className="h-8 w-8 text-green-600" />,
-      title: "Appointment Scheduling",
-      description: "Smart scheduling system with automated reminders and seamless calendar integration."
+      icon: <Coins className="h-8 w-8 text-green-600" />,
+      title: "CareCoin Blockchain Rewards",
+      description: "Earn cryptocurrency for documentation. 50% to provider, 40% to patient, 10% founder fee. Cash out to real currency or gift cards."
     },
     {
-      icon: <FileText className="h-8 w-8 text-purple-600" />,
-      title: "Electronic Health Records",
-      description: "Complete EHR system with charting, documentation, and compliance features."
+      icon: <Car className="h-8 w-8 text-purple-600" />,
+      title: "Integrated Ride Booking",
+      description: "Uber/Lyft-style ride system with OpenStreetMap, real-time driver tracking, automatic matching, and CareCoin payments."
     },
     {
-      icon: <BarChart3 className="h-8 w-8 text-orange-600" />,
-      title: "Analytics & Reporting",
-      description: "Real-time insights and detailed reports to improve patient outcomes and operational efficiency."
+      icon: <Brain className="h-8 w-8 text-orange-600" />,
+      title: "AI Clinical Decision Support",
+      description: "OpenAI-powered differential diagnosis, treatment recommendations, drug interaction checking, and evidence-based guidelines."
     },
     {
-      icon: <Shield className="h-8 w-8 text-red-600" />,
-      title: "HIPAA Compliance",
-      description: "Enterprise-grade security with full HIPAA compliance and end-to-end encryption."
+      icon: <Video className="h-8 w-8 text-red-600" />,
+      title: "Telemedicine Video Calls",
+      description: "HIPAA-compliant WebRTC video conferencing with PeerJS, screen sharing, call recording, and encrypted peer-to-peer connections."
     },
     {
-      icon: <Zap className="h-8 w-8 text-yellow-600" />,
-      title: "AI-Powered Tools",
-      description: "Advanced AI features for wound assessment, health predictions, and clinical decision support."
+      icon: <BookOpen className="h-8 w-8 text-yellow-600" />,
+      title: "Patient Education Library",
+      description: "Comprehensive health education resources with custom materials, multiple languages, reading levels, and easy sharing."
+    },
+    {
+      icon: <Activity className="h-8 w-8 text-pink-600" />,
+      title: "Predictive Analytics",
+      description: "Real-time patient risk scoring, capacity forecasting, trend analysis, and data-driven insights for better outcomes."
+    },
+    {
+      icon: <Lock className="h-8 w-8 text-indigo-600" />,
+      title: "Role-Based Access Control",
+      description: "Granular permissions for all healthcare roles with multi-factor authentication, trusted devices, and session management."
+    },
+    {
+      icon: <Pill className="h-8 w-8 text-teal-600" />,
+      title: "Medication Management",
+      description: "Medication orders, interaction checking with clinical alerts, administration logs, and automated patient reminders."
+    },
+    {
+      icon: <Calendar className="h-8 w-8 text-cyan-600" />,
+      title: "Advanced Scheduling",
+      description: "Provider calendars, resource reservations, equipment tracking, waitlist management, and automated SMS/email reminders."
+    },
+    {
+      icon: <HeartPulse className="h-8 w-8 text-rose-600" />,
+      title: "Care Coordination Hub",
+      description: "Care team management, discharge planning, task assignment, and seamless collaboration across healthcare providers."
+    },
+    {
+      icon: <TrendingUp className="h-8 w-8 text-emerald-600" />,
+      title: "HL7/FHIR Integrations",
+      description: "Seamless healthcare system interoperability with HL7 message processing, external lab orders, and system mappings."
     }
   ];
 
   const benefits = [
-    "Reduce administrative overhead by up to 40%",
-    "Improve patient satisfaction scores",
-    "Streamline workflow and reduce errors",
-    "Access patient data from anywhere, anytime",
-    "Automated billing and insurance processing",
-    "Real-time collaboration tools for care teams"
+    "Earn CareCoin cryptocurrency for every patient documentation",
+    "AI-powered clinical decision support reduces diagnostic errors",
+    "Facial recognition eliminates patient identification mistakes",
+    "Integrated ride-booking improves patient appointment attendance",
+    "Real-time telemedicine expands access to care",
+    "Predictive analytics identifies at-risk patients early",
+    "HIPAA-compliant with comprehensive audit trails",
+    "Role-based access control protects sensitive data",
+    "Automated workflows reduce administrative time by 40%",
+    "Patient portal increases engagement and satisfaction",
+    "HL7/FHIR integrations connect with existing systems",
+    "Epic-format discharge summaries ensure continuity of care"
   ];
 
   const testimonials = [
@@ -104,11 +151,11 @@ const LearnMore = () => {
       <section className="py-20 px-8">
         <div className="container mx-auto text-center">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            The Future of Healthcare Management
+            AI + Blockchain + EHR = Healthcare Revolution
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Discover how Facesheet360 revolutionizes patient care with cutting-edge technology, 
-            intuitive design, and comprehensive healthcare management tools.
+            Facesheet360 combines facial recognition AI, blockchain cryptocurrency rewards, integrated ride-booking, 
+            telemedicine video calls, clinical decision support, and comprehensive EHR capabilities in one HIPAA-compliant platform.
           </p>
           <div className="flex justify-center gap-4">
             <Button size="lg" onClick={() => navigate('/view-plans')}>
@@ -136,7 +183,7 @@ const LearnMore = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] duration-300">
                 <CardHeader>
                   <div className="mb-4">
                     {feature.icon}
@@ -144,12 +191,42 @@ const LearnMore = () => {
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 text-base">
+                  <CardDescription className="text-gray-600 text-base leading-relaxed">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
               </Card>
             ))}
+          </div>
+          
+          <div className="mt-16 text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">And Much More...</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto text-left">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Wound care with measurement tools and progress tracking</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Virtual cards and bill payment integration</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Driver earnings platform with performance analytics</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">CareCoin staking and health rewards marketplace</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">PHI access logs and patient consent management</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
+                <span className="text-gray-700">Data retention policies and compliance center</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -166,10 +243,10 @@ const LearnMore = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center gap-4">
-                <CheckCircle className="h-6 w-6 text-green-400 flex-shrink-0" />
+              <div key={index} className="flex items-start gap-4">
+                <CheckCircle className="h-6 w-6 text-green-400 flex-shrink-0 mt-1" />
                 <span className="text-lg">{benefit}</span>
               </div>
             ))}

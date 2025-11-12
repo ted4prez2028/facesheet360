@@ -6,7 +6,16 @@ import {
   Calendar, 
   Bell, 
   Users,
-  FileText
+  FileText,
+  Scan,
+  Coins,
+  Car,
+  Brain,
+  Video,
+  BookOpen,
+  Shield,
+  Activity,
+  Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,24 +55,44 @@ const Index = () => {
 
   const features = [
     {
-      icon: <Users className="h-8 w-8 text-health-500" />,
-      title: "Patient Management",
-      description: "Easily manage patient records, track appointments, and maintain comprehensive medical histories."
+      icon: <Scan className="h-8 w-8 text-health-500" />,
+      title: "Facial Recognition",
+      description: "AI-powered patient identification using facial recognition with 75%+ accuracy and secure descriptor storage."
     },
     {
-      icon: <Calendar className="h-8 w-8 text-health-500" />,
-      title: "Scheduling",
-      description: "Streamlined appointment scheduling with automated reminders to reduce no-shows."
+      icon: <Coins className="h-8 w-8 text-health-500" />,
+      title: "CareCoin Rewards",
+      description: "Blockchain-based cryptocurrency rewards for healthcare documentation. Earn tokens for every data entry."
     },
     {
-      icon: <FileText className="h-8 w-8 text-health-500" />,
-      title: "Digital Charting",
-      description: "Comprehensive electronic health records with secure access and intuitive navigation."
+      icon: <Car className="h-8 w-8 text-health-500" />,
+      title: "Ride Booking",
+      description: "Integrated Uber-style ride booking with real-time driver matching, live tracking, and CareCoin payments."
     },
     {
-      icon: <Pill className="h-8 w-8 text-health-500" />,
-      title: "Medication Management",
-      description: "Prescribe, track, and manage medications with automated reminders for patients."
+      icon: <Brain className="h-8 w-8 text-health-500" />,
+      title: "AI Clinical Support",
+      description: "AI-powered clinical decision support with differential diagnosis, drug interactions, and risk assessment."
+    },
+    {
+      icon: <Video className="h-8 w-8 text-health-500" />,
+      title: "Telemedicine",
+      description: "HIPAA-compliant WebRTC video conferencing with screen sharing, recording, and encrypted connections."
+    },
+    {
+      icon: <BookOpen className="h-8 w-8 text-health-500" />,
+      title: "Patient Education",
+      description: "Comprehensive health education library with custom materials, multilingual support, and easy sharing."
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-health-500" />,
+      title: "Role-Based Access",
+      description: "Granular RBAC for all healthcare roles with multi-factor authentication and comprehensive audit trails."
+    },
+    {
+      icon: <Activity className="h-8 w-8 text-health-500" />,
+      title: "Predictive Analytics",
+      description: "Real-time patient risk scores, capacity forecasting, and data-driven insights to improve outcomes."
     }
   ];
 
@@ -98,11 +127,11 @@ const Index = () => {
         <div className="container mx-auto px-6 py-16 md:py-24 md:flex md:items-center md:justify-between">
           <div className="md:w-1/2 mb-10 md:mb-0">
             <h1 className="text-4xl font-bold mb-4 md:text-5xl lg:text-6xl tracking-tight">
-              Healthcare Management Simplified
+              Next-Generation Healthcare Platform
             </h1>
             <p className="text-xl mb-8 text-health-100">
-              The complete platform for healthcare professionals to manage patients, appointments, 
-              medications, and more - all in one secure place.
+              AI-powered EHR with facial recognition, blockchain rewards, telemedicine, ride-booking, 
+              clinical decision support, and comprehensive patient management - all HIPAA compliant.
             </p>
             <div className="space-x-4">
               <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
@@ -171,13 +200,13 @@ const Index = () => {
       <section className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Comprehensive Healthcare Platform</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Revolutionary Healthcare Technology</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Our all-in-one solution provides everything healthcare professionals need to deliver exceptional care.
+              Combining artificial intelligence, blockchain technology, and comprehensive EHR capabilities to transform healthcare delivery.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-custom-medium transition-all hover:shadow-custom-dark border border-gray-200 dark:border-gray-700 hover:scale-[1.02] duration-300">
                 <div className="mb-4">{feature.icon}</div>
@@ -185,6 +214,14 @@ const Index = () => {
                 <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
               </div>
             ))}
+          </div>
+          
+          <div className="mt-12 text-center">
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+              Plus: Wound care tracking • Medication interactions • Care coordination • Patient portal • 
+              HL7/FHIR integrations • Virtual cards • Health rewards marketplace • Driver earnings platform • 
+              Automated reminders • Real-time analytics • Epic-format discharge summaries
+            </p>
           </div>
         </div>
       </section>
