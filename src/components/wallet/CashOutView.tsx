@@ -15,8 +15,17 @@ const formSchema = z.object({
   paymentMethod: z.string().min(1, "Payment method is required"),
   accountName: z.string().min(2, "Account name must be at least 2 characters"),
   accountNumber: z.string().min(5, "Account number must be at least 5 characters"),
-  routingNumber: z.string().min(9, "Routing number must be at least 9 characters"),
-  bankName: z.string().min(2, "Bank name is required"),
+  routingNumber: z.string().optional(),
+  bankName: z.string().optional(),
+}).refine((data) => {
+  // Require routing number and bank name only for bank transfers
+  if (data.paymentMethod === 'bank_transfer') {
+    return data.routingNumber && data.routingNumber.length >= 9 && data.bankName && data.bankName.length >= 2;
+  }
+  return true;
+}, {
+  message: "Routing number and bank name are required for bank transfers",
+  path: ["routingNumber"],
 });
 
 export const CashOutView = () => {
@@ -116,6 +125,9 @@ export const CashOutView = () => {
                       <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                       <SelectItem value="paypal">PayPal</SelectItem>
                       <SelectItem value="venmo">Venmo</SelectItem>
+                      <SelectItem value="amazon_gift_card">Amazon Gift Card</SelectItem>
+                      <SelectItem value="visa_gift_card">Visa Gift Card</SelectItem>
+                      <SelectItem value="mastercard_gift_card">Mastercard Gift Card</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
@@ -128,9 +140,20 @@ export const CashOutView = () => {
                 name="accountName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Account Name</FormLabel>
+                    <FormLabel>
+                      {form.watch('paymentMethod')?.includes('gift_card') 
+                        ? 'Email Address' 
+                        : 'Account Name'}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter account name" {...field} />
+                      <Input 
+                        placeholder={
+                          form.watch('paymentMethod')?.includes('gift_card')
+                            ? 'Enter email for gift card delivery'
+                            : 'Enter account name'
+                        } 
+                        {...field} 
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -142,40 +165,68 @@ export const CashOutView = () => {
                   name="accountNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Account Number</FormLabel>
+                      <FormLabel>
+                        {form.watch('paymentMethod') === 'bank_transfer' 
+                          ? 'Account Number' 
+                          : form.watch('paymentMethod')?.includes('gift_card')
+                          ? 'Confirm Email'
+                          : 'Account ID'}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter account number" {...field} />
+                        <Input 
+                          placeholder={
+                            form.watch('paymentMethod') === 'bank_transfer'
+                              ? 'Enter account number'
+                              : form.watch('paymentMethod')?.includes('gift_card')
+                              ? 'Confirm email address'
+                              : 'Enter account ID'
+                          } 
+                          {...field} 
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="routingNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Routing Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter routing number" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                {form.watch('paymentMethod') === 'bank_transfer' && (
+                  <FormField
+                    control={form.control}
+                    name="routingNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Routing Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter routing number" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
 
-              <FormField
-                control={form.control}
-                name="bankName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bank Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter bank name" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {form.watch('paymentMethod') === 'bank_transfer' && (
+                <FormField
+                  control={form.control}
+                  name="bankName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bank Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter bank name" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {form.watch('paymentMethod')?.includes('gift_card') && (
+                <div className="p-4 border border-primary/20 rounded-lg bg-primary/5">
+                  <p className="text-sm text-muted-foreground">
+                    Your gift card will be delivered via email within 24-48 hours after approval.
+                    Make sure the email addresses match.
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button 

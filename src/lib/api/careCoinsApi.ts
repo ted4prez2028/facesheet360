@@ -140,13 +140,16 @@ export const cashOutCareCoins = async (
   paymentMethod: string,
   accountInfo: Record<string, unknown>
 ) => {
-  // Mock implementation
-  return {
-    success: true,
-    transaction_id: `txn_${Date.now()}`,
-    usd_amount: amount * 0.5,
-    message: 'Cash out initiated successfully'
-  };
+  const { data, error } = await supabase.functions.invoke('process-cashout', {
+    body: { amount, paymentMethod, accountInfo }
+  });
+
+  if (error) {
+    console.error('Error cashing out CareCoins:', error);
+    throw error;
+  }
+
+  return data;
 };
 
 export const convertCareCoinsToUSD = async (amount: number) => {

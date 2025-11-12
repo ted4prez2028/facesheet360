@@ -536,6 +536,60 @@ export type Database = {
         }
         Relationships: []
       }
+      cashout_requests: {
+        Row: {
+          account_info: Json
+          amount: number
+          completed_at: string | null
+          created_at: string
+          exchange_rate: number
+          failure_reason: string | null
+          id: string
+          payment_method: string
+          processed_at: string | null
+          requested_at: string
+          status: string
+          transaction_hash: string | null
+          updated_at: string
+          usd_amount: number
+          user_id: string
+        }
+        Insert: {
+          account_info: Json
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          exchange_rate: number
+          failure_reason?: string | null
+          id?: string
+          payment_method: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
+          usd_amount: number
+          user_id: string
+        }
+        Update: {
+          account_info?: Json
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          exchange_rate?: number
+          failure_reason?: string | null
+          id?: string
+          payment_method?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
+          usd_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       charting_profits: {
         Row: {
           admin_share: number

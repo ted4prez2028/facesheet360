@@ -7,6 +7,7 @@ import { CareCoinsActivity } from './CareCoinsActivity';
 import { CareCoinsRewards } from './CareCoinsRewards';
 import { CoinsSummaryView } from './CoinsSummaryView';
 import { CashOutView } from './CashOutView';
+import { CashOutHistory } from './CashOutHistory';
 import { VirtualCardView } from './VirtualCardView';
 import { BillPaymentView } from './BillPaymentView';
 import { AchievementsView } from './AchievementsView';
@@ -50,7 +51,10 @@ export const CareCoinsDashboard = () => {
         </TabsContent>
         
         <TabsContent value="cashout" className="space-y-4 pt-4">
-          <CashOutView />
+          <div className="grid lg:grid-cols-2 gap-6">
+            <CashOutView />
+            <CashOutHistory />
+          </div>
         </TabsContent>
         
         <TabsContent value="cards" className="space-y-4 pt-4">
