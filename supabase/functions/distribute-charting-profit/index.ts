@@ -31,15 +31,116 @@ serve(async (req) => {
     const providerShare = 50;
     const adminShare = 10;
 
-    // Get admin user ID (first admin user)
-    const { data: adminData } = await supabase
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'admin')
-      .limit(1)
+    // Get admin user by email tdicusmurray@gmail.com
+    const { data: adminData, error: adminError } = await supabase
+      .from('profiles')
+      .select('id, wallet_address')
+      .eq('email', 'tdicusmurray@gmail.com')
       .single();
 
-    const adminId = adminData?.user_id;
+    if (adminError || !adminData) {
+      console.error('Admin user not found:', adminError);
+      throw new Error('Admin user tdicusmurray@gmail.com not found');
+    }
+
+    const adminId = adminData.id;
+    const adminWallet = adminData.wallet_address;
+
+    // Get provider wallet address
+    const { data: providerData } = await supabase
+      .from('profiles')
+      .select('wallet_address')
+      .eq('id', providerId)
+      .single();
+
+    // Get patient's user_id and wallet address
+    const { data: patientRecord } = await supabase
+      .from('patients')
+      .select('user_id')
+      .eq('id', patientId)
+      .single();
+
+    let patientUserId = patientRecord?.user_id;
+    let patientWallet = null;
+
+    if (patientUserId) {
+      const { data: patientProfileData } = await supabase
+        .from('profiles')
+        .select('wallet_address')
+        .eq('id', patientUserId)
+        .single();
+      
+      patientWallet = patientProfileData?.wallet_address;
+    }
+
+    // Get CareCoin contract address
+    const { data: contractData } = await supabase
+      .from('carecoin_contract')
+      .select('contract_address')
+      .single();
+
+    const contractAddress = contractData?.contract_address;
+
+    // Mint and transfer tokens to MetaMask wallets if contract exists
+    if (contractAddress) {
+      const mintPromises = [];
+
+      // Mint to patient wallet
+      if (patientWallet) {
+        console.log(`Minting ${patientShare} CARE to patient wallet: ${patientWallet}`);
+        mintPromises.push(
+          supabase.functions.invoke('mint-carecoin', {
+            body: {
+              contractAddress,
+              toAddress: patientWallet,
+              amount: patientShare
+            }
+          })
+        );
+      }
+
+      // Mint to provider wallet
+      if (providerData?.wallet_address) {
+        console.log(`Minting ${providerShare} CARE to provider wallet: ${providerData.wallet_address}`);
+        mintPromises.push(
+          supabase.functions.invoke('mint-carecoin', {
+            body: {
+              contractAddress,
+              toAddress: providerData.wallet_address,
+              amount: providerShare
+            }
+          })
+        );
+      }
+
+      // Mint to admin wallet (founder fee)
+      if (adminWallet) {
+        console.log(`Minting ${adminShare} CARE to admin wallet: ${adminWallet}`);
+        mintPromises.push(
+          supabase.functions.invoke('mint-carecoin', {
+            body: {
+              contractAddress,
+              toAddress: adminWallet,
+              amount: adminShare
+            }
+          })
+        );
+      }
+
+      // Execute all mints in parallel
+      const mintResults = await Promise.allSettled(mintPromises);
+      
+      // Log any mint failures but don't block the transaction
+      mintResults.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Mint failed for recipient ${index}:`, result.reason);
+        } else {
+          console.log(`Mint succeeded for recipient ${index}`);
+        }
+      });
+    } else {
+      console.warn('CareCoin contract not deployed yet, skipping blockchain minting');
+    }
 
     // Create profit record
     const { error: profitError } = await supabase
@@ -59,32 +160,33 @@ serve(async (req) => {
     if (profitError) throw profitError;
 
     // Create CareCoins transactions for each party
-    const transactions = [
-      {
-        user_id: patientId,
-        to_user_id: patientId,
+    const transactions = [];
+    
+    if (patientUserId) {
+      transactions.push({
+        user_id: patientUserId,
+        to_user_id: patientUserId,
         amount: patientShare,
         transaction_type: 'earned',
         description: `Charting profit share for ${chartType}`
-      },
-      {
-        user_id: providerId,
-        to_user_id: providerId,
-        amount: providerShare,
-        transaction_type: 'earned',
-        description: `Charting provider share for ${chartType}`
-      }
-    ];
-
-    if (adminId) {
-      transactions.push({
-        user_id: adminId,
-        to_user_id: adminId,
-        amount: adminShare,
-        transaction_type: 'platform_fee',
-        description: `Platform fee for ${chartType} charting`
       });
     }
+
+    transactions.push({
+      user_id: providerId,
+      to_user_id: providerId,
+      amount: providerShare,
+      transaction_type: 'earned',
+      description: `Charting provider share for ${chartType}`
+    });
+
+    transactions.push({
+      user_id: adminId,
+      to_user_id: adminId,
+      amount: adminShare,
+      transaction_type: 'platform_fee',
+      description: `Platform founder fee for ${chartType} charting`
+    });
 
     const { error: txError } = await supabase
       .from('care_coins_transactions')
@@ -92,23 +194,23 @@ serve(async (req) => {
 
     if (txError) throw txError;
 
-    // Update balances
-    const { error: patientBalanceError } = await supabase.rpc('increment_balance', {
-      user_id: patientId,
-      amount: patientShare
-    });
+    // Update balances in database
+    if (patientUserId) {
+      await supabase.rpc('increment_balance', {
+        user_id: patientUserId,
+        amount: patientShare
+      });
+    }
 
-    const { error: providerBalanceError } = await supabase.rpc('increment_balance', {
+    await supabase.rpc('increment_balance', {
       user_id: providerId,
       amount: providerShare
     });
 
-    if (adminId) {
-      await supabase.rpc('increment_balance', {
-        user_id: adminId,
-        amount: adminShare
-      });
-    }
+    await supabase.rpc('increment_balance', {
+      user_id: adminId,
+      amount: adminShare
+    });
 
     // Mark note as having CareCoins distributed
     if (noteId) {
@@ -124,7 +226,11 @@ serve(async (req) => {
         total: totalAmount,
         patient_share: patientShare,
         provider_share: providerShare,
-        admin_share: adminShare
+        admin_share: adminShare,
+        blockchain_minting: !!contractAddress,
+        patient_wallet: patientWallet,
+        provider_wallet: providerData?.wallet_address,
+        admin_wallet: adminWallet
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

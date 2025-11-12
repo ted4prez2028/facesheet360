@@ -70,10 +70,24 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
 
       if (error) throw error;
 
+      // Distribute CareCoins for vitals charting
+      try {
+        await supabase.functions.invoke('distribute-charting-profit', {
+          body: {
+            patientId: selectedPatient,
+            providerId: userId,
+            chartType: 'vitals',
+          }
+        });
+      } catch (coinError) {
+        console.error('CareCoins distribution error:', coinError);
+        // Don't block vitals save if coin distribution fails
+      }
+
       queryClient.invalidateQueries({ queryKey: ['patient-vitals'] });
       queryClient.invalidateQueries({ queryKey: ['vitals', selectedPatient] });
 
-      toast.success('Vitals added successfully');
+      toast.success('Vitals added and CareCoins distributed!');
       setNewVitals({
         temperature: '',
         blood_pressure_systolic: '',
@@ -108,10 +122,24 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
 
       if (error) throw error;
 
+      // Distribute CareCoins for medication charting
+      try {
+        await supabase.functions.invoke('distribute-charting-profit', {
+          body: {
+            patientId: selectedPatient,
+            providerId: userId,
+            chartType: 'medication',
+          }
+        });
+      } catch (coinError) {
+        console.error('CareCoins distribution error:', coinError);
+        // Don't block medication save if coin distribution fails
+      }
+
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       queryClient.invalidateQueries({ queryKey: ['medication-orders', selectedPatient] });
 
-      toast.success('Medication added successfully');
+      toast.success('Medication added and CareCoins distributed!');
       setNewMedication({
         medication_name: '',
         dosage: '',

@@ -2326,6 +2326,7 @@ export type Database = {
           role: string | null
           specialty: string | null
           updated_at: string | null
+          wallet_address: string | null
         }
         Insert: {
           care_coins_balance?: number | null
@@ -2339,6 +2340,7 @@ export type Database = {
           role?: string | null
           specialty?: string | null
           updated_at?: string | null
+          wallet_address?: string | null
         }
         Update: {
           care_coins_balance?: number | null
@@ -2352,6 +2354,7 @@ export type Database = {
           role?: string | null
           specialty?: string | null
           updated_at?: string | null
+          wallet_address?: string | null
         }
         Relationships: []
       }
