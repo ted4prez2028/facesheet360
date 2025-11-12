@@ -1,18 +1,22 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, Loader2, ExternalLink, Copy } from "lucide-react";
+import { CheckCircle, Loader2, ExternalLink, Copy, TestTube } from "lucide-react";
 import { toast } from "sonner";
 import { useGlobalCareCoin } from "@/hooks/useGlobalCareCoin";
 import { MetaMaskIntegration } from "./MetaMaskIntegration";
 import { useWallet } from "@/hooks/useWallet";
 import { PolygonNetworkBadge } from "./PolygonNetworkBadge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export function TokenDeployer() {
   const { existingContract, isLoading, deployCareCoin, isDeployed } = useGlobalCareCoin();
   const { isWalletConnected, walletAddress, connectWallet } = useWallet();
+  const [isTestnetMode, setIsTestnetMode] = useState(true); // Default to testnet for Phase 1
 
-  const handleDeploy = async () => {
+  const handleDeploy = async (testnet: boolean = isTestnetMode) => {
     if (isDeployed) return;
 
     if (!walletAddress) {
@@ -28,12 +32,15 @@ export function TokenDeployer() {
     }
 
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== '0x89') { // Polygon mainnet chain ID
-      toast.error('Please switch to Polygon network in MetaMask');
+    const expectedChainId = testnet ? '0x13881' : '0x89'; // Mumbai testnet or Polygon mainnet
+    const networkName = testnet ? 'Polygon Mumbai Testnet' : 'Polygon Mainnet';
+    
+    if (chainId !== expectedChainId) {
+      toast.error(`Please switch to ${networkName} in MetaMask`);
       return;
     }
 
-    deployCareCoin.mutate(address);
+    deployCareCoin.mutate({ deployerAddress: address, isTestnet: testnet });
   };
 
   const copyToClipboard = (text: string) => {
@@ -126,6 +133,28 @@ export function TokenDeployer() {
           </>
         ) : (
           <div className="space-y-4">
+            <Alert>
+              <TestTube className="h-4 w-4" />
+              <AlertDescription>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="font-semibold">Phase 1: Testnet Deployment</p>
+                    <p className="text-xs">Deploy to Polygon Mumbai Testnet for comprehensive testing before mainnet launch</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="testnet-mode"
+                      checked={isTestnetMode}
+                      onCheckedChange={setIsTestnetMode}
+                    />
+                    <Label htmlFor="testnet-mode" className="text-xs">
+                      {isTestnetMode ? 'Testnet' : 'Mainnet'}
+                    </Label>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+
             {isWalletConnected ? (
               <div className="text-sm">
                 Deploying as <code className="break-all">{walletAddress}</code>
@@ -137,7 +166,7 @@ export function TokenDeployer() {
             )}
 
             <Button
-              onClick={handleDeploy}
+              onClick={() => handleDeploy(isTestnetMode)}
               disabled={isDeployed || deployCareCoin.isPending}
               className="w-full"
               size="lg"
@@ -148,7 +177,10 @@ export function TokenDeployer() {
                   Deploying CareCoin...
                  </>
               ) : (
-                'Launch CareCoin on Polygon Network'
+                <>
+                  {isTestnetMode && <TestTube className="mr-2 h-4 w-4" />}
+                  {isTestnetMode ? 'Deploy to Testnet (Phase 1)' : 'Launch CareCoin on Polygon Mainnet'}
+                </>
               )}
             </Button>
           </div>

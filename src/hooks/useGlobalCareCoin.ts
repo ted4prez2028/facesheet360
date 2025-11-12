@@ -46,11 +46,11 @@ export const useGlobalCareCoin = () => {
 
   // Deploy CareCoin
   const deployCareCoin = useMutation({
-    mutationFn: async (deployerAddress: string) => {
-      console.log('Deploying CareCoin with deployer address:', deployerAddress);
+    mutationFn: async ({ deployerAddress, isTestnet = false }: { deployerAddress: string; isTestnet?: boolean }) => {
+      console.log(`Deploying CareCoin with deployer address: ${deployerAddress} (${isTestnet ? 'Testnet' : 'Mainnet'})`);
       
       const { data, error } = await supabase.functions.invoke('deploy-carecoin', {
-        body: { deployerAddress }
+        body: { deployerAddress, isTestnet }
       });
 
       if (error) {

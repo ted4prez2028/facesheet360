@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { deployerAddress } = await req.json();
+    const { deployerAddress, isTestnet = false } = await req.json();
     
     if (!deployerAddress) {
       throw new Error('Deployer wallet address is required');
@@ -62,14 +62,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const polygonRpcUrl = Deno.env.get('POLYGON_RPC_URL');
+    // Use testnet or mainnet RPC based on flag
+    const polygonRpcUrl = isTestnet 
+      ? 'https://rpc-mumbai.maticvigil.com' 
+      : Deno.env.get('POLYGON_RPC_URL');
     const deployerPrivateKey = Deno.env.get('POLYGON_DEPLOYER_PRIVATE_KEY');
 
     if (!polygonRpcUrl || !deployerPrivateKey) {
       throw new Error('Missing POLYGON_RPC_URL or POLYGON_DEPLOYER_PRIVATE_KEY environment variables');
     }
 
-    console.log('Connecting to Polygon network...');
+    const networkName = isTestnet ? 'Polygon Mumbai Testnet' : 'Polygon Mainnet';
+    console.log(`Connecting to ${networkName}...`);
     const provider = new ethers.JsonRpcProvider(polygonRpcUrl);
     const wallet = new ethers.Wallet(deployerPrivateKey, provider);
 
@@ -88,7 +92,7 @@ Deno.serve(async (req) => {
     const contractFactory = new ethers.ContractFactory(CONTRACT_ABI, CONTRACT_BYTECODE, wallet);
 
     // Deploy the contract on Polygon
-    console.log('Deploying CareCoin contract to Polygon...');
+    console.log(`Deploying CareCoin contract to ${networkName}...`);
     const deployTx = await contractFactory.deploy();
     
     console.log('Deployment transaction hash:', deployTx.deploymentTransaction()?.hash);
@@ -98,7 +102,7 @@ Deno.serve(async (req) => {
     const contract = await deployTx.waitForDeployment();
     const contractAddress = await contract.getAddress();
     
-    console.log('Contract deployed at:', contractAddress);
+    console.log(`Contract deployed at: ${contractAddress} on ${networkName}`);
 
     // Get contract details
     const name = await contract.name();
@@ -119,7 +123,7 @@ Deno.serve(async (req) => {
       .insert({
         contract_address: contractAddress,
         deployer_address: deployerAddress,
-        network: 'polygon',
+        network: isTestnet ? 'polygon-testnet' : 'polygon',
         transaction_hash: deployTx.deploymentTransaction()?.hash,
         deployed_by: null,
         contract_details: {
@@ -141,7 +145,11 @@ Deno.serve(async (req) => {
       contractAddress: contractAddress,
       transactionHash: deployTx.deploymentTransaction()?.hash,
       mintHash: mintTx.hash,
-      network: 'polygon',
+      network: isTestnet ? 'polygon-testnet' : 'polygon',
+      isTestnet: isTestnet,
+      explorerUrl: isTestnet 
+        ? `https://mumbai.polygonscan.com/address/${contractAddress}`
+        : `https://polygonscan.com/address/${contractAddress}`,
       contractDetails: {
         name: name,
         symbol: symbol,
@@ -151,7 +159,9 @@ Deno.serve(async (req) => {
         deployerReward: '100'
       },
       abi: CONTRACT_ABI,
-      message: "CareCoin deployed successfully on Polygon! 100 CARE tokens minted to deployer. Gas fees reduced by 99% compared to Ethereum!"
+      message: isTestnet 
+        ? "CareCoin deployed successfully to Polygon Mumbai Testnet! Ready for comprehensive testing. 100 CARE tokens minted to deployer."
+        : "CareCoin deployed successfully on Polygon Mainnet! 100 CARE tokens minted to deployer. Gas fees reduced by 99% compared to Ethereum!"
     };
 
     console.log('Deployment successful:', response);
