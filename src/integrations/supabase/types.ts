@@ -289,6 +289,57 @@ export type Database = {
           },
         ]
       }
+      beta_testers: {
+        Row: {
+          accepted_at: string | null
+          beta_group: string
+          created_at: string
+          features_enabled: string[] | null
+          feedback_provided: boolean | null
+          id: string
+          invited_at: string
+          invited_by: string | null
+          removal_reason: string | null
+          removed_at: string | null
+          status: string
+          transaction_limit: number | null
+          transactions_used: number | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          beta_group: string
+          created_at?: string
+          features_enabled?: string[] | null
+          feedback_provided?: boolean | null
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          removal_reason?: string | null
+          removed_at?: string | null
+          status?: string
+          transaction_limit?: number | null
+          transactions_used?: number | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          beta_group?: string
+          created_at?: string
+          features_enabled?: string[] | null
+          feedback_provided?: boolean | null
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          removal_reason?: string | null
+          removed_at?: string | null
+          status?: string
+          transaction_limit?: number | null
+          transactions_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bill_payments: {
         Row: {
           amount: number
@@ -681,6 +732,72 @@ export type Database = {
           id?: string
           network?: string | null
           transaction_hash?: string | null
+        }
+        Relationships: []
+      }
+      carecoin_deployment_status: {
+        Row: {
+          contract_address: string | null
+          deployed_at: string
+          deployed_by: string | null
+          deployer_address: string
+          deployment_cost_matic: number | null
+          deployment_phase: string
+          error_message: string | null
+          gas_used: number | null
+          id: string
+          liquidity_amount_care: number | null
+          liquidity_amount_usdc: number | null
+          liquidity_locked_until: string | null
+          liquidity_pool_address: string | null
+          metadata: Json | null
+          network: string
+          polygonscan_verified: boolean | null
+          status: string
+          transaction_hash: string | null
+          verification_url: string | null
+        }
+        Insert: {
+          contract_address?: string | null
+          deployed_at?: string
+          deployed_by?: string | null
+          deployer_address: string
+          deployment_cost_matic?: number | null
+          deployment_phase: string
+          error_message?: string | null
+          gas_used?: number | null
+          id?: string
+          liquidity_amount_care?: number | null
+          liquidity_amount_usdc?: number | null
+          liquidity_locked_until?: string | null
+          liquidity_pool_address?: string | null
+          metadata?: Json | null
+          network: string
+          polygonscan_verified?: boolean | null
+          status?: string
+          transaction_hash?: string | null
+          verification_url?: string | null
+        }
+        Update: {
+          contract_address?: string | null
+          deployed_at?: string
+          deployed_by?: string | null
+          deployer_address?: string
+          deployment_cost_matic?: number | null
+          deployment_phase?: string
+          error_message?: string | null
+          gas_used?: number | null
+          id?: string
+          liquidity_amount_care?: number | null
+          liquidity_amount_usdc?: number | null
+          liquidity_locked_until?: string | null
+          liquidity_pool_address?: string | null
+          metadata?: Json | null
+          network?: string
+          polygonscan_verified?: boolean | null
+          status?: string
+          transaction_hash?: string | null
+          verification_url?: string | null
         }
         Relationships: []
       }
@@ -1553,6 +1670,51 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          created_at: string
+          enabled_at: string | null
+          enabled_by: string | null
+          enabled_for_roles: string[] | null
+          enabled_for_users: string[] | null
+          feature_description: string | null
+          feature_name: string
+          id: string
+          is_enabled: boolean
+          requirements: Json | null
+          rollout_percentage: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled_at?: string | null
+          enabled_by?: string | null
+          enabled_for_roles?: string[] | null
+          enabled_for_users?: string[] | null
+          feature_description?: string | null
+          feature_name: string
+          id?: string
+          is_enabled?: boolean
+          requirements?: Json | null
+          rollout_percentage?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled_at?: string | null
+          enabled_by?: string | null
+          enabled_for_roles?: string[] | null
+          enabled_for_users?: string[] | null
+          feature_description?: string | null
+          feature_name?: string
+          id?: string
+          is_enabled?: boolean
+          requirements?: Json | null
+          rollout_percentage?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       food_orders: {
         Row: {
           created_at: string | null
@@ -1602,6 +1764,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gas_wallet_monitoring: {
+        Row: {
+          alert_sent: boolean | null
+          checked_at: string
+          created_at: string
+          id: string
+          last_refill_amount: number | null
+          last_refill_at: string | null
+          matic_balance: number
+          network: string
+          threshold_matic: number
+          total_gas_spent: number | null
+          transaction_count: number | null
+          wallet_address: string
+        }
+        Insert: {
+          alert_sent?: boolean | null
+          checked_at?: string
+          created_at?: string
+          id?: string
+          last_refill_amount?: number | null
+          last_refill_at?: string | null
+          matic_balance: number
+          network: string
+          threshold_matic?: number
+          total_gas_spent?: number | null
+          transaction_count?: number | null
+          wallet_address: string
+        }
+        Update: {
+          alert_sent?: boolean | null
+          checked_at?: string
+          created_at?: string
+          id?: string
+          last_refill_amount?: number | null
+          last_refill_at?: string | null
+          matic_balance?: number
+          network?: string
+          threshold_matic?: number
+          total_gas_spent?: number | null
+          transaction_count?: number | null
+          wallet_address?: string
+        }
+        Relationships: []
       }
       goal_achievements: {
         Row: {
@@ -2153,6 +2360,81 @@ export type Database = {
           },
         ]
       }
+      kyc_verifications: {
+        Row: {
+          address_verified: boolean | null
+          approved_at: string | null
+          country_code: string | null
+          created_at: string
+          date_of_birth: string | null
+          document_expiry: string | null
+          document_number: string | null
+          document_type: string | null
+          expires_at: string | null
+          id: string
+          identity_verified: boolean | null
+          metadata: Json | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          submitted_at: string
+          updated_at: string
+          user_id: string
+          verification_id: string | null
+          verification_level: string | null
+          verification_provider: string
+          verification_status: string
+        }
+        Insert: {
+          address_verified?: boolean | null
+          approved_at?: string | null
+          country_code?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_expiry?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          expires_at?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          metadata?: Json | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+          verification_id?: string | null
+          verification_level?: string | null
+          verification_provider: string
+          verification_status?: string
+        }
+        Update: {
+          address_verified?: boolean | null
+          approved_at?: string | null
+          country_code?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_expiry?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          expires_at?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          metadata?: Json | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+          verification_id?: string | null
+          verification_level?: string | null
+          verification_provider?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
       lab_results: {
         Row: {
           created_at: string | null
@@ -2214,6 +2496,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legal_disclaimers: {
+        Row: {
+          created_at: string
+          disclaimer_content: string
+          disclaimer_title: string
+          disclaimer_type: string
+          display_frequency: string | null
+          effective_date: string
+          id: string
+          is_active: boolean | null
+          requires_acceptance: boolean | null
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          disclaimer_content: string
+          disclaimer_title: string
+          disclaimer_type: string
+          display_frequency?: string | null
+          effective_date: string
+          id?: string
+          is_active?: boolean | null
+          requires_acceptance?: boolean | null
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          disclaimer_content?: string
+          disclaimer_title?: string
+          disclaimer_type?: string
+          display_frequency?: string | null
+          effective_date?: string
+          id?: string
+          is_active?: boolean | null
+          requires_acceptance?: boolean | null
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
       }
       medical_diagnoses: {
         Row: {
@@ -3841,6 +4165,104 @@ export type Database = {
         }
         Relationships: []
       }
+      support_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          attachments: Json | null
+          category: string
+          closed_at: string | null
+          created_at: string
+          description: string
+          first_response_at: string | null
+          id: string
+          priority: string
+          resolved_at: string | null
+          satisfaction_comment: string | null
+          satisfaction_rating: number | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          category: string
+          closed_at?: string | null
+          created_at?: string
+          description: string
+          first_response_at?: string | null
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          satisfaction_comment?: string | null
+          satisfaction_rating?: number | null
+          status?: string
+          subject: string
+          ticket_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          description?: string
+          first_response_at?: string | null
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          satisfaction_comment?: string | null
+          satisfaction_rating?: number | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string
@@ -3897,6 +4319,159 @@ export type Database = {
           },
         ]
       }
+      tax_reporting: {
+        Row: {
+          created_at: string
+          form_1099_generated: boolean | null
+          form_1099_sent: boolean | null
+          form_1099_sent_at: string | null
+          form_1099_url: string | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          mailing_address: Json | null
+          tax_year: number
+          taxpayer_id_last_4: string | null
+          taxpayer_id_type: string | null
+          total_carecoin_earned: number
+          total_cashout_usd: number
+          total_cashouts: number
+          total_usd_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          form_1099_generated?: boolean | null
+          form_1099_sent?: boolean | null
+          form_1099_sent_at?: string | null
+          form_1099_url?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          mailing_address?: Json | null
+          tax_year: number
+          taxpayer_id_last_4?: string | null
+          taxpayer_id_type?: string | null
+          total_carecoin_earned?: number
+          total_cashout_usd?: number
+          total_cashouts?: number
+          total_usd_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          form_1099_generated?: boolean | null
+          form_1099_sent?: boolean | null
+          form_1099_sent_at?: string | null
+          form_1099_url?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          mailing_address?: Json | null
+          tax_year?: number
+          taxpayer_id_last_4?: string | null
+          taxpayer_id_type?: string | null
+          total_carecoin_earned?: number
+          total_cashout_usd?: number
+          total_cashouts?: number
+          total_usd_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      terms_acceptances: {
+        Row: {
+          acceptance_method: string | null
+          accepted_at: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          terms_type: string
+          terms_version: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          acceptance_method?: string | null
+          accepted_at?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          terms_type: string
+          terms_version: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          acceptance_method?: string | null
+          accepted_at?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          terms_type?: string
+          terms_version?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transaction_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_details: Json | null
+          alert_message: string
+          alert_type: string
+          created_at: string
+          id: string
+          resolution_notes: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          severity: string
+          transaction_hash: string | null
+          transaction_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_details?: Json | null
+          alert_message: string
+          alert_type: string
+          created_at?: string
+          id?: string
+          resolution_notes?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity: string
+          transaction_hash?: string | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_details?: Json | null
+          alert_message?: string
+          alert_type?: string
+          created_at?: string
+          id?: string
+          resolution_notes?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string
+          transaction_hash?: string | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_devices: {
         Row: {
           browser: string | null
@@ -3939,6 +4514,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedback: {
+        Row: {
+          assigned_to: string | null
+          attachments: Json | null
+          browser_info: Json | null
+          created_at: string
+          description: string
+          feedback_category: string | null
+          feedback_type: string
+          id: string
+          priority: number | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          browser_info?: Json | null
+          created_at?: string
+          description: string
+          feedback_category?: string | null
+          feedback_type: string
+          id?: string
+          priority?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          browser_info?: Json | null
+          created_at?: string
+          description?: string
+          feedback_category?: string | null
+          feedback_type?: string
+          id?: string
+          priority?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_mfa_settings: {
         Row: {
           backup_codes: string[] | null
@@ -3971,6 +4606,45 @@ export type Database = {
           mfa_method?: string | null
           phone_number?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_onboarding: {
+        Row: {
+          attempts: number | null
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          onboarding_type: string
+          skipped: boolean | null
+          step_name: string
+          time_spent_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          onboarding_type: string
+          skipped?: boolean | null
+          step_name: string
+          time_spent_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          onboarding_type?: string
+          skipped?: boolean | null
+          step_name?: string
+          time_spent_seconds?: number | null
           user_id?: string
         }
         Relationships: []
@@ -4183,6 +4857,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      generate_ticket_number: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
