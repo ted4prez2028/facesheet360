@@ -9,11 +9,7 @@ export const VirtualCardView = () => {
   const { requestNewCard, cards, isRequestingCard } = useVirtualCard();
 
   const handleRequestCard = async () => {
-    try {
-      await requestNewCard('virtual', 500);
-    } catch (error) {
-      console.error('Failed to request card:', error);
-    }
+    await requestNewCard('virtual', 500);
   };
 
   return (
@@ -42,15 +38,32 @@ export const VirtualCardView = () => {
             {cards.length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-medium">Your Cards</h3>
-                {cards.map((card: any) => (
-                  <div key={card.id} className="p-3 border rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">**** **** **** {card.last_four}</span>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        card.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                {cards.map((card) => (
+                  <div key={card.id} className="p-4 border rounded-lg bg-gradient-to-br from-primary/10 to-primary/5">
+                    <div className="flex justify-between items-center mb-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">{card.card_type === 'virtual' ? 'Virtual Card' : 'Physical Card'}</p>
+                        <p className="font-mono font-bold text-lg">**** **** **** {card.last_four}</p>
+                      </div>
+                      <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                        card.status === 'active' 
+                          ? 'bg-green-500 text-white' 
+                          : card.status === 'pending'
+                          ? 'bg-yellow-500 text-white'
+                          : 'bg-gray-500 text-white'
                       }`}>
                         {card.status}
                       </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Balance</p>
+                        <p className="font-semibold">${Number(card.current_balance).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Limit</p>
+                        <p className="font-semibold">${Number(card.limit_amount).toFixed(2)}</p>
+                      </div>
                     </div>
                   </div>
                 ))}

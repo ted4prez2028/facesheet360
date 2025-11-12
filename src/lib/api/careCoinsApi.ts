@@ -61,9 +61,19 @@ export const careCoinsApi = {
   },
 
   async createBillPayment(payment: Omit<CareCoinsBillPayment, 'id' | 'created_at' | 'updated_at'>): Promise<CareCoinsBillPayment> {
+    const paymentData: any = {
+      user_id: payment.user_id,
+      bill_type: payment.bill_type,
+      amount: payment.amount,
+      recipient_name: payment.recipient_name,
+      recipient_account: payment.recipient_account,
+      bill_info: payment.bill_info ? JSON.parse(JSON.stringify(payment.bill_info)) : null,
+      status: payment.status || 'pending'
+    };
+
     const { data, error } = await supabase
       .from('bill_payments')
-      .insert([payment as any])
+      .insert([paymentData])
       .select()
       .single();
 
@@ -72,7 +82,7 @@ export const careCoinsApi = {
       throw error;
     }
 
-    return data as any;
+    return data as CareCoinsBillPayment;
   },
 
   async getAchievements(userId: string): Promise<CareCoinsAchievement[]> {

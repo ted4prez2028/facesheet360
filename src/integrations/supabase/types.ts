@@ -343,33 +343,39 @@ export type Database = {
       bill_payments: {
         Row: {
           amount: number
-          biller_name: string
-          care_coins_amount: number
+          bill_info: Json | null
+          bill_type: string
           created_at: string | null
           id: string
           payment_method: string | null
+          recipient_account: string
+          recipient_name: string
           status: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           amount: number
-          biller_name: string
-          care_coins_amount: number
+          bill_info?: Json | null
+          bill_type?: string
           created_at?: string | null
           id?: string
           payment_method?: string | null
+          recipient_account?: string
+          recipient_name?: string
           status?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           amount?: number
-          biller_name?: string
-          care_coins_amount?: number
+          bill_info?: Json | null
+          bill_type?: string
           created_at?: string | null
           id?: string
           payment_method?: string | null
+          recipient_account?: string
+          recipient_name?: string
           status?: string | null
           updated_at?: string | null
           user_id?: string
@@ -4719,6 +4725,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      virtual_cards: {
+        Row: {
+          card_number: string | null
+          card_type: string
+          created_at: string
+          current_balance: number
+          cvv_encrypted: string | null
+          expiry_date: string | null
+          id: string
+          last_four: string | null
+          limit_amount: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_number?: string | null
+          card_type?: string
+          created_at?: string
+          current_balance?: number
+          cvv_encrypted?: string | null
+          expiry_date?: string | null
+          id?: string
+          last_four?: string | null
+          limit_amount?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_number?: string | null
+          card_type?: string
+          created_at?: string
+          current_balance?: number
+          cvv_encrypted?: string | null
+          expiry_date?: string | null
+          id?: string
+          last_four?: string | null
+          limit_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       wound_assessments: {
         Row: {

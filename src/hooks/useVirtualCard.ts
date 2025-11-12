@@ -22,10 +22,24 @@ export const useVirtualCard = () => {
     if (!user) return;
 
     try {
-      // Virtual cards not implemented in database yet
-      // Return mock data for now
-      setCard(null);
-      setCards([]);
+      const { data, error } = await supabase
+        .from('virtual_cards')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const typedCards = (data || []).map(card => ({
+        ...card,
+        card_type: card.card_type as 'virtual' | 'physical',
+        status: card.status as 'pending' | 'active' | 'suspended'
+      }));
+
+      setCards(typedCards);
+      if (typedCards.length > 0) {
+        setCard(typedCards[0]);
+      }
     } catch (error) {
       console.error('Error fetching card:', error);
     } finally {
@@ -33,25 +47,44 @@ export const useVirtualCard = () => {
     }
   };
 
-  const createCard = async () => {
+  const createCard = async (cardType: 'virtual' | 'physical' = 'virtual', limitAmount: number = 500) => {
     if (!user) {
       toast.error('User not authenticated');
       return;
     }
 
     try {
-      // Virtual cards not implemented in database yet
-      toast.info('Virtual card feature coming soon');
+      // Generate card number for virtual cards
+      const last_four = Math.floor(1000 + Math.random() * 9000).toString();
+      
+      const { data, error } = await supabase
+        .from('virtual_cards')
+        .insert({
+          user_id: user.id,
+          card_type: cardType,
+          last_four: last_four,
+          status: 'active',
+          limit_amount: limitAmount,
+          current_balance: 0
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`${cardType === 'virtual' ? 'Virtual' : 'Physical'} card created successfully`);
+      await fetchCard();
+      return data;
     } catch (error) {
       console.error('Error creating card:', error);
       toast.error('Failed to create card');
     }
   };
 
-  const requestNewCard = async (cardType: string, limitAmount: number) => {
+  const requestNewCard = async (cardType: 'virtual' | 'physical', limitAmount: number) => {
     setIsRequestingCard(true);
     try {
-      await createCard();
+      await createCard(cardType, limitAmount);
     } finally {
       setIsRequestingCard(false);
     }

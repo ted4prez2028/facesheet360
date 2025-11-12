@@ -113,8 +113,13 @@ export interface CareCoinsCard {
   id: string;
   user_id: string;
   card_type: 'virtual' | 'physical';
-  status: 'pending' | 'active' | 'suspended';
+  status: 'pending' | 'active' | 'suspended' | 'cancelled';
   limit_amount: number;
+  current_balance: number;
+  card_number?: string;
+  last_four?: string;
+  cvv_encrypted?: string;
+  expiry_date?: string;
   created_at: string;
   updated_at: string;
 }
