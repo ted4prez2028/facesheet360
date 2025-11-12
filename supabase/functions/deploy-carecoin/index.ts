@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
 
     // Use testnet or mainnet RPC based on flag
     const polygonRpcUrl = isTestnet 
-      ? 'https://rpc-mumbai.maticvigil.com' 
+      ? 'https://rpc.ankr.com/polygon_mumbai' 
       : Deno.env.get('POLYGON_RPC_URL');
     const deployerPrivateKey = Deno.env.get('POLYGON_DEPLOYER_PRIVATE_KEY');
 

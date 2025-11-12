@@ -159,8 +159,12 @@ export default function WalletManagement() {
         "function decimals() view returns (uint8)"
       ];
 
-      // Connect to Polygon Mumbai testnet
-      const provider = new ethers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com');
+      // Connect to Polygon Mumbai testnet - use working RPC
+      const rpcUrl = existingContract.network === 'polygon-testnet' 
+        ? 'https://rpc.ankr.com/polygon_mumbai'
+        : 'https://polygon-rpc.com';
+      
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
       const contract = new ethers.Contract(
         existingContract.contract_address,
         CARECOIN_ABI,
