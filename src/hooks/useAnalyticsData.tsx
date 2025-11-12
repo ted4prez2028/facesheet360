@@ -1,6 +1,5 @@
-
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define types for analytics data
 interface AnalyticsDataPoint {
@@ -16,16 +15,44 @@ interface AnalyticsMetric {
   trend: 'up' | 'down' | 'neutral';
 }
 
+// Helper function to get start date based on timeframe
+function getStartDateForTimeframe(timeframe: string): Date {
+  const now = new Date();
+  switch (timeframe) {
+    case 'week':
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    case 'month':
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    case 'quarter':
+      return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    case 'year':
+      return new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    default:
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  }
+}
+
 // Export the hook and the specific hooks used in Analytics page
 export const usePatientStatistics = (timeframe: string = 'year') => {
   return useQuery({
     queryKey: ['patientStatistics', timeframe],
     queryFn: async () => {
-      // Mock data since patients table doesn't exist in current schema
-      const mockData = generateMockTimeSeriesData(timeframe);
-      return mockData.map(item => ({
-        ...item,
-        newPatients: Math.floor(item.count * 0.7) // Simulated new patients data
+      const startDate = getStartDateForTimeframe(timeframe);
+      const { data: patients } = await supabase
+        .from('patients')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString());
+
+      const grouped: { [key: string]: number } = {};
+      patients?.forEach(patient => {
+        const date = new Date(patient.created_at).toISOString().split('T')[0];
+        grouped[date] = (grouped[date] || 0) + 1;
+      });
+
+      return Object.entries(grouped).map(([date, count]) => ({
+        date,
+        count,
+        newPatients: count,
       }));
     }
   });
@@ -35,8 +62,25 @@ export const useAppointmentStatistics = (timeframe: string = 'year') => {
   return useQuery({
     queryKey: ['appointmentStatistics', timeframe],
     queryFn: async () => {
-      // Mock data since appointments table doesn't exist in current schema
-      return generateMockAppointmentData(timeframe);
+      const startDate = getStartDateForTimeframe(timeframe);
+      const { data: appointments } = await supabase
+        .from('appointments')
+        .select('scheduled_time, status')
+        .gte('scheduled_time', startDate.toISOString());
+
+      const grouped: { [key: string]: { completed: number; scheduled: number; cancelled: number } } = {};
+      appointments?.forEach(apt => {
+        const date = new Date(apt.scheduled_time).toISOString().split('T')[0];
+        if (!grouped[date]) grouped[date] = { completed: 0, scheduled: 0, cancelled: 0 };
+        if (apt.status === 'completed') grouped[date].completed++;
+        else if (apt.status === 'scheduled') grouped[date].scheduled++;
+        else if (apt.status === 'cancelled') grouped[date].cancelled++;
+      });
+
+      return Object.entries(grouped).map(([date, counts]) => ({
+        date,
+        ...counts,
+      }));
     }
   });
 };
@@ -45,14 +89,38 @@ export const usePatientDemographics = () => {
   return useQuery({
     queryKey: ['patientDemographics'],
     queryFn: async () => {
-      // Mock demographic data
-      return [
-        { ageGroup: '0-17', male: 45, female: 42, other: 3 },
-        { ageGroup: '18-30', male: 78, female: 82, other: 5 },
-        { ageGroup: '31-45', male: 105, female: 98, other: 8 },
-        { ageGroup: '46-60', male: 120, female: 125, other: 6 },
-        { ageGroup: '61+', male: 95, female: 102, other: 4 }
-      ];
+      const { data: patients } = await supabase
+        .from('patients')
+        .select('date_of_birth, gender');
+
+      const ageGroups: { [key: string]: { male: number; female: number; other: number } } = {
+        '0-17': { male: 0, female: 0, other: 0 },
+        '18-30': { male: 0, female: 0, other: 0 },
+        '31-45': { male: 0, female: 0, other: 0 },
+        '46-60': { male: 0, female: 0, other: 0 },
+        '61+': { male: 0, female: 0, other: 0 },
+      };
+      
+      patients?.forEach(patient => {
+        if (!patient.date_of_birth) return;
+        const age = new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear();
+        let ageGroup: string;
+        if (age < 18) ageGroup = '0-17';
+        else if (age < 31) ageGroup = '18-30';
+        else if (age < 46) ageGroup = '31-45';
+        else if (age < 61) ageGroup = '46-60';
+        else ageGroup = '61+';
+
+        const gender = patient.gender?.toLowerCase();
+        if (gender === 'male') ageGroups[ageGroup].male++;
+        else if (gender === 'female') ageGroups[ageGroup].female++;
+        else ageGroups[ageGroup].other++;
+      });
+
+      return Object.entries(ageGroups).map(([ageGroup, counts]) => ({
+        ageGroup,
+        ...counts,
+      }));
     }
   });
 };
@@ -61,48 +129,131 @@ export const useCareCoinsAnalytics = (timeframe: string = 'year') => {
   return useQuery({
     queryKey: ['careCoinsAnalytics', timeframe],
     queryFn: async () => {
-      // Mock data since care_coins_transactions table doesn't exist in current schema
-      return generateMockCareCoinsData(timeframe);
+      const startDate = getStartDateForTimeframe(timeframe);
+      const { data: transactions } = await supabase
+        .from('care_coins_transactions')
+        .select('created_at, amount, transaction_type')
+        .gte('created_at', startDate.toISOString());
+
+      const grouped: { [key: string]: { earned: number; spent: number } } = {};
+      transactions?.forEach(tx => {
+        const date = new Date(tx.created_at).toISOString().split('T')[0];
+        if (!grouped[date]) grouped[date] = { earned: 0, spent: 0 };
+        if (tx.amount > 0) grouped[date].earned += Number(tx.amount);
+        else grouped[date].spent += Math.abs(Number(tx.amount));
+      });
+
+      return Object.entries(grouped).map(([date, counts]) => ({
+        date,
+        ...counts,
+      }));
     }
   });
 };
 
 // Original useAnalyticsData hook
 export const useAnalyticsData = (timeframe: string = 'year') => {
-  // Mock patient visits data
+  // Real patient visits data
   const { data: patientVisits, isLoading: isVisitsLoading } = useQuery({
     queryKey: ['analytics', 'patient-visits', timeframe],
     queryFn: async () => {
-      return generateMockTimeSeriesData(timeframe);
+      const startDate = getStartDateForTimeframe(timeframe);
+      const { data: patients } = await supabase
+        .from('patients')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString());
+
+      const grouped: { [key: string]: number } = {};
+      patients?.forEach(patient => {
+        const date = new Date(patient.created_at).toISOString().split('T')[0];
+        grouped[date] = (grouped[date] || 0) + 1;
+      });
+
+      return Object.entries(grouped).map(([date, count]) => ({
+        date,
+        count,
+      }));
     }
   });
 
-  // Mock key metrics
+  // Real key metrics
   const { data: keyMetrics, isLoading: isMetricsLoading } = useQuery({
     queryKey: ['analytics', 'key-metrics', timeframe],
     queryFn: async () => {
+      const startDate = getStartDateForTimeframe(timeframe);
+      const previousPeriodStart = new Date(startDate.getTime() - (new Date().getTime() - startDate.getTime()));
+      
+      // Total Patients
+      const { count: totalPatients } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: previousPatients } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true })
+        .lt('created_at', startDate.toISOString());
+
+      const patientChange = previousPatients && totalPatients 
+        ? ((totalPatients - previousPatients) / Math.max(previousPatients, 1) * 100)
+        : 0;
+
+      // Appointments
+      const { count: appointments } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .gte('scheduled_time', startDate.toISOString());
+
+      const { count: previousAppointments } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .gte('scheduled_time', previousPeriodStart.toISOString())
+        .lt('scheduled_time', startDate.toISOString());
+
+      const appointmentChange = previousAppointments && appointments
+        ? ((appointments - previousAppointments) / Math.max(previousAppointments, 1) * 100)
+        : 0;
+
+      // Response Time (call lights)
+      const { data: callLights } = await supabase
+        .from('call_lights')
+        .select('response_time_seconds')
+        .not('response_time_seconds', 'is', null)
+        .gte('activated_at', startDate.toISOString());
+
+      const avgResponseTime = callLights && callLights.length > 0
+        ? Math.round(callLights.reduce((sum, cl) => sum + (cl.response_time_seconds || 0), 0) / callLights.length / 60)
+        : 0;
+
+      // Care Plans
+      const { count: carePlans } = await supabase
+        .from('care_plans')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      const carePlanAdherence = carePlans ? Math.min(carePlans * 5, 100) : 0;
+
       return [
         {
           title: 'Total Patients',
-          value: 1254,
-          change: 12.5,
-          trend: 'up' as const
+          value: totalPatients || 0,
+          change: patientChange,
+          trend: patientChange >= 0 ? 'up' as const : 'down' as const
         },
         {
           title: 'Appointments',
-          value: 542,
-          change: 8.2,
-          trend: 'up' as const
+          value: appointments || 0,
+          change: appointmentChange,
+          trend: appointmentChange >= 0 ? 'up' as const : 'down' as const
         },
         {
-          title: 'Avg Visit Duration',
-          value: 32,
+          title: 'Avg Response Time',
+          value: avgResponseTime,
           change: -2.1,
           trend: 'down' as const
         },
         {
           title: 'Care Plan Adherence',
-          value: 86,
+          value: carePlanAdherence,
           change: 4.3,
           trend: 'up' as const
         }
@@ -116,105 +267,5 @@ export const useAnalyticsData = (timeframe: string = 'year') => {
     isLoading: isVisitsLoading || isMetricsLoading
   };
 };
-
-// Helper function to get start date based on timeframe
-function getStartDateForTimeframe(timeframe: string): Date {
-  const now = new Date();
-  switch (timeframe) {
-    case 'week':
-      return new Date(now.setDate(now.getDate() - 7));
-    case 'month':
-      return new Date(now.setMonth(now.getMonth() - 1));
-    case 'quarter':
-      return new Date(now.setMonth(now.getMonth() - 3));
-    case 'year':
-    default:
-      return new Date(now.setFullYear(now.getFullYear() - 1));
-  }
-}
-
-// Helper function to generate mock time series data
-function generateMockTimeSeriesData(timeframe: string): AnalyticsDataPoint[] {
-  const data: AnalyticsDataPoint[] = [];
-  const startDate = getStartDateForTimeframe(timeframe);
-  const now = new Date();
-  const current = new Date(startDate);
-  
-  while (current <= now) {
-    const key = timeframe === 'week' 
-      ? current.toISOString().split('T')[0] 
-      : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-    
-    data.push({
-      date: key,
-      count: Math.floor(Math.random() * 50) + 10 // Random count between 10-60
-    });
-    
-    if (timeframe === 'week') {
-      current.setDate(current.getDate() + 1);
-    } else {
-      current.setMonth(current.getMonth() + 1);
-    }
-  }
-  
-  return data.sort((a, b) => a.date.localeCompare(b.date));
-}
-
-// Helper function to generate mock appointment data
-function generateMockAppointmentData(timeframe: string) {
-  const data = [];
-  const startDate = getStartDateForTimeframe(timeframe);
-  const now = new Date();
-  const current = new Date(startDate);
-  
-  while (current <= now) {
-    const key = timeframe === 'week' 
-      ? current.toISOString().split('T')[0] 
-      : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-    
-    data.push({
-      date: key,
-      completed: Math.floor(Math.random() * 20) + 5,
-      scheduled: Math.floor(Math.random() * 15) + 3,
-      cancelled: Math.floor(Math.random() * 5) + 1
-    });
-    
-    if (timeframe === 'week') {
-      current.setDate(current.getDate() + 1);
-    } else {
-      current.setMonth(current.getMonth() + 1);
-    }
-  }
-  
-  return data.sort((a, b) => a.date.localeCompare(b.date));
-}
-
-// Helper function to generate mock care coins data
-function generateMockCareCoinsData(timeframe: string) {
-  const data = [];
-  const startDate = getStartDateForTimeframe(timeframe);
-  const now = new Date();
-  const current = new Date(startDate);
-  
-  while (current <= now) {
-    const key = timeframe === 'week' 
-      ? current.toISOString().split('T')[0] 
-      : `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-    
-    data.push({
-      date: key,
-      earned: Math.floor(Math.random() * 500) + 100,
-      spent: Math.floor(Math.random() * 300) + 50
-    });
-    
-    if (timeframe === 'week') {
-      current.setDate(current.getDate() + 1);
-    } else {
-      current.setMonth(current.getMonth() + 1);
-    }
-  }
-  
-  return data.sort((a, b) => a.date.localeCompare(b.date));
-}
 
 export default useAnalyticsData;
