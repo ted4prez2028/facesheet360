@@ -32,6 +32,7 @@ import {
   Shield as ShieldIcon,
   Lock,
   Car,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -84,8 +85,11 @@ export function AppSidebar() {
       group: "Clinical",
       items: [
         { title: "Patient Monitoring", icon: Activity, path: "/patient-monitoring" },
+        { title: "Decision Support", icon: Stethoscope, path: "/clinical-decision-support" },
+        { title: "Care Coordination", icon: Users, path: "/care-coordination" },
         { title: "Pharmacy", icon: Pill, path: "/pharmacy" },
         { title: "Analytics", icon: BarChart3, path: "/analytics" },
+        { title: "Predictive Analytics", icon: TrendingUp, path: "/predictive-analytics" },
       ],
     },
     {
@@ -100,6 +104,7 @@ export function AppSidebar() {
       group: "Financial",
       items: [
         { title: "CareCoin Wallet", icon: Wallet, path: "/wallet-dashboard" },
+        { title: "CareCoin Ecosystem", icon: TrendingUp, path: "/carecoin-ecosystem" },
         { title: "Wallet Management", icon: Settings, path: "/wallet-management" },
         { title: "Transaction History", icon: BarChart3, path: "/carecoins-transactions" },
         { title: "CareCoin Analytics", icon: DollarSign, path: "/carecoins-analytics" },
@@ -112,9 +117,11 @@ export function AppSidebar() {
       items: [
         { title: "Food", icon: Utensils, path: "/food" },
         { title: "Driver Management", icon: Car, path: "/admin/drivers" },
+        { title: "Compliance Center", icon: Shield, path: "/compliance-center" },
         { title: "EHR Import", icon: Database, path: "/ehr-import" },
         { title: "Audit Logs", icon: ShieldIcon, path: "/audit-logs" },
         { title: "Security & Compliance", icon: Lock, path: "/security" },
+        { title: "Security Settings", icon: Lock, path: "/security-settings" },
         { title: "Settings", icon: Settings, path: "/settings" },
         { title: "Profile", icon: Users, path: "/profile" },
       ],
@@ -125,12 +132,13 @@ export function AppSidebar() {
     {
       group: "Patient",
       items: [
+        { title: "Patient Portal", icon: Heart, path: "/patient-portal" },
         { title: "My Chart", icon: FileText, path: "/my-chart" },
         { title: "Appointments", icon: Calendar, path: "/appointments" },
         { title: "CareCoin Wallet", icon: Wallet, path: "/wallet-dashboard" },
+        { title: "Taxi Service", icon: Car, path: "/taxi" },
         { title: "Food", icon: Utensils, path: "/food" },
         { title: "Profile", icon: Users, path: "/profile" },
-        { title: "Driver Dashboard", icon: Car, path: "/driver" },
       ],
     },
   ];

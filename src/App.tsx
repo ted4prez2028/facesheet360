@@ -49,6 +49,13 @@ import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
 import DriverDashboard from './pages/DriverDashboard';
 import AdminDriverManagement from './pages/AdminDriverManagement';
 import RideHistory from './pages/RideHistory';
+import ClinicalDecisionSupport from './pages/ClinicalDecisionSupport';
+import CareCoordination from './pages/CareCoordination';
+import PredictiveAnalytics from './pages/PredictiveAnalytics';
+import PatientPortal from './pages/PatientPortal';
+import ComplianceCenter from './pages/ComplianceCenter';
+import CareCoinEcosystem from './pages/CareCoinEcosystem';
+import SecuritySettings from './pages/SecuritySettings';
 
 const queryClient = new QueryClient();
 
@@ -381,6 +388,76 @@ function App() {
                       <RequireAuth>
                         <DashboardLayout>
                           <AdminDriverManagement />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/clinical-decision-support"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <ClinicalDecisionSupport />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/care-coordination"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <CareCoordination />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/predictive-analytics"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <PredictiveAnalytics />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/patient-portal"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <PatientPortal />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/compliance-center"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <ComplianceCenter />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/carecoin-ecosystem"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <CareCoinEcosystem />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/security-settings"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <SecuritySettings />
                         </DashboardLayout>
                       </RequireAuth>
                     }
