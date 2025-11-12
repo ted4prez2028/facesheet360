@@ -242,13 +242,75 @@ export default function WalletManagement() {
 
           <Button 
             onClick={handleUpdateWallet} 
-            disabled={isUpdating || !walletAddress || walletAddress === (user as any)?.wallet_address}
+            disabled={isUpdating || !walletAddress || walletAddress === user?.wallet_address}
             className="w-full"
           >
             {isUpdating ? 'Updating...' : 'Update Wallet Address'}
           </Button>
         </CardContent>
       </Card>
+
+      {/* Admin Mint Tokens */}
+      {user?.email === 'tdicusmurray@gmail.com' && user?.wallet_address && (
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5" />
+              Admin: Mint Tokens
+            </CardTitle>
+            <CardDescription>
+              Mint CareCoins directly to your connected wallet (Admin only)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!existingContract ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Contract Not Deployed</AlertTitle>
+                <AlertDescription>
+                  You must deploy the CareCoin contract first. Go to the CareCoin Testing page to deploy the contract.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-1">
+                      <p className="font-medium">Contract Address:</p>
+                      <p className="text-xs font-mono break-all">{existingContract.contract_address}</p>
+                      <p className="text-xs text-muted-foreground mt-2">Network: {existingContract.network}</p>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mint-amount">Amount to Mint</Label>
+                  <Input
+                    id="mint-amount"
+                    type="number"
+                    placeholder="100"
+                    value={mintAmount}
+                    onChange={(e) => setMintAmount(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Number of CARE tokens to mint to your wallet
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleMintTokens}
+                  disabled={isMinting || !mintAmount || parseInt(mintAmount) <= 0}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isMinting ? 'Minting...' : `Mint ${mintAmount} CARE Tokens`}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* How It Works */}
       <Card>
