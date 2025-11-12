@@ -1,26 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Wallet, ExternalLink, Copy, Check, AlertCircle, Coins } from 'lucide-react';
+import { Wallet, ExternalLink, Copy, Check, AlertCircle, Coins, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { getProvider } from '@/lib/web3';
 import { useGlobalCareCoin } from '@/hooks/useGlobalCareCoin';
 import { supabase } from '@/integrations/supabase/client';
+import { ethers } from 'ethers';
 
 export default function WalletManagement() {
   const { user, updateProfile } = useAuth();
-  const { existingContract, isLoading: isContractLoading } = useGlobalCareCoin();
+  const { existingContract, isLoading: isContractLoading, deployCareCoin, isDeployed } = useGlobalCareCoin();
   const [walletAddress, setWalletAddress] = useState(user?.wallet_address || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
   const [mintAmount, setMintAmount] = useState('100');
+  const [blockchainBalance, setBlockchainBalance] = useState<string | null>(null);
+  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
 
   const handleConnectMetaMask = async () => {
     setIsConnecting(true);
@@ -108,6 +111,8 @@ export default function WalletManagement() {
       if (data.success) {
         toast.success(`Successfully minted ${mintAmount} CARE tokens!`);
         toast.success(`Transaction hash: ${data.transactionHash}`);
+        // Refresh balance after minting
+        setTimeout(() => handleCheckBalance(), 3000);
       } else {
         throw new Error(data.error || 'Minting failed');
       }
@@ -118,6 +123,71 @@ export default function WalletManagement() {
       setIsMinting(false);
     }
   };
+
+  const handleDeployContract = async () => {
+    if (!user?.wallet_address) {
+      toast.error('Please connect a wallet address first');
+      return;
+    }
+
+    try {
+      await deployCareCoin.mutateAsync({
+        deployerAddress: user.wallet_address,
+        isTestnet: true
+      });
+    } catch (error: any) {
+      console.error('Deployment error:', error);
+      // Error toast is already shown by the mutation
+    }
+  };
+
+  const handleCheckBalance = async () => {
+    if (!user?.wallet_address) {
+      toast.error('Please connect a wallet address first');
+      return;
+    }
+
+    if (!existingContract?.contract_address) {
+      toast.error('CareCoin contract not deployed yet');
+      return;
+    }
+
+    setIsCheckingBalance(true);
+    try {
+      const CARECOIN_ABI = [
+        "function balanceOf(address owner) view returns (uint256)",
+        "function decimals() view returns (uint8)"
+      ];
+
+      // Connect to Polygon Mumbai testnet
+      const provider = new ethers.JsonRpcProvider('https://rpc-mumbai.maticvigil.com');
+      const contract = new ethers.Contract(
+        existingContract.contract_address,
+        CARECOIN_ABI,
+        provider
+      );
+
+      const balance = await contract.balanceOf(user.wallet_address);
+      const decimals = await contract.decimals();
+      const formattedBalance = ethers.formatUnits(balance, decimals);
+      
+      setBlockchainBalance(formattedBalance);
+      toast.success(`Balance: ${formattedBalance} CARE tokens`);
+    } catch (error: any) {
+      console.error('Balance check error:', error);
+      toast.error('Failed to check blockchain balance');
+      setBlockchainBalance(null);
+    } finally {
+      setIsCheckingBalance(false);
+    }
+  };
+
+  // Auto-check balance when contract exists
+  useEffect(() => {
+    if (existingContract?.contract_address && user?.wallet_address) {
+      handleCheckBalance();
+    }
+  }, [existingContract?.contract_address, user?.wallet_address]);
 
   if (!user) {
     return (
@@ -256,33 +326,66 @@ export default function WalletManagement() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-5 w-5" />
-              Admin: Mint Tokens
+              Admin: CareCoin Management
             </CardTitle>
             <CardDescription>
-              Mint CareCoins directly to your connected wallet (Admin only)
+              Deploy contract, mint tokens, and check blockchain balance (Admin only)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {!existingContract ? (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Contract Not Deployed</AlertTitle>
-                <AlertDescription>
-                  You must deploy the CareCoin contract first. Go to the CareCoin Testing page to deploy the contract.
-                </AlertDescription>
-              </Alert>
+              <>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Contract Not Deployed</AlertTitle>
+                  <AlertDescription>
+                    Deploy the CareCoin contract to Polygon Mumbai testnet to start minting tokens.
+                  </AlertDescription>
+                </Alert>
+                <Button 
+                  onClick={handleDeployContract}
+                  disabled={deployCareCoin.isPending}
+                  className="w-full"
+                  size="lg"
+                >
+                  {deployCareCoin.isPending ? 'Deploying to Testnet...' : 'Deploy CareCoin to Mumbai Testnet'}
+                </Button>
+              </>
             ) : (
               <>
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    <div className="space-y-1">
-                      <p className="font-medium">Contract Address:</p>
-                      <p className="text-xs font-mono break-all">{existingContract.contract_address}</p>
-                      <p className="text-xs text-muted-foreground mt-2">Network: {existingContract.network}</p>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium">Contract Address:</p>
+                        <p className="text-xs font-mono break-all">{existingContract.contract_address}</p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">Network: {existingContract.network}</p>
+                        <Badge variant="outline" className="bg-green-100 dark:bg-green-900">
+                          Deployed
+                        </Badge>
+                      </div>
+                      {blockchainBalance !== null && (
+                        <div className="pt-2 border-t">
+                          <p className="font-medium">Blockchain Balance:</p>
+                          <p className="text-2xl font-bold text-primary">{blockchainBalance} CARE</p>
+                        </div>
+                      )}
                     </div>
                   </AlertDescription>
                 </Alert>
+
+                <Button 
+                  onClick={handleCheckBalance}
+                  disabled={isCheckingBalance}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isCheckingBalance ? 'animate-spin' : ''}`} />
+                  {isCheckingBalance ? 'Checking Balance...' : 'Check Blockchain Balance'}
+                </Button>
 
                 <div className="space-y-2">
                   <Label htmlFor="mint-amount">Amount to Mint</Label>
