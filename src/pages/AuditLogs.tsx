@@ -19,7 +19,7 @@ const AuditLogs = () => {
   const [endDate, setEndDate] = useState('');
 
   // Check if user is admin
-  const { data: isAdmin } = useQuery({
+  const { data: isAdmin, isLoading: isCheckingAdmin } = useQuery({
     queryKey: ['isAdmin', user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -28,8 +28,13 @@ const AuditLogs = () => {
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
-        .single();
-      return !error && !!data;
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error checking admin role:', error);
+        return false;
+      }
+      return !!data;
     },
     enabled: !!user
   });
@@ -57,6 +62,20 @@ const AuditLogs = () => {
     enabled: isAdmin === true
   });
 
+  // Show loading while checking admin status
+  if (isCheckingAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            Checking permissions...
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Redirect non-admin users
   if (!user || isAdmin === false) {
     return <Navigate to="/dashboard" replace />;
   }
