@@ -159,9 +159,9 @@ export default function WalletManagement() {
         "function decimals() view returns (uint8)"
       ];
 
-      // Connect to Polygon Mumbai testnet - use working RPC
+      // Connect to Polygon Mumbai testnet - use Alchemy public demo endpoint
       const rpcUrl = existingContract.network === 'polygon-testnet' 
-        ? 'https://rpc.ankr.com/polygon_mumbai'
+        ? 'https://polygon-mumbai.g.alchemy.com/v2/demo'
         : 'https://polygon-rpc.com';
       
       const provider = new ethers.JsonRpcProvider(rpcUrl);
