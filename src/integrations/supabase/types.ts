@@ -4028,6 +4028,10 @@ export type Database = {
         | "cna"
         | "pharmacist"
         | "patient"
+        | "social_worker"
+        | "phlebotomist"
+        | "receptionist"
+        | "billing"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4163,6 +4167,10 @@ export const Constants = {
         "cna",
         "pharmacist",
         "patient",
+        "social_worker",
+        "phlebotomist",
+        "receptionist",
+        "billing",
       ],
     },
   },
