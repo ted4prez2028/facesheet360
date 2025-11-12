@@ -162,8 +162,13 @@ const Login = () => {
                   <span className="text-muted-foreground">Don't have an account? </span>
                   <button
                     type="button"
-                    onClick={() => setActiveTab("register")}
-                    className="text-primary hover:underline font-medium"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Sign up here clicked!');
+                      setActiveTab("register");
+                    }}
+                    className="text-primary hover:underline font-medium cursor-pointer"
                   >
                     Sign up here
                   </button>

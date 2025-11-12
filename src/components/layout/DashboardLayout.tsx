@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { PageLoadingState } from "@/components/common/LoadingState";
 import NotificationSound from "@/components/notifications/NotificationSound";
 import MedicationReminders from "@/components/notifications/MedicationReminders";
-import CommunicationContainer from "@/components/communication/CommunicationContainer";
 
 
 interface DashboardLayoutProps {
@@ -54,8 +53,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* These components handle notifications */}
       <NotificationSound />
       <MedicationReminders />
-      {/* Communication system */}
-      <CommunicationContainer />
     </SidebarProvider>
   );
 };

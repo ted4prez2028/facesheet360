@@ -78,8 +78,8 @@ export const FeatureFlagsAdmin = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {flag.feature_description && (
-                <p className="text-sm text-muted-foreground">{flag.feature_description}</p>
+              {flag.description && (
+                <p className="text-sm text-muted-foreground">{flag.description}</p>
               )}
 
               <div className="space-y-2">
@@ -101,18 +101,13 @@ export const FeatureFlagsAdmin = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {flag.enabled_for_roles && flag.enabled_for_roles.length > 0 && (
+                {flag.target_roles && flag.target_roles.length > 0 && (
                   <>
                     <Badge variant="outline" className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
-                      Roles: {flag.enabled_for_roles.join(", ")}
+                      Roles: {flag.target_roles.join(", ")}
                     </Badge>
                   </>
-                )}
-                {flag.enabled_at && (
-                  <Badge variant="default" className="bg-success text-success-foreground">
-                    Enabled {new Date(flag.enabled_at).toLocaleDateString()}
-                  </Badge>
                 )}
               </div>
             </CardContent>
