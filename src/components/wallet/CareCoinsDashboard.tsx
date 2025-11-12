@@ -14,6 +14,7 @@ import { AchievementsView } from './AchievementsView';
 import HealthcareTransferView from './HealthcareTransferView';
 import QRWalletConnect from './QRWalletConnect';
 import { MarketPriceDisplay } from './MarketPriceDisplay';
+import { CareCoinActivityMonitor } from './CareCoinActivityMonitor';
 
 export const CareCoinsDashboard = () => {
   return (
@@ -23,6 +24,7 @@ export const CareCoinsDashboard = () => {
           <WalletBalance />
           <MarketPriceDisplay />
           <CoinsSummaryView />
+          <CareCoinActivityMonitor />
         </div>
         <div className="lg:col-span-2">
           <CareCoinsActivity />

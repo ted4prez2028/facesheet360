@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { UserPreferencesProvider } from './context/UserPreferencesContext';
 import { ErrorBoundary } from '@/components/security/ErrorBoundary';
 import { SessionTimeout } from '@/components/security/SessionTimeout';
+import { useCareCoinAutoProcessor } from '@/hooks/useCareCoinAutoProcessor';
+import { CareCoinAutoProcessor } from '@/components/CareCoinAutoProcessor';
 import FacialRecognitionPreloader from '@/components/facial-recognition/FacialRecognitionPreloader';
 import Index from './pages/Index';
 import LearnMore from './pages/LearnMore';
@@ -92,6 +94,7 @@ function App() {
               <CommunicationProvider>
                 <SessionTimeout />
                 <FacialRecognitionPreloader />
+                <CareCoinAutoProcessor />
                 <UserPreferencesProvider>
                 <Routes>
                 <Route path="/" element={
