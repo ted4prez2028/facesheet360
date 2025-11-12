@@ -45,14 +45,14 @@ const AuditLogs = () => {
       let query = supabase
         .from('audit_logs')
         .select('*')
-        .order('timestamp', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(500);
 
       if (startDate) {
-        query = query.gte('timestamp', startDate);
+        query = query.gte('created_at', startDate);
       }
       if (endDate) {
-        query = query.lte('timestamp', endDate);
+        query = query.lte('created_at', endDate);
       }
 
       const { data, error } = await query;
