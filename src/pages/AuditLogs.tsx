@@ -39,24 +39,30 @@ const AuditLogs = () => {
     enabled: !!user
   });
 
-  const { data: auditLogs, isLoading } = useQuery({
+  const { data: auditLogs, isLoading, error: queryError } = useQuery({
     queryKey: ['auditLogs', startDate, endDate],
     queryFn: async () => {
       let query = supabase
         .from('audit_logs')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('timestamp', { ascending: false })
         .limit(500);
 
       if (startDate) {
-        query = query.gte('created_at', startDate);
+        // Convert to start of day
+        query = query.gte('timestamp', `${startDate}T00:00:00Z`);
       }
       if (endDate) {
-        query = query.lte('created_at', endDate);
+        // Convert to end of day
+        query = query.lte('timestamp', `${endDate}T23:59:59Z`);
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Audit logs query error:', error);
+        throw error;
+      }
+      console.log('Audit logs fetched:', data?.length, 'records');
       return data;
     },
     enabled: isAdmin === true
@@ -96,7 +102,7 @@ const AuditLogs = () => {
     const csv = [
       ['Timestamp', 'Event Type', 'User ID', 'Patient ID', 'Resource ID', 'IP Address', 'Details'].join(','),
       ...filteredLogs.map(log => [
-        format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        format(new Date((log as any).timestamp || log.created_at), 'yyyy-MM-dd HH:mm:ss'),
         log.event_type,
         log.user_id || '',
         log.patient_id || '',
@@ -177,13 +183,22 @@ const AuditLogs = () => {
         </CardContent>
       </Card>
 
+      {queryError && (
+        <Card className="border-destructive">
+          <CardContent className="py-6 text-center">
+            <p className="text-destructive font-semibold mb-2">Error loading audit logs</p>
+            <p className="text-sm text-muted-foreground">{queryError.message}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {isLoading ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             Loading audit logs...
           </CardContent>
         </Card>
-      ) : (
+      ) : !queryError && (
         <div className="space-y-2">
           {filteredLogs?.map((log) => (
             <Card key={log.id}>
@@ -195,7 +210,7 @@ const AuditLogs = () => {
                         {log.event_type}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(log.created_at), 'PPpp')}
+                        {format(new Date((log as any).timestamp || log.created_at), 'PPpp')}
                       </span>
                     </div>
                     
