@@ -25,7 +25,8 @@ import ImmunizationsTab from "@/components/patientview/ImmunizationsTab";
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { generateDischargeSummary } from '@/utils/dischargeSummary';
+import { generateDischargeSummary } from '@/utils/dischargeSummaryNew';
+import { DischargeFormData } from '@/types/discharge';
 import { 
   useVitalSigns, 
   useLabResults as useLabResultsChart, 
@@ -305,18 +306,14 @@ const UnifiedPatientInterface = ({
     }
   };
 
-  const handleDischarge = async () => {
+  const handleDischarge = async (formData: DischargeFormData) => {
     if (!selectedPatient) return;
 
     try {
-      toast.loading('Generating discharge summary...');
-      await generateDischargeSummary(selectedPatient);
-      toast.dismiss();
-      toast.success('Discharge summary generated successfully');
+      await generateDischargeSummary(selectedPatient, formData);
     } catch (error) {
-      toast.dismiss();
       console.error('Error generating discharge summary:', error);
-      toast.error('Failed to generate discharge summary');
+      // Error handling is done in generateDischargeSummary
     }
   };
 

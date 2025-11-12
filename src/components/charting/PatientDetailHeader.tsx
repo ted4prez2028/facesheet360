@@ -11,12 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, FileText, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { DischargeFormDialog } from "@/components/discharge/DischargeFormDialog";
+import { DischargeFormData } from "@/types/discharge";
 
 interface PatientDetailHeaderProps {
   patientName: string | undefined;
   patientId: string | undefined;
   patientAge: number | undefined;
-  onDischarge?: () => void;
+  onDischarge?: (formData: DischargeFormData) => Promise<void>;
 }
 
 const PatientDetailHeader = ({
@@ -26,6 +29,7 @@ const PatientDetailHeader = ({
   onDischarge
 }: PatientDetailHeaderProps) => {
   const navigate = useNavigate();
+  const [showDischargeDialog, setShowDischargeDialog] = useState(false);
 
   const handleSchedule = () => {
     if (patientId) {
@@ -35,48 +39,63 @@ const PatientDetailHeader = ({
     }
   };
 
+  const handleDischargeSubmit = async (formData: DischargeFormData) => {
+    if (onDischarge && patientId) {
+      await onDischarge(formData);
+    }
+  };
+
   return (
-    <div className="flex justify-between items-start">
-      <div>
-        <CardTitle>{patientName}</CardTitle>
-        <CardDescription>
-          {patientId?.substring(0, 8)} • {patientAge} years old
-        </CardDescription>
+    <>
+      <div className="flex justify-between items-start">
+        <div>
+          <CardTitle>{patientName}</CardTitle>
+          <CardDescription>
+            {patientId?.substring(0, 8)} • {patientAge} years old
+          </CardDescription>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" size="sm" onClick={handleSchedule}>
+            <Calendar className="h-4 w-4" />
+            <span>Schedule</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <User className="h-4 w-4 mr-2" />
+                <span>View Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <FileText className="h-4 w-4 mr-2" />
+                <span>Full History</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Activity className="h-4 w-4 mr-2" />
+                <span>Vital Signs</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowDischargeDialog(true)}>
+                <FileDown className="h-4 w-4 mr-2" />
+                <span>Discharge Patient</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <div className="flex gap-2">
-        <Button variant="outline" className="gap-2" size="sm" onClick={handleSchedule}>
-          <Calendar className="h-4 w-4" />
-          <span>Schedule</span>
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
-              <User className="h-4 w-4 mr-2" />
-              <span>View Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <FileText className="h-4 w-4 mr-2" />
-              <span>Full History</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Activity className="h-4 w-4 mr-2" />
-              <span>Vital Signs</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onDischarge}>
-              <FileDown className="h-4 w-4 mr-2" />
-              <span>Discharge Patient</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+
+      <DischargeFormDialog
+        open={showDischargeDialog}
+        onOpenChange={setShowDischargeDialog}
+        onSubmit={handleDischargeSubmit}
+        patientName={patientName || "Unknown Patient"}
+      />
+    </>
   );
 };
 

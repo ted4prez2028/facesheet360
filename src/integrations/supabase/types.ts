@@ -586,6 +586,56 @@ export type Database = {
           },
         ]
       }
+      consultations: {
+        Row: {
+          consultant_name: string | null
+          consultation_date: string
+          created_at: string | null
+          findings: string | null
+          id: string
+          patient_id: string
+          recommendations: string | null
+          requested_by: string | null
+          specialty: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          consultant_name?: string | null
+          consultation_date: string
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          patient_id: string
+          recommendations?: string | null
+          requested_by?: string | null
+          specialty: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          consultant_name?: string | null
+          consultation_date?: string
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          patient_id?: string
+          recommendations?: string | null
+          requested_by?: string | null
+          specialty?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -609,6 +659,41 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      discharge_summaries: {
+        Row: {
+          created_at: string | null
+          generated_by: string
+          id: string
+          patient_id: string
+          pdf_url: string | null
+          summary_data: Json
+        }
+        Insert: {
+          created_at?: string | null
+          generated_by: string
+          id?: string
+          patient_id: string
+          pdf_url?: string | null
+          summary_data: Json
+        }
+        Update: {
+          created_at?: string | null
+          generated_by?: string
+          id?: string
+          patient_id?: string
+          pdf_url?: string | null
+          summary_data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discharge_summaries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       evaluations: {
         Row: {
@@ -1768,7 +1853,15 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           date_of_birth: string | null
+          discharge_activity: string | null
+          discharge_condition: string | null
           discharge_date: string | null
+          discharge_diet: string | null
+          discharge_disposition: string | null
+          discharge_follow_up: string | null
+          discharge_instructions: string | null
+          discharged_at: string | null
+          discharged_by: string | null
           email: string | null
           emergency_contact: string | null
           emergency_phone: string | null
@@ -1794,7 +1887,15 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          discharge_activity?: string | null
+          discharge_condition?: string | null
           discharge_date?: string | null
+          discharge_diet?: string | null
+          discharge_disposition?: string | null
+          discharge_follow_up?: string | null
+          discharge_instructions?: string | null
+          discharged_at?: string | null
+          discharged_by?: string | null
           email?: string | null
           emergency_contact?: string | null
           emergency_phone?: string | null
@@ -1820,7 +1921,15 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          discharge_activity?: string | null
+          discharge_condition?: string | null
           discharge_date?: string | null
+          discharge_diet?: string | null
+          discharge_disposition?: string | null
+          discharge_follow_up?: string | null
+          discharge_instructions?: string | null
+          discharged_at?: string | null
+          discharged_by?: string | null
           email?: string | null
           emergency_contact?: string | null
           emergency_phone?: string | null
@@ -2153,6 +2262,50 @@ export type Database = {
           },
           {
             foreignKeyName: "prescription_fills_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedures: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          performed_by: string | null
+          procedure_date: string
+          procedure_name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          performed_by?: string | null
+          procedure_date: string
+          procedure_name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          performed_by?: string | null
+          procedure_date?: string
+          procedure_name?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procedures_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
