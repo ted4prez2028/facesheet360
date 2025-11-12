@@ -5,17 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Wallet, ExternalLink, Copy, Check, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Wallet, ExternalLink, Copy, Check, AlertCircle, Coins } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { getProvider } from '@/lib/web3';
+import { useGlobalCareCoin } from '@/hooks/useGlobalCareCoin';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function WalletManagement() {
   const { user, updateProfile } = useAuth();
+  const { existingContract, isLoading: isContractLoading } = useGlobalCareCoin();
   const [walletAddress, setWalletAddress] = useState(user?.wallet_address || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+  const [mintAmount, setMintAmount] = useState('100');
 
   const handleConnectMetaMask = async () => {
     setIsConnecting(true);
@@ -74,6 +79,43 @@ export default function WalletManagement() {
   const handleOpenEtherscan = () => {
     if (user?.wallet_address) {
       window.open(`https://etherscan.io/address/${user.wallet_address}`, '_blank');
+    }
+  };
+
+  const handleMintTokens = async () => {
+    if (!user?.wallet_address) {
+      toast.error('Please connect a wallet address first');
+      return;
+    }
+
+    if (!existingContract?.contract_address) {
+      toast.error('CareCoin contract not deployed. Please deploy the contract first.');
+      return;
+    }
+
+    setIsMinting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('mint-carecoin', {
+        body: {
+          contractAddress: existingContract.contract_address,
+          toAddress: user.wallet_address,
+          amount: mintAmount
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(`Successfully minted ${mintAmount} CARE tokens!`);
+        toast.success(`Transaction hash: ${data.transactionHash}`);
+      } else {
+        throw new Error(data.error || 'Minting failed');
+      }
+    } catch (error: any) {
+      console.error('Minting error:', error);
+      toast.error(error.message || 'Failed to mint tokens');
+    } finally {
+      setIsMinting(false);
     }
   };
 
