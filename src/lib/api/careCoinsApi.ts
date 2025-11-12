@@ -153,13 +153,46 @@ export const cashOutCareCoins = async (
 };
 
 export const convertCareCoinsToUSD = async (amount: number) => {
-  // Mock conversion rate
-  return amount * 0.5;
+  try {
+    // Fetch real-time price from oracle
+    const { data, error } = await supabase.functions.invoke('get-carecoin-price');
+    
+    if (error || !data?.price) {
+      console.error('Error fetching price, using fallback:', error);
+      return amount * 0.5; // Fallback to default rate
+    }
+    
+    return amount * data.price;
+  } catch (error) {
+    console.error('Error converting to USD:', error);
+    return amount * 0.5; // Fallback
+  }
 };
 
 export const getExchangeRate = async () => {
-  return {
-    rate_to_usd: 0.5,
-    last_updated: new Date().toISOString()
-  };
+  try {
+    // Fetch real-time price from oracle
+    const { data, error } = await supabase.functions.invoke('get-carecoin-price');
+    
+    if (error || !data?.price) {
+      return {
+        rate_to_usd: 0.5,
+        last_updated: new Date().toISOString(),
+        source: 'fallback'
+      };
+    }
+    
+    return {
+      rate_to_usd: data.price,
+      last_updated: data.timestamp || new Date().toISOString(),
+      source: data.source
+    };
+  } catch (error) {
+    console.error('Error fetching exchange rate:', error);
+    return {
+      rate_to_usd: 0.5,
+      last_updated: new Date().toISOString(),
+      source: 'fallback'
+    };
+  }
 };

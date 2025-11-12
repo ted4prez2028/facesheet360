@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { CareCoinsDashboard } from '@/components/wallet/CareCoinsDashboard';
 import { TokenDeployer } from '@/components/wallet/TokenDeployer';
 import { CareCoinOperations } from '@/components/wallet/CareCoinOperations';
+import { LiquidityPoolManager } from '@/components/wallet/LiquidityPoolManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const WalletDashboard = () => {
@@ -33,6 +34,7 @@ const WalletDashboard = () => {
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="deploy">Deploy Token</TabsTrigger>
+          <TabsTrigger value="liquidity">Liquidity Pool</TabsTrigger>
           <TabsTrigger value="operations">Operations</TabsTrigger>
         </TabsList>
 
@@ -42,6 +44,10 @@ const WalletDashboard = () => {
 
         <TabsContent value="deploy">
           <TokenDeployer />
+        </TabsContent>
+
+        <TabsContent value="liquidity">
+          <LiquidityPoolManager />
         </TabsContent>
 
         <TabsContent value="operations">

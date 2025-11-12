@@ -73,6 +73,23 @@ export const CashOutView = () => {
       </CardHeader>
       
       <CardContent>
+        {exchangeRate && (
+          <div className="mb-4 p-3 border border-blue-500/20 rounded-lg bg-blue-500/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Current Exchange Rate</p>
+                <p className="text-xs text-muted-foreground">
+                  Source: {(exchangeRate as any)?.source === 'uniswap_v3' ? '🔵 Uniswap V3 Oracle' : '📊 Default Rate'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold">${(exchangeRate as any)?.rate_to_usd?.toFixed(4)}</p>
+                <p className="text-xs text-muted-foreground">per CARE</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
