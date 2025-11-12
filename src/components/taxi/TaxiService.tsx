@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Car, MapPin, Calendar, DollarSign, Clock } from 'lucide-react';
+import { Car, MapPin, Calendar, DollarSign, Clock, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -229,7 +229,33 @@ export const TaxiService = () => {
         <CardContent className="space-y-4">
           {/* Interactive Map */}
           <div className="space-y-2">
-            <Label>Route Preview</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Route Preview</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
+                        setPickupCoords(coords);
+                        toast.success('Using your current location as pickup');
+                      },
+                      (error) => {
+                        toast.error('Could not get your location. Please enable location services.');
+                        console.error('Geolocation error:', error);
+                      }
+                    );
+                  } else {
+                    toast.error('Geolocation is not supported by your browser');
+                  }
+                }}
+              >
+                <Navigation className="h-4 w-4 mr-2" />
+                Use Current Location
+              </Button>
+            </div>
             <RideMap 
               pickupCoords={pickupCoords}
               dropoffCoords={dropoffCoords}

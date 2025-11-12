@@ -7,6 +7,8 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
+import { GeolocationMarker } from './GeolocationMarker';
+
 // Fix default marker icon issue with Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -82,6 +84,8 @@ interface RideMapProps {
   dropoffCoords: [number, number] | null;
   driverCoords?: [number, number] | null;
   onRouteFound?: (distance: number, duration: number) => void;
+  onCurrentLocationFound?: (coords: [number, number]) => void;
+  showCurrentLocation?: boolean;
   className?: string;
 }
 
@@ -90,6 +94,8 @@ export const RideMap = ({
   dropoffCoords, 
   driverCoords,
   onRouteFound,
+  onCurrentLocationFound,
+  showCurrentLocation = true,
   className = ''
 }: RideMapProps) => {
   const center: [number, number] = pickupCoords || [40.7128, -74.0060]; // Default to NYC
@@ -129,6 +135,13 @@ export const RideMap = ({
           pickupCoords={pickupCoords} 
           dropoffCoords={dropoffCoords}
           onRouteFound={onRouteFound}
+        />
+      )}
+
+      {showCurrentLocation && (
+        <GeolocationMarker 
+          onLocationFound={onCurrentLocationFound}
+          centerOnLocation={!pickupCoords && !dropoffCoords}
         />
       )}
     </MapContainer>
