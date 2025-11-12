@@ -60,6 +60,8 @@ import Telemedicine from './pages/Telemedicine';
 import PatientEducation from './pages/PatientEducation';
 import InventoryManagement from './pages/InventoryManagement';
 import AdvancedReporting from './pages/AdvancedReporting';
+import ProductTour from './pages/ProductTour';
+import CompareEHR from './pages/CompareEHR';
 
 const queryClient = new QueryClient();
 
@@ -101,6 +103,8 @@ function App() {
                 <Route path="/login" element={<Index />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
+                <Route path="/product-tour" element={<ProductTour />} />
+                <Route path="/compare-ehr" element={<CompareEHR />} />
                 <Route path="/post-payment-auth" element={<PostPaymentAuth />} />
                 <Route
                   path="/dashboard"

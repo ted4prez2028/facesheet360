@@ -133,12 +133,15 @@ const Index = () => {
               AI-powered EHR with facial recognition, blockchain rewards, telemedicine, ride-booking, 
               clinical decision support, and comprehensive patient management - all HIPAA compliant.
             </p>
-            <div className="space-x-4">
-              <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
-                <Link to="/learn-more">Learn More</Link>
+            <div className="flex flex-wrap gap-4">
+              <Button size="lg" className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white">
+                <Link to="/product-tour">Take Product Tour</Link>
               </Button>
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                 <Link to="/view-plans">View Plans</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-health-700">
+                <Link to="/compare-ehr">Compare with EHR</Link>
               </Button>
             </div>
           </div>
@@ -268,11 +271,14 @@ const Index = () => {
             Join thousands of healthcare professionals who are improving patient care with our platform.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white">
-              <Link to="/learn-more">Learn More</Link>
+            <Button size="lg" className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white">
+              <Link to="/product-tour">Take Interactive Tour</Link>
             </Button>
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
               <Link to="/view-plans">View Plans</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="border-2 border-white hover:bg-white hover:text-health-800">
+              <Link to="/compare-ehr">Compare Features</Link>
             </Button>
           </div>
         </div>

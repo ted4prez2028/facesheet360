@@ -158,12 +158,15 @@ const LearnMore = () => {
             telemedicine video calls, clinical decision support, and comprehensive EHR capabilities in one HIPAA-compliant platform.
           </p>
           <div className="flex justify-center gap-4">
-            <Button size="lg" onClick={() => navigate('/view-plans')}>
-              Start Free Trial
+            <Button size="lg" onClick={() => navigate('/product-tour')} className="bg-gradient-to-r from-green-600 to-teal-600">
+              Take Interactive Tour
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline">
-              Watch Demo
+            <Button size="lg" onClick={() => navigate('/view-plans')}>
+              Start Free Trial
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate('/compare-ehr')}>
+              Compare with Traditional EHR
             </Button>
           </div>
         </div>
@@ -306,12 +309,15 @@ const LearnMore = () => {
             Join thousands of healthcare professionals who have already revolutionized their patient care with Facesheet360.
           </p>
           <div className="flex justify-center gap-4">
-            <Button size="lg" onClick={() => navigate('/view-plans')}>
+            <Button size="lg" onClick={() => navigate('/view-plans')} className="bg-gradient-to-r from-blue-600 to-purple-600">
               Start Your Free Trial
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline">
-              Contact Sales
+            <Button size="lg" variant="outline" onClick={() => navigate('/compare-ehr')}>
+              Compare Features & Pricing
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate('/product-tour')}>
+              Take Product Tour
             </Button>
           </div>
         </div>
