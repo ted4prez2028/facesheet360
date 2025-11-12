@@ -42,7 +42,7 @@ const AuditLogs = () => {
       const { data, error } = await supabase
         .from('audit_logs')
         .select('*')
-        .order('timestamp', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(500);
 
       if (error) {
@@ -79,7 +79,7 @@ const AuditLogs = () => {
     const csv = [
       ['Timestamp', 'Event Type', 'User ID', 'Patient ID', 'Resource ID', 'IP Address', 'Details'].join(','),
       ...auditLogs.map(log => [
-        format(new Date((log as any).timestamp || log.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss'),
         log.event_type,
         log.user_id || '',
         log.patient_id || '',
@@ -149,7 +149,7 @@ const AuditLogs = () => {
                         {log.event_type}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date((log as any).timestamp || log.created_at), 'PPpp')}
+                        {format(new Date(log.created_at), 'PPpp')}
                       </span>
                     </div>
                     
