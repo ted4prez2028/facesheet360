@@ -42,6 +42,7 @@ import MyChartPage from './pages/MyChart';
 import Communication from './pages/Communication';
 import CareCoinsHistory from './pages/CareCoinsHistory';
 import CareCoinsAnalytics from './pages/CareCoinsAnalytics';
+import AdminCashOutRequests from './pages/AdminCashOutRequests';
 import CareCoinsTransactions from './pages/CareCoinsTransactions';
 import WalletManagement from './pages/WalletManagement';
 import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
@@ -317,6 +318,16 @@ function App() {
                       <RequireAuth>
                         <DashboardLayout>
                           <CareCoinsAnalytics />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/cashout-requests"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <AdminCashOutRequests />
                         </DashboardLayout>
                       </RequireAuth>
                     }

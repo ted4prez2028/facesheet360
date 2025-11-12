@@ -100,6 +100,7 @@ export function AppSidebar() {
         { title: "Wallet Management", icon: Settings, path: "/wallet-management" },
         { title: "Transaction History", icon: BarChart3, path: "/carecoins-transactions" },
         { title: "CareCoin Analytics", icon: DollarSign, path: "/carecoins-analytics" },
+        { title: "Cash-Out Requests", icon: CreditCard, path: "/admin/cashout-requests" },
         { title: "Subscription", icon: Package, path: "/subscription" },
       ],
     },
