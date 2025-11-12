@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Heart, Pill, FileText, Brain, AlertTriangle, Users } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import PatientDetailHeader from "./PatientDetailHeader";
 import VitalSigns from "./VitalSigns";
 import MedicationsSection from "./MedicationsSection";
@@ -14,7 +12,6 @@ import LabResultsPanel from "./LabResultsPanel";
 import ImagingPanel from "./ImagingPanel";
 import NotesSection from "./NotesSection";
 import CareTeamAssignments from "@/components/patients/CareTeamAssignments";
-import FaceRegistration from "@/components/facial-recognition/FaceRegistration";
 import WoundCareTab from "@/components/patientview/WoundCareTab";
 import TimelineTab from "@/components/patientview/TimelineTab";
 import ProfileTab from "@/components/patientview/ProfileTab";
@@ -22,20 +19,12 @@ import { SOAPNoteTab } from "@/components/patientview/SOAPNoteTab";
 import MedicalDiagnosesTab from "@/components/patientview/MedicalDiagnosesTab";
 import AllergiesTab from "@/components/patientview/AllergiesTab";
 import ImmunizationsTab from "@/components/patientview/ImmunizationsTab";
+import PatientOverviewTab from "./PatientOverviewTab";
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { generateDischargeSummary } from '@/utils/dischargeSummaryNew';
 import { DischargeFormData } from '@/types/discharge';
-import { 
-  useVitalSigns, 
-  useLabResults as useLabResultsChart, 
-  useMedications, 
-  useImagingRecords as useImagingRecordsChart 
-} from "@/hooks/useChartData";
-import { useLabResults } from "@/hooks/useLabResults";
-import { useImagingStudies } from "@/hooks/useImagingStudies";
-import { usePatientNotes } from "@/hooks/usePatientNotes";
+import { usePatientForms } from '@/hooks/usePatientForms';
+import { usePatientData } from '@/hooks/usePatientData';
 import { Patient } from "@/types";
 
 interface LocalPatient {
@@ -92,11 +81,36 @@ const UnifiedPatientInterface = ({
   onBack,
   initialTab 
 }: UnifiedPatientInterfaceProps) => {
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(initialTab || 'overview');
-  const [isAddingVitals, setIsAddingVitals] = useState(false);
-  const [isAddingMedication, setIsAddingMedication] = useState(false);
   const { user } = useAuth();
+  
+  // Use custom hooks for data and forms
+  const { chartData, enhancedPatientData, vitalSigns, medications, labResults } = usePatientData(selectedPatient, patientData);
+  
+  const {
+    isAddingVitals,
+    setIsAddingVitals,
+    newVitals,
+    setNewVitals,
+    handleAddVitals,
+    isAddingMedication,
+    setIsAddingMedication,
+    newMedication,
+    setNewMedication,
+    handleAddMedication,
+    isEditingRoom,
+    setIsEditingRoom,
+    roomNumber,
+    setRoomNumber,
+    handleUpdateRoom,
+  } = usePatientForms(selectedPatient, user?.id);
+
+  // Sync room number with patient data
+  useEffect(() => {
+    if (patientData) {
+      setRoomNumber((patientData as any).room_number || '');
+    }
+  }, [patientData, setRoomNumber]);
 
   // Handle initial tab and auto-show forms
   useEffect(() => {
@@ -105,206 +119,7 @@ const UnifiedPatientInterface = ({
     } else if (initialTab === 'medications') {
       setIsAddingMedication(true);
     }
-  }, [initialTab]);
-
-  // Fetch patient chart data from the database
-  const { data: vitalSigns = [] } = useVitalSigns(selectedPatient);
-  const { data: labResults = [] } = useLabResults(selectedPatient);
-  const { data: medications = [] } = useMedications(selectedPatient);
-  const { data: imaging = [] } = useImagingRecordsChart(selectedPatient);
-  const { notes = [] } = usePatientNotes(selectedPatient);
-  
-  // Room number state
-  const [roomNumber, setRoomNumber] = useState('');
-  const [isEditingRoom, setIsEditingRoom] = useState(false);
-
-  useEffect(() => {
-    if (patientData) {
-      setRoomNumber((patientData as any).room_number || '');
-    }
-  }, [patientData]);
-
-  const [newVitals, setNewVitals] = useState({
-    temperature: '',
-    blood_pressure_systolic: '',
-    blood_pressure_diastolic: '',
-    heart_rate: '',
-    respiratory_rate: '',
-    oxygen_saturation: '',
-    weight: '',
-    height: '',
-    pain_scale: ''
-  });
-
-  const [newMedication, setNewMedication] = useState({
-    medication_name: '',
-    dosage: '',
-    frequency: '',
-    route: 'oral',
-    instructions: ''
-  });
-
-  // Create combined chart data object with proper types
-  const chartData = {
-    vitalSigns: vitalSigns.map(vs => ({
-      ...vs,
-      created_at: (vs as any).created_at || new Date().toISOString(),
-      updated_at: (vs as any).updated_at || new Date().toISOString()
-    })),
-    medications: medications,
-    labResults: labResults.map(lr => ({
-      ...lr,
-      result: (lr as any).result || '',
-      date_collected: (lr as any).date_collected || (lr as any).created_at || new Date().toISOString()
-    })),
-      imaging: imaging.map(img => ({
-      ...img,
-      study_type: (img as any).study_type || '',
-      body_part: (img as any).body_part || '',
-      study_date: (img as any).study_date || (img as any).created_at || new Date().toISOString()
-    })),
-    notes: notes.map((note: any) => ({
-      id: note.id,
-      date: note.created_at || new Date().toISOString(),
-      content: note.note_content || '',
-      author: note.users?.name || 'Unknown',
-      type: note.note_type || 'general',
-      created_at: note.created_at || new Date().toISOString()
-    })),
-    history: [],
-    diagnosis: "",
-    allergies: []
-  };
-
-  // Convert local patient data to full Patient type
-  const enhancedPatientData: Patient | undefined = patientData ? {
-    id: patientData.id,
-    name: patientData.name,
-    first_name: patientData.name?.split(' ')[0],
-    last_name: patientData.name?.split(' ').slice(1).join(' '),
-    date_of_birth: patientData.date_of_birth || '1990-01-01',
-    gender: patientData.gender || 'Not specified',
-    phone: '',
-    email: '',
-    address: '',
-    insurance_provider: '',
-    insurance_number: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    emergency_contact_relation: '',
-    medical_history: '',
-    allergies: '',
-    medications: '',
-    notes: '',
-    medical_record_number: patientData.medical_record_number || `MR-${patientData.id.slice(0, 8)}`,
-    age: patientData.age,
-    status: patientData.status,
-    lastVisit: patientData.lastVisit,
-    imgUrl: patientData.imgUrl,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  } : undefined;
-
-  const handleAddVitals = async () => {
-    if (!selectedPatient || !user) return;
-
-    try {
-      const vitalsToAdd = Object.entries(newVitals)
-        .filter(([_, value]) => value !== '')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: parseFloat(value) }), {});
-
-      const { error } = await supabase
-        .from('patient_vitals')
-        .insert({
-          patient_id: selectedPatient,
-          recorded_by: user.id,
-          recorded_at: new Date().toISOString(),
-          ...vitalsToAdd
-        });
-
-      if (error) throw error;
-
-      // Invalidate vitals queries to refetch data
-      queryClient.invalidateQueries({ queryKey: ['patient-vitals'] });
-      queryClient.invalidateQueries({ queryKey: ['vitals', selectedPatient] });
-
-      toast.success('Vitals added successfully');
-      setNewVitals({
-        temperature: '',
-        blood_pressure_systolic: '',
-        blood_pressure_diastolic: '',
-        heart_rate: '',
-        respiratory_rate: '',
-        oxygen_saturation: '',
-        weight: '',
-        height: '',
-        pain_scale: ''
-      });
-      setIsAddingVitals(false);
-    } catch (error) {
-      console.error('Error adding vitals:', error);
-      toast.error('Failed to add vitals');
-    }
-  };
-
-  const handleAddMedication = async () => {
-    if (!selectedPatient || !user) return;
-
-    try {
-      const { error } = await supabase
-        .from('medication_orders')
-        .insert({
-          patient_id: selectedPatient,
-          prescribed_by: user.id,
-          start_date: new Date().toISOString(),
-          status: 'active',
-          ...newMedication
-        });
-
-      if (error) throw error;
-
-      // Invalidate medication queries to refetch data
-      queryClient.invalidateQueries({ queryKey: ['medications'] });
-      queryClient.invalidateQueries({ queryKey: ['medication-orders', selectedPatient] });
-
-      toast.success('Medication added successfully');
-      setNewMedication({
-        medication_name: '',
-        dosage: '',
-        frequency: '',
-        route: 'oral',
-        instructions: ''
-      });
-      setIsAddingMedication(false);
-    } catch (error) {
-      console.error('Error adding medication:', error);
-      toast.error('Failed to add medication');
-    }
-  };
-
-  const handleUpdateRoom = async () => {
-    if (!selectedPatient) return;
-
-    try {
-      const { error } = await supabase
-        .from('patients')
-        .update({ room_number: roomNumber })
-        .eq('id', selectedPatient);
-
-      if (error) throw error;
-
-      // Invalidate all patient-related queries to refetch data
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      queryClient.invalidateQueries({ queryKey: ['patient', selectedPatient] });
-      queryClient.invalidateQueries({ queryKey: ['charting-patients'] });
-
-      toast.success('Room number updated successfully');
-      setIsEditingRoom(false);
-    } catch (error) {
-      console.error('Error updating room number:', error);
-      toast.error('Failed to update room number');
-    }
-  };
+  }, [initialTab, setIsAddingVitals, setIsAddingMedication]);
 
   const handleDischarge = async (formData: DischargeFormData) => {
     if (!selectedPatient) return;
@@ -392,62 +207,12 @@ const UnifiedPatientInterface = ({
             <div className="flex-1 mt-4 overflow-hidden">
               {/* Overview Tab */}
               <TabsContent value="overview" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-                <div className="space-y-6">
-                  {/* Facial Recognition Section */}
-                  {selectedPatient && (
-                    <FaceRegistration 
-                      patientId={selectedPatient}
-                    />
-                  )}
-
-                  {/* Patient Info Summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Heart className="h-5 w-5 text-red-500" />
-                          <div>
-                            <p className="text-sm font-medium">Latest Vitals</p>
-                            <p className="text-xs text-muted-foreground">
-                              {vitalSigns.length > 0 ? 
-                                new Date().toLocaleDateString() : 
-                                'No vitals recorded'}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <Pill className="h-5 w-5 text-blue-500" />
-                          <div>
-                            <p className="text-sm font-medium">Active Medications</p>
-                            <p className="text-xs text-muted-foreground">
-                              {medications.filter(m => m.status === 'active').length} active
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-5 w-5 text-green-500" />
-                          <div>
-                            <p className="text-sm font-medium">Recent Labs</p>
-                            <p className="text-xs text-muted-foreground">
-                              {labResults.length} results
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                </div>
+                <PatientOverviewTab 
+                  selectedPatient={selectedPatient}
+                  vitalSigns={vitalSigns}
+                  medications={medications}
+                  labResults={labResults}
+                />
               </TabsContent>
 
               {/* Timeline Tab */}
