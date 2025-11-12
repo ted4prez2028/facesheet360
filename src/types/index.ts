@@ -10,6 +10,7 @@ export interface User {
   organization?: string;
   online_status?: boolean;
   last_seen?: string;
+  wallet_address?: string;
   created_at: string;
   updated_at: string;
 }

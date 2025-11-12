@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Wallet, ExternalLink, Copy, Check, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,8 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { getProvider } from '@/lib/web3';
 
 export default function WalletManagement() {
-  const { user } = useAuth();
-  const [walletAddress, setWalletAddress] = useState((user as any)?.wallet_address || '');
+  const { user, updateProfile } = useAuth();
+  const [walletAddress, setWalletAddress] = useState(user?.wallet_address || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -53,13 +52,7 @@ export default function WalletManagement() {
 
     setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ wallet_address: walletAddress })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
+      await updateProfile({ wallet_address: walletAddress });
       toast.success('Wallet address updated successfully!');
     } catch (error) {
       console.error('Update error:', error);
@@ -70,8 +63,8 @@ export default function WalletManagement() {
   };
 
   const handleCopyAddress = () => {
-    if ((user as any)?.wallet_address) {
-      navigator.clipboard.writeText((user as any).wallet_address);
+    if (user?.wallet_address) {
+      navigator.clipboard.writeText(user.wallet_address);
       setCopied(true);
       toast.success('Address copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
@@ -79,8 +72,8 @@ export default function WalletManagement() {
   };
 
   const handleOpenEtherscan = () => {
-    if ((user as any)?.wallet_address) {
-      window.open(`https://etherscan.io/address/${(user as any).wallet_address}`, '_blank');
+    if (user?.wallet_address) {
+      window.open(`https://etherscan.io/address/${user.wallet_address}`, '_blank');
     }
   };
 
@@ -112,7 +105,7 @@ export default function WalletManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {(user as any)?.wallet_address ? (
+          {user?.wallet_address ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50 dark:bg-green-950">
                 <div className="flex items-center gap-3">
@@ -122,7 +115,7 @@ export default function WalletManagement() {
                   <div>
                     <p className="font-medium">Wallet Connected</p>
                     <p className="text-sm text-muted-foreground font-mono">
-                      {(user as any).wallet_address.slice(0, 6)}...{(user as any).wallet_address.slice(-4)}
+                      {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
                     </p>
                   </div>
                 </div>
@@ -164,7 +157,7 @@ export default function WalletManagement() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {(user as any)?.wallet_address ? 'Update Wallet Address' : 'Connect Wallet'}
+            {user?.wallet_address ? 'Update Wallet Address' : 'Connect Wallet'}
           </CardTitle>
           <CardDescription>
             Connect your MetaMask wallet or manually enter an Ethereum address
