@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Car, MapPin, DollarSign, Clock, CheckCircle, XCircle, 
   Navigation, TrendingUp, Star 
@@ -12,6 +13,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DriverPayoutView } from '@/components/taxi/DriverPayoutView';
+import { DriverAnalytics } from '@/components/taxi/DriverAnalytics';
+import { CashOutHistory } from '@/components/wallet/CashOutHistory';
 
 export default function DriverDashboard() {
   const { user } = useAuth();
@@ -213,6 +217,16 @@ export default function DriverDashboard() {
         </div>
       </div>
 
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="payout">Payout</TabsTrigger>
+          <TabsTrigger value="history">Payout History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -403,6 +417,20 @@ export default function DriverDashboard() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <DriverAnalytics />
+        </TabsContent>
+
+        <TabsContent value="payout">
+          <DriverPayoutView />
+        </TabsContent>
+
+        <TabsContent value="history">
+          <CashOutHistory />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
