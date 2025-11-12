@@ -123,6 +123,38 @@ export const CareCoinsAnalyticsDashboard = () => {
     enabled: !!user,
   });
 
+  // Fetch distribution by chart type (vitals, medications, notes)
+  const { data: chartTypeData } = useQuery({
+    queryKey: ['carecoin-chart-type-breakdown'],
+    queryFn: async () => {
+      const { data: profits } = await supabase
+        .from('charting_profits')
+        .select('chart_type, total_amount, patient_share, provider_share, admin_share');
+
+      const breakdown: Record<string, { total: number; patient: number; provider: number; admin: number }> = {};
+      
+      profits?.forEach(p => {
+        const type = p.chart_type;
+        if (!breakdown[type]) {
+          breakdown[type] = { total: 0, patient: 0, provider: 0, admin: 0 };
+        }
+        breakdown[type].total += Number(p.total_amount || 0);
+        breakdown[type].patient += Number(p.patient_share || 0);
+        breakdown[type].provider += Number(p.provider_share || 0);
+        breakdown[type].admin += Number(p.admin_share || 0);
+      });
+
+      return Object.entries(breakdown).map(([name, values]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        Total: values.total,
+        Patient: values.patient,
+        Provider: values.provider,
+        Admin: values.admin,
+      }));
+    },
+    enabled: !!user,
+  });
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -275,6 +307,31 @@ export const CareCoinsAnalyticsDashboard = () => {
               </ResponsiveContainer>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Distribution by Chart Type */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PieChart className="h-5 w-5" />
+            Distribution by Chart Type
+          </CardTitle>
+          <CardDescription>CareCoins minted by data type (vitals, medications, notes)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartTypeData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="Patient" stackId="a" fill="#10b981" name="Patient Share (40%)" />
+              <Bar dataKey="Provider" stackId="a" fill="#3b82f6" name="Provider Share (50%)" />
+              <Bar dataKey="Admin" stackId="a" fill="#8b5cf6" name="Founder Fee (10%)" />
+            </BarChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
 

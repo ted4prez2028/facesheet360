@@ -97,6 +97,9 @@ export function AppSidebar() {
       group: "Financial",
       items: [
         { title: "CareCoin Wallet", icon: Wallet, path: "/wallet-dashboard" },
+        { title: "Wallet Management", icon: Settings, path: "/wallet-management" },
+        { title: "Transaction History", icon: BarChart3, path: "/carecoins-transactions" },
+        { title: "CareCoin Analytics", icon: DollarSign, path: "/carecoins-analytics" },
         { title: "Subscription", icon: Package, path: "/subscription" },
       ],
     },

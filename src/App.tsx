@@ -42,6 +42,8 @@ import MyChartPage from './pages/MyChart';
 import Communication from './pages/Communication';
 import CareCoinsHistory from './pages/CareCoinsHistory';
 import CareCoinsAnalytics from './pages/CareCoinsAnalytics';
+import CareCoinsTransactions from './pages/CareCoinsTransactions';
+import WalletManagement from './pages/WalletManagement';
 import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
 
 const queryClient = new QueryClient();
@@ -315,6 +317,26 @@ function App() {
                       <RequireAuth>
                         <DashboardLayout>
                           <CareCoinsAnalytics />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/carecoins-transactions"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <CareCoinsTransactions />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/wallet-management"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <WalletManagement />
                         </DashboardLayout>
                       </RequireAuth>
                     }
