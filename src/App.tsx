@@ -28,7 +28,6 @@ import PharmacyNotificationPreferences from './pages/PharmacyNotificationPrefere
 import PatientManagement from './pages/PatientManagement';
 import { Toaster } from "@/components/ui/toaster"
 import ProfilePage from './pages/ProfilePage';
-import { CommunicationProvider } from '@/context/communication/CommunicationContext';
 import NotFound from './pages/NotFound';
 
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -41,7 +40,6 @@ import EHRImport from './pages/EHRImport';
 import { FoodPage } from './pages/Food';
 import TaxiPage from './pages/TaxiPage';
 import MyChartPage from './pages/MyChart';
-import Communication from './pages/Communication';
 import CareCoinsHistory from './pages/CareCoinsHistory';
 import CareCoinsAnalytics from './pages/CareCoinsAnalytics';
 import AdminCashOutRequests from './pages/AdminCashOutRequests';
@@ -91,11 +89,10 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="light">
             <AuthProvider>
-              <CommunicationProvider>
-                <SessionTimeout />
-                <FacialRecognitionPreloader />
-                <CareCoinAutoProcessor />
-                <UserPreferencesProvider>
+              <SessionTimeout />
+              <FacialRecognitionPreloader />
+              <CareCoinAutoProcessor />
+              <UserPreferencesProvider>
                 <Routes>
                 <Route path="/" element={
                   <RequireAuth>
@@ -304,17 +301,7 @@ function App() {
                     }
                   />
                   <Route
-                   path="/communication"
-                   element={
-                     <RequireAuth>
-                       <DashboardLayout>
-                         <Communication />
-                       </DashboardLayout>
-                     </RequireAuth>
-                   }
-                 />
-                 <Route
-                   path="/audit-logs"
+                    path="/audit-logs"
                    element={
                      <RequireAuth>
                        <DashboardLayout>
@@ -515,9 +502,8 @@ function App() {
                   />
                    <Route path="*" element={<NotFound />} />
                </Routes>
-              <Toaster />
+               <Toaster />
               </UserPreferencesProvider>
-              </CommunicationProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryClientProvider>
