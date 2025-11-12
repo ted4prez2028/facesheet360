@@ -30,16 +30,17 @@ serve(async (req) => {
       );
     }
 
-    const ALCHEMY_API_KEY = Deno.env.get('ALCHEMY_API_KEY');
-    const DEPLOYER_PRIVATE_KEY = Deno.env.get('DEPLOYER_PRIVATE_KEY');
+    const polygonRpcUrl = Deno.env.get('POLYGON_RPC_URL');
+    const deployerPrivateKey = Deno.env.get('POLYGON_DEPLOYER_PRIVATE_KEY');
 
-    if (!ALCHEMY_API_KEY || !DEPLOYER_PRIVATE_KEY) {
-      throw new Error('Missing environment variables');
+    if (!polygonRpcUrl || !deployerPrivateKey) {
+      throw new Error('Missing POLYGON_RPC_URL or POLYGON_DEPLOYER_PRIVATE_KEY environment variables');
     }
 
-    // Connect to Ethereum mainnet
-    const provider = new ethers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`);
-    const wallet = new ethers.Wallet(DEPLOYER_PRIVATE_KEY, provider);
+    // Connect to Polygon network
+    console.log('Connecting to Polygon network...');
+    const provider = new ethers.JsonRpcProvider(polygonRpcUrl);
+    const wallet = new ethers.Wallet(deployerPrivateKey, provider);
 
     // Get contract instance
     const contract = new ethers.Contract(contractAddress, CARECOIN_ABI, wallet);
@@ -47,7 +48,7 @@ serve(async (req) => {
     // Convert amount to wei (assuming 18 decimals)
     const amountInWei = ethers.parseUnits(amount.toString(), 18);
 
-    console.log(`Minting ${amount} CARE tokens to ${toAddress}`);
+    console.log(`Minting ${amount} CARE tokens to ${toAddress} on Polygon`);
 
     // Execute mint transaction
     const tx = await contract.mint(toAddress, amountInWei);
@@ -68,7 +69,9 @@ serve(async (req) => {
         blockNumber: receipt.blockNumber,
         mintedAmount: amount,
         recipientAddress: toAddress,
-        newBalance: balanceFormatted
+        newBalance: balanceFormatted,
+        network: 'polygon',
+        explorerUrl: `https://polygonscan.com/tx/${tx.hash}`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -76,7 +79,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Mint error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to mint tokens' }),
+      JSON.stringify({ error: error.message || 'Failed to mint tokens on Polygon' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

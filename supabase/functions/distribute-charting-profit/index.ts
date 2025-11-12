@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { ethers } from 'npm:ethers@6.7.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -81,13 +82,13 @@ serve(async (req) => {
 
     const contractAddress = contractData?.contract_address;
 
-    // Mint and transfer tokens to MetaMask wallets if contract exists
+    // Mint and transfer tokens to MetaMask wallets on Polygon if contract exists
     if (contractAddress) {
       const mintPromises = [];
 
       // Mint to patient wallet
       if (patientWallet) {
-        console.log(`Minting ${patientShare} CARE to patient wallet: ${patientWallet}`);
+        console.log(`Minting ${patientShare} CARE to patient wallet on Polygon: ${patientWallet}`);
         mintPromises.push(
           supabase.functions.invoke('mint-carecoin', {
             body: {
@@ -101,7 +102,7 @@ serve(async (req) => {
 
       // Mint to provider wallet
       if (providerData?.wallet_address) {
-        console.log(`Minting ${providerShare} CARE to provider wallet: ${providerData.wallet_address}`);
+        console.log(`Minting ${providerShare} CARE to provider wallet on Polygon: ${providerData.wallet_address}`);
         mintPromises.push(
           supabase.functions.invoke('mint-carecoin', {
             body: {
@@ -115,7 +116,7 @@ serve(async (req) => {
 
       // Mint to admin wallet (founder fee)
       if (adminWallet) {
-        console.log(`Minting ${adminShare} CARE to admin wallet: ${adminWallet}`);
+        console.log(`Minting ${adminShare} CARE to admin wallet on Polygon: ${adminWallet}`);
         mintPromises.push(
           supabase.functions.invoke('mint-carecoin', {
             body: {
@@ -135,7 +136,7 @@ serve(async (req) => {
         if (result.status === 'rejected') {
           console.error(`Mint failed for recipient ${index}:`, result.reason);
         } else {
-          console.log(`Mint succeeded for recipient ${index}`);
+          console.log(`Mint succeeded for recipient ${index} on Polygon network`);
         }
       });
     } else {
@@ -168,7 +169,7 @@ serve(async (req) => {
         to_user_id: patientUserId,
         amount: patientShare,
         transaction_type: 'earned',
-        description: `Charting profit share for ${chartType}`
+        description: `Charting profit share for ${chartType} (Polygon)`
       });
     }
 
@@ -177,7 +178,7 @@ serve(async (req) => {
       to_user_id: providerId,
       amount: providerShare,
       transaction_type: 'earned',
-      description: `Charting provider share for ${chartType}`
+      description: `Charting provider share for ${chartType} (Polygon)`
     });
 
     transactions.push({
@@ -185,7 +186,7 @@ serve(async (req) => {
       to_user_id: adminId,
       amount: adminShare,
       transaction_type: 'platform_fee',
-      description: `Platform founder fee for ${chartType} charting`
+      description: `Platform founder fee for ${chartType} charting (Polygon)`
     });
 
     const { error: txError } = await supabase
@@ -230,7 +231,8 @@ serve(async (req) => {
         blockchain_minting: !!contractAddress,
         patient_wallet: patientWallet,
         provider_wallet: providerData?.wallet_address,
-        admin_wallet: adminWallet
+        admin_wallet: adminWallet,
+        network: 'polygon'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

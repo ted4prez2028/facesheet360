@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useGlobalCareCoin } from "@/hooks/useGlobalCareCoin";
 import { MetaMaskIntegration } from "./MetaMaskIntegration";
 import { useWallet } from "@/hooks/useWallet";
+import { PolygonNetworkBadge } from "./PolygonNetworkBadge";
 
 export function TokenDeployer() {
   const { existingContract, isLoading, deployCareCoin, isDeployed } = useGlobalCareCoin();
@@ -27,8 +28,8 @@ export function TokenDeployer() {
     }
 
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== '0x1') {
-      toast.error('Please switch to Ethereum mainnet in MetaMask');
+    if (chainId !== '0x89') { // Polygon mainnet chain ID
+      toast.error('Please switch to Polygon network in MetaMask');
       return;
     }
 
@@ -61,18 +62,20 @@ export function TokenDeployer() {
         </CardTitle>
         <CardDescription>
           {isDeployed
-            ? "CareCoin is live on Ethereum mainnet - available for all users"
-            : "Launch the CareCoin ERC-20 token contract on Ethereum mainnet"
+            ? "CareCoin is live on Polygon - available for all users with 99% lower gas fees"
+            : "Launch the CareCoin ERC-20 token contract on Polygon network"
           }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isDeployed && existingContract ? (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              <div className="space-y-3">
-                <p className="font-semibold">CareCoin is deployed and ready to use!</p>
+          <>
+            <PolygonNetworkBadge />
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <div className="space-y-3">
+                  <p className="font-semibold">CareCoin is deployed and ready to use on Polygon!</p>
                 
                 <div className="space-y-2">
                   <div>
@@ -94,13 +97,13 @@ export function TokenDeployer() {
                         asChild
                       >
                         <a
-                          href={`https://etherscan.io/address/${existingContract.contract_address}`}
+                          href={`https://polygonscan.com/address/${existingContract.contract_address}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1"
                         >
                           <ExternalLink className="h-3 w-3" />
-                          Etherscan
+                          PolygonScan
                         </a>
                       </Button>
                     </div>
@@ -111,14 +114,16 @@ export function TokenDeployer() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div><span className="font-medium">Name:</span> {String(existingContract.contract_details.name)}</div>
                       <div><span className="font-medium">Symbol:</span> {String(existingContract.contract_details.symbol)}</div>
-                      <div><span className="font-medium">Network:</span> Ethereum Mainnet</div>
+                      <div><span className="font-medium">Network:</span> Polygon (MATIC)</div>
                       <div><span className="font-medium">Total Supply:</span> {String(existingContract.contract_details.totalSupply)} CARE</div>
+                      <div className="col-span-2 text-green-600 font-medium">✅ 99% lower gas fees vs Ethereum</div>
                     </div>
                   </div>
                 </div>
               </div>
             </AlertDescription>
           </Alert>
+          </>
         ) : (
           <div className="space-y-4">
             {isWalletConnected ? (
@@ -141,9 +146,9 @@ export function TokenDeployer() {
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Deploying CareCoin...
-                </>
+                 </>
               ) : (
-                'Launch CareCoin on Mainnet'
+                'Launch CareCoin on Polygon Network'
               )}
             </Button>
           </div>
