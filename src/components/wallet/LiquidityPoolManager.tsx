@@ -4,33 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Droplets, ExternalLink, TrendingUp } from 'lucide-react';
+import { Loader2, Droplets, ExternalLink, TrendingUp, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
 import { useCareCoinPrice } from '@/hooks/useCareCoinPrice';
+import { useGlobalCareCoin } from '@/hooks/useGlobalCareCoin';
 
 export const LiquidityPoolManager = () => {
   const [careAmount, setCareAmount] = useState('100000');
   const [usdcAmount, setUsdcAmount] = useState('50000');
   const [isCreating, setIsCreating] = useState(false);
 
-  const { data: priceData, isLoading: priceLoading } = useCareCoinPrice();
+  const { data: priceData } = useCareCoinPrice();
+  const { existingContract, isLoading: contractLoading } = useGlobalCareCoin();
 
-  const { data: contractData, isLoading: contractLoading } = useQuery({
-    queryKey: ['carecoin-contract-pool'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('carecoin_contract')
-        .select('contract_address, contract_details')
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const contractDetails = contractData?.contract_details as any;
+  const contractDetails = existingContract?.contract_details as any;
   const hasPool = contractDetails?.uniswap_pool;
 
   const handleCreatePool = async () => {
@@ -90,25 +78,36 @@ export const LiquidityPoolManager = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {priceData && (
-          <Alert className="border-blue-500/50 bg-blue-500/10">
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-            <AlertTitle className="text-blue-500">Current Market Price</AlertTitle>
+        {!existingContract ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>CareCoin Not Deployed</AlertTitle>
             <AlertDescription>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold">{priceData.priceFormatted} per CARE</div>
-                <div className="text-xs text-muted-foreground">
-                  Source: {priceData.source === 'uniswap_v3' ? 'Uniswap V3 Oracle' : 'Default Price'}
-                  {priceData.maticUsdPrice && (
-                    <span className="ml-2">• MATIC: ${priceData.maticUsdPrice.toFixed(2)}</span>
-                  )}
-                </div>
-              </div>
+              You must deploy the CareCoin contract first before creating a liquidity pool.
+              Use the Token Deployer above to deploy CareCoin to the Polygon network.
             </AlertDescription>
           </Alert>
-        )}
+        ) : (
+          <>
+            {priceData && (
+              <Alert className="border-blue-500/50 bg-blue-500/10">
+                <TrendingUp className="h-4 w-4 text-blue-500" />
+                <AlertTitle className="text-blue-500">Current Market Price</AlertTitle>
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <div className="text-2xl font-bold">{priceData.priceFormatted} per CARE</div>
+                    <div className="text-xs text-muted-foreground">
+                      Source: {priceData.source === 'uniswap_v3' ? 'Uniswap V3 Oracle' : 'Default Price'}
+                      {priceData.maticUsdPrice && (
+                        <span className="ml-2">• MATIC: ${priceData.maticUsdPrice.toFixed(2)}</span>
+                      )}
+                    </div>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
 
-        {hasPool ? (
+            {hasPool ? (
           <Alert className="border-green-500/50 bg-green-500/10">
             <Droplets className="h-4 w-4 text-green-500" />
             <AlertTitle className="text-green-500">Liquidity Pool Active</AlertTitle>
@@ -210,6 +209,8 @@ export const LiquidityPoolManager = () => {
               </Button>
             </div>
           </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
