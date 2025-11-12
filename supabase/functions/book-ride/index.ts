@@ -14,6 +14,11 @@ interface BookRideRequest {
   patientId?: string;
   scheduledTime?: string;
   estimatedCost: number;
+  pickupLatitude?: number;
+  pickupLongitude?: number;
+  dropoffLatitude?: number;
+  dropoffLongitude?: number;
+  distanceKm?: number;
 }
 
 serve(async (req) => {
@@ -33,7 +38,12 @@ serve(async (req) => {
       rideType,
       patientId,
       scheduledTime,
-      estimatedCost
+      estimatedCost,
+      pickupLatitude,
+      pickupLongitude,
+      dropoffLatitude,
+      dropoffLongitude,
+      distanceKm
     }: BookRideRequest = await req.json();
 
     console.log(`🚗 Booking ride for user ${userId} from ${pickupLocation} to ${dropoffLocation}`);
@@ -63,9 +73,14 @@ serve(async (req) => {
         ride_type: rideType,
         patient_id: patientId,
         scheduled_time: scheduledTime,
-        estimated_cost_carecoins: estimatedCost,
+        cost: estimatedCost,
+        pickup_latitude: pickupLatitude,
+        pickup_longitude: pickupLongitude,
+        dropoff_latitude: dropoffLatitude,
+        dropoff_longitude: dropoffLongitude,
+        distance_km: distanceKm,
         status: 'pending',
-        estimated_arrival_time: scheduledTime || new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutes from now if not scheduled
+        estimated_arrival: scheduledTime || new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutes from now if not scheduled
       })
       .select()
       .single();
@@ -99,20 +114,47 @@ serve(async (req) => {
         description: `Ride booking: ${rideType.replace('_', ' ')} - ${pickupLocation} to ${dropoffLocation}`
       });
 
-    // Send notification to ride dispatch system
-    await supabase.functions.invoke('dispatch-ride', {
-      body: {
-        rideId: ride.id,
-        pickupLocation,
-        dropoffLocation,
-        rideType,
-        estimatedCost,
-        userInfo: {
-          name: userData.name,
-          email: userData.email
+    // Attempt to match with a driver if coordinates are provided
+    if (pickupLatitude && pickupLongitude && dropoffLatitude && dropoffLongitude) {
+      console.log('Attempting to match driver...');
+      
+      try {
+        const { data: matchResult, error: matchError } = await supabase.functions.invoke('match-driver', {
+          body: {
+            rideId: ride.id,
+            pickupLatitude,
+            pickupLongitude,
+            dropoffLatitude,
+            dropoffLongitude,
+            rideType
+          }
+        });
+
+        if (!matchError && matchResult?.success) {
+          console.log('✅ Driver matched successfully:', matchResult.driver.name);
+        } else {
+          console.log('⚠️ No driver available, ride pending manual assignment');
         }
+      } catch (matchError) {
+        console.error('Error matching driver:', matchError);
+        // Don't fail the whole booking if driver matching fails
       }
-    });
+    } else {
+      // Fallback to dispatch-ride for backwards compatibility
+      await supabase.functions.invoke('dispatch-ride', {
+        body: {
+          rideId: ride.id,
+          pickupLocation,
+          dropoffLocation,
+          rideType,
+          estimatedCost,
+          userInfo: {
+            name: userData.name,
+            email: userData.email
+          }
+        }
+      });
+    }
 
     // Send notification to user about ride booking
     if (patientId) {

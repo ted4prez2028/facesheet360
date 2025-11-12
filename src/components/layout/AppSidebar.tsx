@@ -31,6 +31,7 @@ import {
   Utensils,
   Shield as ShieldIcon,
   Lock,
+  Car,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -126,6 +127,7 @@ export function AppSidebar() {
         { title: "CareCoin Wallet", icon: Wallet, path: "/wallet-dashboard" },
         { title: "Food", icon: Utensils, path: "/food" },
         { title: "Profile", icon: Users, path: "/profile" },
+        { title: "Driver Dashboard", icon: Car, path: "/driver" },
       ],
     },
   ];

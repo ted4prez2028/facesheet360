@@ -749,6 +749,72 @@ export type Database = {
           },
         ]
       }
+      drivers: {
+        Row: {
+          care_coins_balance: number | null
+          created_at: string | null
+          current_latitude: number | null
+          current_longitude: number | null
+          id: string
+          is_verified: boolean | null
+          license_number: string
+          license_plate: string | null
+          location_updated_at: string | null
+          rating: number | null
+          status: string
+          total_earnings: number | null
+          total_rides: number | null
+          updated_at: string | null
+          user_id: string
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: string
+          vehicle_year: number | null
+        }
+        Insert: {
+          care_coins_balance?: number | null
+          created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
+          id?: string
+          is_verified?: boolean | null
+          license_number: string
+          license_plate?: string | null
+          location_updated_at?: string | null
+          rating?: number | null
+          status?: string
+          total_earnings?: number | null
+          total_rides?: number | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string
+          vehicle_year?: number | null
+        }
+        Update: {
+          care_coins_balance?: number | null
+          created_at?: string | null
+          current_latitude?: number | null
+          current_longitude?: number | null
+          id?: string
+          is_verified?: boolean | null
+          license_number?: string
+          license_plate?: string | null
+          location_updated_at?: string | null
+          rating?: number | null
+          status?: string
+          total_earnings?: number | null
+          total_rides?: number | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string
+          vehicle_year?: number | null
+        }
+        Relationships: []
+      }
       evaluations: {
         Row: {
           created_at: string | null
@@ -2417,14 +2483,23 @@ export type Database = {
           actual_dropoff_time: string | null
           actual_pickup_time: string | null
           created_at: string | null
+          distance_km: number | null
+          driver_earnings: number | null
+          driver_id: string | null
           driver_name: string | null
+          driver_phone: string | null
+          driver_rating: number | null
+          dropoff_latitude: number | null
           dropoff_location: string
+          dropoff_longitude: number | null
           estimated_arrival: string | null
           estimated_arrival_time: string | null
           estimated_cost_carecoins: number | null
           id: string
           patient_id: string | null
+          pickup_latitude: number | null
           pickup_location: string
+          pickup_longitude: number | null
           ride_type: string | null
           scheduled_time: string
           status: string | null
@@ -2436,14 +2511,23 @@ export type Database = {
           actual_dropoff_time?: string | null
           actual_pickup_time?: string | null
           created_at?: string | null
+          distance_km?: number | null
+          driver_earnings?: number | null
+          driver_id?: string | null
           driver_name?: string | null
+          driver_phone?: string | null
+          driver_rating?: number | null
+          dropoff_latitude?: number | null
           dropoff_location: string
+          dropoff_longitude?: number | null
           estimated_arrival?: string | null
           estimated_arrival_time?: string | null
           estimated_cost_carecoins?: number | null
           id?: string
           patient_id?: string | null
+          pickup_latitude?: number | null
           pickup_location: string
+          pickup_longitude?: number | null
           ride_type?: string | null
           scheduled_time: string
           status?: string | null
@@ -2455,14 +2539,23 @@ export type Database = {
           actual_dropoff_time?: string | null
           actual_pickup_time?: string | null
           created_at?: string | null
+          distance_km?: number | null
+          driver_earnings?: number | null
+          driver_id?: string | null
           driver_name?: string | null
+          driver_phone?: string | null
+          driver_rating?: number | null
+          dropoff_latitude?: number | null
           dropoff_location?: string
+          dropoff_longitude?: number | null
           estimated_arrival?: string | null
           estimated_arrival_time?: string | null
           estimated_cost_carecoins?: number | null
           id?: string
           patient_id?: string | null
+          pickup_latitude?: number | null
           pickup_location?: string
+          pickup_longitude?: number | null
           ride_type?: string | null
           scheduled_time?: string
           status?: string | null
@@ -2471,6 +2564,13 @@ export type Database = {
           vehicle_info?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rides_patient_id_fkey"
             columns: ["patient_id"]
@@ -2663,6 +2763,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_distance: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

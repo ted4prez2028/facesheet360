@@ -46,6 +46,7 @@ import AdminCashOutRequests from './pages/AdminCashOutRequests';
 import CareCoinsTransactions from './pages/CareCoinsTransactions';
 import WalletManagement from './pages/WalletManagement';
 import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
+import DriverDashboard from './pages/DriverDashboard';
 
 const queryClient = new QueryClient();
 
@@ -348,6 +349,16 @@ function App() {
                       <RequireAuth>
                         <DashboardLayout>
                           <WalletManagement />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/driver"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <DriverDashboard />
                         </DashboardLayout>
                       </RequireAuth>
                     }

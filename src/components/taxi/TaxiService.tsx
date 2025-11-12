@@ -105,7 +105,12 @@ export const TaxiService = () => {
       const { data, error } = await supabase.functions.invoke('book-ride', {
         body: {
           userId: user.id,
-          ...rideDetails
+          ...rideDetails,
+          pickupLatitude: pickupCoords?.[0],
+          pickupLongitude: pickupCoords?.[1],
+          dropoffLatitude: dropoffCoords?.[0],
+          dropoffLongitude: dropoffCoords?.[1],
+          distanceKm: routeDistance ? routeDistance / 1000 : null
         }
       });
 
