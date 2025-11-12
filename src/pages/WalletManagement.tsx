@@ -13,16 +13,6 @@ import { useGlobalCareCoin } from '@/hooks/useGlobalCareCoin';
 import { supabase } from '@/integrations/supabase/client';
 import { ethers } from 'ethers';
 
-// Extend window type for MetaMask
-declare global {
-  interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>;
-      isMetaMask?: boolean;
-    };
-  }
-}
-
 export default function WalletManagement() {
   const { user, updateProfile } = useAuth();
   const { existingContract, isLoading: isContractLoading, deployCareCoin, isDeployed } = useGlobalCareCoin();
