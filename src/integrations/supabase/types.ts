@@ -732,6 +732,33 @@ export type Database = {
         }
         Relationships: []
       }
+      carecoin_rate_limits: {
+        Row: {
+          created_at: string
+          id: string
+          mint_count: number
+          mint_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mint_count?: number
+          mint_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mint_count?: number
+          mint_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       carecoin_staking: {
         Row: {
           apy_rate: number
@@ -2604,6 +2631,122 @@ export type Database = {
           },
         ]
       }
+      multisig_signatures: {
+        Row: {
+          id: string
+          signature: string
+          signed_at: string
+          signer_user_id: string | null
+          signer_wallet_address: string
+          transaction_id: string
+        }
+        Insert: {
+          id?: string
+          signature: string
+          signed_at?: string
+          signer_user_id?: string | null
+          signer_wallet_address: string
+          transaction_id: string
+        }
+        Update: {
+          id?: string
+          signature?: string
+          signed_at?: string
+          signer_user_id?: string | null
+          signer_wallet_address?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "multisig_signatures_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "multisig_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      multisig_signers: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          id: string
+          is_active: boolean
+          signer_name: string
+          signer_role: string
+          signer_wallet_address: string
+          wallet_address: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          id?: string
+          is_active?: boolean
+          signer_name: string
+          signer_role: string
+          signer_wallet_address: string
+          wallet_address: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          id?: string
+          is_active?: boolean
+          signer_name?: string
+          signer_role?: string
+          signer_wallet_address?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      multisig_transactions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          created_by: string | null
+          current_signatures: number
+          executed_at: string | null
+          id: string
+          required_signatures: number
+          status: string
+          to_address: string | null
+          transaction_data: Json | null
+          transaction_hash: string | null
+          transaction_type: string
+          wallet_address: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          current_signatures?: number
+          executed_at?: string | null
+          id?: string
+          required_signatures?: number
+          status?: string
+          to_address?: string | null
+          transaction_data?: Json | null
+          transaction_hash?: string | null
+          transaction_type: string
+          wallet_address: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          current_signatures?: number
+          executed_at?: string | null
+          id?: string
+          required_signatures?: number
+          status?: string
+          to_address?: string | null
+          transaction_data?: Json | null
+          transaction_hash?: string | null
+          transaction_type?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           conversation_id: string | null
@@ -3665,6 +3808,39 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string
@@ -4002,6 +4178,10 @@ export type Database = {
       calculate_distance: {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
+      }
+      check_carecoin_rate_limit: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
       get_user_role: {
         Args: { _user_id: string }
