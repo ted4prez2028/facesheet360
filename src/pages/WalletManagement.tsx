@@ -391,6 +391,50 @@ export default function WalletManagement() {
                   {isCheckingBalance ? 'Checking Balance...' : 'Check Blockchain Balance'}
                 </Button>
 
+                <Button
+                  onClick={async () => {
+                    try {
+                      if (!existingContract?.contract_address) {
+                        toast.error("CareCoin contract not deployed");
+                        return;
+                      }
+
+                      if (!window.ethereum) {
+                        toast.error("MetaMask not installed");
+                        return;
+                      }
+
+                      const wasAdded = await window.ethereum.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                          type: 'ERC20',
+                          options: {
+                            address: existingContract.contract_address,
+                            symbol: 'CARE',
+                            decimals: 18,
+                            image: 'https://kxngtgrfdqhfpsqyhcui.supabase.co/storage/v1/object/public/patient-avatars/carecoin-logo.png',
+                          },
+                        },
+                      });
+
+                      if (wasAdded) {
+                        toast.success("CARE token added to MetaMask!");
+                      } else {
+                        toast.info("Token addition cancelled");
+                      }
+                    } catch (error: any) {
+                      console.error("Error adding token to MetaMask:", error);
+                      toast.error(error.message || "Failed to add token to MetaMask");
+                    }
+                  }}
+                  disabled={!existingContract}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Add CARE to MetaMask
+                </Button>
+
                 <div className="space-y-2">
                   <Label htmlFor="mint-amount">Amount to Mint</Label>
                   <Input
