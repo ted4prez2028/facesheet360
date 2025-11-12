@@ -27,6 +27,8 @@ interface Ride {
   scheduled_time: string;
   estimated_arrival: string;
   patient_id?: string;
+  driver_id?: string;
+  driver_name?: string;
 }
 
 export const TaxiService = () => {
@@ -340,25 +342,42 @@ export const TaxiService = () => {
               rides.map((ride) => (
                 <div
                   key={ride.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="border rounded-lg p-4 space-y-3"
                 >
-                  <div className="flex-1">
-                    <div className="font-medium">{ride.pickup_location}</div>
-                    <div className="text-sm text-muted-foreground">
-                      to {ride.dropoff_location}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium">{ride.pickup_location}</div>
+                      <div className="text-sm text-muted-foreground">
+                        to {ride.dropoff_location}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        <Clock className="h-3 w-3 inline mr-1" />
+                        {new Date(ride.scheduled_time).toLocaleString()}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      <Clock className="h-3 w-3 inline mr-1" />
-                      {new Date(ride.scheduled_time).toLocaleString()}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 rounded text-xs text-white ${getStatusColor(ride.status)}`}
+                      >
+                        {ride.status}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs text-white ${getStatusColor(ride.status)}`}
+                  
+                  {/* Show rating option for completed rides */}
+                  {ride.status === 'completed' && ride.driver_id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        // Import and show RideRating component
+                        toast.info('Rating feature coming soon!');
+                      }}
                     >
-                      {ride.status}
-                    </span>
-                  </div>
+                      Rate Your Driver
+                    </Button>
+                  )}
                 </div>
               ))
             )}

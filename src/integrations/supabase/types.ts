@@ -749,8 +749,64 @@ export type Database = {
           },
         ]
       }
+      driver_ratings: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          id: string
+          passenger_id: string
+          rating: number
+          review: string | null
+          ride_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          passenger_id: string
+          rating: number
+          review?: string | null
+          ride_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          passenger_id?: string
+          rating?: number
+          review?: string | null
+          ride_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_ratings_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_ratings_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_ratings_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
+          average_rating: number | null
           care_coins_balance: number | null
           created_at: string | null
           current_latitude: number | null
@@ -763,6 +819,7 @@ export type Database = {
           rating: number | null
           status: string
           total_earnings: number | null
+          total_ratings: number | null
           total_rides: number | null
           updated_at: string | null
           user_id: string
@@ -770,8 +827,13 @@ export type Database = {
           vehicle_model: string | null
           vehicle_type: string
           vehicle_year: number | null
+          verification_notes: string | null
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
+          average_rating?: number | null
           care_coins_balance?: number | null
           created_at?: string | null
           current_latitude?: number | null
@@ -784,6 +846,7 @@ export type Database = {
           rating?: number | null
           status?: string
           total_earnings?: number | null
+          total_ratings?: number | null
           total_rides?: number | null
           updated_at?: string | null
           user_id: string
@@ -791,8 +854,13 @@ export type Database = {
           vehicle_model?: string | null
           vehicle_type?: string
           vehicle_year?: number | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
+          average_rating?: number | null
           care_coins_balance?: number | null
           created_at?: string | null
           current_latitude?: number | null
@@ -805,6 +873,7 @@ export type Database = {
           rating?: number | null
           status?: string
           total_earnings?: number | null
+          total_ratings?: number | null
           total_rides?: number | null
           updated_at?: string | null
           user_id?: string
@@ -812,6 +881,10 @@ export type Database = {
           vehicle_model?: string | null
           vehicle_type?: string
           vehicle_year?: number | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
@@ -2568,6 +2641,13 @@ export type Database = {
             foreignKeyName: "rides_driver_id_fkey"
             columns: ["driver_id"]
             isOneToOne: false
+            referencedRelation: "driver_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
             referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
@@ -2739,6 +2819,32 @@ export type Database = {
       }
     }
     Views: {
+      driver_performance: {
+        Row: {
+          average_rating: number | null
+          avg_earnings_per_ride: number | null
+          cancelled_rides: number | null
+          care_coins_balance: number | null
+          completed_rides: number | null
+          created_at: string | null
+          driver_email: string | null
+          driver_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          last_ride_date: string | null
+          license_plate: string | null
+          status: string | null
+          total_earnings: number | null
+          total_ratings: number | null
+          total_rides: number | null
+          user_id: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: string | null
+          verification_status: string | null
+        }
+        Relationships: []
+      }
       patient_audit_trail: {
         Row: {
           action_details: Json | null

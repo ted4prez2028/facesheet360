@@ -109,6 +109,7 @@ export function AppSidebar() {
       group: "Administration",
       items: [
         { title: "Food", icon: Utensils, path: "/food" },
+        { title: "Driver Management", icon: Car, path: "/admin/drivers" },
         { title: "EHR Import", icon: Database, path: "/ehr-import" },
         { title: "Audit Logs", icon: ShieldIcon, path: "/audit-logs" },
         { title: "Security & Compliance", icon: Lock, path: "/security" },

@@ -47,6 +47,7 @@ import CareCoinsTransactions from './pages/CareCoinsTransactions';
 import WalletManagement from './pages/WalletManagement';
 import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
 import DriverDashboard from './pages/DriverDashboard';
+import AdminDriverManagement from './pages/AdminDriverManagement';
 
 const queryClient = new QueryClient();
 
@@ -359,6 +360,16 @@ function App() {
                       <RequireAuth>
                         <DashboardLayout>
                           <DriverDashboard />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/drivers"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <AdminDriverManagement />
                         </DashboardLayout>
                       </RequireAuth>
                     }
