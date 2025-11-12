@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
+  const [activeTab, setActiveTab] = useState("login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
@@ -106,7 +107,7 @@ const Login = () => {
           <p className="text-muted-foreground mt-2">Healthcare Management Platform</p>
         </div>
         
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 w-full mb-6">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
@@ -157,6 +158,16 @@ const Login = () => {
                     )}
                   </Button>
                 </form>
+                <div className="mt-4 text-center text-sm">
+                  <span className="text-muted-foreground">Don't have an account? </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("register")}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign up here
+                  </button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
