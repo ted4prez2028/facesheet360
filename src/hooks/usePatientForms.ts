@@ -52,12 +52,25 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
   });
 
   const handleAddVitals = async () => {
-    if (!selectedPatient || !userId) return;
+    if (!selectedPatient) {
+      toast.error('No patient selected');
+      return;
+    }
+
+    if (!userId) {
+      toast.error('User not authenticated. Please log in again.');
+      return;
+    }
 
     try {
       const vitalsToAdd = Object.entries(newVitals)
         .filter(([_, value]) => value !== '')
         .reduce((acc, [key, value]) => ({ ...acc, [key]: parseFloat(value) }), {});
+
+      if (Object.keys(vitalsToAdd).length === 0) {
+        toast.error('Please enter at least one vital sign');
+        return;
+      }
 
       const { error } = await supabase
         .from('patient_vitals')
