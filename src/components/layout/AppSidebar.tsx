@@ -91,7 +91,9 @@ export function AppSidebar() {
     {
       group: "Transportation",
       items: [
-        { title: "Taxi Service", icon: ChevronRight, path: "/taxi" },
+        { title: "Taxi Service", icon: Car, path: "/taxi" },
+        { title: "Ride History", icon: BarChart3, path: "/ride-history" },
+        { title: "Driver Dashboard", icon: Car, path: "/driver" },
       ],
     },
     {

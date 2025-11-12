@@ -970,6 +970,42 @@ export type Database = {
           },
         ]
       }
+      favorite_locations: {
+        Row: {
+          address: string
+          created_at: string | null
+          id: string
+          latitude: number
+          location_type: string
+          longitude: number
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          id?: string
+          latitude: number
+          location_type?: string
+          longitude: number
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          id?: string
+          latitude?: number
+          location_type?: string
+          longitude?: number
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       food_orders: {
         Row: {
           created_at: string | null

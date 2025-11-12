@@ -8,6 +8,7 @@ import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
 import { GeolocationMarker } from './GeolocationMarker';
+import { RealtimeDriverTracker } from './RealtimeDriverTracker';
 
 // Fix default marker icon issue with Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -83,9 +84,12 @@ interface RideMapProps {
   pickupCoords: [number, number] | null;
   dropoffCoords: [number, number] | null;
   driverCoords?: [number, number] | null;
+  driverId?: string;
+  driverName?: string;
   onRouteFound?: (distance: number, duration: number) => void;
   onCurrentLocationFound?: (coords: [number, number]) => void;
   showCurrentLocation?: boolean;
+  enableRealtimeTracking?: boolean;
   className?: string;
 }
 
@@ -93,9 +97,12 @@ export const RideMap = ({
   pickupCoords, 
   dropoffCoords, 
   driverCoords,
+  driverId,
+  driverName,
   onRouteFound,
   onCurrentLocationFound,
   showCurrentLocation = true,
+  enableRealtimeTracking = false,
   className = ''
 }: RideMapProps) => {
   const center: [number, number] = pickupCoords || [40.7128, -74.0060]; // Default to NYC
@@ -143,6 +150,10 @@ export const RideMap = ({
           onLocationFound={onCurrentLocationFound}
           centerOnLocation={!pickupCoords && !dropoffCoords}
         />
+      )}
+
+      {enableRealtimeTracking && driverId && (
+        <RealtimeDriverTracker driverId={driverId} driverName={driverName} />
       )}
     </MapContainer>
   );

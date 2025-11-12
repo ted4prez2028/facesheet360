@@ -18,6 +18,8 @@ import { PatientAutocomplete } from '@/components/common/PatientAutocomplete';
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { RideMap } from './RideMap';
+import { FavoriteLocations } from './FavoriteLocations';
+import { Badge } from '@/components/ui/badge';
 
 interface Ride {
   id: string;
@@ -300,6 +302,22 @@ export const TaxiService = () => {
             </div>
           </div>
 
+          {/* Favorite Locations */}
+          <FavoriteLocations
+            compact
+            onSelectLocation={(location) => {
+              if (!pickupLocation) {
+                setPickupLocation(location.address);
+                setPickupCoords([location.latitude, location.longitude]);
+                toast.success(`Set ${location.name} as pickup`);
+              } else {
+                setDropoffLocation(location.address);
+                setDropoffCoords([location.latitude, location.longitude]);
+                toast.success(`Set ${location.name} as dropoff`);
+              }
+            }}
+          />
+
           <div className="space-y-2">
             <Label htmlFor="ride-type">Ride Type</Label>
             <Select value={selectedRideType} onValueChange={setSelectedRideType}>
@@ -389,6 +407,22 @@ export const TaxiService = () => {
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Show realtime tracking for active rides */}
+                  {(ride.status === 'en_route' || ride.status === 'in_progress' || ride.status === 'arrived') && ride.driver_id && (
+                    <div className="mt-3">
+                      <Badge variant="secondary" className="mb-2">Live Tracking Active</Badge>
+                      <RideMap
+                        pickupCoords={pickupCoords}
+                        dropoffCoords={dropoffCoords}
+                        driverId={ride.driver_id}
+                        driverName={ride.driver_name}
+                        enableRealtimeTracking
+                        showCurrentLocation
+                        className="h-[300px]"
+                      />
+                    </div>
+                  )}
                   
                   {/* Show rating option for completed rides */}
                   {ride.status === 'completed' && ride.driver_id && (

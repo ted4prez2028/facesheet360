@@ -48,6 +48,7 @@ import WalletManagement from './pages/WalletManagement';
 import FacialRecognitionGalleryPage from './pages/FacialRecognitionGalleryPage';
 import DriverDashboard from './pages/DriverDashboard';
 import AdminDriverManagement from './pages/AdminDriverManagement';
+import RideHistory from './pages/RideHistory';
 
 const queryClient = new QueryClient();
 
@@ -264,17 +265,27 @@ function App() {
                      </RequireAuth>
                    }
                  />
-                 <Route
-                   path="/taxi"
-                   element={
-                     <RequireAuth>
-                       <DashboardLayout>
-                         <TaxiPage />
-                       </DashboardLayout>
-                     </RequireAuth>
-                   }
-                 />
-                 <Route
+                  <Route
+                    path="/taxi"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <TaxiPage />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/ride-history"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <RideHistory />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
                    path="/communication"
                    element={
                      <RequireAuth>
