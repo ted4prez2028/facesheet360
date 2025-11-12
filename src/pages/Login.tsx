@@ -26,7 +26,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      navigate('/dashboard', { replace: true });
+      navigate('/appointments', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 

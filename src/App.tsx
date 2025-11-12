@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 // Pages
 import Index from './pages/Index';
+import Login from './pages/Login';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
 import PostPaymentAuth from './pages/PostPaymentAuth';
@@ -63,9 +64,9 @@ function App() {
               <SessionTimeout />
               <UserPreferencesProvider>
                 <Routes>
-                  <Route path="/" element={<Navigate to="/appointments" replace />} />
+                  <Route path="/" element={<Navigate to="/landing" replace />} />
                   <Route path="/landing" element={<Index />} />
-                  <Route path="/login" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
                   <Route path="/learn-more" element={<LearnMore />} />
                   <Route path="/view-plans" element={<ViewPlans />} />
                   <Route path="/product-tour" element={<ProductTour />} />
