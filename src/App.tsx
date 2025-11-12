@@ -56,6 +56,10 @@ import PatientPortal from './pages/PatientPortal';
 import ComplianceCenter from './pages/ComplianceCenter';
 import CareCoinEcosystem from './pages/CareCoinEcosystem';
 import SecuritySettings from './pages/SecuritySettings';
+import Telemedicine from './pages/Telemedicine';
+import PatientEducation from './pages/PatientEducation';
+import InventoryManagement from './pages/InventoryManagement';
+import AdvancedReporting from './pages/AdvancedReporting';
 
 const queryClient = new QueryClient();
 
@@ -458,6 +462,46 @@ function App() {
                       <RequireAuth>
                         <DashboardLayout>
                           <SecuritySettings />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/telemedicine"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <Telemedicine />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/patient-education"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <PatientEducation />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/inventory"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <InventoryManagement />
+                        </DashboardLayout>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/reports"
+                    element={
+                      <RequireAuth>
+                        <DashboardLayout>
+                          <AdvancedReporting />
                         </DashboardLayout>
                       </RequireAuth>
                     }

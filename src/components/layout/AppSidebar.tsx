@@ -33,6 +33,8 @@ import {
   Lock,
   Car,
   TrendingUp,
+  Video,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/lib/sidebar";
@@ -110,6 +112,15 @@ export function AppSidebar() {
         { title: "CareCoin Analytics", icon: DollarSign, path: "/carecoins-analytics" },
         { title: "Cash-Out Requests", icon: CreditCard, path: "/admin/cashout-requests" },
         { title: "Subscription", icon: Package, path: "/subscription" },
+      ],
+    },
+    {
+      group: "Healthcare Services",
+      items: [
+        { title: "Telemedicine", icon: Video, path: "/telemedicine" },
+        { title: "Patient Education", icon: BookOpen, path: "/patient-education" },
+        { title: "Inventory", icon: Package, path: "/inventory" },
+        { title: "Reports & Analytics", icon: BarChart3, path: "/reports" },
       ],
     },
     {
