@@ -16,6 +16,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { PatientAutocomplete } from '@/components/common/PatientAutocomplete';
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { AddressAutocomplete } from './AddressAutocomplete';
+import { RideMap } from './RideMap';
 
 interface Ride {
   id: string;
@@ -32,6 +34,10 @@ export const TaxiService = () => {
   const queryClient = useQueryClient();
   const [pickupLocation, setPickupLocation] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState('');
+  const [pickupCoords, setPickupCoords] = useState<[number, number] | null>(null);
+  const [dropoffCoords, setDropoffCoords] = useState<[number, number] | null>(null);
+  const [routeDistance, setRouteDistance] = useState<number | null>(null);
+  const [routeDuration, setRouteDuration] = useState<number | null>(null);
   const [selectedRideType, setSelectedRideType] = useState('standard');
   const [scheduledTime, setScheduledTime] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
@@ -155,11 +161,19 @@ export const TaxiService = () => {
 
   const calculateEstimatedCost = (rideType: string): number => {
     const baseCosts = {
-      standard: 50,
-      premium: 100,
-      wheelchair: 75
+      standard: 1.5,
+      premium: 2.5,
+      wheelchair: 2.0
     };
-    return baseCosts[rideType as keyof typeof baseCosts] || 50;
+    const perKmRate = baseCosts[rideType as keyof typeof baseCosts] || 1.5;
+    const baseFare = rideType === 'premium' ? 20 : rideType === 'wheelchair' ? 15 : 10;
+    
+    if (routeDistance) {
+      const distanceKm = routeDistance / 1000;
+      return Math.ceil(baseFare + (distanceKm * perKmRate));
+    }
+    
+    return baseFare;
   };
 
   const getStatusColor = (status: string) => {
@@ -206,17 +220,36 @@ export const TaxiService = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Interactive Map */}
+          <div className="space-y-2">
+            <Label>Route Preview</Label>
+            <RideMap 
+              pickupCoords={pickupCoords}
+              dropoffCoords={dropoffCoords}
+              onRouteFound={(distance, duration) => {
+                setRouteDistance(distance);
+                setRouteDuration(duration);
+              }}
+            />
+            {routeDistance && routeDuration && (
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span>Distance: {(routeDistance / 1000).toFixed(2)} km</span>
+                <span>Estimated Time: {Math.ceil(routeDuration / 60)} min</span>
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="pickup">
                 <MapPin className="h-4 w-4 inline mr-2" />
                 Pickup Location
               </Label>
-              <Input
-                id="pickup"
-                placeholder="Enter pickup address"
+              <AddressAutocomplete
                 value={pickupLocation}
-                onChange={(e) => setPickupLocation(e.target.value)}
+                onChange={setPickupLocation}
+                onLocationSelect={(lat, lon) => setPickupCoords([lat, lon])}
+                placeholder="Search pickup address"
               />
             </div>
 
@@ -225,11 +258,11 @@ export const TaxiService = () => {
                 <MapPin className="h-4 w-4 inline mr-2" />
                 Dropoff Location
               </Label>
-              <Input
-                id="dropoff"
-                placeholder="Enter dropoff address"
+              <AddressAutocomplete
                 value={dropoffLocation}
-                onChange={(e) => setDropoffLocation(e.target.value)}
+                onChange={setDropoffLocation}
+                onLocationSelect={(lat, lon) => setDropoffCoords([lat, lon])}
+                placeholder="Search dropoff address"
               />
             </div>
           </div>
@@ -241,9 +274,9 @@ export const TaxiService = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="standard">Standard (50 CareCoins)</SelectItem>
-                <SelectItem value="wheelchair">Wheelchair Accessible (75 CareCoins)</SelectItem>
-                <SelectItem value="premium">Premium (100 CareCoins)</SelectItem>
+                <SelectItem value="standard">Standard (Base: 10 CC + 1.5 CC/km)</SelectItem>
+                <SelectItem value="wheelchair">Wheelchair Accessible (Base: 15 CC + 2 CC/km)</SelectItem>
+                <SelectItem value="premium">Premium (Base: 20 CC + 2.5 CC/km)</SelectItem>
               </SelectContent>
             </Select>
           </div>
