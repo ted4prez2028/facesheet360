@@ -118,7 +118,7 @@ const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) => {
           description: `Lab test ${lab.status}`,
           details: {
             Status: lab.status,
-            Result: lab.result_value ? `${lab.result_value} ${lab.result_unit}` : 'Pending'
+            Result: lab.result_value ? `${lab.result_value} ${lab.unit || ''}` : 'Pending'
           }
         });
       });

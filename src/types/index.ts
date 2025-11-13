@@ -201,7 +201,7 @@ export interface CashOutRequest {
   admin_notes?: string;
   processed_by?: string;
   processed_at?: string;
-  requested_at: string;
+  requested_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -211,16 +211,16 @@ export interface Ride {
   user_id: string;
   driver_id?: string;
   driver_name?: string;
-  pickup_location: string;
-  dropoff_location: string;
-  pickup_latitude: number;
-  pickup_longitude: number;
-  dropoff_latitude: number;
-  dropoff_longitude: number;
+  pickup_location?: string;
+  dropoff_location?: string;
+  pickup_latitude?: number;
+  pickup_longitude?: number;
+  dropoff_latitude?: number;
+  dropoff_longitude?: number;
   scheduled_time?: string;
   estimated_arrival?: string;
-  distance_km: number;
-  estimated_cost_carecoins: number;
+  distance_km?: number;
+  estimated_cost_carecoins?: number;
   actual_cost_carecoins?: number;
   status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
   created_at: string;
@@ -228,9 +228,10 @@ export interface Ride {
 }
 
 export interface CompletedRide extends Ride {
-  actual_pickup_time: string;
-  actual_dropoff_time: string;
+  actual_pickup_time?: string;
+  actual_dropoff_time?: string;
   driver_rating?: number;
+  completed_at?: string;
 }
 
 export interface VitalSigns {

@@ -17,12 +17,14 @@ export const LiquidityPoolManager = () => {
 
   const { data: priceData, isLoading: priceLoading } = useCareCoinPrice();
 
-  const { data: contractData, isLoading: contractLoading } = useQuery({
-    queryKey: ['carecoin-contract-pool'],
+  const { data: deploymentData, isLoading: contractLoading } = useQuery({
+    queryKey: ['carecoin-deployment-pool'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('carecoin_contract')
-        .select('contract_address, contract_details')
+        .from('carecoin_deployment_status')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
 
       if (error) throw error;
@@ -30,8 +32,7 @@ export const LiquidityPoolManager = () => {
     },
   });
 
-  const contractDetails = contractData?.contract_details as any;
-  const hasPool = contractDetails?.uniswap_pool;
+  const hasPool = deploymentData?.liquidity_pool_address;
 
   const handleCreatePool = async () => {
     if (!careAmount || !usdcAmount) {
@@ -117,7 +118,7 @@ export const LiquidityPoolManager = () => {
                 <p className="font-medium">Pool Address:</p>
                 <div className="flex items-center gap-2">
                   <code className="text-xs break-all flex-1 bg-background p-2 rounded">
-                    {contractDetails?.uniswap_pool}
+                    {deploymentData?.liquidity_pool_address}
                   </code>
                   <Button
                     size="sm"
@@ -125,7 +126,7 @@ export const LiquidityPoolManager = () => {
                     asChild
                   >
                     <a
-                      href={`https://polygonscan.com/address/${contractDetails?.uniswap_pool}`}
+                      href={`https://polygonscan.com/address/${deploymentData?.liquidity_pool_address}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -136,15 +137,15 @@ export const LiquidityPoolManager = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">Initial CARE</p>
+                  <p className="text-xs text-muted-foreground">Liquidity Added</p>
                   <p className="font-medium">
-                    {contractDetails?.initial_care_liquidity?.toLocaleString() || 'N/A'} CARE
+                    ${deploymentData?.liquidity_added?.toLocaleString() || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Initial USDC</p>
+                  <p className="text-xs text-muted-foreground">Network</p>
                   <p className="font-medium">
-                    ${contractDetails?.initial_usdc_liquidity?.toLocaleString() || 'N/A'}
+                    {deploymentData?.network || 'Polygon'}
                   </p>
                 </div>
               </div>
