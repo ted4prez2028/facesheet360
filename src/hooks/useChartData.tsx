@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define interfaces for the data models
 interface VitalSigns {
@@ -54,40 +55,65 @@ interface ImagingRecord {
 
 // Hook for fetching vital signs
 export const useVitalSigns = (patientId: string | null) => {
+  const queryClient = useQueryClient();
+  
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!patientId) return;
+    
+    const channel = supabase
+      .channel(`vitals-${patientId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'patient_vitals',
+          filter: `patient_id=eq.${patientId}`
+        },
+        () => {
+          // Invalidate and refetch when vitals change
+          queryClient.invalidateQueries({ queryKey: ['vital-signs', patientId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [patientId, queryClient]);
+  
   return useQuery({
     queryKey: ['vital-signs', patientId],
     queryFn: async (): Promise<VitalSigns[]> => {
       if (!patientId) return [];
       
-      // Mock data since vital_signs table doesn't exist
-      return [
-        {
-          id: '1',
-          patient_id: patientId,
-          date_recorded: new Date().toISOString(),
-          temperature: 98.6,
-          blood_pressure: '120/80',
-          heart_rate: 72,
-          respiratory_rate: 16,
-          oxygen_saturation: 98,
-          height: 70,
-          weight: 150,
-          notes: 'Normal vital signs'
-        },
-        {
-          id: '2',
-          patient_id: patientId,
-          date_recorded: new Date(Date.now() - 86400000).toISOString(),
-          temperature: 99.1,
-          blood_pressure: '118/78',
-          heart_rate: 75,
-          respiratory_rate: 18,
-          oxygen_saturation: 97,
-          height: 70,
-          weight: 149,
-          notes: 'Slightly elevated temperature'
-        }
-      ];
+      const { data, error } = await supabase
+        .from('patient_vitals')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('recorded_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching vitals:', error);
+        return [];
+      }
+
+      return (data || []).map(vital => ({
+        id: vital.id,
+        patient_id: vital.patient_id,
+        date_recorded: vital.recorded_at,
+        temperature: vital.temperature || undefined,
+        blood_pressure: vital.blood_pressure_systolic && vital.blood_pressure_diastolic 
+          ? `${vital.blood_pressure_systolic}/${vital.blood_pressure_diastolic}` 
+          : undefined,
+        heart_rate: vital.heart_rate || undefined,
+        respiratory_rate: vital.respiratory_rate || undefined,
+        oxygen_saturation: vital.oxygen_saturation || undefined,
+        height: vital.height || undefined,
+        weight: vital.weight || undefined,
+        notes: vital.notes || undefined
+      }));
     },
     enabled: !!patientId
   });
