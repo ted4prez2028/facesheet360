@@ -427,13 +427,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </div>
           ) : (
             filteredMessages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                isOwnMessage={message.sender_id === user?.id}
-                currentUserId={user?.id || ''}
-                onMessageUpdated={refreshMessages}
-              />
+              <div key={message.id} className="p-2 border-b">
+                <p className="text-sm">{message.content}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(message.created_at).toLocaleTimeString()}
+                </p>
+              </div>
             ))
           )}
           {contactIsTyping && (

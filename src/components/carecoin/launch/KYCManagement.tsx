@@ -52,10 +52,10 @@ export const KYCManagement = () => {
   }
 
   const stats = {
-    pending: kycRecords?.filter((r) => r.status === "pending").length || 0,
-    in_review: kycRecords?.filter((r) => r.status === "in_review").length || 0,
-    approved: kycRecords?.filter((r) => r.status === "approved").length || 0,
-    rejected: kycRecords?.filter((r) => r.status === "rejected").length || 0,
+    pending: kycRecords?.filter((r) => r.verification_status === "pending").length || 0,
+    in_review: kycRecords?.filter((r) => r.verification_status === "in_review").length || 0,
+    approved: kycRecords?.filter((r) => r.verification_status === "approved").length || 0,
+    rejected: kycRecords?.filter((r) => r.verification_status === "rejected").length || 0,
   };
 
   return (
