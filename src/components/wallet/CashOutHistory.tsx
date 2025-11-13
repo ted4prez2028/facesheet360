@@ -31,17 +31,14 @@ export const CashOutHistory = () => {
         .from('cashout_requests')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('requested_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching cashout requests:', error);
         throw error;
       }
 
-      return (data || []).map(d => ({
-        ...d,
-        requested_at: d.created_at // Use created_at as requested_at
-      })) as CashOutRequest[];
+      return data as CashOutRequest[];
     },
     enabled: !!user?.id,
   });

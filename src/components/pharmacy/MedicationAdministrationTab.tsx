@@ -9,7 +9,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
-import { MedicationAdministrationRecord } from '@/types/missing-tables';
 
 interface MedicationAdministrationTabProps {
   onUpdate: () => void;
@@ -70,7 +69,7 @@ export const MedicationAdministrationTab: React.FC<MedicationAdministrationTabPr
 
       // Create MAR entry
       const { error } = await supabase
-        .from('medication_administration_records' as any)
+        .from('medication_administration_records')
         .insert({
           medication_order_id: selectedMed.id,
           patient_id: selectedMed.patient_id,

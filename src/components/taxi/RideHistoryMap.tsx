@@ -74,21 +74,14 @@ export const RideHistoryMap = () => {
         .limit(20);
 
       if (error) throw error;
-      return (data || []).map(d => ({
-        ...d,
-        pickup_location: d.pickup_address || '',
-        dropoff_location: d.dropoff_address || '',
-        estimated_cost_carecoins: d.cost_carecoins || 0,
-        actual_pickup_time: d.accepted_at || d.created_at,
-        actual_dropoff_time: d.completed_at || d.created_at
-      })) as CompletedRide[];
+      return data as CompletedRide[];
     },
     enabled: !!user,
   });
 
-  const totalRides = rides?.length || 0;
-  const totalDistance = rides?.reduce((sum, ride) => sum + (ride.distance_km || 0), 0) || 0;
-  const totalCost = rides?.reduce((sum, ride) => sum + (ride.estimated_cost_carecoins || 0), 0) || 0;
+  const totalRides = rides.length;
+  const totalDistance = rides.reduce((sum, ride) => sum + (ride.distance_km || 0), 0);
+  const totalCost = rides.reduce((sum, ride) => sum + (ride.estimated_cost_carecoins || 0), 0);
   const avgRating = rides.filter(r => r.driver_rating).length > 0
     ? rides.filter(r => r.driver_rating).reduce((sum, r) => sum + (r.driver_rating || 0), 0) / rides.filter(r => r.driver_rating).length
     : 0;

@@ -123,7 +123,7 @@ export const BulkImportDialog = ({ open, onOpenChange, onImportComplete }: BulkI
 
           const { error } = await supabase
             .from('patients')
-            .insert([patientData]);
+            .insert(patientData);
 
           if (error) {
             errors.push(`Row ${i + 1}: ${error.message}`);

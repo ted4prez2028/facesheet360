@@ -1,7 +1,0 @@
--- Add missing columns to charting_profits table
-ALTER TABLE charting_profits
-ADD COLUMN IF NOT EXISTS total_amount NUMERIC DEFAULT 0,
-ADD COLUMN IF NOT EXISTS patient_share NUMERIC DEFAULT 0,
-ADD COLUMN IF NOT EXISTS provider_share NUMERIC DEFAULT 0,
-ADD COLUMN IF NOT EXISTS admin_share NUMERIC DEFAULT 0,
-ADD COLUMN IF NOT EXISTS chart_type TEXT;

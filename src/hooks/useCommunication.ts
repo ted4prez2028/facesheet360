@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { Conversation as ConversationType } from '@/types/missing-tables';
 
 export interface User {
   id: string;
@@ -88,7 +87,7 @@ export const useCommunication = () => {
         
         // Try to find existing conversation
         const { data: conversation, error: convError } = await supabase
-          .from('conversations' as any)
+          .from('conversations')
           .select('*')
           .eq('participant_1_id', participant1)
           .eq('participant_2_id', participant2)
@@ -97,7 +96,7 @@ export const useCommunication = () => {
         if (conversation) {
           // Get the latest message for this conversation
           const { data: lastMessage } = await supabase
-            .from('messages' as any)
+            .from('messages')
             .select('id, content, created_at, sender_id')
             .eq('conversation_id', conversation.id)
             .order('created_at', { ascending: false })
@@ -105,14 +104,10 @@ export const useCommunication = () => {
             .maybeSingle();
 
           userConversations[contact.id] = {
-            id: conversation.id,
-            participant_1_id: conversation.participant_1_id,
-            participant_2_id: conversation.participant_2_id,
-            created_at: conversation.created_at,
-            updated_at: conversation.updated_at,
+            ...conversation,
             last_message_at: conversation.updated_at,
             last_message: lastMessage || undefined
-          } as ConversationType;
+          };
         } else {
           // Create placeholder conversation entry
           userConversations[contact.id] = {

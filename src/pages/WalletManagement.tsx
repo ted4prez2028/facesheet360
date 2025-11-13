@@ -1,22 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Wallet, ExternalLink, Copy, Check, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Wallet, ExternalLink, Copy, Check, AlertCircle, Coins, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { getProvider } from '@/lib/web3';
+import { useGlobalCareCoin } from '@/hooks/useGlobalCareCoin';
+import { supabase } from '@/integrations/supabase/client';
+import { ethers } from 'ethers';
 
 export default function WalletManagement() {
-  const { user } = useAuth();
-  const [walletAddress, setWalletAddress] = useState((user as any)?.wallet_address || '');
+  const { user, updateProfile } = useAuth();
+  const { existingContract, isLoading: isContractLoading, deployCareCoin, isDeployed } = useGlobalCareCoin();
+  const [walletAddress, setWalletAddress] = useState(user?.wallet_address || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+  const [mintAmount, setMintAmount] = useState('100');
+  const [blockchainBalance, setBlockchainBalance] = useState<string | null>(null);
+  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
 
   const handleConnectMetaMask = async () => {
     setIsConnecting(true);
@@ -53,13 +60,7 @@ export default function WalletManagement() {
 
     setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ wallet_address: walletAddress })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
+      await updateProfile({ wallet_address: walletAddress });
       toast.success('Wallet address updated successfully!');
     } catch (error) {
       console.error('Update error:', error);
@@ -70,8 +71,8 @@ export default function WalletManagement() {
   };
 
   const handleCopyAddress = () => {
-    if ((user as any)?.wallet_address) {
-      navigator.clipboard.writeText((user as any).wallet_address);
+    if (user?.wallet_address) {
+      navigator.clipboard.writeText(user.wallet_address);
       setCopied(true);
       toast.success('Address copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
@@ -79,10 +80,118 @@ export default function WalletManagement() {
   };
 
   const handleOpenEtherscan = () => {
-    if ((user as any)?.wallet_address) {
-      window.open(`https://etherscan.io/address/${(user as any).wallet_address}`, '_blank');
+    if (user?.wallet_address) {
+      window.open(`https://etherscan.io/address/${user.wallet_address}`, '_blank');
     }
   };
+
+  const handleMintTokens = async () => {
+    if (!user?.wallet_address) {
+      toast.error('Please connect a wallet address first');
+      return;
+    }
+
+    if (!existingContract?.contract_address) {
+      toast.error('CareCoin contract not deployed. Please deploy the contract first.');
+      return;
+    }
+
+    setIsMinting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('mint-carecoin', {
+        body: {
+          contractAddress: existingContract.contract_address,
+          toAddress: user.wallet_address,
+          amount: mintAmount
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(`Successfully minted ${mintAmount} CARE tokens!`);
+        toast.success(`Transaction hash: ${data.transactionHash}`);
+        // Refresh balance after minting
+        setTimeout(() => handleCheckBalance(), 3000);
+      } else {
+        throw new Error(data.error || 'Minting failed');
+      }
+    } catch (error: any) {
+      console.error('Minting error:', error);
+      toast.error(error.message || 'Failed to mint tokens');
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
+  const handleDeployContract = async () => {
+    if (!user?.wallet_address) {
+      toast.error('Please connect a wallet address first');
+      return;
+    }
+
+    try {
+      await deployCareCoin.mutateAsync({
+        deployerAddress: user.wallet_address,
+        isTestnet: true
+      });
+    } catch (error: any) {
+      console.error('Deployment error:', error);
+      // Error toast is already shown by the mutation
+    }
+  };
+
+  const handleCheckBalance = async () => {
+    if (!user?.wallet_address) {
+      toast.error('Please connect a wallet address first');
+      return;
+    }
+
+    if (!existingContract?.contract_address) {
+      toast.error('CareCoin contract not deployed yet');
+      return;
+    }
+
+    setIsCheckingBalance(true);
+    try {
+      const CARECOIN_ABI = [
+        "function balanceOf(address owner) view returns (uint256)",
+        "function decimals() view returns (uint8)"
+      ];
+
+      // Connect to Polygon Mumbai testnet - use Alchemy public demo endpoint
+      const rpcUrl = existingContract.network === 'polygon-testnet' 
+        ? 'https://polygon-mumbai.g.alchemy.com/v2/demo'
+        : 'https://polygon-rpc.com';
+      
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const contract = new ethers.Contract(
+        existingContract.contract_address,
+        CARECOIN_ABI,
+        provider
+      );
+
+      const balance = await contract.balanceOf(user.wallet_address);
+      const decimals = await contract.decimals();
+      const formattedBalance = ethers.formatUnits(balance, decimals);
+      
+      setBlockchainBalance(formattedBalance);
+      toast.success(`Balance: ${formattedBalance} CARE tokens`);
+    } catch (error: any) {
+      console.error('Balance check error:', error);
+      toast.error('Failed to check blockchain balance');
+      setBlockchainBalance(null);
+    } finally {
+      setIsCheckingBalance(false);
+    }
+  };
+
+  // Auto-check balance when contract exists
+  useEffect(() => {
+    if (existingContract?.contract_address && user?.wallet_address) {
+      handleCheckBalance();
+    }
+  }, [existingContract?.contract_address, user?.wallet_address]);
 
   if (!user) {
     return (
@@ -112,7 +221,7 @@ export default function WalletManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {(user as any)?.wallet_address ? (
+          {user?.wallet_address ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50 dark:bg-green-950">
                 <div className="flex items-center gap-3">
@@ -122,7 +231,7 @@ export default function WalletManagement() {
                   <div>
                     <p className="font-medium">Wallet Connected</p>
                     <p className="text-sm text-muted-foreground font-mono">
-                      {(user as any).wallet_address.slice(0, 6)}...{(user as any).wallet_address.slice(-4)}
+                      {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
                     </p>
                   </div>
                 </div>
@@ -164,7 +273,7 @@ export default function WalletManagement() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {(user as any)?.wallet_address ? 'Update Wallet Address' : 'Connect Wallet'}
+            {user?.wallet_address ? 'Update Wallet Address' : 'Connect Wallet'}
           </CardTitle>
           <CardDescription>
             Connect your MetaMask wallet or manually enter an Ethereum address
@@ -207,13 +316,152 @@ export default function WalletManagement() {
 
           <Button 
             onClick={handleUpdateWallet} 
-            disabled={isUpdating || !walletAddress || walletAddress === (user as any)?.wallet_address}
+            disabled={isUpdating || !walletAddress || walletAddress === user?.wallet_address}
             className="w-full"
           >
             {isUpdating ? 'Updating...' : 'Update Wallet Address'}
           </Button>
         </CardContent>
       </Card>
+
+      {/* Admin Mint Tokens */}
+      {user?.email === 'tdicusmurray@gmail.com' && user?.wallet_address && (
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5" />
+              Admin: CareCoin Management
+            </CardTitle>
+            <CardDescription>
+              Deploy contract, mint tokens, and check blockchain balance (Admin only)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!existingContract ? (
+              <>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Contract Not Deployed</AlertTitle>
+                  <AlertDescription>
+                    Deploy the CareCoin contract to Polygon Mumbai testnet to start minting tokens.
+                  </AlertDescription>
+                </Alert>
+                <Button 
+                  onClick={handleDeployContract}
+                  disabled={deployCareCoin.isPending}
+                  className="w-full"
+                  size="lg"
+                >
+                  {deployCareCoin.isPending ? 'Deploying to Testnet...' : 'Deploy CareCoin to Mumbai Testnet'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium">Contract Address:</p>
+                        <p className="text-xs font-mono break-all">{existingContract.contract_address}</p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">Network: {existingContract.network}</p>
+                        <Badge variant="outline" className="bg-green-100 dark:bg-green-900">
+                          Deployed
+                        </Badge>
+                      </div>
+                      {blockchainBalance !== null && (
+                        <div className="pt-2 border-t">
+                          <p className="font-medium">Blockchain Balance:</p>
+                          <p className="text-2xl font-bold text-primary">{blockchainBalance} CARE</p>
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+
+                <Button 
+                  onClick={handleCheckBalance}
+                  disabled={isCheckingBalance}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isCheckingBalance ? 'animate-spin' : ''}`} />
+                  {isCheckingBalance ? 'Checking Balance...' : 'Check Blockchain Balance'}
+                </Button>
+
+                <Button
+                  onClick={async () => {
+                    try {
+                      if (!existingContract?.contract_address) {
+                        toast.error("CareCoin contract not deployed");
+                        return;
+                      }
+
+                      if (!window.ethereum) {
+                        toast.error("MetaMask not installed");
+                        return;
+                      }
+
+                      const wasAdded = await window.ethereum.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                          type: 'ERC20',
+                          options: {
+                            address: existingContract.contract_address,
+                            symbol: 'CARE',
+                            decimals: 18,
+                            image: 'https://kxngtgrfdqhfpsqyhcui.supabase.co/storage/v1/object/public/patient-avatars/carecoin-logo.png',
+                          },
+                        },
+                      });
+
+                      if (wasAdded) {
+                        toast.success("CARE token added to MetaMask!");
+                      } else {
+                        toast.info("Token addition cancelled");
+                      }
+                    } catch (error: any) {
+                      console.error("Error adding token to MetaMask:", error);
+                      toast.error(error.message || "Failed to add token to MetaMask");
+                    }
+                  }}
+                  disabled={!existingContract}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Add CARE to MetaMask
+                </Button>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mint-amount">Amount to Mint</Label>
+                  <Input
+                    id="mint-amount"
+                    type="number"
+                    placeholder="100"
+                    value={mintAmount}
+                    onChange={(e) => setMintAmount(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Number of CARE tokens to mint to your wallet
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleMintTokens}
+                  disabled={isMinting || !mintAmount || parseInt(mintAmount) <= 0}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isMinting ? 'Minting...' : `Mint ${mintAmount} CARE Tokens`}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* How It Works */}
       <Card>

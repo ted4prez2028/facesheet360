@@ -65,12 +65,12 @@ export const useAppointmentStatistics = (timeframe: string = 'year') => {
       const startDate = getStartDateForTimeframe(timeframe);
       const { data: appointments } = await supabase
         .from('appointments')
-        .select('appointment_date, status')
-        .gte('appointment_date', startDate.toISOString());
+        .select('scheduled_time, status')
+        .gte('scheduled_time', startDate.toISOString());
 
       const grouped: { [key: string]: { completed: number; scheduled: number; cancelled: number } } = {};
       appointments?.forEach(apt => {
-        const date = new Date(apt.appointment_date).toISOString().split('T')[0];
+        const date = new Date(apt.scheduled_time).toISOString().split('T')[0];
         if (!grouped[date]) grouped[date] = { completed: 0, scheduled: 0, cancelled: 0 };
         if (apt.status === 'completed') grouped[date].completed++;
         else if (apt.status === 'scheduled') grouped[date].scheduled++;
@@ -201,13 +201,13 @@ export const useAnalyticsData = (timeframe: string = 'year') => {
       const { count: appointments } = await supabase
         .from('appointments')
         .select('*', { count: 'exact', head: true })
-        .gte('appointment_date', startDate.toISOString());
+        .gte('scheduled_time', startDate.toISOString());
 
       const { count: previousAppointments } = await supabase
         .from('appointments')
         .select('*', { count: 'exact', head: true })
-        .gte('appointment_date', previousPeriodStart.toISOString())
-        .lt('appointment_date', startDate.toISOString());
+        .gte('scheduled_time', previousPeriodStart.toISOString())
+        .lt('scheduled_time', startDate.toISOString());
 
       const appointmentChange = previousAppointments && appointments
         ? ((appointments - previousAppointments) / Math.max(previousAppointments, 1) * 100)
@@ -216,12 +216,12 @@ export const useAnalyticsData = (timeframe: string = 'year') => {
       // Response Time (call lights)
       const { data: callLights } = await supabase
         .from('call_lights')
-        .select('response_time_minutes')
-        .not('response_time_minutes', 'is', null)
-        .gte('created_at', startDate.toISOString());
+        .select('response_time_seconds')
+        .not('response_time_seconds', 'is', null)
+        .gte('activated_at', startDate.toISOString());
 
       const avgResponseTime = callLights && callLights.length > 0
-        ? Math.round(callLights.reduce((sum, cl) => sum + (cl.response_time_minutes || 0), 0) / callLights.length)
+        ? Math.round(callLights.reduce((sum, cl) => sum + (cl.response_time_seconds || 0), 0) / callLights.length / 60)
         : 0;
 
       // Care Plans

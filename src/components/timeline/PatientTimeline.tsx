@@ -6,7 +6,6 @@ import { RefreshCw, Filter, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import TimelineEvent, { TimelineEventData } from './TimelineEvent';
 import { Spinner } from '@/components/ui/spinner';
-import { MedicationAdministrationRecord } from '@/types/missing-tables';
 
 interface PatientTimelineProps {
   patientId: string;
@@ -77,20 +76,20 @@ const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) => {
 
     // Fetch medication administrations
     const { data: meds } = await supabase
-      .from('medication_administration_records' as any)
+      .from('medication_administration_records')
       .select('*')
       .eq('patient_id', patientId)
       .gte('administered_at', startDate.toISOString())
       .order('administered_at', { ascending: false });
 
     if (meds) {
-      (meds as MedicationAdministrationRecord[]).forEach(med => {
+      meds.forEach(med => {
         allEvents.push({
           id: med.id,
           type: 'medication',
           timestamp: new Date(med.administered_at),
           title: med.medication_name,
-          description: `Medication administered: ${med.dosage || ''} via ${med.route || ''}`,
+          description: `Medication administered: ${med.dosage} via ${med.route}`,
           details: {
             Dosage: med.dosage,
             Route: med.route,
@@ -119,7 +118,7 @@ const PatientTimeline: React.FC<PatientTimelineProps> = ({ patientId }) => {
           description: `Lab test ${lab.status}`,
           details: {
             Status: lab.status,
-            Result: lab.result_value ? `${lab.result_value} ${lab.unit || ''}` : 'Pending'
+            Result: lab.result_value ? `${lab.result_value} ${lab.result_unit}` : 'Pending'
           }
         });
       });

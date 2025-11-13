@@ -78,13 +78,7 @@ export const TaxiService = () => {
         .limit(10);
 
       if (error) throw error;
-      return (data || []).map(d => ({
-        ...d,
-        pickup_location: d.pickup_address || '',
-        dropoff_location: d.dropoff_address || '',
-        scheduled_time: d.created_at,
-        estimated_arrival: d.accepted_at
-      })) as Ride[];
+      return data as Ride[];
     },
     enabled: !!user,
   });

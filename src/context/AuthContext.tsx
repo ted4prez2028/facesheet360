@@ -130,7 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         online_status: data.online_status,
         last_seen: data.last_seen,
         created_at: data.created_at,
-        updated_at: data.updated_at
+        updated_at: data.updated_at,
+        wallet_address: data.wallet_address
       };
       console.log('🚀 Setting user profile:', userProfile);
       setUser(userProfile);

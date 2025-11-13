@@ -10,6 +10,7 @@ export interface User {
   organization?: string;
   online_status?: boolean;
   last_seen?: string;
+  wallet_address?: string;
   created_at: string;
   updated_at: string;
 }
@@ -176,7 +177,7 @@ export interface CareCoinsTransaction {
 export interface CarePlan {
   id: string;
   patient_id: string;
-  title?: string; // Optional -not in database
+  title: string;
   description?: string;
   goals?: string;
   interventions?: string;
@@ -187,51 +188,6 @@ export interface CarePlan {
   created_by: string;
   start_date?: string;
   end_date?: string;
-}
-
-export interface CashOutRequest {
-  id: string;
-  user_id: string;
-  amount: number;
-  usd_amount: number;
-  exchange_rate: number;
-  payment_method: string;
-  account_info: Record<string, unknown>;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
-  admin_notes?: string;
-  processed_by?: string;
-  processed_at?: string;
-  requested_at?: string; // Use created_at instead
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Ride {
-  id: string;
-  user_id: string;
-  driver_id?: string;
-  driver_name?: string;
-  pickup_location?: string;
-  dropoff_location?: string;
-  pickup_latitude?: number;
-  pickup_longitude?: number;
-  dropoff_latitude?: number;
-  dropoff_longitude?: number;
-  scheduled_time?: string;
-  estimated_arrival?: string;
-  distance_km?: number;
-  estimated_cost_carecoins?: number;
-  actual_cost_carecoins?: number;
-  status: 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CompletedRide extends Ride {
-  actual_pickup_time?: string;
-  actual_dropoff_time?: string;
-  driver_rating?: number;
-  completed_at?: string;
 }
 
 export interface VitalSigns {
