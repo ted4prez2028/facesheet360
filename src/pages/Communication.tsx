@@ -165,11 +165,6 @@ export default function Communication() {
 
       {/* The floating hub is always rendered */}
       <CommunicationHub />
-
-      <InviteProviderDialog 
-        open={isInviteDialogOpen} 
-        onOpenChange={setIsInviteDialogOpen} 
-      />
     </div>
   );
 }
