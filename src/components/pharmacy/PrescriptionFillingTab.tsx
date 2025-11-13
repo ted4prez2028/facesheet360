@@ -8,6 +8,7 @@ import { Search, CheckCircle, Package, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { PharmacyInventoryItem, PrescriptionFill } from '@/types/missing-tables';
 
 interface PrescriptionFillingTabProps {
   onUpdate: () => void;
@@ -46,7 +47,7 @@ export const PrescriptionFillingTab: React.FC<PrescriptionFillingTabProps> = ({ 
 
       // Load inventory
       const { data: inventoryData, error: inventoryError } = await supabase
-        .from('pharmacy_inventory')
+        .from('pharmacy_inventory' as any)
         .select('*')
         .order('medication_name');
 
@@ -54,7 +55,7 @@ export const PrescriptionFillingTab: React.FC<PrescriptionFillingTabProps> = ({ 
       if (inventoryError) throw inventoryError;
 
       setOrders(ordersData || []);
-      setInventory(inventoryData || []);
+      setInventory((inventoryData as PharmacyInventoryItem[]) || []);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load prescription data');
@@ -80,7 +81,7 @@ export const PrescriptionFillingTab: React.FC<PrescriptionFillingTabProps> = ({ 
 
       // Create prescription fill record
       const { data: fillData, error: fillError } = await supabase
-        .from('prescription_fills')
+        .from('prescription_fills' as any)
         .insert({
           medication_order_id: selectedOrder.id,
           patient_id: selectedOrder.patient_id,
@@ -98,7 +99,7 @@ export const PrescriptionFillingTab: React.FC<PrescriptionFillingTabProps> = ({ 
 
       // Update inventory
       const { error: inventoryError } = await supabase
-        .from('pharmacy_inventory')
+        .from('pharmacy_inventory' as any)
         .update({ 
           quantity: inventoryItem.quantity - quantity,
           updated_at: new Date().toISOString()

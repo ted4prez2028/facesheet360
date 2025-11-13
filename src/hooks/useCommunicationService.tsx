@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Message as MessageType } from '@/types/missing-tables';
 
 export interface Message {
   id: string;
@@ -48,14 +49,27 @@ export const useCommunicationService = () => {
 
     try {
       const { data, error } = await supabase
-        .from('messages')
+        .from('messages' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      setMessages(data || []);
+      setMessages((data as any[])?.map(d => ({
+        id: d.id,
+        content: d.content,
+        author: d.author || 'Unknown',
+        platform: d.platform || 'System',
+        user_id: d.user_id,
+        created_at: d.created_at,
+        is_read: d.is_read || false,
+        message_type: d.message_type,
+        replied: d.replied,
+        reply_content: d.reply_content,
+        replied_at: d.replied_at,
+        updated_at: d.updated_at
+      })) || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }

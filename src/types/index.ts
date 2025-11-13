@@ -176,7 +176,7 @@ export interface CareCoinsTransaction {
 export interface CarePlan {
   id: string;
   patient_id: string;
-  title?: string;
+  title?: string; // Optional -not in database
   description?: string;
   goals?: string;
   interventions?: string;
@@ -201,7 +201,7 @@ export interface CashOutRequest {
   admin_notes?: string;
   processed_by?: string;
   processed_at?: string;
-  requested_at?: string;
+  requested_at?: string; // Use created_at instead
   created_at: string;
   updated_at: string;
 }

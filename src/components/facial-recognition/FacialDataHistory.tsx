@@ -6,17 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Eye, Calendar, User } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface FacialDataRecord {
-  id: string;
-  patient_id: string;
-  captured_by: string;
-  confidence_score: number;
-  capture_method: string;
-  notes: string;
-  captured_at: string;
-  created_at: string;
-}
+import { FacialDataRecord } from '@/types/missing-tables';
 
 interface FacialDataHistoryProps {
   patientId: string;
@@ -34,13 +24,13 @@ export default function FacialDataHistory({ patientId }: FacialDataHistoryProps)
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('facial_data_history')
+        .from('facial_data_history' as any)
         .select('*')
         .eq('patient_id', patientId)
         .order('captured_at', { ascending: false });
 
       if (error) throw error;
-      setRecords(data || []);
+      setRecords((data as FacialDataRecord[]) || []);
     } catch (error) {
       console.error('Error fetching facial data history:', error);
       toast.error('Failed to load facial data history');

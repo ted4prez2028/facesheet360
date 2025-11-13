@@ -6,6 +6,7 @@ import { TrendingUp, AlertCircle, Calendar, FileText, Brain } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
+import { PharmacyAnalytic } from '@/types/missing-tables';
 
 export const PredictiveInsightsTab: React.FC = () => {
   const [insights, setInsights] = useState<any[]>([]);
@@ -20,16 +21,18 @@ export const PredictiveInsightsTab: React.FC = () => {
     try {
       // Load existing analytics
       const { data, error } = await supabase
-        .from('pharmacy_analytics')
+        .from('pharmacy_analytics' as any)
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
 
+      const typedData = (data as PharmacyAnalytic[]) || [];
+      
       // Group by medication and type
       const grouped: any = {};
-      data?.forEach(item => {
+      typedData.forEach(item => {
         const key = `${item.medication_name}-${item.metric_type}`;
         if (!grouped[key]) {
           grouped[key] = [];
@@ -37,8 +40,8 @@ export const PredictiveInsightsTab: React.FC = () => {
         grouped[key].push(item);
       });
 
-      setInsights(data || []);
-      generateProjections(data || []);
+      setInsights(typedData);
+      generateProjections(typedData);
     } catch (error) {
       console.error('Error loading insights:', error);
       toast.error('Failed to load insights');
