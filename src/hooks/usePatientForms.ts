@@ -4,6 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { auditLogger } from '@/utils/auditLogger';
+import { 
+  vitalsSchema, 
+  medicationSchema, 
+  validateFormData,
+  type VitalsFormData as ValidatedVitalsFormData,
+  type MedicationFormData as ValidatedMedicationFormData
+} from '@/lib/validation/patientForms';
 
 interface VitalsFormData {
   temperature: string;
@@ -66,11 +73,24 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
     }
 
     try {
-      const vitalsToAdd = Object.entries(newVitals)
+      // Convert string values to numbers
+      const vitalsToValidate = Object.entries(newVitals)
         .filter(([_, value]) => value !== '')
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: parseFloat(value) }), {});
+        .reduce((acc, [key, value]) => ({ 
+          ...acc, 
+          [key]: value === '' ? null : parseFloat(value) 
+        }), {});
 
-      if (Object.keys(vitalsToAdd).length === 0) {
+      // Validate with zod schema
+      const validationResult = validateFormData(vitalsSchema, vitalsToValidate);
+      
+      if (!validationResult.success) {
+        const firstError = Object.values(validationResult.errors)[0];
+        toast.error(`Validation error: ${firstError}`);
+        return;
+      }
+
+      if (Object.keys(vitalsToValidate).length === 0) {
         toast.error('Please enter at least one vital sign');
         return;
       }
@@ -81,7 +101,7 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
           patient_id: selectedPatient,
           recorded_by: userId,
           recorded_at: new Date().toISOString(),
-          ...vitalsToAdd
+          ...validationResult.data
         })
         .select()
         .single();
@@ -128,7 +148,24 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
   };
 
   const handleAddMedication = async () => {
-    if (!selectedPatient || !userId) return;
+    if (!selectedPatient) {
+      toast.error('No patient selected');
+      return;
+    }
+
+    if (!userId) {
+      toast.error('User not authenticated. Please log in again.');
+      return;
+    }
+
+    // Validate with zod schema
+    const validationResult = validateFormData(medicationSchema, newMedication);
+    
+    if (!validationResult.success) {
+      const firstError = Object.values(validationResult.errors)[0];
+      toast.error(`Validation error: ${firstError}`);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -138,7 +175,7 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
           prescribed_by: userId,
           start_date: new Date().toISOString(),
           status: 'active',
-          ...newMedication
+          ...validationResult.data
         })
         .select()
         .single();
