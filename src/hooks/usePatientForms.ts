@@ -81,12 +81,10 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
           [key]: value === '' ? null : parseFloat(value) 
         }), {});
 
-      // Validate with zod schema
       const validationResult = validateFormData(vitalsSchema, vitalsToValidate);
       
       if (!validationResult.success) {
-        const firstError = Object.values(validationResult.errors)[0];
-        toast.error(`Validation error: ${firstError}`);
+        toast.error(`Validation error: ${Object.values(validationResult.errors)[0]}`);
         return;
       }
 
@@ -120,7 +118,7 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
           resource_id: data?.id,
           action_details: {
             action: 'vitals_added',
-            vitals: vitalsToAdd
+            vitals: validationResult.data
           }
         });
       }
@@ -158,12 +156,10 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
       return;
     }
 
-    // Validate with zod schema
     const validationResult = validateFormData(medicationSchema, newMedication);
     
     if (!validationResult.success) {
-      const firstError = Object.values(validationResult.errors)[0];
-      toast.error(`Validation error: ${firstError}`);
+      toast.error(`Validation error: ${Object.values(validationResult.errors)[0]}`);
       return;
     }
 

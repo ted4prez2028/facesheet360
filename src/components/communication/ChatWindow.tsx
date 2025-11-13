@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 interface Message {
   id: string;
   content: string;
-  author: string;
+  author?: string;
   sender_id: string;
   recipient_id?: string;
   conversation_id?: string;
@@ -24,8 +24,10 @@ interface Message {
   edited_at?: string;
   deleted_at?: string;
   message_type?: string;
-  platform: string;
+  platform?: string;
   is_read?: boolean;
+  read_at?: string;
+  attachments?: any;
   file_url?: string;
   file_name?: string;
   file_type?: string;
@@ -96,7 +98,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           if (error) throw error;
 
           setMessages(prev =>
-            prev.map(m => (m.id === msg.client_id ? data : m))
+            prev.map(m => (m.id === msg.client_id ? { ...data, author: data.sender_id, platform: 'facesheet360' } : m))
           );
         } catch {
           remaining.push(msg);
