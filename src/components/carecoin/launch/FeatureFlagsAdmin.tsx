@@ -78,8 +78,8 @@ export const FeatureFlagsAdmin = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {flag.feature_description && (
-                <p className="text-sm text-muted-foreground">{flag.feature_description}</p>
+              {flag.description && (
+                <p className="text-sm text-muted-foreground">{flag.description}</p>
               )}
 
               <div className="space-y-2">
