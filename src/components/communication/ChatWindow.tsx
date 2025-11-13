@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 interface Message {
   id: string;
   content: string;
-  author?: string;
+  author: string;
   sender_id: string;
   recipient_id?: string;
   conversation_id?: string;
@@ -24,7 +24,7 @@ interface Message {
   edited_at?: string;
   deleted_at?: string;
   message_type?: string;
-  platform?: string;
+  platform: string;
   is_read?: boolean;
   read_at?: string;
   attachments?: any;

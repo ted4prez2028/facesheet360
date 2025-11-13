@@ -84,7 +84,9 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
       const validationResult = validateFormData(vitalsSchema, vitalsToValidate);
       
       if (!validationResult.success) {
-        toast.error(`Validation error: ${Object.values(validationResult.errors)[0]}`);
+        const errors = 'errors' in validationResult ? validationResult.errors : {};
+        const firstError = Object.values(errors)[0];
+        toast.error(`Validation error: ${firstError}`);
         return;
       }
 
@@ -159,19 +161,27 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
     const validationResult = validateFormData(medicationSchema, newMedication);
     
     if (!validationResult.success) {
-      toast.error(`Validation error: ${Object.values(validationResult.errors)[0]}`);
+      const errors = 'errors' in validationResult ? validationResult.errors : {};
+      const firstError = Object.values(errors)[0];
+      toast.error(`Validation error: ${firstError}`);
       return;
     }
 
     try {
+      const validatedData = validationResult.data;
       const { data, error } = await supabase
         .from('medication_orders')
         .insert({
           patient_id: selectedPatient,
           prescribed_by: userId,
-          start_date: new Date().toISOString(),
+          medication_name: validatedData.medication_name || '',
+          dosage: validatedData.dosage || '',
+          frequency: validatedData.frequency || '',
+          route: validatedData.route || 'oral',
+          instructions: validatedData.instructions || null,
+          start_date: validatedData.start_date || new Date().toISOString(),
+          end_date: validatedData.end_date || null,
           status: 'active',
-          ...validationResult.data
         })
         .select()
         .single();
