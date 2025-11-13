@@ -1,0 +1,76 @@
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { WalletBalance } from './WalletBalance';
+import { CareCoinsActivity } from './CareCoinsActivity';
+import { CareCoinsRewards } from './CareCoinsRewards';
+import { CoinsSummaryView } from './CoinsSummaryView';
+import { CashOutView } from './CashOutView';
+import { CashOutHistory } from './CashOutHistory';
+import { VirtualCardView } from './VirtualCardView';
+import { BillPaymentView } from './BillPaymentView';
+import { AchievementsView } from './AchievementsView';
+import HealthcareTransferView from './HealthcareTransferView';
+import QRWalletConnect from './QRWalletConnect';
+import { MarketPriceDisplay } from './MarketPriceDisplay';
+import { CareCoinActivityMonitor } from './CareCoinActivityMonitor';
+
+export const CareCoinsDashboard = () => {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-6">
+          <WalletBalance />
+          <MarketPriceDisplay />
+          <CoinsSummaryView />
+          <CareCoinActivityMonitor />
+        </div>
+        <div className="lg:col-span-2">
+          <CareCoinsActivity />
+        </div>
+      </div>
+
+      <Tabs defaultValue="transfer" className="mt-6">
+        <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full">
+          <TabsTrigger value="transfer">Transfers</TabsTrigger>
+          <TabsTrigger value="connect">Mobile Wallet</TabsTrigger>
+          <TabsTrigger value="cashout">Cash Out</TabsTrigger>
+          <TabsTrigger value="cards">Virtual Cards</TabsTrigger>
+          <TabsTrigger value="bills">Bill Payments</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="transfer" className="space-y-4 pt-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            <HealthcareTransferView />
+            <CareCoinsRewards />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="connect" className="space-y-4 pt-4">
+          <QRWalletConnect />
+        </TabsContent>
+        
+        <TabsContent value="cashout" className="space-y-4 pt-4">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <CashOutView />
+            <CashOutHistory />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="cards" className="space-y-4 pt-4">
+          <VirtualCardView />
+        </TabsContent>
+        
+        <TabsContent value="bills" className="space-y-4 pt-4">
+          <BillPaymentView />
+        </TabsContent>
+        
+        <TabsContent value="achievements" className="space-y-4 pt-4">
+          <AchievementsView />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};

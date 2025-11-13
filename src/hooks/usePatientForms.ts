@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
-import { auditLogger } from '@/utils/auditLogger';
 
 interface VitalsFormData {
   temperature: string;
@@ -27,7 +25,6 @@ interface MedicationFormData {
 
 export const usePatientForms = (selectedPatient: string | null, userId: string | undefined) => {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   
   const [isAddingVitals, setIsAddingVitals] = useState(false);
   const [isAddingMedication, setIsAddingMedication] = useState(false);
@@ -75,35 +72,16 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
         return;
       }
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('patient_vitals')
         .insert({
           patient_id: selectedPatient,
           recorded_by: userId,
           recorded_at: new Date().toISOString(),
           ...vitalsToAdd
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error inserting vitals:', error);
-        throw error;
-      }
-
-      // Explicitly log audit event
-      if (user) {
-        await auditLogger.log({
-          event_type: 'patient_update',
-          user_id: user.id,
-          patient_id: selectedPatient,
-          resource_id: data?.id,
-          action_details: {
-            action: 'vitals_added',
-            vitals: vitalsToAdd
-          }
         });
-      }
+
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['patient-vitals'] });
       queryClient.invalidateQueries({ queryKey: ['vitals', selectedPatient] });
@@ -131,7 +109,7 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
     if (!selectedPatient || !userId) return;
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('medication_orders')
         .insert({
           patient_id: selectedPatient,
@@ -139,28 +117,9 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
           start_date: new Date().toISOString(),
           status: 'active',
           ...newMedication
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error inserting medication:', error);
-        throw error;
-      }
-
-      // Explicitly log audit event
-      if (user) {
-        await auditLogger.log({
-          event_type: 'prescription_create',
-          user_id: user.id,
-          patient_id: selectedPatient,
-          resource_id: data?.id,
-          action_details: {
-            action: 'medication_prescribed',
-            medication: newMedication
-          }
         });
-      }
+
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       queryClient.invalidateQueries({ queryKey: ['medication-orders', selectedPatient] });
@@ -189,23 +148,7 @@ export const usePatientForms = (selectedPatient: string | null, userId: string |
         .update({ room_number: roomNumber })
         .eq('id', selectedPatient);
 
-      if (error) {
-        console.error('Error updating room:', error);
-        throw error;
-      }
-
-      // Explicitly log audit event
-      if (user) {
-        await auditLogger.log({
-          event_type: 'patient_update',
-          user_id: user.id,
-          patient_id: selectedPatient,
-          action_details: {
-            action: 'room_number_updated',
-            new_room: roomNumber
-          }
-        });
-      }
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['patient', selectedPatient] });

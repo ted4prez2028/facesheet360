@@ -1,0 +1,191 @@
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  createPatient as createPatientApi,
+  getPatientById as getPatientApi,
+  getPatients as getPatientsApi,
+  updatePatient as updatePatientApi,
+  deletePatient as deletePatientApi,
+} from "@/lib/supabaseApi";
+import { getPatientsDirect } from "@/lib/api/directPatientsApi";
+import { Patient } from "@/types";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const patientsQueryKey = "patients";
+
+// Enhanced session check with detailed error handling
+const verifySession = async () => {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError) {
+    console.error("Session verification error:", sessionError);
+    throw new Error("Authentication error. Please try logging in again.");
+  }
+  
+  if (!sessionData.session) {
+    throw new Error("Authentication required. Please log in to view patients.");
+  }
+  
+  if (sessionData.session.expires_at) {
+    const expiresAt = new Date(sessionData.session.expires_at * 1000);
+    const now = new Date();
+    
+    // If token expires in less than 5 minutes, try to refresh it
+    if ((expiresAt.getTime() - now.getTime()) < 5 * 60 * 1000) {
+      console.log("Session expiring soon, refreshing token...");
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error("Failed to refresh token:", refreshError);
+      }
+    }
+  }
+  
+  // Session exists and is valid
+  return sessionData.session;
+};
+
+// Fetch all patients
+const fetchPatients = async () => {
+  try {
+    // First check if we have a valid session
+    await verifySession();
+    
+    // Try the regular API method first
+    try {
+      return await getPatientsApi();
+    } catch (error: unknown) {
+      console.error("Regular API method failed, trying direct method:", error);
+      
+      // If we get a recursion error, try the direct method
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
+        console.log("Using direct API method due to recursion issue");
+        return await getPatientsDirect();
+      }
+      
+      throw error;
+    }
+  } catch (error: unknown) {
+    console.error("Error fetching patients:", error);
+    
+    // Handle specific RLS policy error
+    if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
+      throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
+    }
+    
+    throw error; // Let the calling code handle the error display
+  }
+};
+
+export const usePatients = () => {
+  return useQuery({
+    queryKey: [patientsQueryKey],
+    queryFn: fetchPatients,
+    retry: 3,
+    retryDelay: 2000,
+  });
+};
+
+// Fetch a single patient by ID
+const fetchPatient = async (id: string) => {
+  try {
+    // First check if we have a valid session
+    await verifySession();
+    
+    return await getPatientApi(id);
+  } catch (error: unknown) {
+    console.error(`Error fetching patient with ID ${id}:`, error);
+    
+    // Handle specific RLS policy error
+    if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
+      throw new Error("Database permission error. Please ensure you're logged in with the correct credentials.");
+    }
+    
+    throw error;
+  }
+};
+
+export const usePatient = (id: string) => {
+  return useQuery({
+    queryKey: [patientsQueryKey, id],
+    queryFn: () => fetchPatient(id),
+    enabled: !!id, // Only run the query if the patient ID is available
+    retry: 2,
+    retryDelay: 1000,
+  });
+};
+
+// Create a new patient
+export const useCreatePatient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (patientData: Partial<Patient>) => {
+      // Verify session before attempting to create
+      await verifySession();
+      return createPatientApi(patientData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
+      toast.success("Patient created successfully");
+    },
+    onError: (error: unknown) => {
+      // Handle specific RLS policy error
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
+        toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      } else {
+        toast.error(`Error creating patient: ${error instanceof Error ? error?.message : 'Unknown error'}`);
+      }
+    }
+  });
+};
+
+// Update an existing patient
+export const useUpdatePatient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { id: string; data: Partial<Patient> }) => {
+      // Verify session before attempting to update
+      await verifySession();
+      return updatePatientApi(params.id, params.data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
+      toast.success("Patient updated successfully");
+    },
+    onError: (error: unknown) => {
+      // Handle specific RLS policy error
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
+        toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      } else {
+        toast.error(`Error updating patient: ${error instanceof Error ? error?.message : 'Unknown error'}`);
+      }
+    }
+  });
+};
+
+// Delete a patient
+export const useDeletePatient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Verify session before attempting to delete
+      await verifySession();
+      return deletePatientApi(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [patientsQueryKey] });
+      toast.success("Patient deleted successfully");
+    },
+    onError: (error: unknown) => {
+      // Handle specific RLS policy error
+      if (error instanceof Error && (error?.message?.includes('infinite recursion') || (error as { code?: string })?.code === '42P17')) {
+        toast.error("Database permission error. Please ensure you're logged in with the correct credentials.");
+      } else {
+        toast.error(`Error deleting patient: ${error instanceof Error ? error?.message : 'Unknown error'}`);
+      }
+    }
+  });
+};

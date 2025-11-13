@@ -27,10 +27,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useCommunication } from '@/context/communication/CommunicationContext';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 const TopNav: React.FC = () => {
   const { user, logout } = useAuth();
+  const { toggleContacts } = useCommunication();
   const { isAdmin } = useAdminStatus();
   const navigate = useNavigate();
 
@@ -58,6 +61,16 @@ const TopNav: React.FC = () => {
       </div>
       
       <div className="flex items-center space-x-2">
+        {/* Notification Center */}
+        <NotificationCenter />
+
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={toggleContacts}
+        >
+          <MessageSquare className="h-5 w-5" />
+        </Button>
         <ThemeToggle />
 
         <DropdownMenu>

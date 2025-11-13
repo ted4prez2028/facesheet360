@@ -63,9 +63,8 @@ Deno.serve(async (req) => {
     }
 
     // Use testnet or mainnet RPC based on flag
-    // Using Alchemy public demo endpoint for Mumbai testnet (more reliable)
     const polygonRpcUrl = isTestnet 
-      ? 'https://polygon-mumbai.g.alchemy.com/v2/demo' 
+      ? 'https://rpc-mumbai.maticvigil.com' 
       : Deno.env.get('POLYGON_RPC_URL');
     const deployerPrivateKey = Deno.env.get('POLYGON_DEPLOYER_PRIVATE_KEY');
 

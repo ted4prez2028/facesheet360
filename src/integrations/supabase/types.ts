@@ -14,47 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_type: string
+          description: string | null
+          earned_at: string | null
+          id: string
+          reward_amount: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          achievement_type: string
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          reward_amount?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          achievement_type?: string
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          reward_amount?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       advanced_directives: {
         Row: {
           created_at: string | null
+          created_by: string | null
+          details: string | null
           directive_type: string
           document_url: string | null
           effective_date: string | null
-          expiration_date: string | null
-          healthcare_proxy_name: string | null
-          healthcare_proxy_phone: string | null
           id: string
-          notes: string | null
           patient_id: string
-          recorded_by: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
+          details?: string | null
           directive_type: string
           document_url?: string | null
           effective_date?: string | null
-          expiration_date?: string | null
-          healthcare_proxy_name?: string | null
-          healthcare_proxy_phone?: string | null
           id?: string
-          notes?: string | null
           patient_id: string
-          recorded_by?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
+          details?: string | null
           directive_type?: string
           document_url?: string | null
           effective_date?: string | null
-          expiration_date?: string | null
-          healthcare_proxy_name?: string | null
-          healthcare_proxy_phone?: string | null
           id?: string
-          notes?: string | null
           patient_id?: string
-          recorded_by?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -67,39 +88,72 @@ export type Database = {
           },
         ]
       }
+      ai_improvements: {
+        Row: {
+          code_changes: string | null
+          created_at: string | null
+          description: string
+          id: string
+          impact_score: number | null
+          improvement_type: string
+          status: string | null
+        }
+        Insert: {
+          code_changes?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          impact_score?: number | null
+          improvement_type: string
+          status?: string | null
+        }
+        Update: {
+          code_changes?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          impact_score?: number | null
+          improvement_type?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       allergies: {
         Row: {
           allergen: string
+          allergy_type: string | null
           created_at: string | null
           id: string
+          noted_at: string | null
+          noted_by: string | null
           patient_id: string
           reaction: string | null
-          recorded_at: string | null
-          recorded_by: string | null
           severity: string | null
-          updated_at: string | null
+          status: string | null
         }
         Insert: {
           allergen: string
+          allergy_type?: string | null
           created_at?: string | null
           id?: string
+          noted_at?: string | null
+          noted_by?: string | null
           patient_id: string
           reaction?: string | null
-          recorded_at?: string | null
-          recorded_by?: string | null
           severity?: string | null
-          updated_at?: string | null
+          status?: string | null
         }
         Update: {
           allergen?: string
+          allergy_type?: string | null
           created_at?: string | null
           id?: string
+          noted_at?: string | null
+          noted_by?: string | null
           patient_id?: string
           reaction?: string | null
-          recorded_at?: string | null
-          recorded_by?: string | null
           severity?: string | null
-          updated_at?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -111,157 +165,73 @@ export type Database = {
           },
         ]
       }
-      appointment_reminders: {
+      app_evolution_metrics: {
         Row: {
-          appointment_id: string
-          created_at: string | null
-          delivery_status: string | null
-          error_message: string | null
           id: string
-          message_content: string | null
-          patient_id: string
-          reminder_type: string | null
-          scheduled_for: string
-          sent_at: string | null
+          metric_type: string
+          metric_value: number
+          recorded_at: string | null
         }
         Insert: {
-          appointment_id: string
-          created_at?: string | null
-          delivery_status?: string | null
-          error_message?: string | null
           id?: string
-          message_content?: string | null
-          patient_id: string
-          reminder_type?: string | null
-          scheduled_for: string
-          sent_at?: string | null
+          metric_type: string
+          metric_value: number
+          recorded_at?: string | null
         }
         Update: {
-          appointment_id?: string
-          created_at?: string | null
-          delivery_status?: string | null
-          error_message?: string | null
           id?: string
-          message_content?: string | null
-          patient_id?: string
-          reminder_type?: string | null
-          scheduled_for?: string
-          sent_at?: string | null
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "appointment_reminders_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointment_reminders_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      appointment_waitlist: {
-        Row: {
-          added_by: string | null
-          appointment_type: string
-          created_at: string | null
-          id: string
-          notes: string | null
-          patient_id: string
-          preferred_date_end: string | null
-          preferred_date_start: string | null
-          preferred_time_of_day: string | null
-          priority: string | null
-          provider_id: string | null
-          scheduled_appointment_id: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          added_by?: string | null
-          appointment_type: string
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          patient_id: string
-          preferred_date_end?: string | null
-          preferred_date_start?: string | null
-          preferred_time_of_day?: string | null
-          priority?: string | null
-          provider_id?: string | null
-          scheduled_appointment_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          added_by?: string | null
-          appointment_type?: string
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          patient_id?: string
-          preferred_date_end?: string | null
-          preferred_date_start?: string | null
-          preferred_time_of_day?: string | null
-          priority?: string | null
-          provider_id?: string | null
-          scheduled_appointment_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointment_waitlist_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointment_waitlist_scheduled_appointment_id_fkey"
-            columns: ["scheduled_appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       appointments: {
         Row: {
-          appointment_date: string
-          appointment_type: string | null
+          appointment_type: string
           created_at: string | null
+          created_by: string | null
+          duration_minutes: number | null
           id: string
+          location: string | null
           notes: string | null
-          patient_id: string | null
-          provider_id: string | null
+          patient_id: string
+          provider_id: string
+          reminder_sent: boolean | null
+          reminder_sent_at: string | null
+          scheduled_time: string
           status: string | null
           updated_at: string | null
         }
         Insert: {
-          appointment_date: string
-          appointment_type?: string | null
+          appointment_type: string
           created_at?: string | null
+          created_by?: string | null
+          duration_minutes?: number | null
           id?: string
+          location?: string | null
           notes?: string | null
-          patient_id?: string | null
-          provider_id?: string | null
+          patient_id: string
+          provider_id: string
+          reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
+          scheduled_time: string
           status?: string | null
           updated_at?: string | null
         }
         Update: {
-          appointment_date?: string
-          appointment_type?: string | null
+          appointment_type?: string
           created_at?: string | null
+          created_by?: string | null
+          duration_minutes?: number | null
           id?: string
+          location?: string | null
           notes?: string | null
-          patient_id?: string | null
-          provider_id?: string | null
+          patient_id?: string
+          provider_id?: string
+          reminder_sent?: boolean | null
+          reminder_sent_at?: string | null
+          scheduled_time?: string
           status?: string | null
           updated_at?: string | null
         }
@@ -281,8 +251,10 @@ export type Database = {
           created_at: string | null
           event_type: string
           id: string
+          ip_address: string | null
           patient_id: string | null
           resource_id: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
@@ -290,8 +262,10 @@ export type Database = {
           created_at?: string | null
           event_type: string
           id?: string
+          ip_address?: string | null
           patient_id?: string | null
           resource_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
@@ -299,8 +273,10 @@ export type Database = {
           created_at?: string | null
           event_type?: string
           id?: string
+          ip_address?: string | null
           patient_id?: string | null
           resource_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -315,151 +291,134 @@ export type Database = {
       }
       beta_testers: {
         Row: {
-          bugs_reported: number | null
-          completed_at: string | null
-          created_at: string | null
-          features_tested: number | null
-          feedback_count: number | null
+          accepted_at: string | null
+          beta_group: string
+          created_at: string
+          features_enabled: string[] | null
+          feedback_provided: boolean | null
           id: string
-          invitation_code: string | null
+          invited_at: string
           invited_by: string | null
-          joined_at: string | null
-          status: string | null
-          updated_at: string | null
+          removal_reason: string | null
+          removed_at: string | null
+          status: string
+          transaction_limit: number | null
+          transactions_used: number | null
           user_id: string
         }
         Insert: {
-          bugs_reported?: number | null
-          completed_at?: string | null
-          created_at?: string | null
-          features_tested?: number | null
-          feedback_count?: number | null
+          accepted_at?: string | null
+          beta_group: string
+          created_at?: string
+          features_enabled?: string[] | null
+          feedback_provided?: boolean | null
           id?: string
-          invitation_code?: string | null
+          invited_at?: string
           invited_by?: string | null
-          joined_at?: string | null
-          status?: string | null
-          updated_at?: string | null
+          removal_reason?: string | null
+          removed_at?: string | null
+          status?: string
+          transaction_limit?: number | null
+          transactions_used?: number | null
           user_id: string
         }
         Update: {
-          bugs_reported?: number | null
-          completed_at?: string | null
-          created_at?: string | null
-          features_tested?: number | null
-          feedback_count?: number | null
+          accepted_at?: string | null
+          beta_group?: string
+          created_at?: string
+          features_enabled?: string[] | null
+          feedback_provided?: boolean | null
           id?: string
-          invitation_code?: string | null
+          invited_at?: string
           invited_by?: string | null
-          joined_at?: string | null
-          status?: string | null
-          updated_at?: string | null
+          removal_reason?: string | null
+          removed_at?: string | null
+          status?: string
+          transaction_limit?: number | null
+          transactions_used?: number | null
           user_id?: string
         }
         Relationships: []
       }
       bill_payments: {
         Row: {
-          bill_amount: number
-          carecoins_used: number
+          amount: number
+          bill_info: Json | null
+          bill_type: string
           created_at: string | null
           id: string
-          metadata: Json | null
-          patient_id: string | null
-          payment_method: string
-          payment_status: string | null
-          transaction_hash: string | null
+          payment_method: string | null
+          recipient_account: string
+          recipient_name: string
+          status: string | null
           updated_at: string | null
-          usd_equivalent: number
           user_id: string
         }
         Insert: {
-          bill_amount: number
-          carecoins_used: number
+          amount: number
+          bill_info?: Json | null
+          bill_type?: string
           created_at?: string | null
           id?: string
-          metadata?: Json | null
-          patient_id?: string | null
-          payment_method: string
-          payment_status?: string | null
-          transaction_hash?: string | null
+          payment_method?: string | null
+          recipient_account?: string
+          recipient_name?: string
+          status?: string | null
           updated_at?: string | null
-          usd_equivalent: number
           user_id: string
         }
         Update: {
-          bill_amount?: number
-          carecoins_used?: number
+          amount?: number
+          bill_info?: Json | null
+          bill_type?: string
           created_at?: string | null
           id?: string
-          metadata?: Json | null
-          patient_id?: string | null
-          payment_method?: string
-          payment_status?: string | null
-          transaction_hash?: string | null
+          payment_method?: string | null
+          recipient_account?: string
+          recipient_name?: string
+          status?: string | null
           updated_at?: string | null
-          usd_equivalent?: number
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "bill_payments_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       call_lights: {
         Row: {
-          acknowledged_at: string | null
-          acknowledged_by: string | null
-          created_at: string | null
+          activated_at: string | null
           id: string
-          notes: string | null
           patient_id: string
           priority: string | null
           reason: string | null
-          requested_at: string | null
           resolved_at: string | null
           responded_at: string | null
           responded_by: string | null
-          response_time_minutes: number | null
+          response_time_seconds: number | null
           room_number: string
           status: string | null
         }
         Insert: {
-          acknowledged_at?: string | null
-          acknowledged_by?: string | null
-          created_at?: string | null
+          activated_at?: string | null
           id?: string
-          notes?: string | null
           patient_id: string
           priority?: string | null
           reason?: string | null
-          requested_at?: string | null
           resolved_at?: string | null
           responded_at?: string | null
           responded_by?: string | null
-          response_time_minutes?: number | null
+          response_time_seconds?: number | null
           room_number: string
           status?: string | null
         }
         Update: {
-          acknowledged_at?: string | null
-          acknowledged_by?: string | null
-          created_at?: string | null
+          activated_at?: string | null
           id?: string
-          notes?: string | null
           patient_id?: string
           priority?: string | null
           reason?: string | null
-          requested_at?: string | null
           resolved_at?: string | null
           responded_at?: string | null
           responded_by?: string | null
-          response_time_minutes?: number | null
+          response_time_seconds?: number | null
           room_number?: string
           status?: string | null
         }
@@ -476,62 +435,44 @@ export type Database = {
       capacity_metrics: {
         Row: {
           available_beds: number
-          average_length_of_stay: number | null
-          bed_turnover_rate: number | null
           created_at: string | null
-          discharges: number | null
-          emergency_admissions: number | null
-          icu_beds: number | null
+          er_patients_waiting: number | null
+          forecasted_admissions: number | null
+          forecasted_discharges: number | null
           id: string
           metric_date: string
-          occupancy_rate: number | null
+          metric_hour: number | null
           occupied_beds: number
-          occupied_icu_beds: number | null
-          predicted_admissions_next_24h: number | null
-          predicted_discharges_next_24h: number | null
-          recorded_by: string | null
-          scheduled_admissions: number | null
-          staffing_level: number | null
+          pending_admissions: number | null
+          pending_discharges: number | null
           total_beds: number
         }
         Insert: {
           available_beds: number
-          average_length_of_stay?: number | null
-          bed_turnover_rate?: number | null
           created_at?: string | null
-          discharges?: number | null
-          emergency_admissions?: number | null
-          icu_beds?: number | null
+          er_patients_waiting?: number | null
+          forecasted_admissions?: number | null
+          forecasted_discharges?: number | null
           id?: string
           metric_date: string
-          occupancy_rate?: number | null
+          metric_hour?: number | null
           occupied_beds: number
-          occupied_icu_beds?: number | null
-          predicted_admissions_next_24h?: number | null
-          predicted_discharges_next_24h?: number | null
-          recorded_by?: string | null
-          scheduled_admissions?: number | null
-          staffing_level?: number | null
+          pending_admissions?: number | null
+          pending_discharges?: number | null
           total_beds: number
         }
         Update: {
           available_beds?: number
-          average_length_of_stay?: number | null
-          bed_turnover_rate?: number | null
           created_at?: string | null
-          discharges?: number | null
-          emergency_admissions?: number | null
-          icu_beds?: number | null
+          er_patients_waiting?: number | null
+          forecasted_admissions?: number | null
+          forecasted_discharges?: number | null
           id?: string
           metric_date?: string
-          occupancy_rate?: number | null
+          metric_hour?: number | null
           occupied_beds?: number
-          occupied_icu_beds?: number | null
-          predicted_admissions_next_24h?: number | null
-          predicted_discharges_next_24h?: number | null
-          recorded_by?: string | null
-          scheduled_admissions?: number | null
-          staffing_level?: number | null
+          pending_admissions?: number | null
+          pending_discharges?: number | null
           total_beds?: number
         }
         Relationships: []
@@ -540,36 +481,33 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
+          description: string | null
           from_user_id: string | null
           id: string
-          metadata: Json | null
           status: string | null
           to_user_id: string | null
-          transaction_hash: string | null
           transaction_type: string
           user_id: string
         }
         Insert: {
           amount: number
           created_at?: string | null
+          description?: string | null
           from_user_id?: string | null
           id?: string
-          metadata?: Json | null
           status?: string | null
           to_user_id?: string | null
-          transaction_hash?: string | null
           transaction_type: string
           user_id: string
         }
         Update: {
           amount?: number
           created_at?: string | null
+          description?: string | null
           from_user_id?: string | null
           id?: string
-          metadata?: Json | null
           status?: string | null
           to_user_id?: string | null
-          transaction_hash?: string | null
           transaction_type?: string
           user_id?: string
         }
@@ -577,60 +515,45 @@ export type Database = {
       }
       care_plans: {
         Row: {
-          assessments_schedule: Json | null
           created_at: string | null
           created_by: string
+          description: string | null
           end_date: string | null
-          goals: Json
+          goals: string | null
           id: string
-          interventions: Json
-          last_reviewed_at: string | null
-          last_reviewed_by: string | null
-          medications: Json | null
-          next_review_date: string | null
+          interventions: string | null
           patient_id: string
-          plan_type: string
-          review_frequency: string | null
-          start_date: string
+          start_date: string | null
           status: string | null
+          title: string
           updated_at: string | null
         }
         Insert: {
-          assessments_schedule?: Json | null
           created_at?: string | null
           created_by: string
+          description?: string | null
           end_date?: string | null
-          goals: Json
+          goals?: string | null
           id?: string
-          interventions: Json
-          last_reviewed_at?: string | null
-          last_reviewed_by?: string | null
-          medications?: Json | null
-          next_review_date?: string | null
+          interventions?: string | null
           patient_id: string
-          plan_type: string
-          review_frequency?: string | null
-          start_date: string
+          start_date?: string | null
           status?: string | null
+          title: string
           updated_at?: string | null
         }
         Update: {
-          assessments_schedule?: Json | null
           created_at?: string | null
           created_by?: string
+          description?: string | null
           end_date?: string | null
-          goals?: Json
+          goals?: string | null
           id?: string
-          interventions?: Json
-          last_reviewed_at?: string | null
-          last_reviewed_by?: string | null
-          medications?: Json | null
-          next_review_date?: string | null
+          interventions?: string | null
           patient_id?: string
-          plan_type?: string
-          review_frequency?: string | null
-          start_date?: string
+          start_date?: string | null
           status?: string | null
+          title?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -645,54 +568,48 @@ export type Database = {
       }
       care_tasks: {
         Row: {
+          assigned_by: string
           assigned_to: string | null
           completed_at: string | null
-          completed_by: string | null
           created_at: string | null
-          created_by: string
           due_date: string | null
           id: string
-          notes: string | null
-          patient_id: string
+          mentions: Json | null
+          patient_id: string | null
           priority: string | null
           status: string | null
           task_description: string | null
           task_title: string
-          task_type: string | null
           updated_at: string | null
         }
         Insert: {
+          assigned_by: string
           assigned_to?: string | null
           completed_at?: string | null
-          completed_by?: string | null
           created_at?: string | null
-          created_by: string
           due_date?: string | null
           id?: string
-          notes?: string | null
-          patient_id: string
+          mentions?: Json | null
+          patient_id?: string | null
           priority?: string | null
           status?: string | null
           task_description?: string | null
           task_title: string
-          task_type?: string | null
           updated_at?: string | null
         }
         Update: {
+          assigned_by?: string
           assigned_to?: string | null
           completed_at?: string | null
-          completed_by?: string | null
           created_at?: string | null
-          created_by?: string
           due_date?: string | null
           id?: string
-          notes?: string | null
-          patient_id?: string
+          mentions?: Json | null
+          patient_id?: string | null
           priority?: string | null
           status?: string | null
           task_description?: string | null
           task_title?: string
-          task_type?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -707,43 +624,40 @@ export type Database = {
       }
       care_team_members: {
         Row: {
-          added_by: string | null
           created_at: string | null
           end_date: string | null
           id: string
           is_primary: boolean | null
           notes: string | null
-          patient_id: string
+          patient_id: string | null
           role: string
           start_date: string
+          team_member_id: string
           updated_at: string | null
-          user_id: string
         }
         Insert: {
-          added_by?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
           is_primary?: boolean | null
           notes?: string | null
-          patient_id: string
+          patient_id?: string | null
           role: string
           start_date: string
+          team_member_id: string
           updated_at?: string | null
-          user_id: string
         }
         Update: {
-          added_by?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
           is_primary?: boolean | null
           notes?: string | null
-          patient_id?: string
+          patient_id?: string | null
           role?: string
           start_date?: string
+          team_member_id?: string
           updated_at?: string | null
-          user_id?: string
         }
         Relationships: [
           {
@@ -755,167 +669,215 @@ export type Database = {
           },
         ]
       }
+      carecoin_analytics: {
+        Row: {
+          active_users: number | null
+          admin_fees: number | null
+          charting_revenue: number | null
+          created_at: string | null
+          date: string
+          id: string
+          inflow: number | null
+          outflow: number | null
+          total_transactions: number | null
+          total_volume: number | null
+        }
+        Insert: {
+          active_users?: number | null
+          admin_fees?: number | null
+          charting_revenue?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          inflow?: number | null
+          outflow?: number | null
+          total_transactions?: number | null
+          total_volume?: number | null
+        }
+        Update: {
+          active_users?: number | null
+          admin_fees?: number | null
+          charting_revenue?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          inflow?: number | null
+          outflow?: number | null
+          total_transactions?: number | null
+          total_volume?: number | null
+        }
+        Relationships: []
+      }
       carecoin_contract: {
         Row: {
-          abi: Json
-          block_number: number | null
+          abi: Json | null
           contract_address: string
-          contract_name: string | null
-          contract_symbol: string | null
+          contract_details: Json | null
           created_at: string | null
           deployer_address: string
           id: string
-          network: string
-          total_supply: number | null
-          transaction_hash: string
+          network: string | null
+          transaction_hash: string | null
         }
         Insert: {
-          abi: Json
-          block_number?: number | null
+          abi?: Json | null
           contract_address: string
-          contract_name?: string | null
-          contract_symbol?: string | null
+          contract_details?: Json | null
           created_at?: string | null
           deployer_address: string
           id?: string
-          network: string
-          total_supply?: number | null
-          transaction_hash: string
+          network?: string | null
+          transaction_hash?: string | null
         }
         Update: {
-          abi?: Json
-          block_number?: number | null
+          abi?: Json | null
           contract_address?: string
-          contract_name?: string | null
-          contract_symbol?: string | null
+          contract_details?: Json | null
           created_at?: string | null
           deployer_address?: string
           id?: string
-          network?: string
-          total_supply?: number | null
-          transaction_hash?: string
+          network?: string | null
+          transaction_hash?: string | null
         }
         Relationships: []
       }
       carecoin_deployment_status: {
         Row: {
-          block_number: number | null
           contract_address: string | null
-          created_at: string | null
-          deployed_at: string | null
+          deployed_at: string
           deployed_by: string | null
-          deployer_address: string | null
-          deployment_cost: number | null
+          deployer_address: string
+          deployment_cost_matic: number | null
           deployment_phase: string
           error_message: string | null
           gas_used: number | null
           id: string
-          liquidity_added: number | null
+          liquidity_amount_care: number | null
+          liquidity_amount_usdc: number | null
+          liquidity_locked_until: string | null
+          liquidity_pool_address: string | null
+          metadata: Json | null
           network: string
+          polygonscan_verified: boolean | null
           status: string
           transaction_hash: string | null
-          updated_at: string | null
+          verification_url: string | null
         }
         Insert: {
-          block_number?: number | null
           contract_address?: string | null
-          created_at?: string | null
-          deployed_at?: string | null
+          deployed_at?: string
           deployed_by?: string | null
-          deployer_address?: string | null
-          deployment_cost?: number | null
+          deployer_address: string
+          deployment_cost_matic?: number | null
           deployment_phase: string
           error_message?: string | null
           gas_used?: number | null
           id?: string
-          liquidity_added?: number | null
+          liquidity_amount_care?: number | null
+          liquidity_amount_usdc?: number | null
+          liquidity_locked_until?: string | null
+          liquidity_pool_address?: string | null
+          metadata?: Json | null
           network: string
-          status: string
+          polygonscan_verified?: boolean | null
+          status?: string
           transaction_hash?: string | null
-          updated_at?: string | null
+          verification_url?: string | null
         }
         Update: {
-          block_number?: number | null
           contract_address?: string | null
-          created_at?: string | null
-          deployed_at?: string | null
+          deployed_at?: string
           deployed_by?: string | null
-          deployer_address?: string | null
-          deployment_cost?: number | null
+          deployer_address?: string
+          deployment_cost_matic?: number | null
           deployment_phase?: string
           error_message?: string | null
           gas_used?: number | null
           id?: string
-          liquidity_added?: number | null
+          liquidity_amount_care?: number | null
+          liquidity_amount_usdc?: number | null
+          liquidity_locked_until?: string | null
+          liquidity_pool_address?: string | null
+          metadata?: Json | null
           network?: string
+          polygonscan_verified?: boolean | null
           status?: string
           transaction_hash?: string | null
-          updated_at?: string | null
+          verification_url?: string | null
         }
         Relationships: []
       }
       carecoin_merchants: {
         Row: {
-          acceptance_rate: number | null
+          accepts_carecoins: boolean | null
+          active: boolean | null
+          address: string | null
           contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
-          description: string | null
+          discount_percentage: number | null
           id: string
-          is_active: boolean | null
-          logo_url: string | null
           merchant_name: string
-          merchant_type: string
+          merchant_type: string | null
+          merchant_wallet_address: string | null
           updated_at: string | null
-          website_url: string | null
+          verified: boolean | null
         }
         Insert: {
-          acceptance_rate?: number | null
+          accepts_carecoins?: boolean | null
+          active?: boolean | null
+          address?: string | null
           contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
-          description?: string | null
+          discount_percentage?: number | null
           id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
           merchant_name: string
-          merchant_type: string
+          merchant_type?: string | null
+          merchant_wallet_address?: string | null
           updated_at?: string | null
-          website_url?: string | null
+          verified?: boolean | null
         }
         Update: {
-          acceptance_rate?: number | null
+          accepts_carecoins?: boolean | null
+          active?: boolean | null
+          address?: string | null
           contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
-          description?: string | null
+          discount_percentage?: number | null
           id?: string
-          is_active?: boolean | null
-          logo_url?: string | null
           merchant_name?: string
-          merchant_type?: string
+          merchant_type?: string | null
+          merchant_wallet_address?: string | null
           updated_at?: string | null
-          website_url?: string | null
+          verified?: boolean | null
         }
         Relationships: []
       }
       carecoin_rate_limits: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
-          last_reset_at: string | null
-          mint_count: number | null
+          mint_count: number
+          mint_date: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
-          last_reset_at?: string | null
-          mint_count?: number | null
+          mint_count?: number
+          mint_date?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
-          last_reset_at?: string | null
-          mint_count?: number | null
+          mint_count?: number
+          mint_date?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -924,42 +886,42 @@ export type Database = {
         Row: {
           apy_rate: number
           created_at: string | null
-          end_date: string
+          early_withdrawal_penalty: number | null
           id: string
           rewards_earned: number | null
+          stake_end_date: string
+          stake_start_date: string
           staked_amount: number
           staking_period_days: number
-          start_date: string | null
           status: string | null
-          transaction_hash: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           apy_rate: number
           created_at?: string | null
-          end_date: string
+          early_withdrawal_penalty?: number | null
           id?: string
           rewards_earned?: number | null
+          stake_end_date: string
+          stake_start_date: string
           staked_amount: number
           staking_period_days: number
-          start_date?: string | null
           status?: string | null
-          transaction_hash?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           apy_rate?: number
           created_at?: string | null
-          end_date?: string
+          early_withdrawal_penalty?: number | null
           id?: string
           rewards_earned?: number | null
+          stake_end_date?: string
+          stake_start_date?: string
           staked_amount?: number
           staking_period_days?: number
-          start_date?: string | null
           status?: string | null
-          transaction_hash?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -968,46 +930,52 @@ export type Database = {
       cashout_requests: {
         Row: {
           account_info: Json
-          admin_notes: string | null
           amount: number
-          created_at: string | null
+          completed_at: string | null
+          created_at: string
           exchange_rate: number
+          failure_reason: string | null
           id: string
           payment_method: string
           processed_at: string | null
-          processed_by: string | null
-          status: string | null
-          updated_at: string | null
+          requested_at: string
+          status: string
+          transaction_hash: string | null
+          updated_at: string
           usd_amount: number
           user_id: string
         }
         Insert: {
           account_info: Json
-          admin_notes?: string | null
           amount: number
-          created_at?: string | null
+          completed_at?: string | null
+          created_at?: string
           exchange_rate: number
+          failure_reason?: string | null
           id?: string
           payment_method: string
           processed_at?: string | null
-          processed_by?: string | null
-          status?: string | null
-          updated_at?: string | null
+          requested_at?: string
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
           usd_amount: number
           user_id: string
         }
         Update: {
           account_info?: Json
-          admin_notes?: string | null
           amount?: number
-          created_at?: string | null
+          completed_at?: string | null
+          created_at?: string
           exchange_rate?: number
+          failure_reason?: string | null
           id?: string
           payment_method?: string
           processed_at?: string | null
-          processed_by?: string | null
-          status?: string | null
-          updated_at?: string | null
+          requested_at?: string
+          status?: string
+          transaction_hash?: string | null
+          updated_at?: string
           usd_amount?: number
           user_id?: string
         }
@@ -1015,105 +983,96 @@ export type Database = {
       }
       charting_profits: {
         Row: {
-          amount: number
+          admin_share: number
+          chart_record_id: string | null
+          chart_type: string
           created_at: string | null
-          error_message: string | null
           id: string
-          patient_id: string | null
-          processed_at: string | null
+          patient_id: string
+          patient_share: number
           provider_id: string
+          provider_share: number
           status: string | null
-          transaction_hash: string | null
+          total_amount: number
         }
         Insert: {
-          amount?: number
+          admin_share?: number
+          chart_record_id?: string | null
+          chart_type: string
           created_at?: string | null
-          error_message?: string | null
           id?: string
-          patient_id?: string | null
-          processed_at?: string | null
+          patient_id: string
+          patient_share?: number
           provider_id: string
+          provider_share?: number
           status?: string | null
-          transaction_hash?: string | null
+          total_amount?: number
         }
         Update: {
-          amount?: number
+          admin_share?: number
+          chart_record_id?: string | null
+          chart_type?: string
           created_at?: string | null
-          error_message?: string | null
           id?: string
-          patient_id?: string | null
-          processed_at?: string | null
+          patient_id?: string
+          patient_share?: number
           provider_id?: string
+          provider_share?: number
           status?: string | null
-          transaction_hash?: string | null
+          total_amount?: number
         }
         Relationships: [
           {
-            foreignKeyName: "charting_profits_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: "charting_profits_chart_record_id_fkey"
+            columns: ["chart_record_id"]
             isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "patient_notes"
             referencedColumns: ["id"]
           },
         ]
       }
       clinical_alerts: {
         Row: {
+          acknowledged: boolean | null
           acknowledged_at: string | null
           acknowledged_by: string | null
+          alert_message: string
           alert_type: string
           created_at: string | null
-          description: string
           id: string
-          is_acknowledged: boolean | null
-          metadata: Json | null
-          patient_id: string
-          recommendation: string | null
+          patient_id: string | null
           resolved: boolean | null
           resolved_at: string | null
-          resolved_by: string | null
-          severity: string | null
-          title: string
+          severity: string
           triggered_by: string | null
-          updated_at: string | null
         }
         Insert: {
+          acknowledged?: boolean | null
           acknowledged_at?: string | null
           acknowledged_by?: string | null
+          alert_message: string
           alert_type: string
           created_at?: string | null
-          description: string
           id?: string
-          is_acknowledged?: boolean | null
-          metadata?: Json | null
-          patient_id: string
-          recommendation?: string | null
+          patient_id?: string | null
           resolved?: boolean | null
           resolved_at?: string | null
-          resolved_by?: string | null
-          severity?: string | null
-          title: string
+          severity: string
           triggered_by?: string | null
-          updated_at?: string | null
         }
         Update: {
+          acknowledged?: boolean | null
           acknowledged_at?: string | null
           acknowledged_by?: string | null
+          alert_message?: string
           alert_type?: string
           created_at?: string | null
-          description?: string
           id?: string
-          is_acknowledged?: boolean | null
-          metadata?: Json | null
-          patient_id?: string
-          recommendation?: string | null
+          patient_id?: string | null
           resolved?: boolean | null
           resolved_at?: string | null
-          resolved_by?: string | null
-          severity?: string | null
-          title?: string
+          severity?: string
           triggered_by?: string | null
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1127,93 +1086,81 @@ export type Database = {
       }
       clinical_guidelines: {
         Row: {
-          category: string
           condition: string
           created_at: string | null
+          effective_date: string | null
           evidence_level: string | null
+          guideline_content: string
           guideline_title: string
-          guideline_url: string | null
           id: string
-          is_active: boolean | null
-          last_updated: string | null
-          publication_date: string | null
-          recommendation: string
-          source_organization: string | null
+          source: string | null
           updated_at: string | null
+          version: string | null
         }
         Insert: {
-          category: string
           condition: string
           created_at?: string | null
+          effective_date?: string | null
           evidence_level?: string | null
+          guideline_content: string
           guideline_title: string
-          guideline_url?: string | null
           id?: string
-          is_active?: boolean | null
-          last_updated?: string | null
-          publication_date?: string | null
-          recommendation: string
-          source_organization?: string | null
+          source?: string | null
           updated_at?: string | null
+          version?: string | null
         }
         Update: {
-          category?: string
           condition?: string
           created_at?: string | null
+          effective_date?: string | null
           evidence_level?: string | null
+          guideline_content?: string
           guideline_title?: string
-          guideline_url?: string | null
           id?: string
-          is_active?: boolean | null
-          last_updated?: string | null
-          publication_date?: string | null
-          recommendation?: string
-          source_organization?: string | null
+          source?: string | null
           updated_at?: string | null
+          version?: string | null
         }
         Relationships: []
       }
       consultations: {
         Row: {
-          consultant_name: string
+          consultant_name: string | null
           consultation_date: string
-          consultation_type: string
           created_at: string | null
           findings: string | null
           id: string
-          notes: string | null
           patient_id: string
-          reason: string | null
           recommendations: string | null
           requested_by: string | null
+          specialty: string
+          status: string | null
           updated_at: string | null
         }
         Insert: {
-          consultant_name: string
+          consultant_name?: string | null
           consultation_date: string
-          consultation_type: string
           created_at?: string | null
           findings?: string | null
           id?: string
-          notes?: string | null
           patient_id: string
-          reason?: string | null
           recommendations?: string | null
           requested_by?: string | null
+          specialty: string
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
-          consultant_name?: string
+          consultant_name?: string | null
           consultation_date?: string
-          consultation_type?: string
           created_at?: string | null
           findings?: string | null
           id?: string
-          notes?: string | null
           patient_id?: string
-          reason?: string | null
           recommendations?: string | null
           requested_by?: string | null
+          specialty?: string
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1226,42 +1173,60 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          participant_1_id: string
+          participant_2_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          participant_1_id: string
+          participant_2_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          participant_1_id?: string
+          participant_2_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       data_retention_policies: {
         Row: {
+          active: boolean | null
           archive_after_days: number | null
-          compliance_requirement: string | null
           created_at: string | null
-          created_by: string | null
           data_type: string
           delete_after_days: number | null
           id: string
-          is_active: boolean | null
           policy_description: string | null
           retention_period_days: number
           updated_at: string | null
         }
         Insert: {
+          active?: boolean | null
           archive_after_days?: number | null
-          compliance_requirement?: string | null
           created_at?: string | null
-          created_by?: string | null
           data_type: string
           delete_after_days?: number | null
           id?: string
-          is_active?: boolean | null
           policy_description?: string | null
           retention_period_days: number
           updated_at?: string | null
         }
         Update: {
+          active?: boolean | null
           archive_after_days?: number | null
-          compliance_requirement?: string | null
           created_at?: string | null
-          created_by?: string | null
           data_type?: string
           delete_after_days?: number | null
           id?: string
-          is_active?: boolean | null
           policy_description?: string | null
           retention_period_days?: number
           updated_at?: string | null
@@ -1270,67 +1235,58 @@ export type Database = {
       }
       discharge_plans: {
         Row: {
-          activity_restrictions: string | null
           created_at: string | null
           created_by: string
-          dietary_instructions: string | null
-          discharge_disposition: string | null
-          discharge_location: string | null
-          emergency_contacts: Json | null
-          equipment_needs: string | null
+          discharge_date: string | null
+          discharge_destination: string | null
+          discharge_instructions: string | null
+          dme_ordered: boolean | null
           follow_up_appointments: Json | null
-          home_care_services: Json | null
+          follow_up_scheduled: boolean | null
+          home_health_arranged: boolean | null
           id: string
-          last_updated_by: string | null
-          medications_on_discharge: Json | null
+          medications_reconciled: boolean | null
           patient_education_completed: boolean | null
-          patient_id: string
-          planned_discharge_date: string | null
+          patient_id: string | null
+          plan_status: string | null
           transportation_arranged: boolean | null
           updated_at: string | null
-          warning_signs: string | null
         }
         Insert: {
-          activity_restrictions?: string | null
           created_at?: string | null
           created_by: string
-          dietary_instructions?: string | null
-          discharge_disposition?: string | null
-          discharge_location?: string | null
-          emergency_contacts?: Json | null
-          equipment_needs?: string | null
+          discharge_date?: string | null
+          discharge_destination?: string | null
+          discharge_instructions?: string | null
+          dme_ordered?: boolean | null
           follow_up_appointments?: Json | null
-          home_care_services?: Json | null
+          follow_up_scheduled?: boolean | null
+          home_health_arranged?: boolean | null
           id?: string
-          last_updated_by?: string | null
-          medications_on_discharge?: Json | null
+          medications_reconciled?: boolean | null
           patient_education_completed?: boolean | null
-          patient_id: string
-          planned_discharge_date?: string | null
+          patient_id?: string | null
+          plan_status?: string | null
           transportation_arranged?: boolean | null
           updated_at?: string | null
-          warning_signs?: string | null
         }
         Update: {
-          activity_restrictions?: string | null
           created_at?: string | null
           created_by?: string
-          dietary_instructions?: string | null
-          discharge_disposition?: string | null
-          discharge_location?: string | null
-          emergency_contacts?: Json | null
-          equipment_needs?: string | null
+          discharge_date?: string | null
+          discharge_destination?: string | null
+          discharge_instructions?: string | null
+          dme_ordered?: boolean | null
           follow_up_appointments?: Json | null
-          home_care_services?: Json | null
+          follow_up_scheduled?: boolean | null
+          home_health_arranged?: boolean | null
           id?: string
-          last_updated_by?: string | null
-          medications_on_discharge?: Json | null
+          medications_reconciled?: boolean | null
           patient_education_completed?: boolean | null
-          patient_id?: string
-          planned_discharge_date?: string | null
+          patient_id?: string | null
+          plan_status?: string | null
           transportation_arranged?: boolean | null
           updated_at?: string | null
-          warning_signs?: string | null
         }
         Relationships: [
           {
@@ -1345,7 +1301,6 @@ export type Database = {
       discharge_summaries: {
         Row: {
           created_at: string | null
-          generated_at: string | null
           generated_by: string
           id: string
           patient_id: string
@@ -1354,7 +1309,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          generated_at?: string | null
           generated_by: string
           id?: string
           patient_id: string
@@ -1363,7 +1317,6 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          generated_at?: string | null
           generated_by?: string
           id?: string
           patient_id?: string
@@ -1416,6 +1369,13 @@ export type Database = {
             foreignKeyName: "driver_ratings_driver_id_fkey"
             columns: ["driver_id"]
             isOneToOne: false
+            referencedRelation: "driver_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_ratings_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
             referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
@@ -1430,178 +1390,118 @@ export type Database = {
       }
       drivers: {
         Row: {
+          average_rating: number | null
           care_coins_balance: number | null
           created_at: string | null
           current_latitude: number | null
           current_longitude: number | null
           id: string
-          insurance_expiry: string | null
-          insurance_policy: string | null
           is_verified: boolean | null
-          license_expiry: string | null
           license_number: string
-          license_plate: string
+          license_plate: string | null
+          location_updated_at: string | null
           rating: number | null
-          status: string | null
+          status: string
           total_earnings: number | null
           total_ratings: number | null
           total_rides: number | null
           updated_at: string | null
           user_id: string
-          vehicle_make: string
-          vehicle_model: string
+          vehicle_make: string | null
+          vehicle_model: string | null
           vehicle_type: string
           vehicle_year: number | null
+          verification_notes: string | null
+          verification_status: string | null
           verified_at: string | null
           verified_by: string | null
         }
         Insert: {
+          average_rating?: number | null
           care_coins_balance?: number | null
           created_at?: string | null
           current_latitude?: number | null
           current_longitude?: number | null
           id?: string
-          insurance_expiry?: string | null
-          insurance_policy?: string | null
           is_verified?: boolean | null
-          license_expiry?: string | null
           license_number: string
-          license_plate: string
+          license_plate?: string | null
+          location_updated_at?: string | null
           rating?: number | null
-          status?: string | null
+          status?: string
           total_earnings?: number | null
           total_ratings?: number | null
           total_rides?: number | null
           updated_at?: string | null
           user_id: string
-          vehicle_make: string
-          vehicle_model: string
-          vehicle_type: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_type?: string
           vehicle_year?: number | null
+          verification_notes?: string | null
+          verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
         Update: {
+          average_rating?: number | null
           care_coins_balance?: number | null
           created_at?: string | null
           current_latitude?: number | null
           current_longitude?: number | null
           id?: string
-          insurance_expiry?: string | null
-          insurance_policy?: string | null
           is_verified?: boolean | null
-          license_expiry?: string | null
           license_number?: string
-          license_plate?: string
+          license_plate?: string | null
+          location_updated_at?: string | null
           rating?: number | null
-          status?: string | null
+          status?: string
           total_earnings?: number | null
           total_ratings?: number | null
           total_rides?: number | null
           updated_at?: string | null
           user_id?: string
-          vehicle_make?: string
-          vehicle_model?: string
+          vehicle_make?: string | null
+          vehicle_model?: string | null
           vehicle_type?: string
           vehicle_year?: number | null
+          verification_notes?: string | null
+          verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
-        }
-        Relationships: []
-      }
-      equipment: {
-        Row: {
-          created_at: string | null
-          equipment_name: string
-          equipment_type: string
-          id: string
-          last_maintenance_date: string | null
-          location: string | null
-          manufacturer: string | null
-          model: string | null
-          next_maintenance_date: string | null
-          notes: string | null
-          purchase_date: string | null
-          serial_number: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          equipment_name: string
-          equipment_type: string
-          id?: string
-          last_maintenance_date?: string | null
-          location?: string | null
-          manufacturer?: string | null
-          model?: string | null
-          next_maintenance_date?: string | null
-          notes?: string | null
-          purchase_date?: string | null
-          serial_number?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          equipment_name?: string
-          equipment_type?: string
-          id?: string
-          last_maintenance_date?: string | null
-          location?: string | null
-          manufacturer?: string | null
-          model?: string | null
-          next_maintenance_date?: string | null
-          notes?: string | null
-          purchase_date?: string | null
-          serial_number?: string | null
-          status?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
       evaluations: {
         Row: {
           created_at: string | null
-          evaluation_date: string
+          evaluated_at: string | null
+          evaluated_by: string
           evaluation_type: string
-          evaluator_id: string
-          findings: Json
-          follow_up_date: string | null
-          follow_up_required: boolean | null
+          findings: string | null
           id: string
           patient_id: string
           recommendations: string | null
-          status: string | null
-          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          evaluation_date: string
+          evaluated_at?: string | null
+          evaluated_by: string
           evaluation_type: string
-          evaluator_id: string
-          findings: Json
-          follow_up_date?: string | null
-          follow_up_required?: boolean | null
+          findings?: string | null
           id?: string
           patient_id: string
           recommendations?: string | null
-          status?: string | null
-          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          evaluation_date?: string
+          evaluated_at?: string | null
+          evaluated_by?: string
           evaluation_type?: string
-          evaluator_id?: string
-          findings?: Json
-          follow_up_date?: string | null
-          follow_up_required?: boolean | null
+          findings?: string | null
           id?: string
           patient_id?: string
           recommendations?: string | null
-          status?: string | null
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1617,56 +1517,44 @@ export type Database = {
         Row: {
           collection_date: string | null
           created_at: string | null
-          external_order_id: string | null
           id: string
           lab_system: string
-          order_notes: string | null
-          order_status: string | null
-          ordered_by: string
-          patient_id: string
-          priority: string | null
-          results_data: Json | null
-          results_received: boolean | null
-          specimen_type: string | null
-          test_codes: string[] | null
-          test_names: string[] | null
-          updated_at: string | null
+          order_number: string
+          ordered_at: string
+          ordered_by: string | null
+          patient_id: string | null
+          received_at: string | null
+          result_data: Json | null
+          result_status: string | null
+          test_name: string
         }
         Insert: {
           collection_date?: string | null
           created_at?: string | null
-          external_order_id?: string | null
           id?: string
           lab_system: string
-          order_notes?: string | null
-          order_status?: string | null
-          ordered_by: string
-          patient_id: string
-          priority?: string | null
-          results_data?: Json | null
-          results_received?: boolean | null
-          specimen_type?: string | null
-          test_codes?: string[] | null
-          test_names?: string[] | null
-          updated_at?: string | null
+          order_number: string
+          ordered_at: string
+          ordered_by?: string | null
+          patient_id?: string | null
+          received_at?: string | null
+          result_data?: Json | null
+          result_status?: string | null
+          test_name: string
         }
         Update: {
           collection_date?: string | null
           created_at?: string | null
-          external_order_id?: string | null
           id?: string
           lab_system?: string
-          order_notes?: string | null
-          order_status?: string | null
-          ordered_by?: string
-          patient_id?: string
-          priority?: string | null
-          results_data?: Json | null
-          results_received?: boolean | null
-          specimen_type?: string | null
-          test_codes?: string[] | null
-          test_names?: string[] | null
-          updated_at?: string | null
+          order_number?: string
+          ordered_at?: string
+          ordered_by?: string | null
+          patient_id?: string | null
+          received_at?: string | null
+          result_data?: Json | null
+          result_status?: string | null
+          test_name?: string
         }
         Relationships: [
           {
@@ -1683,87 +1571,74 @@ export type Database = {
           created_at: string | null
           external_id: string
           external_system: string
-          external_type: string | null
           id: string
           internal_id: string
           internal_type: string
-          is_active: boolean | null
           last_synced_at: string | null
           mapping_metadata: Json | null
-          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           external_id: string
           external_system: string
-          external_type?: string | null
           id?: string
           internal_id: string
           internal_type: string
-          is_active?: boolean | null
           last_synced_at?: string | null
           mapping_metadata?: Json | null
-          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           external_id?: string
           external_system?: string
-          external_type?: string | null
           id?: string
           internal_id?: string
           internal_type?: string
-          is_active?: boolean | null
           last_synced_at?: string | null
           mapping_metadata?: Json | null
-          updated_at?: string | null
         }
         Relationships: []
       }
-      facilities: {
+      facial_data_history: {
         Row: {
-          building: string | null
-          capacity: number | null
-          created_at: string | null
-          equipment_available: string[] | null
-          facility_name: string
-          facility_type: string | null
-          floor: string | null
+          confidence: number | null
+          facial_data: string
           id: string
-          is_available: boolean | null
+          is_active: boolean
           notes: string | null
-          room_number: string | null
-          updated_at: string | null
+          patient_id: string
+          registered_at: string
+          registered_by: string | null
         }
         Insert: {
-          building?: string | null
-          capacity?: number | null
-          created_at?: string | null
-          equipment_available?: string[] | null
-          facility_name: string
-          facility_type?: string | null
-          floor?: string | null
+          confidence?: number | null
+          facial_data: string
           id?: string
-          is_available?: boolean | null
+          is_active?: boolean
           notes?: string | null
-          room_number?: string | null
-          updated_at?: string | null
+          patient_id: string
+          registered_at?: string
+          registered_by?: string | null
         }
         Update: {
-          building?: string | null
-          capacity?: number | null
-          created_at?: string | null
-          equipment_available?: string[] | null
-          facility_name?: string
-          facility_type?: string | null
-          floor?: string | null
+          confidence?: number | null
+          facial_data?: string
           id?: string
-          is_available?: boolean | null
+          is_active?: boolean
           notes?: string | null
-          room_number?: string | null
-          updated_at?: string | null
+          patient_id?: string
+          registered_at?: string
+          registered_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "facial_data_history_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorite_locations: {
         Row: {
@@ -1771,10 +1646,9 @@ export type Database = {
           created_at: string | null
           id: string
           latitude: number
-          location_type: string | null
+          location_type: string
           longitude: number
           name: string
-          notes: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1783,10 +1657,9 @@ export type Database = {
           created_at?: string | null
           id?: string
           latitude: number
-          location_type?: string | null
+          location_type?: string
           longitude: number
           name: string
-          notes?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1795,10 +1668,9 @@ export type Database = {
           created_at?: string | null
           id?: string
           latitude?: number
-          location_type?: string | null
+          location_type?: string
           longitude?: number
           name?: string
-          notes?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1806,136 +1678,421 @@ export type Database = {
       }
       feature_flags: {
         Row: {
-          created_at: string | null
-          created_by: string | null
-          description: string | null
+          created_at: string
+          enabled_at: string | null
+          enabled_by: string | null
+          enabled_for_roles: string[] | null
+          enabled_for_users: string[] | null
+          feature_description: string | null
           feature_name: string
           id: string
-          is_enabled: boolean | null
+          is_enabled: boolean
+          requirements: Json | null
           rollout_percentage: number | null
-          target_roles: string[] | null
-          target_users: string[] | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
+          created_at?: string
+          enabled_at?: string | null
+          enabled_by?: string | null
+          enabled_for_roles?: string[] | null
+          enabled_for_users?: string[] | null
+          feature_description?: string | null
           feature_name: string
           id?: string
-          is_enabled?: boolean | null
+          is_enabled?: boolean
+          requirements?: Json | null
           rollout_percentage?: number | null
-          target_roles?: string[] | null
-          target_users?: string[] | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
+          created_at?: string
+          enabled_at?: string | null
+          enabled_by?: string | null
+          enabled_for_roles?: string[] | null
+          enabled_for_users?: string[] | null
+          feature_description?: string | null
           feature_name?: string
           id?: string
-          is_enabled?: boolean | null
+          is_enabled?: boolean
+          requirements?: Json | null
           rollout_percentage?: number | null
-          target_roles?: string[] | null
-          target_users?: string[] | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
+      food_orders: {
+        Row: {
+          created_at: string | null
+          delivered_at: string | null
+          dietary_restrictions: string[] | null
+          id: string
+          items: Json
+          meal_type: string | null
+          ordered_by: string | null
+          patient_id: string
+          scheduled_time: string | null
+          special_instructions: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivered_at?: string | null
+          dietary_restrictions?: string[] | null
+          id?: string
+          items: Json
+          meal_type?: string | null
+          ordered_by?: string | null
+          patient_id: string
+          scheduled_time?: string | null
+          special_instructions?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivered_at?: string | null
+          dietary_restrictions?: string[] | null
+          id?: string
+          items?: Json
+          meal_type?: string | null
+          ordered_by?: string | null
+          patient_id?: string
+          scheduled_time?: string | null
+          special_instructions?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gas_wallet_monitoring: {
         Row: {
-          alert_threshold: number | null
-          balance: number
-          created_at: string | null
-          estimated_transactions_remaining: number | null
-          gas_price_gwei: number | null
+          alert_sent: boolean | null
+          checked_at: string
+          created_at: string
           id: string
-          is_low: boolean | null
           last_refill_amount: number | null
           last_refill_at: string | null
-          monitored_at: string | null
+          matic_balance: number
           network: string
+          threshold_matic: number
+          total_gas_spent: number | null
+          transaction_count: number | null
           wallet_address: string
         }
         Insert: {
-          alert_threshold?: number | null
-          balance: number
-          created_at?: string | null
-          estimated_transactions_remaining?: number | null
-          gas_price_gwei?: number | null
+          alert_sent?: boolean | null
+          checked_at?: string
+          created_at?: string
           id?: string
-          is_low?: boolean | null
           last_refill_amount?: number | null
           last_refill_at?: string | null
-          monitored_at?: string | null
+          matic_balance: number
           network: string
+          threshold_matic?: number
+          total_gas_spent?: number | null
+          transaction_count?: number | null
           wallet_address: string
         }
         Update: {
-          alert_threshold?: number | null
-          balance?: number
-          created_at?: string | null
-          estimated_transactions_remaining?: number | null
-          gas_price_gwei?: number | null
+          alert_sent?: boolean | null
+          checked_at?: string
+          created_at?: string
           id?: string
-          is_low?: boolean | null
           last_refill_amount?: number | null
           last_refill_at?: string | null
-          monitored_at?: string | null
+          matic_balance?: number
           network?: string
+          threshold_matic?: number
+          total_gas_spent?: number | null
+          transaction_count?: number | null
           wallet_address?: string
         }
         Relationships: []
       }
-      health_goals: {
+      goal_achievements: {
         Row: {
-          carecoin_reward: number | null
-          created_at: string | null
-          current_value: string | null
-          goal_description: string
-          goal_type: string
+          achievement_date: string | null
+          goal_id: string
           id: string
-          milestones: Json | null
-          patient_id: string | null
-          progress_percentage: number | null
+          patient_id: string
+          reward_amount: number
+          transaction_id: string | null
+        }
+        Insert: {
+          achievement_date?: string | null
+          goal_id: string
+          id?: string
+          patient_id: string
+          reward_amount: number
+          transaction_id?: string | null
+        }
+        Update: {
+          achievement_date?: string | null
+          goal_id?: string
+          id?: string
+          patient_id?: string
+          reward_amount?: number
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_achievements_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "health_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_achievements_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_achievements_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "care_coins_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_calls: {
+        Row: {
+          created_at: string | null
+          id: string
+          initiator_id: string
+          is_video_call: boolean | null
+          participants: Json
+          room_id: string
           status: string | null
-          target_date: string | null
-          target_value: string | null
           updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          initiator_id: string
+          is_video_call?: boolean | null
+          participants: Json
+          room_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          initiator_id?: string
+          is_video_call?: boolean | null
+          participants?: Json
+          room_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      group_conversations: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      group_message_reads: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string | null
           user_id: string
         }
         Insert: {
-          carecoin_reward?: number | null
-          created_at?: string | null
-          current_value?: string | null
-          goal_description: string
-          goal_type: string
           id?: string
-          milestones?: Json | null
-          patient_id?: string | null
-          progress_percentage?: number | null
-          status?: string | null
-          target_date?: string | null
-          target_value?: string | null
-          updated_at?: string | null
+          message_id: string
+          read_at?: string | null
           user_id: string
         }
         Update: {
-          carecoin_reward?: number | null
+          id?: string
+          message_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_message_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          group_id: string
+          id: string
+          is_pinned: boolean | null
+          pinned_at: string | null
+          pinned_by: string | null
+          sender_id: string
+          voice_duration: number | null
+        }
+        Insert: {
+          content: string
           created_at?: string | null
-          current_value?: string | null
-          goal_description?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          group_id: string
+          id?: string
+          is_pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          sender_id: string
+          voice_duration?: number | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          group_id?: string
+          id?: string
+          is_pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          sender_id?: string
+          voice_duration?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_participants: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_participants_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_value: number
+          description: string | null
+          end_date: string | null
+          goal_type: string
+          id: string
+          patient_id: string
+          reward_amount: number
+          start_date: string
+          status: string
+          target_value: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          end_date?: string | null
+          goal_type: string
+          id?: string
+          patient_id: string
+          reward_amount?: number
+          start_date?: string
+          status?: string
+          target_value?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          end_date?: string | null
           goal_type?: string
           id?: string
-          milestones?: Json | null
-          patient_id?: string | null
-          progress_percentage?: number | null
-          status?: string | null
-          target_date?: string | null
-          target_value?: string | null
+          patient_id?: string
+          reward_amount?: number
+          start_date?: string
+          status?: string
+          target_value?: number
+          title?: string
           updated_at?: string | null
-          user_id?: string
         }
         Relationships: [
           {
@@ -1949,94 +2106,90 @@ export type Database = {
       }
       health_rewards: {
         Row: {
-          carecoins_earned: number
-          completion_date: string | null
-          created_at: string | null
-          goal_description: string | null
+          activity_date: string
+          activity_details: Json | null
+          awarded_at: string | null
+          coins_awarded: number
           id: string
-          metadata: Json | null
-          reward_name: string
+          patient_id: string | null
+          reward_amount: number
           reward_type: string
-          status: string | null
           user_id: string
-          verified_by: string | null
         }
         Insert: {
-          carecoins_earned: number
-          completion_date?: string | null
-          created_at?: string | null
-          goal_description?: string | null
+          activity_date: string
+          activity_details?: Json | null
+          awarded_at?: string | null
+          coins_awarded: number
           id?: string
-          metadata?: Json | null
-          reward_name: string
+          patient_id?: string | null
+          reward_amount: number
           reward_type: string
-          status?: string | null
           user_id: string
-          verified_by?: string | null
         }
         Update: {
-          carecoins_earned?: number
-          completion_date?: string | null
-          created_at?: string | null
-          goal_description?: string | null
+          activity_date?: string
+          activity_details?: Json | null
+          awarded_at?: string | null
+          coins_awarded?: number
           id?: string
-          metadata?: Json | null
-          reward_name?: string
+          patient_id?: string | null
+          reward_amount?: number
           reward_type?: string
-          status?: string | null
           user_id?: string
-          verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "health_rewards_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hl7_message_log: {
         Row: {
           created_at: string | null
           destination_system: string | null
-          direction: string | null
           error_message: string | null
           id: string
-          message_event: string
-          message_id: string
+          message_content: string | null
+          message_direction: string | null
+          message_id: string | null
           message_type: string
-          parsed_data: Json | null
           patient_id: string | null
           processed_at: string | null
-          processing_status: string | null
-          raw_message: string
           source_system: string | null
+          status: string | null
         }
         Insert: {
           created_at?: string | null
           destination_system?: string | null
-          direction?: string | null
           error_message?: string | null
           id?: string
-          message_event: string
-          message_id: string
+          message_content?: string | null
+          message_direction?: string | null
+          message_id?: string | null
           message_type: string
-          parsed_data?: Json | null
           patient_id?: string | null
           processed_at?: string | null
-          processing_status?: string | null
-          raw_message: string
           source_system?: string | null
+          status?: string | null
         }
         Update: {
           created_at?: string | null
           destination_system?: string | null
-          direction?: string | null
           error_message?: string | null
           id?: string
-          message_event?: string
-          message_id?: string
+          message_content?: string | null
+          message_direction?: string | null
+          message_id?: string | null
           message_type?: string
-          parsed_data?: Json | null
           patient_id?: string | null
           processed_at?: string | null
-          processing_status?: string | null
-          raw_message?: string
           source_system?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -2048,12 +2201,77 @@ export type Database = {
           },
         ]
       }
+      imaging_studies: {
+        Row: {
+          body_part: string | null
+          created_at: string | null
+          findings: string | null
+          id: string
+          image_url: string | null
+          impression: string | null
+          modality: string | null
+          notes: string | null
+          ordered_by: string | null
+          patient_id: string
+          performed_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          study_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          body_part?: string | null
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          impression?: string | null
+          modality?: string | null
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id: string
+          performed_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          study_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          body_part?: string | null
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          impression?: string | null
+          modality?: string | null
+          notes?: string | null
+          ordered_by?: string | null
+          patient_id?: string
+          performed_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          study_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imaging_studies_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       immunizations: {
         Row: {
+          administered_at: string
           administered_by: string | null
-          administration_date: string
           created_at: string | null
-          dose: string | null
+          dose_number: number | null
           expiration_date: string | null
           id: string
           lot_number: string | null
@@ -2061,14 +2279,13 @@ export type Database = {
           patient_id: string
           route: string | null
           site: string | null
-          updated_at: string | null
           vaccine_name: string
         }
         Insert: {
+          administered_at: string
           administered_by?: string | null
-          administration_date: string
           created_at?: string | null
-          dose?: string | null
+          dose_number?: number | null
           expiration_date?: string | null
           id?: string
           lot_number?: string | null
@@ -2076,14 +2293,13 @@ export type Database = {
           patient_id: string
           route?: string | null
           site?: string | null
-          updated_at?: string | null
           vaccine_name: string
         }
         Update: {
+          administered_at?: string
           administered_by?: string | null
-          administration_date?: string
           created_at?: string | null
-          dose?: string | null
+          dose_number?: number | null
           expiration_date?: string | null
           id?: string
           lot_number?: string | null
@@ -2091,7 +2307,6 @@ export type Database = {
           patient_id?: string
           route?: string | null
           site?: string | null
-          updated_at?: string | null
           vaccine_name?: string
         }
         Relationships: [
@@ -2106,52 +2321,40 @@ export type Database = {
       }
       insurance_payments: {
         Row: {
-          billed_amount: number
-          carecoins_credited: number | null
+          carecoins_converted: number | null
           claim_number: string | null
+          conversion_rate: number | null
           created_at: string | null
           id: string
-          insurance_company: string
-          notes: string | null
-          paid_amount: number | null
-          patient_id: string
-          patient_responsibility: number | null
-          payment_status: string | null
-          policy_number: string
-          service_date: string
-          updated_at: string | null
+          insurance_provider: string
+          patient_id: string | null
+          payment_amount: number
+          payment_date: string
+          payment_type: string | null
         }
         Insert: {
-          billed_amount: number
-          carecoins_credited?: number | null
+          carecoins_converted?: number | null
           claim_number?: string | null
+          conversion_rate?: number | null
           created_at?: string | null
           id?: string
-          insurance_company: string
-          notes?: string | null
-          paid_amount?: number | null
-          patient_id: string
-          patient_responsibility?: number | null
-          payment_status?: string | null
-          policy_number: string
-          service_date: string
-          updated_at?: string | null
+          insurance_provider: string
+          patient_id?: string | null
+          payment_amount: number
+          payment_date: string
+          payment_type?: string | null
         }
         Update: {
-          billed_amount?: number
-          carecoins_credited?: number | null
+          carecoins_converted?: number | null
           claim_number?: string | null
+          conversion_rate?: number | null
           created_at?: string | null
           id?: string
-          insurance_company?: string
-          notes?: string | null
-          paid_amount?: number | null
-          patient_id?: string
-          patient_responsibility?: number | null
-          payment_status?: string | null
-          policy_number?: string
-          service_date?: string
-          updated_at?: string | null
+          insurance_provider?: string
+          patient_id?: string | null
+          payment_amount?: number
+          payment_date?: string
+          payment_type?: string | null
         }
         Relationships: [
           {
@@ -2166,48 +2369,75 @@ export type Database = {
       kyc_verifications: {
         Row: {
           address_verified: boolean | null
-          created_at: string | null
-          documents_submitted: Json | null
+          approved_at: string | null
+          country_code: string | null
+          created_at: string
+          date_of_birth: string | null
+          document_expiry: string | null
+          document_number: string | null
+          document_type: string | null
           expires_at: string | null
           id: string
           identity_verified: boolean | null
+          metadata: Json | null
           rejection_reason: string | null
-          status: string | null
-          updated_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          submitted_at: string
+          updated_at: string
           user_id: string
           verification_id: string | null
-          verification_provider: string | null
-          verified_at: string | null
+          verification_level: string | null
+          verification_provider: string
+          verification_status: string
         }
         Insert: {
           address_verified?: boolean | null
-          created_at?: string | null
-          documents_submitted?: Json | null
+          approved_at?: string | null
+          country_code?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_expiry?: string | null
+          document_number?: string | null
+          document_type?: string | null
           expires_at?: string | null
           id?: string
           identity_verified?: boolean | null
+          metadata?: Json | null
           rejection_reason?: string | null
-          status?: string | null
-          updated_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string
+          updated_at?: string
           user_id: string
           verification_id?: string | null
-          verification_provider?: string | null
-          verified_at?: string | null
+          verification_level?: string | null
+          verification_provider: string
+          verification_status?: string
         }
         Update: {
           address_verified?: boolean | null
-          created_at?: string | null
-          documents_submitted?: Json | null
+          approved_at?: string | null
+          country_code?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          document_expiry?: string | null
+          document_number?: string | null
+          document_type?: string | null
           expires_at?: string | null
           id?: string
           identity_verified?: boolean | null
+          metadata?: Json | null
           rejection_reason?: string | null
-          status?: string | null
-          updated_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string
+          updated_at?: string
           user_id?: string
           verification_id?: string | null
-          verification_provider?: string | null
-          verified_at?: string | null
+          verification_level?: string | null
+          verification_provider?: string
+          verification_status?: string
         }
         Relationships: []
       }
@@ -2218,13 +2448,15 @@ export type Database = {
           notes: string | null
           ordered_by: string | null
           patient_id: string
-          performed_by: string | null
+          performed_at: string | null
           reference_range: string | null
+          result_unit: string | null
           result_value: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string | null
-          test_date: string
+          test_category: string | null
           test_name: string
-          unit: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2233,13 +2465,15 @@ export type Database = {
           notes?: string | null
           ordered_by?: string | null
           patient_id: string
-          performed_by?: string | null
+          performed_at?: string | null
           reference_range?: string | null
+          result_unit?: string | null
           result_value?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
-          test_date: string
+          test_category?: string | null
           test_name: string
-          unit?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2248,13 +2482,15 @@ export type Database = {
           notes?: string | null
           ordered_by?: string | null
           patient_id?: string
-          performed_by?: string | null
+          performed_at?: string | null
           reference_range?: string | null
+          result_unit?: string | null
           result_value?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
-          test_date?: string
+          test_category?: string | null
           test_name?: string
-          unit?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2269,45 +2505,42 @@ export type Database = {
       }
       legal_disclaimers: {
         Row: {
-          content: string
-          created_at: string | null
-          created_by: string | null
+          created_at: string
+          disclaimer_content: string
+          disclaimer_title: string
           disclaimer_type: string
-          display_location: string[] | null
+          display_frequency: string | null
           effective_date: string
           id: string
           is_active: boolean | null
-          requires_acknowledgment: boolean | null
-          title: string
-          updated_at: string | null
+          requires_acceptance: boolean | null
+          updated_at: string
           version: string
         }
         Insert: {
-          content: string
-          created_at?: string | null
-          created_by?: string | null
+          created_at?: string
+          disclaimer_content: string
+          disclaimer_title: string
           disclaimer_type: string
-          display_location?: string[] | null
+          display_frequency?: string | null
           effective_date: string
           id?: string
           is_active?: boolean | null
-          requires_acknowledgment?: boolean | null
-          title: string
-          updated_at?: string | null
+          requires_acceptance?: boolean | null
+          updated_at?: string
           version: string
         }
         Update: {
-          content?: string
-          created_at?: string | null
-          created_by?: string | null
+          created_at?: string
+          disclaimer_content?: string
+          disclaimer_title?: string
           disclaimer_type?: string
-          display_location?: string[] | null
+          display_frequency?: string | null
           effective_date?: string
           id?: string
           is_active?: boolean | null
-          requires_acknowledgment?: boolean | null
-          title?: string
-          updated_at?: string | null
+          requires_acceptance?: boolean | null
+          updated_at?: string
           version?: string
         }
         Relationships: []
@@ -2316,42 +2549,42 @@ export type Database = {
         Row: {
           created_at: string | null
           diagnosed_by: string | null
-          diagnosis_code: string
+          diagnosis_code: string | null
           diagnosis_name: string
           diagnosis_type: string | null
           id: string
           notes: string | null
           onset_date: string | null
           patient_id: string
-          resolution_date: string | null
+          resolved_date: string | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           diagnosed_by?: string | null
-          diagnosis_code: string
+          diagnosis_code?: string | null
           diagnosis_name: string
           diagnosis_type?: string | null
           id?: string
           notes?: string | null
           onset_date?: string | null
           patient_id: string
-          resolution_date?: string | null
+          resolved_date?: string | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           diagnosed_by?: string | null
-          diagnosis_code?: string
+          diagnosis_code?: string | null
           diagnosis_name?: string
           diagnosis_type?: string | null
           id?: string
           notes?: string | null
           onset_date?: string | null
           patient_id?: string
-          resolution_date?: string | null
+          resolved_date?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -2369,50 +2602,44 @@ export type Database = {
         Row: {
           administered_at: string
           administered_by: string
-          adverse_reaction: string | null
           created_at: string | null
           dose_given: string
           id: string
-          medication_order_id: string
+          medication_order_id: string | null
           notes: string | null
-          patient_id: string
+          patient_id: string | null
           patient_response: string | null
           reason_not_given: string | null
-          route: string
+          route: string | null
           site: string | null
-          status: string | null
         }
         Insert: {
           administered_at: string
           administered_by: string
-          adverse_reaction?: string | null
           created_at?: string | null
           dose_given: string
           id?: string
-          medication_order_id: string
+          medication_order_id?: string | null
           notes?: string | null
-          patient_id: string
+          patient_id?: string | null
           patient_response?: string | null
           reason_not_given?: string | null
-          route: string
+          route?: string | null
           site?: string | null
-          status?: string | null
         }
         Update: {
           administered_at?: string
           administered_by?: string
-          adverse_reaction?: string | null
           created_at?: string | null
           dose_given?: string
           id?: string
-          medication_order_id?: string
+          medication_order_id?: string | null
           notes?: string | null
-          patient_id?: string
+          patient_id?: string | null
           patient_response?: string | null
           reason_not_given?: string | null
-          route?: string
+          route?: string | null
           site?: string | null
-          status?: string | null
         }
         Relationships: [
           {
@@ -2431,92 +2658,155 @@ export type Database = {
           },
         ]
       }
+      medication_administration_records: {
+        Row: {
+          administered_at: string
+          administered_by: string
+          created_at: string | null
+          dosage: string
+          id: string
+          medication_name: string
+          medication_order_id: string
+          notes: string | null
+          patient_id: string
+          reason: string | null
+          route: string | null
+          scheduled_time: string | null
+          site: string | null
+          status: string | null
+          witness_id: string | null
+        }
+        Insert: {
+          administered_at: string
+          administered_by: string
+          created_at?: string | null
+          dosage: string
+          id?: string
+          medication_name: string
+          medication_order_id: string
+          notes?: string | null
+          patient_id: string
+          reason?: string | null
+          route?: string | null
+          scheduled_time?: string | null
+          site?: string | null
+          status?: string | null
+          witness_id?: string | null
+        }
+        Update: {
+          administered_at?: string
+          administered_by?: string
+          created_at?: string | null
+          dosage?: string
+          id?: string
+          medication_name?: string
+          medication_order_id?: string
+          notes?: string | null
+          patient_id?: string
+          reason?: string | null
+          route?: string | null
+          scheduled_time?: string | null
+          site?: string | null
+          status?: string | null
+          witness_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_administration_records_medication_order_id_fkey"
+            columns: ["medication_order_id"]
+            isOneToOne: false
+            referencedRelation: "medication_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_administration_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_interactions: {
         Row: {
-          clinical_effects: string | null
+          clinical_guidance: string | null
           created_at: string | null
-          description: string | null
-          evidence_level: string | null
           id: string
-          interaction_type: string
-          management_strategy: string | null
-          medication_a: string
-          medication_b: string
-          severity: string | null
-          source: string | null
+          interaction_description: string
+          interaction_severity: string
+          medication_1: string
+          medication_2: string
           updated_at: string | null
         }
         Insert: {
-          clinical_effects?: string | null
+          clinical_guidance?: string | null
           created_at?: string | null
-          description?: string | null
-          evidence_level?: string | null
           id?: string
-          interaction_type: string
-          management_strategy?: string | null
-          medication_a: string
-          medication_b: string
-          severity?: string | null
-          source?: string | null
+          interaction_description: string
+          interaction_severity: string
+          medication_1: string
+          medication_2: string
           updated_at?: string | null
         }
         Update: {
-          clinical_effects?: string | null
+          clinical_guidance?: string | null
           created_at?: string | null
-          description?: string | null
-          evidence_level?: string | null
           id?: string
-          interaction_type?: string
-          management_strategy?: string | null
-          medication_a?: string
-          medication_b?: string
-          severity?: string | null
-          source?: string | null
+          interaction_description?: string
+          interaction_severity?: string
+          medication_1?: string
+          medication_2?: string
           updated_at?: string | null
         }
         Relationships: []
       }
       medication_orders: {
         Row: {
+          administered_at: string | null
+          administered_by: string | null
           created_at: string | null
           dosage: string
           end_date: string | null
           frequency: string
           id: string
+          instructions: string | null
           medication_name: string
-          notes: string | null
           patient_id: string
-          prescribed_by: string | null
+          prescribed_by: string
           route: string | null
           start_date: string | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
+          administered_at?: string | null
+          administered_by?: string | null
           created_at?: string | null
           dosage: string
           end_date?: string | null
           frequency: string
           id?: string
+          instructions?: string | null
           medication_name: string
-          notes?: string | null
           patient_id: string
-          prescribed_by?: string | null
+          prescribed_by: string
           route?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
+          administered_at?: string | null
+          administered_by?: string | null
           created_at?: string | null
           dosage?: string
           end_date?: string | null
           frequency?: string
           id?: string
+          instructions?: string | null
           medication_name?: string
-          notes?: string | null
           patient_id?: string
-          prescribed_by?: string | null
+          prescribed_by?: string
           route?: string | null
           start_date?: string | null
           status?: string | null
@@ -2532,68 +2822,168 @@ export type Database = {
           },
         ]
       }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_shared: boolean | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          variables: Json | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_shared?: boolean | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          variables?: Json | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_shared?: boolean | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
-          attachments: Json | null
+          author: string | null
           content: string
           conversation_id: string
           created_at: string | null
+          deleted_at: string | null
+          edited_at: string | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
           id: string
           is_read: boolean | null
-          message_type: string | null
-          read_at: string | null
-          recipient_id: string | null
+          original_content: string | null
+          platform: string | null
+          recipient_id: string
           sender_id: string
+          user_id: string | null
+          voice_duration: number | null
         }
         Insert: {
-          attachments?: Json | null
+          author?: string | null
           content: string
           conversation_id: string
           created_at?: string | null
+          deleted_at?: string | null
+          edited_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           is_read?: boolean | null
-          message_type?: string | null
-          read_at?: string | null
-          recipient_id?: string | null
+          original_content?: string | null
+          platform?: string | null
+          recipient_id: string
           sender_id: string
+          user_id?: string | null
+          voice_duration?: number | null
         }
         Update: {
-          attachments?: Json | null
+          author?: string | null
           content?: string
           conversation_id?: string
           created_at?: string | null
+          deleted_at?: string | null
+          edited_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           is_read?: boolean | null
-          message_type?: string | null
-          read_at?: string | null
-          recipient_id?: string | null
+          original_content?: string | null
+          platform?: string | null
+          recipient_id?: string
           sender_id?: string
+          user_id?: string | null
+          voice_duration?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       multisig_signatures: {
         Row: {
           id: string
           signature: string
-          signed_at: string | null
-          signed_by: string | null
-          signer_address: string
+          signed_at: string
+          signer_user_id: string | null
+          signer_wallet_address: string
           transaction_id: string
         }
         Insert: {
           id?: string
           signature: string
-          signed_at?: string | null
-          signed_by?: string | null
-          signer_address: string
+          signed_at?: string
+          signer_user_id?: string | null
+          signer_wallet_address: string
           transaction_id: string
         }
         Update: {
           id?: string
           signature?: string
-          signed_at?: string | null
-          signed_by?: string | null
-          signer_address?: string
+          signed_at?: string
+          signer_user_id?: string | null
+          signer_wallet_address?: string
           transaction_id?: string
         }
         Relationships: [
@@ -2608,127 +2998,196 @@ export type Database = {
       }
       multisig_signers: {
         Row: {
+          added_at: string
           added_by: string | null
-          created_at: string | null
           id: string
-          is_active: boolean | null
-          signer_address: string
-          signer_name: string | null
+          is_active: boolean
+          signer_name: string
+          signer_role: string
+          signer_wallet_address: string
           wallet_address: string
         }
         Insert: {
+          added_at?: string
           added_by?: string | null
-          created_at?: string | null
           id?: string
-          is_active?: boolean | null
-          signer_address: string
-          signer_name?: string | null
+          is_active?: boolean
+          signer_name: string
+          signer_role: string
+          signer_wallet_address: string
           wallet_address: string
         }
         Update: {
+          added_at?: string
           added_by?: string | null
-          created_at?: string | null
           id?: string
-          is_active?: boolean | null
-          signer_address?: string
-          signer_name?: string | null
+          is_active?: boolean
+          signer_name?: string
+          signer_role?: string
+          signer_wallet_address?: string
           wallet_address?: string
         }
         Relationships: []
       }
       multisig_transactions: {
         Row: {
-          amount: number
-          created_at: string | null
+          amount: number | null
+          created_at: string
           created_by: string | null
-          current_signatures: number | null
-          data: Json | null
+          current_signatures: number
           executed_at: string | null
-          expiry_date: string | null
           id: string
           required_signatures: number
-          status: string | null
-          to_address: string
+          status: string
+          to_address: string | null
+          transaction_data: Json | null
           transaction_hash: string | null
           transaction_type: string
           wallet_address: string
         }
         Insert: {
-          amount: number
-          created_at?: string | null
+          amount?: number | null
+          created_at?: string
           created_by?: string | null
-          current_signatures?: number | null
-          data?: Json | null
+          current_signatures?: number
           executed_at?: string | null
-          expiry_date?: string | null
           id?: string
           required_signatures?: number
-          status?: string | null
-          to_address: string
+          status?: string
+          to_address?: string | null
+          transaction_data?: Json | null
           transaction_hash?: string | null
           transaction_type: string
           wallet_address: string
         }
         Update: {
-          amount?: number
-          created_at?: string | null
+          amount?: number | null
+          created_at?: string
           created_by?: string | null
-          current_signatures?: number | null
-          data?: Json | null
+          current_signatures?: number
           executed_at?: string | null
-          expiry_date?: string | null
           id?: string
           required_signatures?: number
-          status?: string | null
-          to_address?: string
+          status?: string
+          to_address?: string | null
+          transaction_data?: Json | null
           transaction_hash?: string | null
           transaction_type?: string
           wallet_address?: string
         }
         Relationships: []
       }
-      patient_assignments: {
+      notification_preferences: {
         Row: {
-          assignment_type: string
+          conversation_id: string | null
           created_at: string | null
-          created_by: string | null
+          group_id: string | null
           id: string
-          is_primary: boolean | null
-          notes: string | null
-          patient_id: string
-          shift_date: string
-          shift_end: string
-          shift_start: string
-          staff_id: string
+          is_muted: boolean | null
+          muted_until: string | null
           updated_at: string | null
+          user_id: string
         }
         Insert: {
-          assignment_type: string
+          conversation_id?: string | null
           created_at?: string | null
-          created_by?: string | null
+          group_id?: string | null
           id?: string
-          is_primary?: boolean | null
-          notes?: string | null
-          patient_id: string
-          shift_date: string
-          shift_end: string
-          shift_start: string
-          staff_id: string
+          is_muted?: boolean | null
+          muted_until?: string | null
           updated_at?: string | null
+          user_id: string
         }
         Update: {
-          assignment_type?: string
+          conversation_id?: string | null
           created_at?: string | null
-          created_by?: string | null
+          group_id?: string | null
           id?: string
-          is_primary?: boolean | null
+          is_muted?: boolean | null
+          muted_until?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          event_time: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          event_time?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          event_time?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      patient_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to: string
+          id: string
+          notes: string | null
+          patient_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to?: string
+          id?: string
           notes?: string | null
           patient_id?: string
-          shift_date?: string
-          shift_end?: string
-          shift_start?: string
-          staff_id?: string
-          updated_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: [
           {
@@ -2744,47 +3203,47 @@ export type Database = {
         Row: {
           consent_date: string
           consent_document_url: string | null
-          consent_given: boolean
+          consent_status: string
           consent_type: string
           created_at: string | null
           expiration_date: string | null
+          granted_to: string[] | null
           id: string
           notes: string | null
-          patient_id: string
-          revoked: boolean | null
-          revoked_date: string | null
+          patient_id: string | null
+          scope: string | null
           updated_at: string | null
-          witness_id: string | null
+          witnessed_by: string | null
         }
         Insert: {
           consent_date: string
           consent_document_url?: string | null
-          consent_given: boolean
+          consent_status: string
           consent_type: string
           created_at?: string | null
           expiration_date?: string | null
+          granted_to?: string[] | null
           id?: string
           notes?: string | null
-          patient_id: string
-          revoked?: boolean | null
-          revoked_date?: string | null
+          patient_id?: string | null
+          scope?: string | null
           updated_at?: string | null
-          witness_id?: string | null
+          witnessed_by?: string | null
         }
         Update: {
           consent_date?: string
           consent_document_url?: string | null
-          consent_given?: boolean
+          consent_status?: string
           consent_type?: string
           created_at?: string | null
           expiration_date?: string | null
+          granted_to?: string[] | null
           id?: string
           notes?: string | null
-          patient_id?: string
-          revoked?: boolean | null
-          revoked_date?: string | null
+          patient_id?: string | null
+          scope?: string | null
           updated_at?: string | null
-          witness_id?: string | null
+          witnessed_by?: string | null
         }
         Relationships: [
           {
@@ -2798,42 +3257,36 @@ export type Database = {
       }
       patient_notes: {
         Row: {
-          assessment: string | null
-          content: string | null
+          carecoins_distributed: boolean | null
           created_at: string | null
           created_by: string
           id: string
+          is_locked: boolean | null
+          note_content: string
           note_type: string | null
-          objective: string | null
           patient_id: string
-          plan: string | null
-          subjective: string | null
           updated_at: string | null
         }
         Insert: {
-          assessment?: string | null
-          content?: string | null
+          carecoins_distributed?: boolean | null
           created_at?: string | null
           created_by: string
           id?: string
+          is_locked?: boolean | null
+          note_content: string
           note_type?: string | null
-          objective?: string | null
           patient_id: string
-          plan?: string | null
-          subjective?: string | null
           updated_at?: string | null
         }
         Update: {
-          assessment?: string | null
-          content?: string | null
+          carecoins_distributed?: boolean | null
           created_at?: string | null
           created_by?: string
           id?: string
+          is_locked?: boolean | null
+          note_content?: string
           note_type?: string | null
-          objective?: string | null
           patient_id?: string
-          plan?: string | null
-          subjective?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2849,39 +3302,45 @@ export type Database = {
       patient_portal_users: {
         Row: {
           access_level: string | null
-          activated_at: string | null
+          active: boolean | null
           created_at: string | null
           id: string
-          is_active: boolean | null
-          last_login_at: string | null
-          patient_id: string
-          portal_user_id: string
+          patient_id: string | null
+          permissions: Json | null
+          proxy_authorization_document_url: string | null
           relationship: string | null
           updated_at: string | null
+          user_id: string
+          verification_date: string | null
+          verified: boolean | null
         }
         Insert: {
           access_level?: string | null
-          activated_at?: string | null
+          active?: boolean | null
           created_at?: string | null
           id?: string
-          is_active?: boolean | null
-          last_login_at?: string | null
-          patient_id: string
-          portal_user_id: string
+          patient_id?: string | null
+          permissions?: Json | null
+          proxy_authorization_document_url?: string | null
           relationship?: string | null
           updated_at?: string | null
+          user_id: string
+          verification_date?: string | null
+          verified?: boolean | null
         }
         Update: {
           access_level?: string | null
-          activated_at?: string | null
+          active?: boolean | null
           created_at?: string | null
           id?: string
-          is_active?: boolean | null
-          last_login_at?: string | null
-          patient_id?: string
-          portal_user_id?: string
+          patient_id?: string | null
+          permissions?: Json | null
+          proxy_authorization_document_url?: string | null
           relationship?: string | null
           updated_at?: string | null
+          user_id?: string
+          verification_date?: string | null
+          verified?: boolean | null
         }
         Relationships: [
           {
@@ -2896,48 +3355,39 @@ export type Database = {
       patient_risk_scores: {
         Row: {
           calculated_at: string | null
-          calculated_by: string | null
-          confidence_score: number | null
+          contributing_factors: Json | null
           created_at: string | null
-          expires_at: string | null
           id: string
           model_version: string | null
-          patient_id: string
-          recommendations: string | null
-          risk_factors: Json | null
-          risk_level: string | null
+          patient_id: string | null
+          risk_level: string
           risk_score: number
           risk_type: string
+          valid_until: string | null
         }
         Insert: {
           calculated_at?: string | null
-          calculated_by?: string | null
-          confidence_score?: number | null
+          contributing_factors?: Json | null
           created_at?: string | null
-          expires_at?: string | null
           id?: string
           model_version?: string | null
-          patient_id: string
-          recommendations?: string | null
-          risk_factors?: Json | null
-          risk_level?: string | null
+          patient_id?: string | null
+          risk_level: string
           risk_score: number
           risk_type: string
+          valid_until?: string | null
         }
         Update: {
           calculated_at?: string | null
-          calculated_by?: string | null
-          confidence_score?: number | null
+          contributing_factors?: Json | null
           created_at?: string | null
-          expires_at?: string | null
           id?: string
           model_version?: string | null
-          patient_id?: string
-          recommendations?: string | null
-          risk_factors?: Json | null
-          risk_level?: string | null
+          patient_id?: string | null
+          risk_level?: string
           risk_score?: number
           risk_type?: string
+          valid_until?: string | null
         }
         Relationships: [
           {
@@ -2959,9 +3409,10 @@ export type Database = {
           id: string
           notes: string | null
           oxygen_saturation: number | null
+          pain_scale: number | null
           patient_id: string
           recorded_at: string | null
-          recorded_by: string | null
+          recorded_by: string
           respiratory_rate: number | null
           temperature: number | null
           weight: number | null
@@ -2975,9 +3426,10 @@ export type Database = {
           id?: string
           notes?: string | null
           oxygen_saturation?: number | null
+          pain_scale?: number | null
           patient_id: string
           recorded_at?: string | null
-          recorded_by?: string | null
+          recorded_by: string
           respiratory_rate?: number | null
           temperature?: number | null
           weight?: number | null
@@ -2991,9 +3443,10 @@ export type Database = {
           id?: string
           notes?: string | null
           oxygen_saturation?: number | null
+          pain_scale?: number | null
           patient_id?: string
           recorded_at?: string | null
-          recorded_by?: string | null
+          recorded_by?: string
           respiratory_rate?: number | null
           temperature?: number | null
           weight?: number | null
@@ -3014,7 +3467,7 @@ export type Database = {
           admission_date: string | null
           avatar_url: string | null
           created_at: string | null
-          date_of_birth: string
+          date_of_birth: string | null
           discharge_activity: string | null
           discharge_condition: string | null
           discharge_date: string | null
@@ -3029,13 +3482,13 @@ export type Database = {
           emergency_phone: string | null
           facial_data: string | null
           first_name: string
-          gender: string
+          gender: string | null
           id: string
           insurance_policy_number: string | null
           insurance_provider: string | null
           last_name: string
           medical_record_number: string | null
-          name: string | null
+          name: string
           phone: string | null
           primary_physician: string | null
           room_number: string | null
@@ -3048,41 +3501,7 @@ export type Database = {
           admission_date?: string | null
           avatar_url?: string | null
           created_at?: string | null
-          date_of_birth: string
-          discharge_activity?: string | null
-          discharge_condition?: string | null
-          discharge_date?: string | null
-          discharge_diet?: string | null
-          discharge_disposition?: string | null
-          discharge_follow_up?: string | null
-          discharge_instructions?: string | null
-          discharged_at?: string | null
-          discharged_by?: string | null
-          email?: string | null
-          emergency_contact?: string | null
-          emergency_phone?: string | null
-          facial_data?: string | null
-          first_name: string
-          gender: string
-          id?: string
-          insurance_policy_number?: string | null
-          insurance_provider?: string | null
-          last_name: string
-          medical_record_number?: string | null
-          name?: string | null
-          phone?: string | null
-          primary_physician?: string | null
-          room_number?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          address?: string | null
-          admission_date?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
-          date_of_birth?: string
+          date_of_birth?: string | null
           discharge_activity?: string | null
           discharge_condition?: string | null
           discharge_date?: string | null
@@ -3097,13 +3516,47 @@ export type Database = {
           emergency_phone?: string | null
           facial_data?: string | null
           first_name?: string
-          gender?: string
+          gender?: string | null
           id?: string
           insurance_policy_number?: string | null
           insurance_provider?: string | null
           last_name?: string
           medical_record_number?: string | null
-          name?: string | null
+          name: string
+          phone?: string | null
+          primary_physician?: string | null
+          room_number?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          admission_date?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          discharge_activity?: string | null
+          discharge_condition?: string | null
+          discharge_date?: string | null
+          discharge_diet?: string | null
+          discharge_disposition?: string | null
+          discharge_follow_up?: string | null
+          discharge_instructions?: string | null
+          discharged_at?: string | null
+          discharged_by?: string | null
+          email?: string | null
+          emergency_contact?: string | null
+          emergency_phone?: string | null
+          facial_data?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
+          last_name?: string
+          medical_record_number?: string | null
+          name?: string
           phone?: string | null
           primary_physician?: string | null
           room_number?: string | null
@@ -3113,46 +3566,234 @@ export type Database = {
         }
         Relationships: []
       }
-      phi_access_logs: {
+      pharmacy_analysis_history: {
         Row: {
-          access_type: string
-          action: string
+          adherence_issues: number
+          analysis_date: string
+          created_at: string
+          emails_sent: number
+          id: string
+          insights_data: Json | null
+          refill_predictions: number
+          run_type: string
+          safety_alerts: number
+          total_insights: number
+          triggered_by: string | null
+        }
+        Insert: {
+          adherence_issues?: number
+          analysis_date?: string
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          insights_data?: Json | null
+          refill_predictions?: number
+          run_type?: string
+          safety_alerts?: number
+          total_insights?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          adherence_issues?: number
+          analysis_date?: string
+          created_at?: string
+          emails_sent?: number
+          id?: string
+          insights_data?: Json | null
+          refill_predictions?: number
+          run_type?: string
+          safety_alerts?: number
+          total_insights?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      pharmacy_analytics: {
+        Row: {
+          confidence_score: number | null
           created_at: string | null
           id: string
-          ip_address: string | null
-          is_emergency_access: boolean | null
-          justification: string | null
+          medication_name: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
           patient_id: string | null
+          projection_date: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          medication_name: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          patient_id?: string | null
+          projection_date?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          medication_name?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          patient_id?: string | null
+          projection_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_analytics_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_inventory: {
+        Row: {
+          cost_per_unit: number | null
+          created_at: string | null
+          expiration_date: string | null
+          id: string
+          last_restocked_at: string | null
+          location: string | null
+          lot_number: string | null
+          medication_name: string
+          ndc_code: string | null
+          quantity: number
+          reorder_quantity: number
+          reorder_threshold: number
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          cost_per_unit?: number | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          last_restocked_at?: string | null
+          location?: string | null
+          lot_number?: string | null
+          medication_name: string
+          ndc_code?: string | null
+          quantity?: number
+          reorder_quantity?: number
+          reorder_threshold?: number
+          unit?: string
+          updated_at?: string | null
+        }
+        Update: {
+          cost_per_unit?: number | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          last_restocked_at?: string | null
+          location?: string | null
+          lot_number?: string | null
+          medication_name?: string
+          ndc_code?: string | null
+          quantity?: number
+          reorder_quantity?: number
+          reorder_threshold?: number
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      pharmacy_notification_preferences: {
+        Row: {
+          adherence_alerts_enabled: boolean
+          cost_savings_alerts_enabled: boolean
+          created_at: string
+          daily_summary_enabled: boolean
+          email_enabled: boolean
+          id: string
+          inventory_alerts_enabled: boolean
+          refill_alerts_enabled: boolean
+          refill_alerts_min_urgency: string
+          safety_alerts_enabled: boolean
+          safety_alerts_min_priority: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adherence_alerts_enabled?: boolean
+          cost_savings_alerts_enabled?: boolean
+          created_at?: string
+          daily_summary_enabled?: boolean
+          email_enabled?: boolean
+          id?: string
+          inventory_alerts_enabled?: boolean
+          refill_alerts_enabled?: boolean
+          refill_alerts_min_urgency?: string
+          safety_alerts_enabled?: boolean
+          safety_alerts_min_priority?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adherence_alerts_enabled?: boolean
+          cost_savings_alerts_enabled?: boolean
+          created_at?: string
+          daily_summary_enabled?: boolean
+          email_enabled?: boolean
+          id?: string
+          inventory_alerts_enabled?: boolean
+          refill_alerts_enabled?: boolean
+          refill_alerts_min_urgency?: string
+          safety_alerts_enabled?: boolean
+          safety_alerts_min_priority?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      phi_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_at: string | null
+          emergency_access: boolean | null
+          id: string
+          ip_address: string | null
+          patient_id: string | null
+          phi_fields_accessed: string[] | null
           resource_id: string | null
           resource_type: string
+          session_id: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
+          access_reason?: string | null
           access_type: string
-          action: string
-          created_at?: string | null
+          accessed_at?: string | null
+          emergency_access?: boolean | null
           id?: string
           ip_address?: string | null
-          is_emergency_access?: boolean | null
-          justification?: string | null
           patient_id?: string | null
+          phi_fields_accessed?: string[] | null
           resource_id?: string | null
           resource_type: string
+          session_id?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
+          access_reason?: string | null
           access_type?: string
-          action?: string
-          created_at?: string | null
+          accessed_at?: string | null
+          emergency_access?: boolean | null
           id?: string
           ip_address?: string | null
-          is_emergency_access?: boolean | null
-          justification?: string | null
           patient_id?: string | null
+          phi_fields_accessed?: string[] | null
           resource_id?: string | null
           resource_type?: string
+          session_id?: string | null
           user_agent?: string | null
           user_id?: string
         }
@@ -3166,47 +3807,171 @@ export type Database = {
           },
         ]
       }
-      procedures: {
+      prescription_deliveries: {
         Row: {
-          assistant_ids: string[] | null
-          complications: string | null
+          actual_delivery_time: string | null
+          assigned_to: string | null
           created_at: string | null
+          delivered_by: string | null
+          delivery_method: string | null
           id: string
-          outcome: string | null
+          notes: string | null
           patient_id: string
-          performed_at: string
-          performed_by: string | null
-          procedure_code: string | null
-          procedure_name: string
-          procedure_notes: string | null
+          prescription_fill_id: string
+          room_number: string | null
+          scheduled_delivery_time: string | null
+          signature_obtained: boolean | null
+          signature_required: boolean | null
+          status: string | null
           updated_at: string | null
         }
         Insert: {
-          assistant_ids?: string[] | null
-          complications?: string | null
+          actual_delivery_time?: string | null
+          assigned_to?: string | null
           created_at?: string | null
+          delivered_by?: string | null
+          delivery_method?: string | null
           id?: string
-          outcome?: string | null
+          notes?: string | null
           patient_id: string
-          performed_at: string
-          performed_by?: string | null
-          procedure_code?: string | null
-          procedure_name: string
-          procedure_notes?: string | null
+          prescription_fill_id: string
+          room_number?: string | null
+          scheduled_delivery_time?: string | null
+          signature_obtained?: boolean | null
+          signature_required?: boolean | null
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
-          assistant_ids?: string[] | null
-          complications?: string | null
+          actual_delivery_time?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          delivered_by?: string | null
+          delivery_method?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          prescription_fill_id?: string
+          room_number?: string | null
+          scheduled_delivery_time?: string | null
+          signature_obtained?: boolean | null
+          signature_required?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_deliveries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_deliveries_prescription_fill_id_fkey"
+            columns: ["prescription_fill_id"]
+            isOneToOne: false
+            referencedRelation: "prescription_fills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescription_fills: {
+        Row: {
+          created_at: string | null
+          filled_at: string | null
+          filled_by: string | null
+          id: string
+          inventory_id: string | null
+          medication_name: string
+          medication_order_id: string | null
+          notes: string | null
+          patient_id: string
+          quantity_filled: number
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          filled_at?: string | null
+          filled_by?: string | null
+          id?: string
+          inventory_id?: string | null
+          medication_name: string
+          medication_order_id?: string | null
+          notes?: string | null
+          patient_id: string
+          quantity_filled: number
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          filled_at?: string | null
+          filled_by?: string | null
+          id?: string
+          inventory_id?: string | null
+          medication_name?: string
+          medication_order_id?: string | null
+          notes?: string | null
+          patient_id?: string
+          quantity_filled?: number
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_fills_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_fills_medication_order_id_fkey"
+            columns: ["medication_order_id"]
+            isOneToOne: false
+            referencedRelation: "medication_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_fills_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procedures: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          performed_by: string | null
+          procedure_date: string
+          procedure_name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
           created_at?: string | null
           id?: string
-          outcome?: string | null
-          patient_id?: string
-          performed_at?: string
+          notes?: string | null
+          patient_id: string
           performed_by?: string | null
-          procedure_code?: string | null
+          procedure_date: string
+          procedure_name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          performed_by?: string | null
+          procedure_date?: string
           procedure_name?: string
-          procedure_notes?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3223,7 +3988,7 @@ export type Database = {
         Row: {
           care_coins_balance: number | null
           created_at: string | null
-          email: string
+          email: string | null
           id: string
           last_seen: string | null
           name: string | null
@@ -3237,7 +4002,7 @@ export type Database = {
         Insert: {
           care_coins_balance?: number | null
           created_at?: string | null
-          email: string
+          email?: string | null
           id: string
           last_seen?: string | null
           name?: string | null
@@ -3251,7 +4016,7 @@ export type Database = {
         Update: {
           care_coins_balance?: number | null
           created_at?: string | null
-          email?: string
+          email?: string | null
           id?: string
           last_seen?: string | null
           name?: string | null
@@ -3264,163 +4029,10 @@ export type Database = {
         }
         Relationships: []
       }
-      provider_schedules: {
-        Row: {
-          appointment_duration_minutes: number | null
-          created_at: string | null
-          day_of_week: number | null
-          effective_date: string | null
-          end_time: string
-          expiration_date: string | null
-          id: string
-          is_available: boolean | null
-          location: string | null
-          provider_id: string
-          schedule_type: string | null
-          start_time: string
-          updated_at: string | null
-        }
-        Insert: {
-          appointment_duration_minutes?: number | null
-          created_at?: string | null
-          day_of_week?: number | null
-          effective_date?: string | null
-          end_time: string
-          expiration_date?: string | null
-          id?: string
-          is_available?: boolean | null
-          location?: string | null
-          provider_id: string
-          schedule_type?: string | null
-          start_time: string
-          updated_at?: string | null
-        }
-        Update: {
-          appointment_duration_minutes?: number | null
-          created_at?: string | null
-          day_of_week?: number | null
-          effective_date?: string | null
-          end_time?: string
-          expiration_date?: string | null
-          id?: string
-          is_available?: boolean | null
-          location?: string | null
-          provider_id?: string
-          schedule_type?: string | null
-          start_time?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      provider_time_off: {
-        Row: {
-          approved_at: string | null
-          approved_by: string | null
-          created_at: string | null
-          end_date: string
-          id: string
-          is_approved: boolean | null
-          provider_id: string
-          reason: string | null
-          start_date: string
-          updated_at: string | null
-        }
-        Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
-          created_at?: string | null
-          end_date: string
-          id?: string
-          is_approved?: boolean | null
-          provider_id: string
-          reason?: string | null
-          start_date: string
-          updated_at?: string | null
-        }
-        Update: {
-          approved_at?: string | null
-          approved_by?: string | null
-          created_at?: string | null
-          end_date?: string
-          id?: string
-          is_approved?: boolean | null
-          provider_id?: string
-          reason?: string | null
-          start_date?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      resource_reservations: {
-        Row: {
-          appointment_id: string | null
-          created_at: string | null
-          end_time: string
-          equipment_id: string | null
-          facility_id: string | null
-          id: string
-          notes: string | null
-          reserved_by: string
-          start_time: string
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          appointment_id?: string | null
-          created_at?: string | null
-          end_time: string
-          equipment_id?: string | null
-          facility_id?: string | null
-          id?: string
-          notes?: string | null
-          reserved_by: string
-          start_time: string
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          appointment_id?: string | null
-          created_at?: string | null
-          end_time?: string
-          equipment_id?: string | null
-          facility_id?: string | null
-          id?: string
-          notes?: string | null
-          reserved_by?: string
-          start_time?: string
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "resource_reservations_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resource_reservations_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "resource_reservations_facility_id_fkey"
-            columns: ["facility_id"]
-            isOneToOne: false
-            referencedRelation: "facilities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       rides: {
         Row: {
-          accepted_at: string | null
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          completed_at: string | null
+          actual_dropoff_time: string | null
+          actual_pickup_time: string | null
           created_at: string | null
           distance_km: number | null
           driver_earnings: number | null
@@ -3428,30 +4040,27 @@ export type Database = {
           driver_name: string | null
           driver_phone: string | null
           driver_rating: number | null
-          dropoff_address: string
-          dropoff_latitude: number
-          dropoff_longitude: number
-          duration_minutes: number | null
-          estimated_cost: number
-          final_cost: number | null
+          dropoff_latitude: number | null
+          dropoff_location: string
+          dropoff_longitude: number | null
+          estimated_arrival: string | null
+          estimated_arrival_time: string | null
+          estimated_cost_carecoins: number | null
           id: string
-          notes: string | null
           patient_id: string | null
-          pickup_address: string
-          pickup_at: string | null
-          pickup_latitude: number
-          pickup_longitude: number
-          ride_type: string
-          scheduled_for: string | null
+          pickup_latitude: number | null
+          pickup_location: string
+          pickup_longitude: number | null
+          ride_type: string | null
+          scheduled_time: string
           status: string | null
           updated_at: string | null
           user_id: string
+          vehicle_info: string | null
         }
         Insert: {
-          accepted_at?: string | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          completed_at?: string | null
+          actual_dropoff_time?: string | null
+          actual_pickup_time?: string | null
           created_at?: string | null
           distance_km?: number | null
           driver_earnings?: number | null
@@ -3459,30 +4068,27 @@ export type Database = {
           driver_name?: string | null
           driver_phone?: string | null
           driver_rating?: number | null
-          dropoff_address: string
-          dropoff_latitude: number
-          dropoff_longitude: number
-          duration_minutes?: number | null
-          estimated_cost: number
-          final_cost?: number | null
+          dropoff_latitude?: number | null
+          dropoff_location: string
+          dropoff_longitude?: number | null
+          estimated_arrival?: string | null
+          estimated_arrival_time?: string | null
+          estimated_cost_carecoins?: number | null
           id?: string
-          notes?: string | null
           patient_id?: string | null
-          pickup_address: string
-          pickup_at?: string | null
-          pickup_latitude: number
-          pickup_longitude: number
-          ride_type: string
-          scheduled_for?: string | null
+          pickup_latitude?: number | null
+          pickup_location: string
+          pickup_longitude?: number | null
+          ride_type?: string | null
+          scheduled_time: string
           status?: string | null
           updated_at?: string | null
           user_id: string
+          vehicle_info?: string | null
         }
         Update: {
-          accepted_at?: string | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          completed_at?: string | null
+          actual_dropoff_time?: string | null
+          actual_pickup_time?: string | null
           created_at?: string | null
           distance_km?: number | null
           driver_earnings?: number | null
@@ -3490,26 +4096,32 @@ export type Database = {
           driver_name?: string | null
           driver_phone?: string | null
           driver_rating?: number | null
-          dropoff_address?: string
-          dropoff_latitude?: number
-          dropoff_longitude?: number
-          duration_minutes?: number | null
-          estimated_cost?: number
-          final_cost?: number | null
+          dropoff_latitude?: number | null
+          dropoff_location?: string
+          dropoff_longitude?: number | null
+          estimated_arrival?: string | null
+          estimated_arrival_time?: string | null
+          estimated_cost_carecoins?: number | null
           id?: string
-          notes?: string | null
           patient_id?: string | null
-          pickup_address?: string
-          pickup_at?: string | null
-          pickup_latitude?: number
-          pickup_longitude?: number
-          ride_type?: string
-          scheduled_for?: string | null
+          pickup_latitude?: number | null
+          pickup_location?: string
+          pickup_longitude?: number | null
+          ride_type?: string | null
+          scheduled_time?: string
           status?: string | null
           updated_at?: string | null
           user_id?: string
+          vehicle_info?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_performance"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rides_driver_id_fkey"
             columns: ["driver_id"]
@@ -3528,32 +4140,32 @@ export type Database = {
       }
       security_audit_log: {
         Row: {
-          created_at: string | null
+          created_at: string
           details: Json | null
           event_type: string
           id: string
           ip_address: string | null
-          severity: string | null
+          severity: string
           user_agent: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           details?: Json | null
           event_type: string
           id?: string
           ip_address?: string | null
-          severity?: string | null
+          severity?: string
           user_agent?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           details?: Json | null
           event_type?: string
           id?: string
           ip_address?: string | null
-          severity?: string | null
+          severity?: string
           user_agent?: string | null
           user_id?: string | null
         }
@@ -3562,7 +4174,7 @@ export type Database = {
       support_messages: {
         Row: {
           attachments: Json | null
-          created_at: string | null
+          created_at: string
           id: string
           is_internal: boolean | null
           message: string
@@ -3571,7 +4183,7 @@ export type Database = {
         }
         Insert: {
           attachments?: Json | null
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_internal?: boolean | null
           message: string
@@ -3580,7 +4192,7 @@ export type Database = {
         }
         Update: {
           attachments?: Json | null
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_internal?: boolean | null
           message?: string
@@ -3600,103 +4212,187 @@ export type Database = {
       support_tickets: {
         Row: {
           assigned_to: string | null
-          category: string | null
+          attachments: Json | null
+          category: string
           closed_at: string | null
-          created_at: string | null
+          created_at: string
           description: string
+          first_response_at: string | null
           id: string
-          priority: string | null
+          priority: string
           resolved_at: string | null
-          resolved_by: string | null
-          status: string | null
+          satisfaction_comment: string | null
+          satisfaction_rating: number | null
+          status: string
           subject: string
-          tags: string[] | null
-          ticket_number: string | null
-          updated_at: string | null
+          ticket_number: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           assigned_to?: string | null
-          category?: string | null
+          attachments?: Json | null
+          category: string
           closed_at?: string | null
-          created_at?: string | null
+          created_at?: string
           description: string
+          first_response_at?: string | null
           id?: string
-          priority?: string | null
+          priority?: string
           resolved_at?: string | null
-          resolved_by?: string | null
-          status?: string | null
+          satisfaction_comment?: string | null
+          satisfaction_rating?: number | null
+          status?: string
           subject: string
-          tags?: string[] | null
-          ticket_number?: string | null
-          updated_at?: string | null
+          ticket_number: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           assigned_to?: string | null
-          category?: string | null
+          attachments?: Json | null
+          category?: string
           closed_at?: string | null
-          created_at?: string | null
+          created_at?: string
           description?: string
+          first_response_at?: string | null
           id?: string
-          priority?: string | null
+          priority?: string
           resolved_at?: string | null
-          resolved_by?: string | null
-          status?: string | null
+          satisfaction_comment?: string | null
+          satisfaction_rating?: number | null
+          status?: string
           subject?: string
-          tags?: string[] | null
-          ticket_number?: string | null
-          updated_at?: string | null
+          ticket_number?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          assigned_to: string
+          category: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          patient_id: string | null
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to: string
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          patient_id?: string | null
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          patient_id?: string | null
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tax_reporting: {
         Row: {
-          created_at: string | null
+          created_at: string
+          form_1099_generated: boolean | null
+          form_1099_sent: boolean | null
+          form_1099_sent_at: string | null
+          form_1099_url: string | null
           generated_at: string | null
+          generated_by: string | null
           id: string
-          report_type: string | null
-          report_url: string | null
-          sent_at: string | null
-          sent_to_user: boolean | null
+          mailing_address: Json | null
           tax_year: number
-          total_carecoins_earned: number
+          taxpayer_id_last_4: string | null
+          taxpayer_id_type: string | null
+          total_carecoin_earned: number
+          total_cashout_usd: number
+          total_cashouts: number
           total_usd_value: number
+          updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
+          form_1099_generated?: boolean | null
+          form_1099_sent?: boolean | null
+          form_1099_sent_at?: string | null
+          form_1099_url?: string | null
           generated_at?: string | null
+          generated_by?: string | null
           id?: string
-          report_type?: string | null
-          report_url?: string | null
-          sent_at?: string | null
-          sent_to_user?: boolean | null
+          mailing_address?: Json | null
           tax_year: number
-          total_carecoins_earned: number
-          total_usd_value: number
+          taxpayer_id_last_4?: string | null
+          taxpayer_id_type?: string | null
+          total_carecoin_earned?: number
+          total_cashout_usd?: number
+          total_cashouts?: number
+          total_usd_value?: number
+          updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
+          form_1099_generated?: boolean | null
+          form_1099_sent?: boolean | null
+          form_1099_sent_at?: string | null
+          form_1099_url?: string | null
           generated_at?: string | null
+          generated_by?: string | null
           id?: string
-          report_type?: string | null
-          report_url?: string | null
-          sent_at?: string | null
-          sent_to_user?: boolean | null
+          mailing_address?: Json | null
           tax_year?: number
-          total_carecoins_earned?: number
+          taxpayer_id_last_4?: string | null
+          taxpayer_id_type?: string | null
+          total_carecoin_earned?: number
+          total_cashout_usd?: number
+          total_cashouts?: number
           total_usd_value?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
       terms_acceptances: {
         Row: {
-          accepted_at: string | null
-          created_at: string | null
+          acceptance_method: string | null
+          accepted_at: string
+          created_at: string
           id: string
           ip_address: string | null
           terms_type: string
@@ -3705,8 +4401,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          accepted_at?: string | null
-          created_at?: string | null
+          acceptance_method?: string | null
+          accepted_at?: string
+          created_at?: string
           id?: string
           ip_address?: string | null
           terms_type: string
@@ -3715,8 +4412,9 @@ export type Database = {
           user_id: string
         }
         Update: {
-          accepted_at?: string | null
-          created_at?: string | null
+          acceptance_method?: string | null
+          accepted_at?: string
+          created_at?: string
           id?: string
           ip_address?: string | null
           terms_type?: string
@@ -3728,41 +4426,53 @@ export type Database = {
       }
       transaction_alerts: {
         Row: {
+          acknowledged: boolean | null
           acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_details: Json | null
+          alert_message: string
           alert_type: string
-          created_at: string | null
+          created_at: string
           id: string
-          is_acknowledged: boolean | null
-          message: string
-          metadata: Json | null
-          severity: string | null
-          title: string
+          resolution_notes: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          severity: string
+          transaction_hash: string | null
           transaction_id: string | null
           user_id: string | null
         }
         Insert: {
+          acknowledged?: boolean | null
           acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_details?: Json | null
+          alert_message: string
           alert_type: string
-          created_at?: string | null
+          created_at?: string
           id?: string
-          is_acknowledged?: boolean | null
-          message: string
-          metadata?: Json | null
-          severity?: string | null
-          title: string
+          resolution_notes?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity: string
+          transaction_hash?: string | null
           transaction_id?: string | null
           user_id?: string | null
         }
         Update: {
+          acknowledged?: boolean | null
           acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_details?: Json | null
+          alert_message?: string
           alert_type?: string
-          created_at?: string | null
+          created_at?: string
           id?: string
-          is_acknowledged?: boolean | null
-          message?: string
-          metadata?: Json | null
-          severity?: string | null
-          title?: string
+          resolution_notes?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string
+          transaction_hash?: string | null
           transaction_id?: string | null
           user_id?: string | null
         }
@@ -3770,39 +4480,42 @@ export type Database = {
       }
       user_devices: {
         Row: {
+          browser: string | null
           created_at: string | null
           device_fingerprint: string
           device_name: string | null
           device_type: string | null
           id: string
           ip_address: string | null
-          is_trusted: boolean | null
-          last_used_at: string | null
-          user_agent: string | null
+          last_seen_at: string | null
+          os: string | null
+          trusted: boolean | null
           user_id: string
         }
         Insert: {
+          browser?: string | null
           created_at?: string | null
           device_fingerprint: string
           device_name?: string | null
           device_type?: string | null
           id?: string
           ip_address?: string | null
-          is_trusted?: boolean | null
-          last_used_at?: string | null
-          user_agent?: string | null
+          last_seen_at?: string | null
+          os?: string | null
+          trusted?: boolean | null
           user_id: string
         }
         Update: {
+          browser?: string | null
           created_at?: string | null
           device_fingerprint?: string
           device_name?: string | null
           device_type?: string | null
           id?: string
           ip_address?: string | null
-          is_trusted?: boolean | null
-          last_used_at?: string | null
-          user_agent?: string | null
+          last_seen_at?: string | null
+          os?: string | null
+          trusted?: boolean | null
           user_id?: string
         }
         Relationships: []
@@ -3810,47 +4523,59 @@ export type Database = {
       user_feedback: {
         Row: {
           assigned_to: string | null
-          category: string | null
-          created_at: string | null
+          attachments: Json | null
+          browser_info: Json | null
+          created_at: string
           description: string
-          feedback_type: string | null
+          feedback_category: string | null
+          feedback_type: string
           id: string
+          priority: number | null
           resolution_notes: string | null
           resolved_at: string | null
+          resolved_by: string | null
           severity: string | null
-          status: string | null
-          title: string
-          updated_at: string | null
+          status: string
+          subject: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           assigned_to?: string | null
-          category?: string | null
-          created_at?: string | null
+          attachments?: Json | null
+          browser_info?: Json | null
+          created_at?: string
           description: string
-          feedback_type?: string | null
+          feedback_category?: string | null
+          feedback_type: string
           id?: string
+          priority?: number | null
           resolution_notes?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           severity?: string | null
-          status?: string | null
-          title: string
-          updated_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           assigned_to?: string | null
-          category?: string | null
-          created_at?: string | null
+          attachments?: Json | null
+          browser_info?: Json | null
+          created_at?: string
           description?: string
-          feedback_type?: string | null
+          feedback_category?: string | null
+          feedback_type?: string
           id?: string
+          priority?: number | null
           resolution_notes?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           severity?: string | null
-          status?: string | null
-          title?: string
-          updated_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -3860,11 +4585,10 @@ export type Database = {
           backup_codes: string[] | null
           created_at: string | null
           id: string
-          last_used_at: string | null
+          last_mfa_at: string | null
           mfa_enabled: boolean | null
           mfa_method: string | null
           phone_number: string | null
-          totp_secret: string | null
           updated_at: string | null
           user_id: string
         }
@@ -3872,11 +4596,10 @@ export type Database = {
           backup_codes?: string[] | null
           created_at?: string | null
           id?: string
-          last_used_at?: string | null
+          last_mfa_at?: string | null
           mfa_enabled?: boolean | null
           mfa_method?: string | null
           phone_number?: string | null
-          totp_secret?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -3884,11 +4607,10 @@ export type Database = {
           backup_codes?: string[] | null
           created_at?: string | null
           id?: string
-          last_used_at?: string | null
+          last_mfa_at?: string | null
           mfa_enabled?: boolean | null
           mfa_method?: string | null
           phone_number?: string | null
-          totp_secret?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -3896,64 +4618,61 @@ export type Database = {
       }
       user_onboarding: {
         Row: {
+          attempts: number | null
+          completed: boolean | null
           completed_at: string | null
-          completed_steps: string[] | null
-          created_at: string | null
-          current_step: number | null
+          created_at: string
           id: string
-          is_completed: boolean | null
-          onboarding_step: string
-          progress_data: Json | null
+          onboarding_type: string
           skipped: boolean | null
-          total_steps: number | null
-          updated_at: string | null
+          step_name: string
+          time_spent_seconds: number | null
           user_id: string
         }
         Insert: {
+          attempts?: number | null
+          completed?: boolean | null
           completed_at?: string | null
-          completed_steps?: string[] | null
-          created_at?: string | null
-          current_step?: number | null
+          created_at?: string
           id?: string
-          is_completed?: boolean | null
-          onboarding_step: string
-          progress_data?: Json | null
+          onboarding_type: string
           skipped?: boolean | null
-          total_steps?: number | null
-          updated_at?: string | null
+          step_name: string
+          time_spent_seconds?: number | null
           user_id: string
         }
         Update: {
+          attempts?: number | null
+          completed?: boolean | null
           completed_at?: string | null
-          completed_steps?: string[] | null
-          created_at?: string | null
-          current_step?: number | null
+          created_at?: string
           id?: string
-          is_completed?: boolean | null
-          onboarding_step?: string
-          progress_data?: Json | null
+          onboarding_type?: string
           skipped?: boolean | null
-          total_steps?: number | null
-          updated_at?: string | null
+          step_name?: string
+          time_spent_seconds?: number | null
           user_id?: string
         }
         Relationships: []
       }
       user_roles: {
         Row: {
-          created_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
@@ -3967,8 +4686,8 @@ export type Database = {
           expires_at: string
           id: string
           ip_address: string | null
-          is_active: boolean | null
-          last_activity_at: string | null
+          revoked: boolean | null
+          revoked_at: string | null
           session_token: string
           user_agent: string | null
           user_id: string
@@ -3979,8 +4698,8 @@ export type Database = {
           expires_at: string
           id?: string
           ip_address?: string | null
-          is_active?: boolean | null
-          last_activity_at?: string | null
+          revoked?: boolean | null
+          revoked_at?: string | null
           session_token: string
           user_agent?: string | null
           user_id: string
@@ -3991,8 +4710,8 @@ export type Database = {
           expires_at?: string
           id?: string
           ip_address?: string | null
-          is_active?: boolean | null
-          last_activity_at?: string | null
+          revoked?: boolean | null
+          revoked_at?: string | null
           session_token?: string
           user_agent?: string | null
           user_id?: string
@@ -4007,88 +4726,56 @@ export type Database = {
           },
         ]
       }
-      video_sessions: {
+      virtual_cards: {
         Row: {
-          appointment_id: string | null
-          connection_quality: string | null
-          created_at: string | null
-          duration_minutes: number | null
-          ended_at: string | null
+          card_number: string | null
+          card_type: string
+          created_at: string
+          current_balance: number
+          cvv_encrypted: string | null
+          expiry_date: string | null
           id: string
-          patient_id: string | null
-          peer_id: string | null
-          provider_id: string
-          recording_consent: boolean | null
-          recording_url: string | null
-          session_id: string
-          session_notes: string | null
-          session_type: string | null
-          started_at: string | null
-          status: string | null
-          technical_issues: string | null
-          updated_at: string | null
+          last_four: string | null
+          limit_amount: number
+          status: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          appointment_id?: string | null
-          connection_quality?: string | null
-          created_at?: string | null
-          duration_minutes?: number | null
-          ended_at?: string | null
+          card_number?: string | null
+          card_type?: string
+          created_at?: string
+          current_balance?: number
+          cvv_encrypted?: string | null
+          expiry_date?: string | null
           id?: string
-          patient_id?: string | null
-          peer_id?: string | null
-          provider_id: string
-          recording_consent?: boolean | null
-          recording_url?: string | null
-          session_id: string
-          session_notes?: string | null
-          session_type?: string | null
-          started_at?: string | null
-          status?: string | null
-          technical_issues?: string | null
-          updated_at?: string | null
+          last_four?: string | null
+          limit_amount?: number
+          status?: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          appointment_id?: string | null
-          connection_quality?: string | null
-          created_at?: string | null
-          duration_minutes?: number | null
-          ended_at?: string | null
+          card_number?: string | null
+          card_type?: string
+          created_at?: string
+          current_balance?: number
+          cvv_encrypted?: string | null
+          expiry_date?: string | null
           id?: string
-          patient_id?: string | null
-          peer_id?: string | null
-          provider_id?: string
-          recording_consent?: boolean | null
-          recording_url?: string | null
-          session_id?: string
-          session_notes?: string | null
-          session_type?: string | null
-          started_at?: string | null
-          status?: string | null
-          technical_issues?: string | null
-          updated_at?: string | null
+          last_four?: string | null
+          limit_amount?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "video_sessions_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "video_sessions_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       wound_assessments: {
         Row: {
-          assessed_by: string | null
-          assessment_date: string | null
+          ai_analysis: string | null
+          assessed_at: string | null
+          assessed_by: string
           created_at: string | null
           depth_cm: number | null
           drainage_amount: string | null
@@ -4096,19 +4783,21 @@ export type Database = {
           id: string
           image_url: string | null
           length_cm: number | null
+          notes: string | null
+          odor: boolean | null
           pain_level: number | null
           patient_id: string
-          periwound_condition: string | null
-          treatment_plan: string | null
-          updated_at: string | null
+          stage: string | null
+          surrounding_skin: string | null
+          treatment: string | null
           width_cm: number | null
-          wound_bed_appearance: string | null
           wound_location: string
           wound_type: string | null
         }
         Insert: {
-          assessed_by?: string | null
-          assessment_date?: string | null
+          ai_analysis?: string | null
+          assessed_at?: string | null
+          assessed_by: string
           created_at?: string | null
           depth_cm?: number | null
           drainage_amount?: string | null
@@ -4116,19 +4805,21 @@ export type Database = {
           id?: string
           image_url?: string | null
           length_cm?: number | null
+          notes?: string | null
+          odor?: boolean | null
           pain_level?: number | null
           patient_id: string
-          periwound_condition?: string | null
-          treatment_plan?: string | null
-          updated_at?: string | null
+          stage?: string | null
+          surrounding_skin?: string | null
+          treatment?: string | null
           width_cm?: number | null
-          wound_bed_appearance?: string | null
           wound_location: string
           wound_type?: string | null
         }
         Update: {
-          assessed_by?: string | null
-          assessment_date?: string | null
+          ai_analysis?: string | null
+          assessed_at?: string | null
+          assessed_by?: string
           created_at?: string | null
           depth_cm?: number | null
           drainage_amount?: string | null
@@ -4136,13 +4827,14 @@ export type Database = {
           id?: string
           image_url?: string | null
           length_cm?: number | null
+          notes?: string | null
+          odor?: boolean | null
           pain_level?: number | null
           patient_id?: string
-          periwound_condition?: string | null
-          treatment_plan?: string | null
-          updated_at?: string | null
+          stage?: string | null
+          surrounding_skin?: string | null
+          treatment?: string | null
           width_cm?: number | null
-          wound_bed_appearance?: string | null
           wound_location?: string
           wound_type?: string | null
         }
@@ -4158,7 +4850,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      driver_performance: {
+        Row: {
+          average_rating: number | null
+          avg_earnings_per_ride: number | null
+          cancelled_rides: number | null
+          care_coins_balance: number | null
+          completed_rides: number | null
+          created_at: string | null
+          driver_email: string | null
+          driver_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          last_ride_date: string | null
+          license_plate: string | null
+          status: string | null
+          total_earnings: number | null
+          total_ratings: number | null
+          total_rides: number | null
+          user_id: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_type: string | null
+          verification_status: string | null
+        }
+        Relationships: []
+      }
+      patient_audit_trail: {
+        Row: {
+          action_details: Json | null
+          created_at: string | null
+          event_type: string | null
+          id: string | null
+          patient_id: string | null
+          patient_name: string | null
+          user_id: string | null
+          user_name: string | null
+          user_role: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_distance: {
@@ -4166,7 +4905,7 @@ export type Database = {
         Returns: number
       }
       check_carecoin_rate_limit: {
-        Args: { p_user_id: string }
+        Args: { _user_id: string }
         Returns: boolean
       }
       generate_ticket_number: { Args: never; Returns: string }
@@ -4189,7 +4928,7 @@ export type Database = {
         Returns: boolean
       }
       increment_balance: {
-        Args: { p_amount: number; p_user_id: string }
+        Args: { amount: number; user_id: string }
         Returns: undefined
       }
     }
@@ -4200,9 +4939,10 @@ export type Database = {
         | "nurse"
         | "therapist"
         | "cna"
+        | "pharmacist"
+        | "patient"
         | "social_worker"
         | "phlebotomist"
-        | "pharmacist"
         | "receptionist"
         | "billing"
     }
@@ -4338,9 +5078,10 @@ export const Constants = {
         "nurse",
         "therapist",
         "cna",
+        "pharmacist",
+        "patient",
         "social_worker",
         "phlebotomist",
-        "pharmacist",
         "receptionist",
         "billing",
       ],

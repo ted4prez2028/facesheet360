@@ -99,10 +99,19 @@ export const DeploymentStatus = () => {
                   <span className="font-mono">{Number(deployment.gas_used).toLocaleString()}</span>
                 </div>
               )}
-              {deployment.liquidity_added && (
+              {deployment.liquidity_pool_address && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Liquidity:</span>
-                  <Badge variant="outline">Added</Badge>
+                  <span className="text-muted-foreground">Liquidity Pool:</span>
+                  <Badge variant="outline">Created</Badge>
+                </div>
+              )}
+              {deployment.polygonscan_verified && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Verification:</span>
+                  <Badge variant="default" className="bg-success text-success-foreground">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Verified
+                  </Badge>
                 </div>
               )}
               {deployment.error_message && (
