@@ -29,7 +29,7 @@ export const FeatureFlagsAdmin = () => {
         .from("feature_flags")
         .update({ 
           is_enabled: enabled,
-          enabled_at: enabled ? new Date().toISOString() : null 
+          updated_at: new Date().toISOString()
         })
         .eq("id", id);
 

@@ -86,16 +86,21 @@ export interface PendingTask {
 export interface Message {
   id: string;
   content: string;
-  author: string;
-  platform: string;
-  user_id: string;
+  author?: string;
+  user_id?: string;
+  sender_id?: string;
+  recipient_id?: string;
+  conversation_id?: string;
   created_at: string;
   is_read: boolean;
+  read_at?: string;
   message_type?: string;
+  platform?: string;
   replied?: boolean;
   reply_content?: string;
   replied_at?: string;
   updated_at?: string;
+  attachments?: any;
 }
 
 export interface Call {
