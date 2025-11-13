@@ -54,8 +54,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* These components handle notifications */}
       <NotificationSound />
       <MedicationReminders />
-      {/* Communication system */}
-      <CommunicationContainer />
     </SidebarProvider>
   );
 };

@@ -811,7 +811,9 @@ export type Database = {
           gas_used: number | null
           id: string
           liquidity_added: number | null
+          liquidity_pool_address: string | null
           network: string
+          polygonscan_verified: boolean | null
           status: string
           transaction_hash: string | null
           updated_at: string | null
@@ -829,7 +831,9 @@ export type Database = {
           gas_used?: number | null
           id?: string
           liquidity_added?: number | null
+          liquidity_pool_address?: string | null
           network: string
+          polygonscan_verified?: boolean | null
           status: string
           transaction_hash?: string | null
           updated_at?: string | null
@@ -847,7 +851,9 @@ export type Database = {
           gas_used?: number | null
           id?: string
           liquidity_added?: number | null
+          liquidity_pool_address?: string | null
           network?: string
+          polygonscan_verified?: boolean | null
           status?: string
           transaction_hash?: string | null
           updated_at?: string | null
@@ -1015,36 +1021,51 @@ export type Database = {
       }
       charting_profits: {
         Row: {
+          admin_share: number | null
           amount: number
+          chart_type: string | null
           created_at: string | null
           error_message: string | null
           id: string
           patient_id: string | null
+          patient_share: number | null
           processed_at: string | null
           provider_id: string
+          provider_share: number | null
           status: string | null
+          total_amount: number | null
           transaction_hash: string | null
         }
         Insert: {
+          admin_share?: number | null
           amount?: number
+          chart_type?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
           patient_id?: string | null
+          patient_share?: number | null
           processed_at?: string | null
           provider_id: string
+          provider_share?: number | null
           status?: string | null
+          total_amount?: number | null
           transaction_hash?: string | null
         }
         Update: {
+          admin_share?: number | null
           amount?: number
+          chart_type?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
           patient_id?: string | null
+          patient_share?: number | null
           processed_at?: string | null
           provider_id?: string
+          provider_share?: number | null
           status?: string | null
+          total_amount?: number | null
           transaction_hash?: string | null
         }
         Relationships: [
@@ -1856,6 +1877,8 @@ export type Database = {
           last_refill_at: string | null
           monitored_at: string | null
           network: string
+          total_gas_spent: number | null
+          transaction_count: number | null
           wallet_address: string
         }
         Insert: {
@@ -1870,6 +1893,8 @@ export type Database = {
           last_refill_at?: string | null
           monitored_at?: string | null
           network: string
+          total_gas_spent?: number | null
+          transaction_count?: number | null
           wallet_address: string
         }
         Update: {
@@ -1884,6 +1909,8 @@ export type Database = {
           last_refill_at?: string | null
           monitored_at?: string | null
           network?: string
+          total_gas_spent?: number | null
+          transaction_count?: number | null
           wallet_address?: string
         }
         Relationships: []

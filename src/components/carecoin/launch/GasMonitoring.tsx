@@ -12,7 +12,7 @@ export const GasMonitoring = () => {
       const { data, error } = await supabase
         .from("gas_wallet_monitoring")
         .select("*")
-        .order("checked_at", { ascending: false })
+        .order("monitored_at", { ascending: false })
         .limit(1)
         .single();
 
@@ -38,7 +38,7 @@ export const GasMonitoring = () => {
     );
   }
 
-  const balancePercentage = (Number(gasData.matic_balance) / Number(gasData.threshold_matic)) * 100;
+  const balancePercentage = (Number(gasData.balance) / Number(gasData.alert_threshold)) * 100;
   const isLowBalance = balancePercentage < 20;
 
   return (
@@ -59,11 +59,11 @@ export const GasMonitoring = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Current Balance:</span>
-            <span className="font-mono font-semibold">{Number(gasData.matic_balance).toFixed(2)} MATIC</span>
+            <span className="font-mono font-semibold">{Number(gasData.balance).toFixed(2)} MATIC</span>
           </div>
           <Progress value={Math.min(balancePercentage, 100)} className="h-2" />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Threshold: {Number(gasData.threshold_matic)} MATIC</span>
+            <span>Threshold: {Number(gasData.alert_threshold)} MATIC</span>
             <span>{balancePercentage.toFixed(0)}% remaining</span>
           </div>
         </div>
@@ -71,13 +71,13 @@ export const GasMonitoring = () => {
         <div className="grid grid-cols-2 gap-4 pt-2 border-t">
           <div>
             <div className="text-xs text-muted-foreground mb-1">Total Gas Spent</div>
-            <div className="font-mono text-sm">{Number(gasData.total_gas_spent).toFixed(4)} MATIC</div>
+            <div className="font-mono text-sm">{Number(gasData.total_gas_spent || 0).toFixed(4)} MATIC</div>
           </div>
           <div>
             <div className="text-xs text-muted-foreground mb-1">Transactions</div>
             <div className="flex items-center gap-1">
               <TrendingUp className="h-4 w-4 text-success" />
-              <span className="font-mono text-sm">{gasData.transaction_count}</span>
+              <span className="font-mono text-sm">{gasData.transaction_count || 0}</span>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@ export const GasMonitoring = () => {
         )}
 
         <div className="text-xs text-muted-foreground pt-2 border-t">
-          Last checked: {new Date(gasData.checked_at).toLocaleString()}
+          Last checked: {new Date(gasData.monitored_at).toLocaleString()}
         </div>
       </CardContent>
     </Card>
