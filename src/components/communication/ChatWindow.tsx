@@ -152,71 +152,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       if (!user?.id || !contactId) return;
       
       setLoading(true);
-      try {
-        // Get or create conversation
-        const participant1 = user.id < contactId ? user.id : contactId;
-        const participant2 = user.id < contactId ? contactId : user.id;
-        
-        // First try to find existing conversation
-        const { data: existingConv, error: convError } = await supabase
-          .from('conversations')
-          .select('*')
-          .eq('participant_1_id', participant1)
-          .eq('participant_2_id', participant2)
-          .maybeSingle();
-
-        let conversation = existingConv;
-
-        // If no conversation exists, create one
-        if (!conversation && !convError) {
-          const { data: newConv, error: createError } = await supabase
-            .from('conversations')
-            .insert({
-              participant_1_id: participant1,
-              participant_2_id: participant2
-            })
-            .select()
-            .single();
-          
-          if (createError) {
-            console.error('Error creating conversation:', createError);
-            toast.error('Failed to create conversation. Please try again.');
-          } else {
-            conversation = newConv;
-          }
-        }
-
-        if (convError && !conversation) {
-          console.error('Error fetching conversation:', convError);
-          toast.error('Failed to load conversation. Please try again.');
-        }
-
-        if (conversation) {
-          // Load ALL messages for this conversation (no limit)
-          const { data: messagesData, error: msgError } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', conversation.id)
-            .order('created_at', { ascending: true });
-
-          if (msgError) {
-            console.error('Error loading messages:', msgError);
-            toast.error('Failed to load messages.');
-          } else if (messagesData) {
-            setMessages(messagesData);
-          }
-          
-          // Store conversation ID for sending messages
-          setConversationId(conversation.id);
-        } else {
-          toast.error('Unable to establish conversation. Please check permissions and try again.');
-        }
-      } catch (error) {
-        console.error('Error loading messages:', error);
-        toast.error('An unexpected error occurred while loading the conversation.');
-      } finally {
-        setLoading(false);
-      }
+      // Temporarily disable chat as conversations table doesn't exist in new backend
+      toast.info('Chat functionality temporarily disabled during backend migration');
+      setMessages([]);
+      setConversationId(null);
+      setLoading(false);
     };
 
     loadMessages();
@@ -371,93 +311,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedFile && !voiceBlob) || !user?.id) return;
-
-    // Create conversation if it doesn't exist
-    if (!conversationId) {
-      try {
-        const participant1 = user.id < contactId ? user.id : contactId;
-        const participant2 = user.id < contactId ? contactId : user.id;
-        
-        const { data: newConv, error } = await supabase
-          .from('conversations')
-          .insert({
-            participant_1_id: participant1,
-            participant_2_id: participant2
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        setConversationId(newConv.id);
-      } catch (error) {
-        console.error('Error creating conversation:', error);
-        toast.error('Failed to create conversation');
-        return;
-      }
-    }
-
-    let fileData = null;
-    if (selectedFile) {
-      fileData = await uploadFile(selectedFile);
-      if (!fileData) return;
-    } else if (voiceBlob) {
-      // Upload voice message
-      fileData = await uploadFile(new File([voiceBlob.blob], 'voice-message.webm', { type: 'audio/webm' }));
-      if (!fileData) return;
-    }
-
-    const messageData = {
-      content: newMessage.trim() || (voiceBlob ? voiceBlob.transcription : selectedFile ? `Sent ${selectedFile.name}` : ''),
-      conversation_id: conversationId,
-      sender_id: user.id,
-      recipient_id: contactId,
-      author: user.name || user.email || 'Unknown',
-      platform: 'web',
-      user_id: user.id,
-      created_at: new Date().toISOString(),
-      is_read: false,
-      ...(fileData && {
-        file_url: fileData.fileUrl,
-        file_name: fileData.fileName,
-        file_type: fileData.fileType,
-        file_size: fileData.fileSize
-      }),
-      ...(voiceBlob && {
-        voice_duration: voiceBlob.duration
-      })
-    };
-
-    // Optimistically add message to UI
-    const tempMessage = {
-      ...messageData,
-      id: `temp-${Date.now()}`
-    };
-    setMessages(prev => [...prev, tempMessage]);
+    // Temporarily disable chat as conversations table doesn't exist
+    toast.info('Chat functionality temporarily disabled during backend migration');
     setNewMessage('');
     setSelectedFile(null);
     setVoiceBlob(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert([messageData])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setMessages(prev =>
-        prev.map(msg => (msg.id === tempMessage.id ? data : msg))
-      );
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const stored = localStorage.getItem('offlineMessages');
-      const queue = stored ? JSON.parse(stored) : [];
-      queue.push({ ...messageData, client_id: tempMessage.id });
-      localStorage.setItem('offlineMessages', JSON.stringify(queue));
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -470,16 +328,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const refreshMessages = () => {
-    if (!conversationId) return;
-    
-    supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true })
-      .then(({ data }) => {
-        if (data) setMessages(data);
-      });
+    // Chat disabled
   };
 
   return (

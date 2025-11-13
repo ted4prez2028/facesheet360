@@ -38,7 +38,7 @@ export const GasMonitoring = () => {
     );
   }
 
-  const balancePercentage = (Number(gasData.matic_balance) / Number(gasData.threshold_matic)) * 100;
+  const balancePercentage = (Number(gasData.balance) / Number(gasData.alert_threshold)) * 100;
   const isLowBalance = balancePercentage < 20;
 
   return (
@@ -59,11 +59,11 @@ export const GasMonitoring = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Current Balance:</span>
-            <span className="font-mono font-semibold">{Number(gasData.matic_balance).toFixed(2)} MATIC</span>
+            <span className="font-mono font-semibold">{Number(gasData.balance).toFixed(2)} MATIC</span>
           </div>
           <Progress value={Math.min(balancePercentage, 100)} className="h-2" />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Threshold: {Number(gasData.threshold_matic)} MATIC</span>
+            <span>Threshold: {Number(gasData.alert_threshold)} MATIC</span>
             <span>{balancePercentage.toFixed(0)}% remaining</span>
           </div>
         </div>
@@ -93,7 +93,7 @@ export const GasMonitoring = () => {
         )}
 
         <div className="text-xs text-muted-foreground pt-2 border-t">
-          Last checked: {new Date(gasData.checked_at).toLocaleString()}
+          Last checked: {new Date(gasData.monitored_at || gasData.created_at).toLocaleString()}
         </div>
       </CardContent>
     </Card>
