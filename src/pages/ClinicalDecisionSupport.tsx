@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertTriangle, CheckCircle, Info, FileText, Search } from 'lucide-react';
+import { DrugInteractionChecker } from '@/components/clinical/DrugInteractionChecker';
 
 export default function ClinicalDecisionSupport() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -193,20 +194,7 @@ export default function ClinicalDecisionSupport() {
         </TabsContent>
 
         <TabsContent value="interactions">
-          <Card>
-            <CardHeader>
-              <CardTitle>Drug Interaction Checker</CardTitle>
-              <CardDescription>Check for potential medication interactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <AlertTriangle className="h-16 w-16 mx-auto mb-4" />
-                <p className="text-lg font-medium">Drug Interaction Checker</p>
-                <p className="text-sm mt-2">Enter medications to check for interactions</p>
-                <Button className="mt-4">Coming Soon</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <DrugInteractionChecker />
         </TabsContent>
       </Tabs>
     </div>

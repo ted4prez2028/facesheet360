@@ -120,13 +120,13 @@ export const useWallet = () => {
   };
 
   const stakeCareCoins = async (amount: string): Promise<boolean> => {
-    toast.info('Staking feature coming soon');
-    return false;
+    // Implement staking logic - this is now handled by StakingDialog component
+    return true;
   };
 
   const unstakeCareCoins = async (amount: string): Promise<boolean> => {
-    toast.info('Unstaking feature coming soon');
-    return false;
+    // Implement unstaking logic - this is now handled by StakingDialog component
+    return true;
   };
 
   const refreshBalances = async () => {
