@@ -11,9 +11,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Login = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || "login");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
     name: "",
@@ -24,10 +23,9 @@ const Login = () => {
   });
   const { login, signUp, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setActiveTab(searchParams.get('tab') || "login");
-  }, [searchParams]);
+  
+  // Read tab directly from URL params on each render
+  const activeTab = searchParams.get('tab') || "login";
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
@@ -112,7 +110,7 @@ const Login = () => {
           <p className="text-muted-foreground mt-2">Healthcare Management Platform</p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => navigate(`/login?tab=${value}`)} className="w-full">
           <TabsList className="grid grid-cols-2 w-full mb-6">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
