@@ -278,29 +278,35 @@ export type Database = {
       audit_logs: {
         Row: {
           action_details: Json | null
-          created_at: string | null
+          created_at: string
           event_type: string
           id: string
+          ip_address: string | null
           patient_id: string | null
           resource_id: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           action_details?: Json | null
-          created_at?: string | null
+          created_at?: string
           event_type: string
           id?: string
+          ip_address?: string | null
           patient_id?: string | null
           resource_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           action_details?: Json | null
-          created_at?: string | null
+          created_at?: string
           event_type?: string
           id?: string
+          ip_address?: string | null
           patient_id?: string | null
           resource_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: [

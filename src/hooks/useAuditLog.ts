@@ -19,8 +19,6 @@ export const useAuditLog = () => {
       return;
     }
 
-    console.log('Logging audit event:', { eventType, patientId, userId: user.id });
-
     await auditLogger.log({
       event_type: eventType,
       user_id: user.id,
