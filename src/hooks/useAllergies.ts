@@ -1,5 +1,5 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Allergy {
@@ -12,79 +12,57 @@ export interface Allergy {
   status: string;
   type: string;
   category?: string;
+  recorded_at?: string;
+  recorded_by?: string;
   created_at?: string;
   updated_at?: string;
-  [key: string]: any; // Index signature for DataItem compatibility
+  [key: string]: any;
 }
 
 export function useAllergies(patientId: string) {
-  const [allergies, setAllergies] = useState<Allergy[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchAllergies = useCallback(async () => {
-    try {
-      // Mock data since allergies table doesn't exist
-      const mockAllergies: Allergy[] = [
-        {
-          id: '1',
-          patient_id: patientId,
-          allergen: 'Penicillin',
-          reaction: 'Rash, difficulty breathing',
-          severity: 'severe',
-          date_identified: '2023-01-15',
-          status: 'active',
-          type: 'Drug Allergy',
-          category: 'Medication',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          patient_id: patientId,
-          allergen: 'Peanuts',
-          reaction: 'Swelling, hives',
-          severity: 'moderate',
-          date_identified: '2022-08-20',
-          status: 'active',
-          type: 'Food Allergy',
-          category: 'Food',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+  const { data: allergies = [], isLoading } = useQuery({
+    queryKey: ['allergies', patientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('allergies')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
       
-      setAllergies(mockAllergies);
-    } catch (error) {
-      console.error('Error fetching allergies:', error);
-      toast.error('Failed to load allergies');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [patientId]);
-
-  useEffect(() => {
-    fetchAllergies();
-  }, [patientId, fetchAllergies]);
+      return (data || []).map(allergy => ({
+        ...allergy,
+        type: 'Allergy',
+        category: allergy.severity === 'severe' ? 'Critical' : 'Standard',
+        date_identified: allergy.recorded_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+        status: 'active'
+      })) as Allergy[];
+    },
+    enabled: !!patientId
+  });
 
   const addAllergy = async (newAllergy: Omit<Allergy, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const mockAllergy: Allergy = {
-        ...newAllergy,
-        id: Date.now().toString(),
-        patient_id: newAllergy.patient_id || patientId,
-        allergen: newAllergy.allergen || '',
-        reaction: newAllergy.reaction || '',
-        severity: newAllergy.severity || 'mild',
-        date_identified: newAllergy.date_identified || new Date().toISOString().split('T')[0],
-        status: newAllergy.status || 'active',
-        type: newAllergy.type || 'Unknown',
-        category: newAllergy.category,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('allergies')
+        .insert({
+          patient_id: newAllergy.patient_id || patientId,
+          allergen: newAllergy.allergen,
+          reaction: newAllergy.reaction,
+          severity: newAllergy.severity,
+          recorded_at: newAllergy.date_identified || new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
       
-      setAllergies(prev => [...prev, mockAllergy]);
+      queryClient.invalidateQueries({ queryKey: ['allergies', patientId] });
       toast.success('Allergy added successfully');
+      return data;
     } catch (error) {
       console.error('Error adding allergy:', error);
       toast.error('Failed to add allergy');
@@ -94,15 +72,23 @@ export function useAllergies(patientId: string) {
 
   const updateAllergy = async (id: string, updatedAllergy: Partial<Allergy>) => {
     try {
-      const updatedData = {
-        ...updatedAllergy,
-        updated_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('allergies')
+        .update({
+          allergen: updatedAllergy.allergen,
+          reaction: updatedAllergy.reaction,
+          severity: updatedAllergy.severity,
+          recorded_at: updatedAllergy.date_identified
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
       
-      setAllergies(prev => prev.map(allergy => 
-        allergy.id === id ? { ...allergy, ...updatedData } : allergy
-      ));
+      queryClient.invalidateQueries({ queryKey: ['allergies', patientId] });
       toast.success('Allergy updated successfully');
+      return data;
     } catch (error) {
       console.error('Error updating allergy:', error);
       toast.error('Failed to update allergy');
@@ -112,7 +98,14 @@ export function useAllergies(patientId: string) {
 
   const deleteAllergy = async (id: string) => {
     try {
-      setAllergies(prev => prev.filter(allergy => allergy.id !== id));
+      const { error } = await supabase
+        .from('allergies')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      queryClient.invalidateQueries({ queryKey: ['allergies', patientId] });
       toast.success('Allergy deleted successfully');
     } catch (error) {
       console.error('Error deleting allergy:', error);
@@ -127,6 +120,6 @@ export function useAllergies(patientId: string) {
     addAllergy,
     updateAllergy,
     deleteAllergy,
-    refetch: fetchAllergies
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['allergies', patientId] })
   };
 }
