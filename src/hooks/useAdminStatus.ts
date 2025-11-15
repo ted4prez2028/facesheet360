@@ -16,18 +16,19 @@ export const useAdminStatus = () => {
       }
 
       try {
-        // Check if user has admin role by querying profile
-        const { data: profile, error } = await supabase
-          .from('profiles')
+        // Check if user has admin role in user_roles table (matches RLS policies)
+        const { data: userRole, error } = await supabase
+          .from('user_roles')
           .select('role')
-          .eq('id', user.id)
-          .single();
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
         
         if (error) {
           console.error('Error checking admin status:', error);
           setIsAdmin(false);
         } else {
-          setIsAdmin(profile?.role === 'admin');
+          setIsAdmin(!!userRole);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
