@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
@@ -7,6 +7,7 @@ import { TodayAppointment } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { RescheduleDialog } from "@/components/appointments/RescheduleDialog";
 
 interface TodayAppointmentsProps {
   appointments?: TodayAppointment[];
@@ -15,10 +16,14 @@ interface TodayAppointmentsProps {
 
 const TodayAppointments = ({ appointments = [], isLoading = false }: TodayAppointmentsProps) => {
   const navigate = useNavigate();
+  const [rescheduleDialog, setRescheduleDialog] = useState<{ open: boolean; appointmentId: string; date: string }>({
+    open: false,
+    appointmentId: '',
+    date: ''
+  });
   
-  const handleReschedule = (id: string) => {
-    // For now, we'll just show a toast since the rescheduling UI isn't ready
-    toast.info("Rescheduling feature is coming soon!");
+  const handleReschedule = (id: string, date: string) => {
+    setRescheduleDialog({ open: true, appointmentId: id, date });
   };
   
   const handleStartAppointment = async (id: string, patient: string) => {
@@ -70,7 +75,7 @@ const TodayAppointments = ({ appointments = [], isLoading = false }: TodayAppoin
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleReschedule(appointment.id)}>Reschedule</Button>
+                  <Button size="sm" variant="outline" onClick={() => handleReschedule(appointment.id, appointment.time)}>Reschedule</Button>
                   <Button 
                     size="sm" 
                     onClick={() => handleStartAppointment(appointment.id, appointment.patient)}
@@ -87,6 +92,13 @@ const TodayAppointments = ({ appointments = [], isLoading = false }: TodayAppoin
           </div>
         )}
       </CardContent>
+      
+      <RescheduleDialog
+        open={rescheduleDialog.open}
+        onOpenChange={(open) => setRescheduleDialog({ ...rescheduleDialog, open })}
+        appointmentId={rescheduleDialog.appointmentId}
+        currentDate={rescheduleDialog.date}
+      />
     </Card>
   );
 };

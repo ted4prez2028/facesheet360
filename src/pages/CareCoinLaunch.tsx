@@ -5,6 +5,7 @@ import { GasMonitoring } from "@/components/carecoin/launch/GasMonitoring";
 import { KYCManagement } from "@/components/carecoin/launch/KYCManagement";
 import { BetaTesterManagement } from "@/components/carecoin/launch/BetaTesterManagement";
 import { FeatureFlagsAdmin } from "@/components/carecoin/launch/FeatureFlagsAdmin";
+import { MonitoringDashboard } from "@/components/carecoin/MonitoringDashboard";
 import { Rocket, Shield, TestTube, Flag, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -108,19 +109,7 @@ export default function CareCoinLaunch() {
         </TabsContent>
 
         <TabsContent value="monitoring" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Real-Time Monitoring</CardTitle>
-              <CardDescription>
-                Transaction alerts, security events, and system health
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Monitoring dashboard with real-time alerts coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <MonitoringDashboard />
         </TabsContent>
       </Tabs>
     </div>

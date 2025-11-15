@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Users, CheckCircle, Clock, AlertCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import { CareTeamsManager } from '@/components/care-coordination/CareTeamsManager';
 
 export default function CareCoordination() {
   const { user } = useAuth();
@@ -235,20 +236,7 @@ export default function CareCoordination() {
         </TabsContent>
 
         <TabsContent value="teams">
-          <Card>
-            <CardHeader>
-              <CardTitle>Care Teams</CardTitle>
-              <CardDescription>Manage multidisciplinary care teams</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-muted-foreground">
-                <Users className="h-16 w-16 mx-auto mb-4" />
-                <p className="text-lg font-medium">Care Team Management</p>
-                <p className="text-sm mt-2">Assign team members to patient cases</p>
-                <Button className="mt-4">Coming Soon</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CareTeamsManager />
         </TabsContent>
       </Tabs>
     </div>

@@ -20,6 +20,7 @@ import { AddressAutocomplete } from './AddressAutocomplete';
 import { RideMap } from './RideMap';
 import { FavoriteLocations } from './FavoriteLocations';
 import { Badge } from '@/components/ui/badge';
+import { RideRatingDialog } from './RideRatingDialog';
 
 interface Ride {
   id: string;
@@ -46,6 +47,11 @@ export const TaxiService = () => {
   const [scheduledTime, setScheduledTime] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [userCareCoins, setUserCareCoins] = useState(0);
+  const [ratingDialog, setRatingDialog] = useState<{ open: boolean; rideId: string; driverId: string }>({
+    open: false,
+    rideId: '',
+    driverId: ''
+  });
 
   // Fetch user's CareCoin balance
   useEffect(() => {
@@ -431,8 +437,7 @@ export const TaxiService = () => {
                       variant="outline"
                       className="w-full"
                       onClick={() => {
-                        // Import and show RideRating component
-                        toast.info('Rating feature coming soon!');
+                        setRatingDialog({ open: true, rideId: ride.id, driverId: ride.driver_id! });
                       }}
                     >
                       Rate Your Driver
@@ -444,6 +449,14 @@ export const TaxiService = () => {
           </div>
         </CardContent>
       </Card>
+      
+      <RideRatingDialog
+        open={ratingDialog.open}
+        onOpenChange={(open) => setRatingDialog({ ...ratingDialog, open })}
+        rideId={ratingDialog.rideId}
+        driverId={ratingDialog.driverId}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['rides'] })}
+      />
     </div>
   );
 };
