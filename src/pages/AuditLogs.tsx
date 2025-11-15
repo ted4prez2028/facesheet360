@@ -16,30 +16,16 @@ import { toast } from 'sonner';
 const AuditLogs = () => {
   const { user } = useAuth();
 
-  // Check if user is admin
-  const { data: isAdmin, isLoading: isCheckingAdmin } = useQuery({
-    queryKey: ['isAdmin', user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error checking admin role:', error);
-        return false;
-      }
-      return !!data;
-    },
-    enabled: !!user
-  });
-
+  // Fetch audit logs directly - RLS policies will handle access control
   const { data: auditLogs, isLoading, error: queryError } = useQuery({
     queryKey: ['auditLogs'],
     queryFn: async () => {
+      if (!user) {
+        console.log('No user, skipping audit logs fetch');
+        return [];
+      }
+      
+      console.log('Fetching audit logs for user:', user.id);
       const { data, error } = await supabase
         .from('audit_logs')
         .select('*')
@@ -53,25 +39,20 @@ const AuditLogs = () => {
       console.log('Audit logs fetched:', data?.length, 'records');
       return data;
     },
-    enabled: isAdmin === true
+    enabled: !!user
   });
 
-  // Show loading while checking admin status
-  if (isCheckingAdmin) {
+  // Show loading while checking user
+  if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            Checking permissions...
+            Loading...
           </CardContent>
         </Card>
       </div>
     );
-  }
-
-  // Redirect non-admin users
-  if (!user || isAdmin === false) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   const handleExport = () => {
