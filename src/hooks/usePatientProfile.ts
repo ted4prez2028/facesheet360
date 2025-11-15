@@ -9,6 +9,8 @@ export function usePatientProfile(patientId: string) {
     queryFn: async (): Promise<Patient | null> => {
       if (!patientId) return null;
       
+      console.log('Fetching patient profile for:', patientId);
+      
       const { data, error } = await supabase
         .from('patients')
         .select('*')
@@ -20,6 +22,8 @@ export function usePatientProfile(patientId: string) {
         return null;
       }
 
+      console.log('Fetched patient data:', data);
+
       // Map database fields to Patient type fields
       return {
         ...data,
@@ -28,6 +32,8 @@ export function usePatientProfile(patientId: string) {
         insurance_number: data.insurance_policy_number
       } as Patient;
     },
-    enabled: !!patientId
+    enabled: !!patientId,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Refetch when component mounts
   });
 }

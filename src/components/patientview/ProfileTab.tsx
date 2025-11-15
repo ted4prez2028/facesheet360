@@ -84,6 +84,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
   const handleSavePersonal = async (data: PersonalInfoForm) => {
     try {
       console.log('Saving personal info:', data);
+      console.log('Patient ID:', patientId);
+      
       // Map form fields to database fields
       const dbData = {
         first_name: data.first_name,
@@ -96,20 +98,27 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
         emergency_contact: data.emergency_contact_name,
         emergency_phone: data.emergency_contact_phone
       };
+      
+      console.log('Mapped database data:', dbData);
       await updatePatient.mutateAsync(dbData);
+      console.log('Update successful, closing form');
       setEditingPersonal(false);
     } catch (error) {
       console.error('Error saving personal info:', error);
+      // Error toast is already handled by the mutation's onError
     }
   };
 
   const handleSaveInsurance = async (data: InsuranceInfoForm) => {
     try {
       console.log('Saving insurance info:', data);
+      console.log('Patient ID:', patientId);
       await updatePatient.mutateAsync(data);
+      console.log('Insurance update successful, closing form');
       setEditingInsurance(false);
     } catch (error) {
       console.error('Error saving insurance info:', error);
+      // Error toast is already handled by the mutation's onError
     }
   };
 
