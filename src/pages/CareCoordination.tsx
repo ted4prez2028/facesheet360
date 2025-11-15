@@ -10,10 +10,14 @@ import { toast } from 'sonner';
 import { Users, CheckCircle, Clock, AlertCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { CareTeamsManager } from '@/components/care-coordination/CareTeamsManager';
+import { CreateTaskDialog } from '@/components/care-coordination/CreateTaskDialog';
+import { CreateDischargePlanDialog } from '@/components/care-coordination/CreateDischargePlanDialog';
 
 export default function CareCoordination() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [showDischargeDialog, setShowDischargeDialog] = useState(false);
 
   // Fetch care tasks
   const { data: tasks = [] } = useQuery({
@@ -103,7 +107,7 @@ export default function CareCoordination() {
                   <CardTitle>Care Tasks</CardTitle>
                   <CardDescription>Tasks assigned to you or by you</CardDescription>
                 </div>
-                <Button>
+                <Button onClick={() => setShowTaskDialog(true)}>
                   <Users className="h-4 w-4 mr-2" />
                   Create Task
                 </Button>
@@ -177,7 +181,7 @@ export default function CareCoordination() {
                   <CardTitle>Discharge Plans</CardTitle>
                   <CardDescription>Active and completed discharge plans</CardDescription>
                 </div>
-                <Button>
+                <Button onClick={() => setShowDischargeDialog(true)}>
                   <FileText className="h-4 w-4 mr-2" />
                   New Plan
                 </Button>
@@ -239,6 +243,18 @@ export default function CareCoordination() {
           <CareTeamsManager />
         </TabsContent>
       </Tabs>
+
+      <CreateTaskDialog
+        open={showTaskDialog}
+        onOpenChange={setShowTaskDialog}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['care-tasks'] })}
+      />
+
+      <CreateDischargePlanDialog
+        open={showDischargeDialog}
+        onOpenChange={setShowDischargeDialog}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['discharge-plans'] })}
+      />
     </div>
   );
 }

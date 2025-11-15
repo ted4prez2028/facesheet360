@@ -79,7 +79,7 @@ export function CareTeamsManager() {
       .from('care_team_members')
       .select(`
         *,
-        profiles:user_id (name, email)
+        profiles!care_team_members_user_id_fkey (name, email)
       `)
       .eq('patient_id', selectedPatient)
       .is('end_date', null)
