@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +14,91 @@ import { Shield, Smartphone, Lock, Eye, Monitor, AlertTriangle } from 'lucide-re
 import { format } from 'date-fns';
 
 export default function SecuritySettings() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
+
+  // Register device and session on mount
+  useEffect(() => {
+    const registerDeviceAndSession = async () => {
+      if (!user || !session) return;
+
+      const deviceInfo = {
+        user_agent: navigator.userAgent,
+        device_type: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        browser: navigator.userAgent.split(' ').pop() || 'Unknown',
+        ip_address: null, // Would need backend service to get real IP
+      };
+
+      // Register or update device
+      const { data: existingDevice } = await supabase
+        .from('user_devices')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('user_agent', deviceInfo.user_agent)
+        .maybeSingle();
+
+      let deviceId = existingDevice?.id;
+
+      if (!existingDevice) {
+        const { data: newDevice, error: deviceError } = await supabase
+          .from('user_devices')
+          .insert({
+            user_id: user.id,
+            ...deviceInfo,
+            trusted: true,
+            last_seen_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (deviceError) {
+          console.error('Failed to register device:', deviceError);
+          return;
+        }
+        deviceId = newDevice.id;
+      } else {
+        // Update last seen
+        await supabase
+          .from('user_devices')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', deviceId);
+      }
+
+      // Check if session already exists
+      const sessionIdentifier = session.access_token.substring(0, 32);
+      const { data: existingSession } = await supabase
+        .from('user_sessions')
+        .select('id')
+        .eq('session_id', sessionIdentifier)
+        .maybeSingle();
+
+      if (!existingSession) {
+        // Register new session
+        const { error: sessionError } = await supabase
+          .from('user_sessions')
+          .insert({
+            user_id: user.id,
+            device_id: deviceId,
+            session_id: sessionIdentifier,
+            ip_address: null,
+            location: null,
+            created_at: new Date().toISOString(),
+            expires_at: new Date(session.expires_at! * 1000).toISOString(),
+            revoked: false,
+          });
+
+        if (sessionError) {
+          console.error('Failed to register session:', sessionError);
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['user-devices'] });
+    };
+
+    registerDeviceAndSession();
+  }, [user?.id, session?.access_token]);
 
   // Fetch MFA settings
   const { data: mfaSettings } = useQuery({
