@@ -9,7 +9,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.get-user-roles]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-patient-assignment]
 verify_jwt = false
