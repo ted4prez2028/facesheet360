@@ -42,7 +42,6 @@ export function HealthRewardsTracker() {
         water_intake: 5,
       };
 
-      // @ts-expect-error - health_rewards table field mismatch
       const { error } = await supabase
         .from('health_rewards')
         .insert({
@@ -55,7 +54,6 @@ export function HealthRewardsTracker() {
       if (error) throw error;
 
       // Update user balance
-      // @ts-expect-error - increment_balance RPC function parameter mismatch
       await supabase.rpc('increment_balance', {
         p_user_id: user.id,
         p_amount: rewardAmounts[rewardType] || 10
