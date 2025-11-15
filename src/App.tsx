@@ -11,6 +11,7 @@ import { useCareCoinAutoProcessor } from '@/hooks/useCareCoinAutoProcessor';
 import { CareCoinAutoProcessor } from '@/components/CareCoinAutoProcessor';
 import FacialRecognitionPreloader from '@/components/facial-recognition/FacialRecognitionPreloader';
 import Index from './pages/Index';
+import Login from './pages/Login';
 import LearnMore from './pages/LearnMore';
 import ViewPlans from './pages/ViewPlans';
 import PostPaymentAuth from './pages/PostPaymentAuth';
@@ -103,7 +104,7 @@ function App() {
                   </RequireAuth>
                 } />
                 <Route path="/landing" element={<Index />} />
-                <Route path="/login" element={<Index />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/learn-more" element={<LearnMore />} />
                 <Route path="/view-plans" element={<ViewPlans />} />
                 <Route path="/product-tour" element={<ProductTour />} />
