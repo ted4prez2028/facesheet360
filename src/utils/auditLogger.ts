@@ -54,30 +54,11 @@ class AuditLogger {
   }
 
   async log(entry: AuditLogEntry): Promise<void> {
-    // Get IP address asynchronously without blocking
-    this.getIpAddress().then(ip => {
-      const enrichedEntry = {
-        ...entry,
-        ip_address: ip,
-        user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-      };
-
-      this.queue.push(enrichedEntry);
-      
-      // Flush immediately for critical audit events
-      this.flushQueue();
-    }).catch(err => {
-      // If IP fetch fails, still log without IP
-      const enrichedEntry = {
-        ...entry,
-        user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-      };
-
-      this.queue.push(enrichedEntry);
-      this.flushQueue();
-    });
+    // Queue the entry - database will handle created_at automatically
+    this.queue.push(entry);
+    
+    // Flush immediately for critical audit events
+    this.flushQueue();
   }
 
   private async flushQueue(): Promise<void> {
