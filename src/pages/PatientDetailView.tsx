@@ -1,20 +1,29 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getPatientById } from '@/lib/api/patientApi';
 import UnifiedPatientInterface from '@/components/charting/UnifiedPatientInterface';
 import { useAuth } from '@/context/AuthContext';
+import { useAuditLog } from '@/hooks/useAuditLog';
 
 export default function PatientDetailView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { logEvent } = useAuditLog();
 
   const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', id],
     queryFn: () => getPatientById(id!),
     enabled: !!id,
   });
+
+  // Log patient view for HIPAA audit
+  useEffect(() => {
+    if (id) {
+      logEvent('patient_view', id);
+    }
+  }, [id, logEvent]);
 
   if (isLoading) {
     return (

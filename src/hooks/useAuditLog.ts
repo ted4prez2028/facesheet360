@@ -14,7 +14,12 @@ export const useAuditLog = () => {
     resourceId?: string,
     actionDetails?: Record<string, any>
   ) => {
-    if (!user) return;
+    if (!user) {
+      console.warn('Audit log skipped: User not authenticated');
+      return;
+    }
+
+    console.log('Logging audit event:', { eventType, patientId, userId: user.id });
 
     await auditLogger.log({
       event_type: eventType,

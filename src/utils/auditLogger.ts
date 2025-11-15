@@ -35,8 +35,15 @@ class AuditLogger {
   private isProcessing = false;
 
   private constructor() {
-    // Flush queue every 5 seconds
-    setInterval(() => this.flushQueue(), 5000);
+    // Flush queue every 2 seconds as backup
+    setInterval(() => this.flushQueue(), 2000);
+    
+    // Flush on page unload to ensure logs aren't lost
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.flushQueue();
+      });
+    }
   }
 
   static getInstance(): AuditLogger {
@@ -47,19 +54,30 @@ class AuditLogger {
   }
 
   async log(entry: AuditLogEntry): Promise<void> {
-    const enrichedEntry = {
-      ...entry,
-      ip_address: await this.getIpAddress(),
-      user_agent: navigator.userAgent,
-      timestamp: new Date().toISOString()
-    };
+    // Get IP address asynchronously without blocking
+    this.getIpAddress().then(ip => {
+      const enrichedEntry = {
+        ...entry,
+        ip_address: ip,
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      };
 
-    this.queue.push(enrichedEntry);
+      this.queue.push(enrichedEntry);
+      
+      // Flush immediately for critical audit events
+      this.flushQueue();
+    }).catch(err => {
+      // If IP fetch fails, still log without IP
+      const enrichedEntry = {
+        ...entry,
+        user_agent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      };
 
-    // If queue is large, flush immediately
-    if (this.queue.length >= 10) {
-      await this.flushQueue();
-    }
+      this.queue.push(enrichedEntry);
+      this.flushQueue();
+    });
   }
 
   private async flushQueue(): Promise<void> {
@@ -70,15 +88,18 @@ class AuditLogger {
     this.queue = [];
 
     try {
-      // @ts-ignore - audit_logs table exists but types not yet regenerated
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('audit_logs')
-        .insert(batch);
+        .insert(batch)
+        .select();
 
       if (error) {
         console.error('Failed to write audit logs:', error);
+        console.error('Batch that failed:', batch);
         // Re-add to queue on failure
         this.queue.unshift(...batch);
+      } else {
+        console.log(`Successfully logged ${batch.length} audit events`);
       }
     } catch (error) {
       console.error('Audit logging error:', error);

@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from 'sonner';
 import { getPatientById } from '@/lib/api/patientApi';
 import { Patient } from '@/types';
+import { useAuditLog } from '@/hooks/useAuditLog';
 
 export default function PatientProfile() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -29,6 +30,7 @@ export default function PatientProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
+  const { logEvent } = useAuditLog();
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -39,6 +41,8 @@ export default function PatientProfile() {
         const patientData = await getPatientById(patientId);
         if (patientData) {
           setPatient(patientData);
+          // Log patient view for HIPAA audit
+          logEvent('patient_view', patientId);
         } else {
           setError(new Error('Patient not found'));
         }
