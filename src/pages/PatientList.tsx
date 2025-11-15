@@ -29,18 +29,34 @@ const PatientListPage = () => {
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
-  const { data: patients = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['patients'],
+  const { data: patientsData = { patients: [], assignments: [] }, isLoading, error, refetch } = useQuery({
+    queryKey: ['patients-with-assignments'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch patients
+      const { data: patientsData, error: patientsError } = await supabase
         .from('patients')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Patient[];
+      
+      if (patientsError) throw patientsError;
+      
+      // Fetch care team assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('care_team_members')
+        .select('patient_id, user_id, role, is_primary');
+      
+      if (assignmentsError) throw assignmentsError;
+      
+      return {
+        patients: patientsData as Patient[],
+        assignments: assignmentsData || []
+      };
     },
     enabled: !!user
   });
+
+  const patients = patientsData.patients;
+  const assignments = patientsData.assignments;
 
   const handleDeletePatient = async (id: string) => {
     try {
@@ -95,8 +111,12 @@ const PatientListPage = () => {
       if (filters.ageMax !== undefined && age > filters.ageMax) return false;
     }
 
-    // Assigned provider filter (would need patient_assignments join)
-    // TODO: Implement when patient assignments are loaded
+    // Assigned provider filter
+    if (filters.assignedProvider) {
+      const patientAssignments = assignments.filter(a => a.patient_id === patient.id);
+      const isAssigned = patientAssignments.some(a => a.user_id === filters.assignedProvider);
+      if (!isAssigned) return false;
+    }
 
     return true;
   });

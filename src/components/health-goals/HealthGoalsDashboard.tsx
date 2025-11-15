@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useHealthGoals } from '@/hooks/useHealthGoals';
 import { useAuth } from '@/hooks/useAuth';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 import { Target, Trophy, Calendar, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -12,10 +13,10 @@ import { CreateHealthGoalDialog } from './CreateHealthGoalDialog';
 export const HealthGoalsDashboard = ({ patientId }: { patientId: string }) => {
   const { user } = useAuth();
   const { goals, isLoading } = useHealthGoals(patientId);
+  const { hasAnyRole } = useRolePermissions();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  // Check if current user is healthcare staff (placeholder - should check user_roles table)
-  const isHealthcareStaff = false; // TODO: Implement proper role check
+  const isHealthcareStaff = hasAnyRole(['admin', 'doctor', 'nurse', 'therapist']);
 
   const activeGoals = goals?.filter(g => g.status === 'active') || [];
   const completedGoals = goals?.filter(g => g.status === 'completed') || [];

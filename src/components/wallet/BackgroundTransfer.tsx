@@ -11,9 +11,19 @@ export function BackgroundTransfer() {
     setIsTransferring(true);
     
     try {
+      // Fetch the contract address from the database
+      const { data: contractData } = await supabase
+        .from('carecoin_contract')
+        .select('contract_address')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      const contractAddress = contractData?.contract_address || "0x0000000000000000000000000000000000000000";
+      
       const { data, error } = await supabase.functions.invoke('transfer-carecoin', {
         body: {
-          contractAddress: "0xa546f4c3f0c73", // Note: This seems incomplete - may need full address
+          contractAddress,
           recipientAddress: "0x87b06799B1F57b2D7777eB1dc335D3ab40Bd986B",
           amount: "5000"
         }
