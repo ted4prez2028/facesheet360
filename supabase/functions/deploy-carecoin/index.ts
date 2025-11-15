@@ -62,18 +62,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Use testnet or mainnet RPC based on flag
-    // Using Alchemy public demo endpoint for Mumbai testnet (more reliable)
-    const polygonRpcUrl = isTestnet 
-      ? 'https://polygon-mumbai.g.alchemy.com/v2/demo' 
-      : Deno.env.get('POLYGON_RPC_URL');
+    // Use the configured RPC URL for both testnet and mainnet
+    // User should configure POLYGON_RPC_URL with their preferred network
+    const polygonRpcUrl = Deno.env.get('POLYGON_RPC_URL');
     const deployerPrivateKey = Deno.env.get('POLYGON_DEPLOYER_PRIVATE_KEY');
 
     if (!polygonRpcUrl || !deployerPrivateKey) {
-      throw new Error('Missing POLYGON_RPC_URL or POLYGON_DEPLOYER_PRIVATE_KEY environment variables');
+      console.error('Missing required environment variables');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Missing POLYGON_RPC_URL or POLYGON_DEPLOYER_PRIVATE_KEY configuration. Please configure these in your project settings.',
+        details: 'Both POLYGON_RPC_URL (e.g., Alchemy or Infura RPC endpoint) and POLYGON_DEPLOYER_PRIVATE_KEY are required.'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    const networkName = isTestnet ? 'Polygon Mumbai Testnet' : 'Polygon Mainnet';
+    const networkName = isTestnet ? 'Polygon Testnet (Amoy)' : 'Polygon Mainnet';
     console.log(`Connecting to ${networkName}...`);
     const provider = new ethers.JsonRpcProvider(polygonRpcUrl);
     const wallet = new ethers.Wallet(deployerPrivateKey, provider);
