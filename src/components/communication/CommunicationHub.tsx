@@ -96,6 +96,7 @@ export const CommunicationHub = () => {
                               user={user} 
                               conversation={conversations[user.id]}
                               onChat={openChat}
+                              onClose={() => setIsOpen(false)}
                             />
                           ))}
                         </div>
@@ -115,6 +116,7 @@ export const CommunicationHub = () => {
                               user={user} 
                               conversation={conversations[user.id]}
                               onChat={openChat}
+                              onClose={() => setIsOpen(false)}
                             />
                           ))}
                         </div>
@@ -134,6 +136,7 @@ export const CommunicationHub = () => {
                                 user={user} 
                                 conversation={conversations[user.id]}
                                 onChat={openChat}
+                                onClose={() => setIsOpen(false)}
                               />
                             ))}
                           </div>
@@ -157,13 +160,25 @@ interface UserCardProps {
   onChat: (contactId: string, contactName: string) => void;
 }
 
-const UserCard: React.FC<UserCardProps> = ({ user, conversation, onChat }) => {
+interface UserCardProps {
+  user: User;
+  conversation: any;
+  onChat: (contactId: string, contactName: string) => void;
+  onClose: () => void;
+}
+
+const UserCard: React.FC<UserCardProps> = ({ user, conversation, onChat, onClose }) => {
   const hasUnread = conversation?.last_message && !conversation.last_message.is_read;
+  
+  const handleClick = () => {
+    onChat(user.id, user.name);
+    onClose();
+  };
   
   return (
     <div 
       className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors"
-      onClick={() => onChat(user.id, user.name)}
+      onClick={handleClick}
     >
       <div className="relative">
         <Avatar className="h-10 w-10">
