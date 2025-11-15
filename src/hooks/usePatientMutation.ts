@@ -10,8 +10,8 @@ interface PatientUpdateData {
   email?: string;
   phone?: string;
   address?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
   insurance_provider?: string;
   insurance_policy_number?: string;
   medical_record_number?: string;
@@ -22,6 +22,9 @@ export const useUpdatePatient = (patientId: string) => {
 
   return useMutation({
     mutationFn: async (data: PatientUpdateData) => {
+      console.log('Mutation starting with data:', data);
+      console.log('Patient ID:', patientId);
+      
       const { data: updated, error } = await supabase
         .from('patients')
         .update(data)
@@ -29,15 +32,22 @@ export const useUpdatePatient = (patientId: string) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Update successful:', updated);
       return updated;
     },
     onSuccess: () => {
+      console.log('Update mutation succeeded');
       queryClient.invalidateQueries({ queryKey: ['patient-profile', patientId] });
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       toast.success('Patient information updated successfully');
     },
     onError: (error: Error) => {
+      console.error('Update mutation failed:', error);
       toast.error(`Failed to update patient: ${error.message}`);
     }
   });
