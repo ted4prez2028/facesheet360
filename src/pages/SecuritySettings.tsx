@@ -16,6 +16,16 @@ import { Shield, Smartphone, Lock, Eye, Monitor, AlertTriangle, Trash2 } from 'l
 import { format } from 'date-fns';
 import QRCode from 'qrcode';
 
+const getBrowserName = (): string => {
+  const ua = navigator.userAgent;
+  if (ua.includes('Chrome') && !ua.includes('Edg')) return 'Chrome';
+  if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+  if (ua.includes('Firefox')) return 'Firefox';
+  if (ua.includes('Edg')) return 'Edge';
+  if (ua.includes('Opera') || ua.includes('OPR')) return 'Opera';
+  return 'Unknown Browser';
+};
+
 export default function SecuritySettings() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
@@ -30,79 +40,90 @@ export default function SecuritySettings() {
     const registerDeviceAndSession = async () => {
       if (!user || !session) return;
 
-      const deviceInfo = {
-        user_agent: navigator.userAgent,
-        device_type: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-        browser: navigator.userAgent.split(' ').pop() || 'Unknown',
-        ip_address: null, // Would need backend service to get real IP
-      };
+      try {
+        const deviceInfo = {
+          user_agent: navigator.userAgent,
+          device_type: /mobile/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          browser: getBrowserName(),
+          ip_address: null,
+        };
 
-      // Register or update device
-      const { data: existingDevice } = await supabase
-        .from('user_devices')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('user_agent', deviceInfo.user_agent)
-        .maybeSingle();
-
-      let deviceId = existingDevice?.id;
-
-      if (!existingDevice) {
-        const { data: newDevice, error: deviceError } = await supabase
+        // Register or update device
+        const { data: existingDevice } = await supabase
           .from('user_devices')
-          .insert({
-            user_id: user.id,
-            ...deviceInfo,
-            trusted: true,
-            last_seen_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('user_agent', deviceInfo.user_agent)
+          .maybeSingle();
 
-        if (deviceError) {
-          console.error('Failed to register device:', deviceError);
-          return;
-        }
-        deviceId = newDevice.id;
-      } else {
-        // Update last seen
-        await supabase
-          .from('user_devices')
-          .update({ last_seen_at: new Date().toISOString() })
-          .eq('id', deviceId);
-      }
+        let deviceId = existingDevice?.id;
 
-      // Check if session already exists
-      const sessionIdentifier = session.access_token.substring(0, 32);
-      const { data: existingSession } = await supabase
-        .from('user_sessions')
-        .select('id')
-        .eq('session_id', sessionIdentifier)
-        .maybeSingle();
+        if (!existingDevice) {
+          const { data: newDevice, error: deviceError } = await supabase
+            .from('user_devices')
+            .insert({
+              user_id: user.id,
+              ...deviceInfo,
+              trusted: true,
+              last_seen_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
 
-      if (!existingSession) {
-        // Register new session
-        const { error: sessionError } = await supabase
-          .from('user_sessions')
-          .insert({
-            user_id: user.id,
-            device_id: deviceId,
-            session_id: sessionIdentifier,
-            ip_address: null,
-            location: null,
-            created_at: new Date().toISOString(),
-            expires_at: new Date(session.expires_at! * 1000).toISOString(),
-            revoked: false,
-          });
-
-        if (sessionError) {
-          console.error('Failed to register session:', sessionError);
+          if (deviceError) {
+            console.error('Failed to register device:', deviceError);
+            return;
+          }
+          deviceId = newDevice.id;
         } else {
-          queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+          // Update last seen
+          await supabase
+            .from('user_devices')
+            .update({ last_seen_at: new Date().toISOString() })
+            .eq('id', deviceId);
         }
-      }
 
-      queryClient.invalidateQueries({ queryKey: ['user-devices'] });
+        // Check if session already exists
+        const sessionIdentifier = session.access_token.substring(0, 32);
+        const { data: existingSession } = await supabase
+          .from('user_sessions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('session_id', sessionIdentifier)
+          .maybeSingle();
+
+        if (!existingSession) {
+          // Register new session
+          const { error: sessionError } = await supabase
+            .from('user_sessions')
+            .insert({
+              user_id: user.id,
+              device_id: deviceId,
+              session_id: sessionIdentifier,
+              ip_address: null,
+              location: null,
+              created_at: new Date().toISOString(),
+              expires_at: new Date(session.expires_at! * 1000).toISOString(),
+              revoked: false,
+            });
+
+          if (sessionError) {
+            console.error('Failed to register session:', sessionError);
+          }
+        } else {
+          // Update existing session last activity
+          await supabase
+            .from('user_sessions')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', existingSession.id);
+        }
+
+        // Force queries to refetch after registration
+        await queryClient.invalidateQueries({ queryKey: ['user-devices', user?.id] });
+        await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
+      } catch (error) {
+        console.error('Error registering device/session:', error);
+      }
     };
 
     registerDeviceAndSession();
