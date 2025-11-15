@@ -1,6 +1,6 @@
 /**
  * HIPAA Compliant Audit Logging System
- * Tracks all patient data access and modifications
+ * Clean implementation for tracking patient data access
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -25,74 +25,34 @@ interface AuditLogEntry {
   patient_id?: string;
   resource_id?: string;
   action_details?: Record<string, any>;
-  ip_address?: string;
-  user_agent?: string;
 }
 
 class AuditLogger {
-  private static instance: AuditLogger;
-  private queue: AuditLogEntry[] = [];
-  private isProcessing = false;
-
-  private constructor() {
-    // Flush queue every 2 seconds as backup
-    setInterval(() => this.flushQueue(), 2000);
-    
-    // Flush on page unload to ensure logs aren't lost
-    if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
-        this.flushQueue();
-      });
-    }
-  }
-
-  static getInstance(): AuditLogger {
-    if (!AuditLogger.instance) {
-      AuditLogger.instance = new AuditLogger();
-    }
-    return AuditLogger.instance;
-  }
-
   async log(entry: AuditLogEntry): Promise<void> {
-    // Queue the entry - database will handle created_at automatically
-    this.queue.push(entry);
-    
-    // Flush immediately for critical audit events
-    this.flushQueue();
-  }
-
-  private async flushQueue(): Promise<void> {
-    if (this.isProcessing || this.queue.length === 0) return;
-
-    this.isProcessing = true;
-    const batch = [...this.queue];
-    this.queue = [];
-
     try {
-      const { error, data } = await supabase
+      const logEntry = {
+        ...entry,
+        ip_address: await this.getIpAddress(),
+        user_agent: typeof window !== 'undefined' ? navigator.userAgent : undefined,
+      };
+
+      const { error } = await supabase
         .from('audit_logs')
-        .insert(batch)
-        .select();
+        .insert(logEntry);
 
       if (error) {
-        console.error('Failed to write audit logs:', error);
-        console.error('Batch that failed:', batch);
-        // Re-add to queue on failure
-        this.queue.unshift(...batch);
-      } else {
-        console.log(`Successfully logged ${batch.length} audit events`);
+        console.error('Failed to write audit log:', error);
       }
     } catch (error) {
       console.error('Audit logging error:', error);
-      this.queue.unshift(...batch);
-    } finally {
-      this.isProcessing = false;
     }
   }
 
   private async getIpAddress(): Promise<string | undefined> {
     try {
-      const response = await fetch('https://api.ipify.org?format=json');
+      const response = await fetch('https://api.ipify.org?format=json', {
+        signal: AbortSignal.timeout(2000)
+      });
       const data = await response.json();
       return data.ip;
     } catch {
@@ -101,7 +61,7 @@ class AuditLogger {
   }
 }
 
-export const auditLogger = AuditLogger.getInstance();
+export const auditLogger = new AuditLogger();
 
 // Convenience functions
 export const logPatientView = (userId: string, patientId: string) => {
