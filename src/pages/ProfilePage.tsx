@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
+import { useUpdateUser } from '@/hooks/useUserProfile';
+import { toast } from 'sonner';
 import { User } from '@/types';
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const updateUser = useUpdateUser();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -18,9 +21,31 @@ export default function ProfilePage() {
     specialty: user?.specialty || '',
   });
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    setIsEditing(false);
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        role: user.role || 'doctor',
+        specialty: user.specialty || '',
+      });
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await updateUser.mutateAsync({
+        id: user.id,
+        updates: formData
+      });
+      toast.success('Profile updated successfully');
+      setIsEditing(false);
+    } catch (error) {
+      toast.error('Failed to update profile');
+      console.error(error);
+    }
   };
 
   const handleCancel = () => {
@@ -98,8 +123,12 @@ export default function ProfilePage() {
           <div className="flex gap-2 pt-4">
             {isEditing ? (
               <>
-                <Button onClick={handleSave}>Save</Button>
-                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                <Button onClick={handleSave} disabled={updateUser.isPending}>
+                  {updateUser.isPending ? 'Saving...' : 'Save'}
+                </Button>
+                <Button variant="outline" onClick={handleCancel} disabled={updateUser.isPending}>
+                  Cancel
+                </Button>
               </>
             ) : (
               <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
