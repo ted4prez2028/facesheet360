@@ -12,8 +12,8 @@ const Telemedicine = () => {
 
   const handleStartCall = () => {
     toast({
-      title: "Starting Video Call",
-      description: "Connecting to video conference...",
+      title: "Video Call Feature",
+      description: "Video calling will be available in the next update with full WebRTC integration.",
     });
   };
 
@@ -27,8 +27,8 @@ const Telemedicine = () => {
       return;
     }
     toast({
-      title: "Joining Room",
-      description: `Connecting to room: ${roomCode}`,
+      title: "Video Call Feature",
+      description: "Video calling will be available in the next update.",
     });
   };
 
