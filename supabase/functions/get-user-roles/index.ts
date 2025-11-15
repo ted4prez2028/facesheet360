@@ -46,11 +46,17 @@ serve(async (req) => {
       );
     }
 
-    // Create client to verify the JWT token
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    // Create authenticated client using the user's token
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
     
-    // Verify authentication by passing the JWT token
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    // Verify authentication by getting the user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       console.error("User verification failed:", userError?.message || userError);
       return new Response(
