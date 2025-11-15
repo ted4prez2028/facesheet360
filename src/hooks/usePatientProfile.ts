@@ -20,7 +20,13 @@ export function usePatientProfile(patientId: string) {
         return null;
       }
 
-      return data as Patient;
+      // Map database fields to Patient type fields
+      return {
+        ...data,
+        emergency_contact_name: data.emergency_contact,
+        emergency_contact_phone: data.emergency_phone,
+        insurance_number: data.insurance_policy_number
+      } as Patient;
     },
     enabled: !!patientId
   });

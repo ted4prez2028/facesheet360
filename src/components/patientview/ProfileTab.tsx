@@ -82,13 +82,35 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ patientId }) => {
   }, [patient]);
 
   const handleSavePersonal = async (data: PersonalInfoForm) => {
-    await updatePatient.mutateAsync(data);
-    setEditingPersonal(false);
+    try {
+      console.log('Saving personal info:', data);
+      // Map form fields to database fields
+      const dbData = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        emergency_contact: data.emergency_contact_name,
+        emergency_phone: data.emergency_contact_phone
+      };
+      await updatePatient.mutateAsync(dbData);
+      setEditingPersonal(false);
+    } catch (error) {
+      console.error('Error saving personal info:', error);
+    }
   };
 
   const handleSaveInsurance = async (data: InsuranceInfoForm) => {
-    await updatePatient.mutateAsync(data);
-    setEditingInsurance(false);
+    try {
+      console.log('Saving insurance info:', data);
+      await updatePatient.mutateAsync(data);
+      setEditingInsurance(false);
+    } catch (error) {
+      console.error('Error saving insurance info:', error);
+    }
   };
 
   if (isLoading) {
