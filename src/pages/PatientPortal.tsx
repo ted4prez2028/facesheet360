@@ -37,8 +37,8 @@ export default function PatientPortal() {
         .from('appointments')
         .select('*')
         .eq('patient_id', portalAccess.patient_id)
-        .gte('scheduled_time', new Date().toISOString())
-        .order('scheduled_time', { ascending: true })
+        .gte('appointment_date', new Date().toISOString())
+        .order('appointment_date', { ascending: true })
         .limit(10);
       if (error) throw error;
       return data;
@@ -141,7 +141,7 @@ export default function PatientPortal() {
                     <div key={apt.id} className="border rounded-lg p-3">
                       <div className="font-medium">{apt.appointment_type}</div>
                       <div className="text-sm text-muted-foreground">
-                        {format(new Date(apt.scheduled_time), 'MMM d, yyyy h:mm a')}
+                        {format(new Date(apt.appointment_date), 'MMM d, yyyy h:mm a')}
                       </div>
                       <Badge variant="secondary" className="mt-2">
                         {apt.status}

@@ -34,9 +34,9 @@ export const useAppointmentsToday = () => {
             name
           )
         `)
-        .gte('scheduled_time', todayStart.toISOString())
-        .lt('scheduled_time', todayEnd.toISOString())
-        .order('scheduled_time', { ascending: true });
+        .gte('appointment_date', todayStart.toISOString())
+        .lt('appointment_date', todayEnd.toISOString())
+        .order('appointment_date', { ascending: true });
 
       if (error) {
         console.error('Error fetching appointments:', error);
@@ -46,7 +46,7 @@ export const useAppointmentsToday = () => {
       return (data || []).map((appointment: any) => ({
         id: appointment.id,
         patient: appointment.patients?.name || 'Unknown Patient',
-        time: new Date(appointment.scheduled_time).toLocaleTimeString('en-US', {
+        time: new Date(appointment.appointment_date).toLocaleTimeString('en-US', {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true

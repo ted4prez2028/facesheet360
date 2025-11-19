@@ -27,11 +27,11 @@ const RescheduleAppointmentDialog = ({
   const updateAppointment = useUpdateAppointment();
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date(appointment.scheduled_time)
+    new Date(appointment.appointment_date)
   );
   
   const [selectedTime, setSelectedTime] = useState<string>(
-    format(new Date(appointment.scheduled_time), "HH:mm")
+    format(new Date(appointment.appointment_date), "HH:mm")
   );
 
   const [conflicts, setConflicts] = useState<any[]>([]);
@@ -58,7 +58,7 @@ const RescheduleAppointmentDialog = ({
       if (apt.id === appointment.id) return false; // Skip current appointment
       if (apt.provider_id !== appointment.provider_id) return false; // Only check same provider
       
-      const aptStart = new Date(apt.scheduled_time);
+      const aptStart = new Date(apt.appointment_date);
       const aptEnd = new Date(aptStart);
       aptEnd.setMinutes(aptEnd.getMinutes() + (apt.duration_minutes || 30));
 
@@ -91,7 +91,7 @@ const RescheduleAppointmentDialog = ({
     updateAppointment.mutate({
       id: appointment.id!,
       updates: {
-        scheduled_time: newDate.toISOString(),
+        appointment_date: newDate.toISOString(),
         status: 'scheduled', // Reset status on reschedule
       }
     }, {
@@ -168,7 +168,7 @@ const RescheduleAppointmentDialog = ({
           <div className="bg-muted p-3 rounded-md text-sm">
             <div className="font-medium mb-1">Current Appointment:</div>
             <div className="text-muted-foreground">
-              {format(new Date(appointment.scheduled_time), "PPP 'at' p")}
+              {format(new Date(appointment.appointment_date), "PPP 'at' p")}
             </div>
           </div>
         </div>

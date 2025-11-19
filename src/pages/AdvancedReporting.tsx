@@ -35,8 +35,8 @@ export default function AdvancedReporting() {
         const { count: appointments } = await supabase
           .from('appointments')
           .select('*', { count: 'exact', head: true })
-          .gte('scheduled_time', monthStart.toISOString())
-          .lte('scheduled_time', monthEnd.toISOString());
+          .gte('appointment_date', monthStart.toISOString())
+          .lte('appointment_date', monthEnd.toISOString());
 
         const { count: emergency } = await supabase
           .from('call_lights')
