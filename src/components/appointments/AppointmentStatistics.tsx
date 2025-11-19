@@ -17,7 +17,7 @@ const AppointmentStatistics = () => {
 
     const filterByRange = (range: { start: Date; end: Date }) => {
       return appointments.filter((apt: any) => 
-        isWithinInterval(new Date(apt.scheduled_time), range)
+        isWithinInterval(new Date(apt.appointment_date), range)
       );
     };
 

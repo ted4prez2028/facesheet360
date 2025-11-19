@@ -30,7 +30,7 @@ const AppointmentForm = ({
   const [formData, setFormData] = useState<Partial<Appointment>>({
     patient_id: initialData?.patient_id || "",
     provider_id: initialData?.provider_id || user?.id || "",
-    scheduled_time: initialData?.scheduled_time || new Date().toISOString(),
+    appointment_date: initialData?.appointment_date || new Date().toISOString(),
     appointment_type: initialData?.appointment_type || "check-up",
     status: initialData?.status || "scheduled",
     notes: initialData?.notes || "",
@@ -38,12 +38,12 @@ const AppointmentForm = ({
   });
   
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    initialData?.scheduled_time ? new Date(initialData.scheduled_time) : new Date()
+    initialData?.appointment_date ? new Date(initialData.appointment_date) : new Date()
   );
   
   const [selectedTime, setSelectedTime] = useState<string>(
-    initialData?.scheduled_time 
-      ? format(new Date(initialData.scheduled_time), "HH:mm") 
+    initialData?.appointment_date 
+      ? format(new Date(initialData.appointment_date), "HH:mm") 
       : format(new Date().setMinutes(0), "HH:mm")
   );
   
@@ -58,7 +58,7 @@ const AppointmentForm = ({
       
       setFormData(prev => ({
         ...prev,
-        scheduled_time: newDate.toISOString(),
+        appointment_date: newDate.toISOString(),
         appointment_type: appointmentType,
         duration_minutes: parseInt(duration)
       }));
@@ -80,7 +80,7 @@ const AppointmentForm = ({
     onSubmit({
       patient_id: formData.patient_id as string,
       provider_id: formData.provider_id as string,
-      scheduled_time: formData.scheduled_time as string,
+      appointment_date: formData.appointment_date as string,
       appointment_type: formData.appointment_type as string,
       status: formData.status as string,
       notes: formData.notes,

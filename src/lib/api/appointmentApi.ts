@@ -5,7 +5,7 @@ export interface Appointment {
   id?: string;
   patient_id: string;
   provider_id: string;
-  scheduled_time: string;
+  appointment_date: string;
   appointment_type: string;
   status: string;
   notes?: string;
@@ -20,7 +20,7 @@ export const getAppointments = async () => {
         *,
         patients(id, name, medical_record_number)
       `)
-      .order('scheduled_time', { ascending: true });
+      .order('appointment_date', { ascending: true });
 
     if (error) throw error;
     return data;
@@ -39,7 +39,7 @@ export const getPatientAppointments = async (patientId: string) => {
         patients(id, name, medical_record_number)
       `)
       .eq('patient_id', patientId)
-      .order('scheduled_time', { ascending: true });
+      .order('appointment_date', { ascending: true });
 
     if (error) throw error;
     return data;
@@ -60,15 +60,15 @@ export const getTodayAppointments = async (providerId?: string) => {
       *,
       patients(id, name, medical_record_number)
     `)
-    .gte('scheduled_time', startOfToday)
-    .lte('scheduled_time', endOfToday);
+    .gte('appointment_date', startOfToday)
+    .lte('appointment_date', endOfToday);
   
   if (providerId) {
     query = query.eq('provider_id', providerId);
   }
   
   try {
-    const { data, error } = await query.order('scheduled_time', { ascending: true });
+    const { data, error } = await query.order('appointment_date', { ascending: true });
     if (error) throw error;
     return data;
   } catch (error) {
