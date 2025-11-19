@@ -95,6 +95,8 @@ export const usePatientForm = (onSuccess: () => void) => {
     
     try {
       const patientData: Partial<Patient> = {
+        first_name: formState.firstName,
+        last_name: formState.lastName,
         name: `${formState.firstName} ${formState.lastName}`.trim(),
         email: formState.email || undefined,
         phone: formState.phone || undefined,
