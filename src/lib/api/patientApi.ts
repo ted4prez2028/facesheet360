@@ -85,7 +85,6 @@ export const addPatient = async (patient: Partial<Patient>) => {
       .insert({
         first_name: patient.first_name,
         last_name: patient.last_name,
-        name: `${patient.first_name} ${patient.last_name}`,
         date_of_birth: patient.date_of_birth,
         gender: patient.gender,
         email: patient.email,
@@ -94,7 +93,7 @@ export const addPatient = async (patient: Partial<Patient>) => {
         room_number: patient.room_number,
         medical_record_number: patient.medical_record_number,
         insurance_provider: patient.insurance_provider,
-        policy_number: patient.policy_number,
+        insurance_policy_number: patient.policy_number || patient.insurance_number,
         facial_data: patient.facial_data,
         user_id: session.user.id
       })
