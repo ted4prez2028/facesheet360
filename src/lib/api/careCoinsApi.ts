@@ -1,7 +1,6 @@
-// @ts-nocheck
-
 import { supabase } from '@/integrations/supabase/client';
 import { CareCoinsTransaction, CareCoinsBillPayment, CareCoinsAchievement } from '@/types';
+import { handleSupabaseError, ErrorCode, createAppError } from '@/utils/errorHandler';
 
 export const careCoinsApi = {
   async getTransactions(userId: string): Promise<CareCoinsTransaction[]> {
@@ -12,8 +11,7 @@ export const careCoinsApi = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching transactions:', error);
-      throw error;
+      throw handleSupabaseError(error, 'getTransactions');
     }
 
     return (data || []).map(item => ({
@@ -36,8 +34,7 @@ export const careCoinsApi = {
       .single();
 
     if (error) {
-      console.error('Error creating transaction:', error);
-      throw error;
+      throw handleSupabaseError(error, 'createTransaction');
     }
 
     return {
@@ -54,15 +51,14 @@ export const careCoinsApi = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching bill payments:', error);
-      throw error;
+      throw handleSupabaseError(error, 'getBillPayments');
     }
 
-    return (data || []) as any[];
+    return (data || []) as CareCoinsBillPayment[];
   },
 
   async createBillPayment(payment: Omit<CareCoinsBillPayment, 'id' | 'created_at' | 'updated_at'>): Promise<CareCoinsBillPayment> {
-    const paymentData: any = {
+    const paymentData: Omit<CareCoinsBillPayment, 'id' | 'created_at' | 'updated_at'> = {
       user_id: payment.user_id,
       bill_type: payment.bill_type,
       amount: payment.amount,
@@ -79,8 +75,7 @@ export const careCoinsApi = {
       .single();
 
     if (error) {
-      console.error('Error creating bill payment:', error);
-      throw error;
+      throw handleSupabaseError(error, 'createBillPayment');
     }
 
     return data as CareCoinsBillPayment;
@@ -94,8 +89,7 @@ export const careCoinsApi = {
       .order('earned_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching achievements:', error);
-      throw error;
+      throw handleSupabaseError(error, 'getAchievements');
     }
 
     return (data || []) as any[];
@@ -156,8 +150,7 @@ export const cashOutCareCoins = async (
   });
 
   if (error) {
-    console.error('Error cashing out CareCoins:', error);
-    throw error;
+    throw handleSupabaseError(error, 'cashOutCareCoins');
   }
 
   return data;
@@ -169,13 +162,15 @@ export const convertCareCoinsToUSD = async (amount: number) => {
     const { data, error } = await supabase.functions.invoke('get-carecoin-price');
     
     if (error || !data?.price) {
-      console.error('Error fetching price, using fallback:', error);
+      // Log error but don't throw - use fallback rate
+      handleSupabaseError(error || new Error('Price data unavailable'), 'convertCareCoinsToUSD', { showToast: false });
       return amount * 0.5; // Fallback to default rate
     }
     
     return amount * data.price;
   } catch (error) {
-    console.error('Error converting to USD:', error);
+    // Log error but don't throw - use fallback rate
+    handleSupabaseError(error, 'convertCareCoinsToUSD', { showToast: false });
     return amount * 0.5; // Fallback
   }
 };
@@ -186,6 +181,7 @@ export const getExchangeRate = async () => {
     const { data, error } = await supabase.functions.invoke('get-carecoin-price');
     
     if (error || !data?.price) {
+      handleSupabaseError(error || new Error('Price data unavailable'), 'getExchangeRate', { showToast: false });
       return {
         rate_to_usd: 0.5,
         last_updated: new Date().toISOString(),
@@ -199,7 +195,7 @@ export const getExchangeRate = async () => {
       source: data.source
     };
   } catch (error) {
-    console.error('Error fetching exchange rate:', error);
+    handleSupabaseError(error, 'getExchangeRate', { showToast: false });
     return {
       rate_to_usd: 0.5,
       last_updated: new Date().toISOString(),

@@ -110,22 +110,62 @@ export class EncryptionService {
 /**
  * Secure field-level encryption for forms
  */
+/**
+ * WARNING: Field-level encryption with sessionStorage is NOT secure for production.
+ * Keys should be managed by a secure key management service (KMS) or backend.
+ * This implementation is for development/testing only.
+ */
 export const encryptField = async (value: string): Promise<string> => {
+  if (typeof window === 'undefined') {
+    throw new Error('encryptField can only be used in browser environment');
+  }
+
   const key = await EncryptionService.generateKey();
   const encrypted = await EncryptionService.encrypt(value, key);
   const keyData = await EncryptionService.exportKey(key);
   
-  // In production, store key in secure key management service
-  // For now, we'll store it in session storage (not localStorage)
-  sessionStorage.setItem(`key_${encrypted.slice(0, 10)}`, keyData);
-  
-  return encrypted;
+  // SECURITY WARNING: Session storage is not secure for production
+  // In production, keys MUST be stored in a secure key management service
+  // or managed by a backend service with proper access controls
+  const keyId = `key_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  try {
+    sessionStorage.setItem(keyId, keyData);
+    // Store key ID with encrypted data (separate from key for security)
+    return JSON.stringify({ encrypted, keyId });
+  } catch (error) {
+    // Handle quota exceeded or other storage errors
+    throw new Error('Failed to store encryption key. Storage may be full or unavailable.');
+  }
 };
 
-export const decryptField = async (encrypted: string): Promise<string> => {
-  const keyData = sessionStorage.getItem(`key_${encrypted.slice(0, 10)}`);
-  if (!keyData) throw new Error('Encryption key not found');
-  
-  const key = await EncryptionService.importKey(keyData);
-  return await EncryptionService.decrypt(encrypted, key);
+export const decryptField = async (encryptedData: string): Promise<string> => {
+  if (typeof window === 'undefined') {
+    throw new Error('decryptField can only be used in browser environment');
+  }
+
+  try {
+    const { encrypted, keyId } = JSON.parse(encryptedData);
+    const keyData = sessionStorage.getItem(keyId);
+    
+    if (!keyData) {
+      throw new Error('Encryption key not found. Session may have expired.');
+    }
+    
+    const key = await EncryptionService.importKey(keyData);
+    const decrypted = await EncryptionService.decrypt(encrypted, key);
+    
+    // Optionally clean up key after decryption for security
+    // sessionStorage.removeItem(keyId);
+    
+    return decrypted;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      // Legacy format support (backward compatibility)
+      const keyData = sessionStorage.getItem(`key_${encryptedData.slice(0, 10)}`);
+      if (!keyData) throw new Error('Encryption key not found');
+      const key = await EncryptionService.importKey(keyData);
+      return await EncryptionService.decrypt(encryptedData, key);
+    }
+    throw error;
+  }
 };

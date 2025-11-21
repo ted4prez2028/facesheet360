@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Patient } from "@/types";
+import { handleSupabaseError, createAppError, ErrorCode } from "@/utils/errorHandler";
 
 // Helper function to check if user is authenticated without triggering RLS recursion
 const ensureAuthenticated = async () => {
@@ -30,13 +31,11 @@ export const getPatients = async () => {
       .order("last_name", { ascending: true });
 
     if (error) {
-      console.error("Supabase error:", error);
-      throw error;
+      throw handleSupabaseError(error, 'getPatients');
     }
     return data as Patient[];
   } catch (error) {
-    console.error("Error fetching patients:", error);
-    throw error;
+    throw handleSupabaseError(error, 'getPatients');
   }
 };
 
@@ -45,8 +44,11 @@ export const getPatientById = async (id: string): Promise<Patient | null> => {
     // Verify authentication first
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !sessionData.session) {
-      console.error("Authentication required for getPatientById");
-      return null;
+      throw createAppError(
+        'Authentication required',
+        ErrorCode.AUTHENTICATION_ERROR,
+        { userMessage: 'Please log in to view patient information' }
+      );
     }
     
     // Try the direct query first
@@ -57,14 +59,12 @@ export const getPatientById = async (id: string): Promise<Patient | null> => {
       .single();
     
     if (error) {
-      console.error("Error in getPatientById:", error);
-      return null;
+      throw handleSupabaseError(error, 'getPatientById');
     }
     
     return data as Patient;
   } catch (error) {
-    console.error(`Error fetching patient with ID ${id}:`, error);
-    return null;
+    throw handleSupabaseError(error, 'getPatientById');
   }
 };
 

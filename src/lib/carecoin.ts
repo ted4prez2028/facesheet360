@@ -70,14 +70,18 @@ export const getCareCoinBalance = async (address: string) => {
     }
 
     const provider = new ethers.BrowserProvider(window.ethereum);
-    // Mock implementation - replace with actual contract call
-    return ethers.parseEther('100');
-  } catch (error: unknown) {
-    console.error('Balance fetch error:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to fetch balance: ${error.message}`);
+    const contractAddress = getStoredContractAddress();
+    
+    if (!contractAddress) {
+      throw new Error('CareCoin contract not deployed. Please deploy a contract first.');
     }
-    throw new Error('Failed to fetch balance');
+
+    const contract = await getCareCoinContract(provider);
+    const balance = await contract.balanceOf(address);
+    return balance;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch balance';
+    throw new Error(`Failed to fetch CareCoin balance: ${errorMessage}`);
   }
 };
 
@@ -89,20 +93,15 @@ export const transferCareCoins = async (to: string, amount: string) => {
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
+    const contract = await getCareCoinContract(signer);
     
-    // Mock implementation - replace with actual contract call
-    const tx = await signer.sendTransaction({
-      to,
-      value: ethers.parseEther(amount)
-    });
+    const amountWei = ethers.parseEther(amount);
+    const tx = await contract.transfer(to, amountWei);
 
     return tx;
   } catch (error: unknown) {
-    console.error('Transfer error:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to transfer: ${error.message}`);
-    }
-    throw new Error('Failed to transfer');
+    const errorMessage = error instanceof Error ? error.message : 'Failed to transfer';
+    throw new Error(`Failed to transfer CareCoins: ${errorMessage}`);
   }
 };
 
@@ -114,16 +113,20 @@ export const stakeCareCoins = async (amount: string) => {
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
+    const contract = await getCareCoinContract(signer);
     
-    // Mock implementation
-    console.log('Staking', amount, 'CareCoins');
-    return { hash: 'mock-tx-hash' };
-  } catch (error: unknown) {
-    console.error('Staking error:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to stake: ${error.message}`);
+    // Check if contract has stake function
+    if (!contract.stake) {
+      throw new Error('Staking not available. The deployed contract does not support staking.');
     }
-    throw new Error('Failed to stake');
+
+    const amountWei = ethers.parseEther(amount);
+    const tx = await contract.stake(amountWei);
+    
+    return tx;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to stake';
+    throw new Error(`Failed to stake CareCoins: ${errorMessage}`);
   }
 };
 
@@ -135,19 +138,28 @@ export const unstakeCareCoins = async (amount: string) => {
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
+    const contract = await getCareCoinContract(signer);
     
-    // Mock implementation
-    console.log('Unstaking', amount, 'CareCoins');
-    return { hash: 'mock-tx-hash' };
-  } catch (error: unknown) {
-    console.error('Unstaking error:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to unstake: ${error.message}`);
+    // Check if contract has unstake function
+    if (!contract.unstake) {
+      throw new Error('Unstaking not available. The deployed contract does not support unstaking.');
     }
-    throw new Error('Failed to unstake');
+
+    const amountWei = ethers.parseEther(amount);
+    const tx = await contract.unstake(amountWei);
+    
+    return tx;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to unstake';
+    throw new Error(`Failed to unstake CareCoins: ${errorMessage}`);
   }
 };
 
+/**
+ * Mint CareCoins - This should typically be called from a backend service
+ * with proper authorization checks, not directly from the frontend.
+ * Frontend minting is only for testing/development purposes.
+ */
 export const mintCareCoins = async (to: string, amount: string, metadataHash: string) => {
   try {
     if (!window.ethereum) {
@@ -156,15 +168,22 @@ export const mintCareCoins = async (to: string, amount: string, metadataHash: st
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
+    const contract = await getCareCoinContract(signer);
     
-    // Mock implementation
-    console.log('Minting', amount, 'CareCoins to', to, 'with metadata:', metadataHash);
-    return { hash: 'mock-mint-tx-hash' };
-  } catch (error: unknown) {
-    console.error('Minting error:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to mint: ${error.message}`);
+    // Check if contract has mint function and caller has minter role
+    if (!contract.mint) {
+      throw new Error('Minting not available. The deployed contract does not support minting, or you do not have minter permissions.');
     }
-    throw new Error('Failed to mint');
+
+    const amountWei = ethers.parseEther(amount);
+    // If contract supports metadata, pass it; otherwise just mint
+    const tx = contract.mintWithMetadata 
+      ? await contract.mintWithMetadata(to, amountWei, metadataHash)
+      : await contract.mint(to, amountWei);
+    
+    return tx;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to mint';
+    throw new Error(`Failed to mint CareCoins: ${errorMessage}`);
   }
 };

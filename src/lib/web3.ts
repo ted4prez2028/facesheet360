@@ -1,5 +1,6 @@
 
 import { ethers } from 'ethers';
+import { handleBlockchainError } from '@/utils/errorHandler';
 
 declare global {
   interface Window {
@@ -89,7 +90,6 @@ export const addTokenToMetaMask = async (tokenAddress: string, tokenSymbol: stri
 
     return wasAdded;
   } catch (error) {
-    console.error('Error adding token to MetaMask:', error);
-    throw error;
+    throw handleBlockchainError(error, 'addTokenToMetaMask');
   }
 };

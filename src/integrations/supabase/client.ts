@@ -1,9 +1,19 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { getEnv } from '@/utils/envValidation';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Validate environment variables on import
+let env: ReturnType<typeof getEnv>;
+try {
+  env = getEnv();
+} catch (error) {
+  console.error('Failed to validate environment variables:', error);
+  throw error;
+}
+
+const SUPABASE_URL = env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Initialize the Supabase client with optimized configuration
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

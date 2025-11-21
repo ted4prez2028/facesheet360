@@ -62,9 +62,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getInitialSession();
 
     // Listen for auth changes
+    let timeoutId: NodeJS.Timeout | null = null;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
+        
+        // Clear any pending timeout
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
         
         console.log('🔄 Auth state changed:', event, session?.user?.id);
         
@@ -72,10 +80,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('🔑 User authenticated, fetching profile...');
           setSupabaseUser(session.user);
           
-          // Defer profile fetch to avoid deadlock
-          setTimeout(async () => {
-            await fetchUserProfile(session.user.id);
-            setIsLoading(false);
+          // Defer profile fetch to avoid deadlock using setTimeout
+          timeoutId = setTimeout(async () => {
+            if (mounted) {
+              await fetchUserProfile(session.user.id);
+              setIsLoading(false);
+            }
+            timeoutId = null;
           }, 0);
         } else if (event === 'SIGNED_OUT' || !session) {
           console.log('👋 User signed out, clearing state...');
@@ -91,6 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       subscription.unsubscribe();
     };
   }, []);
