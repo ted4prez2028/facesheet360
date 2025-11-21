@@ -34,10 +34,38 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },build: {
+  },
+  build: {
     rollupOptions: {
-      external: ['three'], // Add this line
-    }
+      external: ['three'],
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'chart-vendor': ['recharts'],
+          'ai-vendor': ['@tensorflow/tfjs', '@tensorflow/tfjs-backend-webgl'],
+          'blockchain-vendor': ['ethers'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+    sourcemap: false, // Disable in production for better performance
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true,
+      },
+    },
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      '@supabase/supabase-js',
+    ],
   },
   server: {
     port: 8080,
