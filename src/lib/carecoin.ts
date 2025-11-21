@@ -1,5 +1,9 @@
 
 import { ethers } from 'ethers';
+// Re-export from complete implementation
+export * from './carecoin/completeImplementation';
+export * from './carecoin/defi';
+export * from './carecoin/priceOracle';
 
 declare global {
   interface Window {
