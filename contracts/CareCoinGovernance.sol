@@ -85,7 +85,7 @@ contract CareCoinGovernance is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public payable override returns (uint256) {
+    ) public payable override(Governor, IGovernor) returns (uint256) {
         return super.execute(targets, values, calldatas, descriptionHash);
     }
     
@@ -94,7 +94,7 @@ contract CareCoinGovernance is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public override returns (uint256) {
+    ) public override(Governor, IGovernor) returns (uint256) {
         return super.cancel(targets, values, calldatas, descriptionHash);
     }
     
@@ -117,6 +117,15 @@ contract CareCoinGovernance is
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
     
+    function proposalThreshold() 
+        public 
+        view 
+        override(Governor, GovernorSettings) 
+        returns (uint256) 
+    {
+        return super.proposalThreshold();
+    }
+    
     function _executor() internal view override(Governor, GovernorTimelockControl) returns (address) {
         return super._executor();
     }
@@ -130,4 +139,3 @@ contract CareCoinGovernance is
         return super.supportsInterface(interfaceId);
     }
 }
-

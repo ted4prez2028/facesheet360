@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "./CareCoin.sol";
 
 /**
@@ -13,12 +12,10 @@ import "./CareCoin.sol";
  * @dev NFT rewards for healthcare achievements
  */
 contract CareCoinNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessControl {
-    using Counters for Counters.Counter;
-    
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     
-    Counters.Counter private _tokenIdCounter;
+    uint256 private _nextTokenId;
     CareCoin public careCoin;
     
     // Achievement types
@@ -58,6 +55,7 @@ contract CareCoinNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessContro
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(MINTER_ROLE, admin);
         _grantRole(BURNER_ROLE, admin);
+        _nextTokenId = 1;
         
         // Set default rewards for each achievement type
         achievementRewards[AchievementType.CHARTING_MILESTONE] = 100 * 10**18; // 100 CARE
@@ -78,18 +76,18 @@ contract CareCoinNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessContro
         AchievementType achievementType,
         string memory title,
         string memory description,
-        string memory tokenURI
+        string memory uri
     ) public onlyRole(MINTER_ROLE) returns (uint256) {
         require(to != address(0), "Cannot mint to zero address");
         
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        uint256 tokenId = _nextTokenId;
+        _nextTokenId++;
         
         uint256 rewardAmount = achievementRewards[achievementType];
         
         // Mint NFT
         _safeMint(to, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, uri);
         
         // Record achievement
         achievements[tokenId] = Achievement({
@@ -146,6 +144,13 @@ contract CareCoinNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessContro
     }
     
     // Required overrides
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
+        internal
+        override(ERC721, ERC721Enumerable)
+    {
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
+    }
+    
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
@@ -162,19 +167,9 @@ contract CareCoinNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessContro
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721Enumerable, AccessControl)
+        override(ERC721, ERC721URIStorage, ERC721Enumerable, AccessControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
-    
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 batchSize
-    ) internal override(ERC721, ERC721Enumerable) {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    }
 }
-

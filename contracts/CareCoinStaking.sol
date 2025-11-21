@@ -144,16 +144,16 @@ contract CareCoinStaking is ReentrancyGuard, AccessControl {
         
         for (uint256 i = 0; i < userStakes[user].length; i++) {
             if (userStakes[user][i].poolId == poolId) {
-                UserStake storage stake = userStakes[user][i];
+                UserStake storage userStake = userStakes[user][i];
                 StakingPool storage pool = pools[poolId];
                 
-                uint256 timeStaked = block.timestamp - stake.lastRewardClaim;
-                uint256 rewards = (stake.amount * pool.rewardRate * timeStaked) / (365 days * 10000);
+                uint256 timeStaked = block.timestamp - userStake.lastRewardClaim;
+                uint256 rewards = (userStake.amount * pool.rewardRate * timeStaked) / (365 days * 10000);
                 
                 if (rewards > 0) {
                     totalRewards += rewards;
-                    stake.claimedRewards += rewards;
-                    stake.lastRewardClaim = block.timestamp;
+                    userStake.claimedRewards += rewards;
+                    userStake.lastRewardClaim = block.timestamp;
                 }
             }
         }
@@ -170,11 +170,11 @@ contract CareCoinStaking is ReentrancyGuard, AccessControl {
         
         for (uint256 i = 0; i < userStakes[user].length; i++) {
             if (userStakes[user][i].poolId == poolId) {
-                UserStake memory stake = userStakes[user][i];
+                UserStake memory userStake = userStakes[user][i];
                 StakingPool memory pool = pools[poolId];
                 
-                uint256 timeStaked = block.timestamp - stake.lastRewardClaim;
-                uint256 rewards = (stake.amount * pool.rewardRate * timeStaked) / (365 days * 10000);
+                uint256 timeStaked = block.timestamp - userStake.lastRewardClaim;
+                uint256 rewards = (userStake.amount * pool.rewardRate * timeStaked) / (365 days * 10000);
                 totalRewards += rewards;
             }
         }
