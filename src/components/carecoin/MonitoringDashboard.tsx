@@ -10,18 +10,18 @@ interface Transaction {
   id: string;
   transaction_type: string;
   amount: number;
-  status: string;
-  created_at: string;
+  status: string | null;
+  created_at: string | null;
   metadata: any;
 }
 
 export function MonitoringDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [systemHealth, setSystemHealth] = useState({
+  const systemHealth = {
     status: 'healthy',
     uptime: '99.9%',
     lastCheck: new Date()
-  });
+  };
 
   useEffect(() => {
     fetchRecentTransactions();
@@ -57,7 +57,7 @@ export function MonitoringDashboard() {
     if (data) setTransactions(data);
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -70,13 +70,13 @@ export function MonitoringDashboard() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
       completed: 'default',
       pending: 'secondary',
       failed: 'destructive'
     };
-    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+    return <Badge variant={variants[status || ''] || 'default'}>{status || 'unknown'}</Badge>;
   };
 
   return (
@@ -152,7 +152,7 @@ export function MonitoringDashboard() {
                           {getStatusBadge(tx.status)}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}
+                          {tx.created_at && formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>

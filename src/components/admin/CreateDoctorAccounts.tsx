@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Upload, UserPlus, Shield } from "lucide-react";
+import { Loader2, UserPlus, Shield } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useRolePermissions } from '@/hooks/useRolePermissions';
@@ -135,6 +135,10 @@ const CreateDoctorAccounts = () => {
 
       if (error) {
         throw error;
+      }
+
+      if (!data || !data.results) {
+        throw new Error('No data returned from function');
       }
 
       setResults(data.results);

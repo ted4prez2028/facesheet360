@@ -72,7 +72,7 @@ export const FeatureFlagsAdmin = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">{flag.feature_name}</CardTitle>
                 <Switch
-                  checked={flag.is_enabled}
+                  checked={flag.is_enabled ?? false}
                   onCheckedChange={(checked) => toggleFlag.mutate({ id: flag.id, enabled: checked })}
                 />
               </div>
@@ -88,10 +88,10 @@ export const FeatureFlagsAdmin = () => {
                     <Percent className="h-4 w-4" />
                     Rollout Percentage
                   </span>
-                  <span className="font-medium">{flag.rollout_percentage}%</span>
+                  <span className="font-medium">{flag.rollout_percentage ?? 0}%</span>
                 </div>
                 <Slider
-                  value={[flag.rollout_percentage]}
+                  value={[flag.rollout_percentage ?? 0]}
                   min={0}
                   max={100}
                   step={5}
