@@ -70,7 +70,7 @@ StatCard.displayName = 'StatCard';
 
 const EnhancedStatisticsCards = () => {
   const { data: dashboardData, isLoading, isRefetching } = useDashboardData();
-  const [trends, setTrends] = useState({ patients: 5, appointments: 12, tasks: -3, coins: 8 });
+  const [_trends, _setTrends] = useState({ patients: 5, appointments: 12, tasks: -3, coins: 8 });
 
   if (isLoading) {
     return (
