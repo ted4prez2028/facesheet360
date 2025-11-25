@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 interface SearchResult {
   id: string;
   content: string;
-  created_at: string;
+  created_at: string | null;
   sender_id: string;
   conversation_id: string;
   sender_name: string;
@@ -54,7 +54,7 @@ const MessageSearch: React.FC<MessageSearchProps> = ({ onClose, onResultClick })
       const formattedResults = data?.map(msg => ({
         id: msg.id,
         content: msg.content,
-        created_at: msg.created_at,
+        created_at: msg.created_at ?? '',
         sender_id: msg.sender_id,
         conversation_id: msg.conversation_id,
         sender_name: (msg.profiles as any)?.name || 'Unknown'

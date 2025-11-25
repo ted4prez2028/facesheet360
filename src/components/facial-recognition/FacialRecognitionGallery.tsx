@@ -107,9 +107,9 @@ const FacialRecognitionGallery: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {patients.map((patient) => {
-              const imageUrl = getFacialImage(patient.facial_data);
-              const timestamp = getFacialTimestamp(patient.facial_data);
-              const confidence = getConfidence(patient.facial_data);
+              const imageUrl = getFacialImage(patient.facial_data ?? null);
+              const timestamp = getFacialTimestamp(patient.facial_data ?? null);
+              const confidence = getConfidence(patient.facial_data ?? null);
 
               return (
                 <div

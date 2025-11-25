@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, PhoneOff } from 'lucide-react';
+import { PhoneOff } from 'lucide-react';
 
 const CallDialog = () => {
   // Simplified version - remove complex call state for now

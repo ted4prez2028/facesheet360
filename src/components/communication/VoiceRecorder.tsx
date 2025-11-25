@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Mic, Square, Send } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';

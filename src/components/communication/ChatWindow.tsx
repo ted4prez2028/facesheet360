@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
 import VoiceRecorder from './VoiceRecorder';
 import EmojiPicker from './EmojiPicker';
-import MessageItem from './MessageItem';
+
 import { toast } from 'sonner';
 
 interface Message {
@@ -18,7 +18,7 @@ interface Message {
   content: string;
   author: string;
   sender_id: string;
-  recipient_id?: string;
+  recipient_id?: string | null;
   conversation_id?: string;
   created_at: string;
   edited_at?: string;
@@ -279,7 +279,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setSelectedFile(file);
   };
 
-  const uploadFile = async (file: File): Promise<{ fileUrl: string; fileName: string; fileType: string; fileSize: number } | null> => {
+  
     try {
       setUploadingFile(true);
       const fileExt = file.name.split('.').pop();
@@ -327,9 +327,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const refreshMessages = () => {
-    // Chat disabled
-  };
 
   return (
     <Card className="w-80 h-96 shadow-lg bg-background border">

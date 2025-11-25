@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Video, VideoOff, Mic, MicOff, Phone } from 'lucide-react';
 import { usePeerConnection } from '@/hooks/usePeerConnection';
-import { useToast } from '@/components/ui/use-toast';
 
 interface VideoCallInterfaceProps {
   contactName?: string;
@@ -13,12 +12,10 @@ interface VideoCallInterfaceProps {
 }
 
 const VideoCallInterface: React.FC<VideoCallInterfaceProps> = ({ contactName, onClose }) => {
-  const { toast } = useToast();
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   
   const {
-    localStream,
     remoteStream,
     isConnected,
     localVideoRef,

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Sheet, 
   SheetContent, 
@@ -7,13 +7,7 @@ import {
   SheetTitle
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { 
-  Users,
-  MessageSquare, 
-  Video, 
-  PhoneCall
-} from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useLocation } from 'react-router-dom';
 
