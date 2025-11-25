@@ -1,16 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCircle, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatisticsCards from "./StatisticsCards";
 import { useAdminStats } from "@/hooks/useAdminStats";
-import { useAdminStats } from "@/hooks/useAdminStats";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { data: adminStats, isLoading } = useAdminStats();
   const { data: adminStats, isLoading } = useAdminStats();
 
   return (
