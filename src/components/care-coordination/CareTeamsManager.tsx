@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -61,7 +60,7 @@ export function CareTeamsManager() {
       .select('id, name')
       .order('name');
     
-    if (data) setPatients(data);
+    if (data) setPatients(data.map(p => ({ id: p.id, name: p.name || 'Unknown' })));
   };
 
   const fetchStaff = async () => {
