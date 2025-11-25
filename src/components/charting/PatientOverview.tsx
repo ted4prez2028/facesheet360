@@ -1,8 +1,6 @@
 
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Patient } from '@/types';
@@ -18,7 +16,6 @@ import {
   Brain,
   Shield,
   Clock,
-  TrendingUp,
   FileText
 } from 'lucide-react';
 

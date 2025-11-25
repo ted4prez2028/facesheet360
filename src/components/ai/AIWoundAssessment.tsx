@@ -56,7 +56,6 @@ export const AIWoundAssessment: React.FC<AIWoundAssessmentProps> = ({
   const [woundLocation, setWoundLocation] = useState('');
   const [woundSize, setWoundSize] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<WoundAssessment | null>(null);
   
   const { user } = useAuth();
@@ -69,7 +68,6 @@ export const AIWoundAssessment: React.FC<AIWoundAssessmentProps> = ({
   const performAIAnalysis = async () => {
     if (!capturedImage || !user) return;
 
-    setIsAnalyzing(true);
     setCurrentStep('analyzing');
 
     try {
@@ -100,8 +98,6 @@ export const AIWoundAssessment: React.FC<AIWoundAssessmentProps> = ({
       console.error('Error performing AI analysis:', error);
       toast.error('Failed to perform AI analysis');
       setCurrentStep('details');
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
