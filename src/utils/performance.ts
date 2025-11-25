@@ -2,7 +2,7 @@
  * Performance Optimization Utilities
  */
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 
 /**
  * Throttle function calls for performance
@@ -84,5 +84,3 @@ export const measurePerformance = (componentName: string) => {
   };
 };
 
-// Fix missing import
-import { useState } from 'react';
