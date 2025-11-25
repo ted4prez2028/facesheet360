@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Download, RefreshCw, Maximize2 } from 'lucide-react';
+import { Download, Maximize2 } from 'lucide-react';
 
 interface ChartData {
   name: string;

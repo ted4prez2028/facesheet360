@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,6 @@ import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
 import VoiceRecorder from './VoiceRecorder';
 import EmojiPicker from './EmojiPicker';
-import MessageItem from './MessageItem';
 import { toast } from 'sonner';
 
 interface Message {
@@ -279,7 +278,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setSelectedFile(file);
   };
 
-  const uploadFile = async (file: File): Promise<{ fileUrl: string; fileName: string; fileType: string; fileSize: number } | null> => {
+  const _uploadFile = async (file: File): Promise<{ fileUrl: string; fileName: string; fileType: string; fileSize: number } | null> => {
     try {
       setUploadingFile(true);
       const fileExt = file.name.split('.').pop();
@@ -327,7 +326,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const refreshMessages = () => {
+  const _refreshMessages = () => {
     // Chat disabled
   };
 
