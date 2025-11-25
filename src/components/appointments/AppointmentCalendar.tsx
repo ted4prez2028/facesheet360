@@ -1,5 +1,5 @@
 
-import { format, eachDayOfInterval, isToday, isSameDay } from "date-fns";
+import { format, isToday, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 

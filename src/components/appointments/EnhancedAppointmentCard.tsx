@@ -3,7 +3,7 @@
  */
 
 import { format } from 'date-fns';
-import { Calendar, Clock, User, MapPin, Phone } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,30 +22,13 @@ interface EnhancedAppointmentCardProps {
   };
   onCheckIn?: (id: string) => void;
   onViewChart?: (patientId: string) => void;
-  onCancel?: (id: string) => void;
 }
 
 export const EnhancedAppointmentCard = ({
   appointment,
   onCheckIn,
-  onViewChart,
-  onCancel
+  onViewChart
 }: EnhancedAppointmentCardProps) => {
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   const getTypeColor = (type: string) => {
     const lowerType = type.toLowerCase();
     if (lowerType.includes('urgent')) return 'destructive';

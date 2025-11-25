@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,6 @@ import { generateDischargeSummary } from '@/utils/dischargeSummaryNew';
 import { DischargeFormData } from '@/types/discharge';
 import { usePatientForms } from '@/hooks/usePatientForms';
 import { usePatientData } from '@/hooks/usePatientData';
-import { Patient } from "@/types";
 
 interface LocalPatient {
   id: string;
@@ -39,37 +38,9 @@ interface LocalPatient {
   medical_record_number?: string;
 }
 
-interface PatientVital {
-  id: string;
-  temperature?: number;
-  blood_pressure_systolic?: number;
-  blood_pressure_diastolic?: number;
-  heart_rate?: number;
-  respiratory_rate?: number;
-  oxygen_saturation?: number;
-  weight?: number;
-  height?: number;
-  pain_scale?: number;
-  recorded_at: string;
-  recorded_by: string;
-}
-
-interface MedicationOrder {
-  id: string;
-  medication_name: string;
-  dosage: string;
-  frequency: string;
-  route?: string;
-  start_date: string;
-  end_date?: string;
-  status: string;
-  instructions?: string;
-}
-
 interface UnifiedPatientInterfaceProps {
   selectedPatient: string | null;
   patientData: LocalPatient | undefined;
-  userId: string | undefined;
   onBack: () => void;
   initialTab?: string;
 }
@@ -77,7 +48,6 @@ interface UnifiedPatientInterfaceProps {
 const UnifiedPatientInterface = ({ 
   selectedPatient, 
   patientData, 
-  userId, 
   onBack,
   initialTab 
 }: UnifiedPatientInterfaceProps) => {
@@ -307,7 +277,6 @@ const UnifiedPatientInterface = ({
                   )}
                   
                   <VitalSigns 
-                    patientId={selectedPatient}
                     patientName={displayName}
                     vitalSigns={chartData.vitalSigns}
                   />
@@ -382,7 +351,6 @@ const UnifiedPatientInterface = ({
                   )}
                   
                   <MedicationsSection 
-                    patientId={selectedPatient}
                     medications={chartData.medications}
                   />
                 </div>
@@ -423,8 +391,6 @@ const UnifiedPatientInterface = ({
 
               <TabsContent value="notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
                 <NotesSection 
-                  patientId={selectedPatient}
-                  providerId={userId}
                   notes={chartData.notes}
                 />
               </TabsContent>
