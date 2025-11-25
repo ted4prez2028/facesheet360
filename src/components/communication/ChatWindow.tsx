@@ -98,7 +98,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           if (error) throw error;
 
           setMessages(prev =>
-            prev.map(m => (m.id === msg.client_id ? { ...data, author: data.sender_id, platform: 'facesheet360' } : m))
+            prev.map(m => (m.id === msg.client_id ? data as Message : m))
           );
         } catch {
           remaining.push(msg);
