@@ -346,6 +346,45 @@ export default function WalletManagement() {
                     Deploy the CareCoin contract to Polygon Mumbai testnet to start minting tokens.
                   </AlertDescription>
                 </Alert>
+
+                <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <AlertTitle className="text-amber-900 dark:text-amber-100">Need Testnet MATIC</AlertTitle>
+                  <AlertDescription className="text-amber-800 dark:text-amber-200 space-y-2">
+                    <p>Your deployer wallet needs Mumbai testnet MATIC to pay for gas fees. Get free testnet MATIC from these faucets:</p>
+                    <div className="flex flex-col gap-2 mt-2">
+                      <a 
+                        href="https://faucet.polygon.technology/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Polygon Faucet (Official)
+                      </a>
+                      <a 
+                        href="https://mumbaifaucet.com/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Mumbai Faucet
+                      </a>
+                      <a 
+                        href="https://faucets.chain.link/polygon-mumbai" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Chainlink Faucet
+                      </a>
+                    </div>
+                    <p className="text-xs mt-2">After receiving testnet MATIC, wait 1-2 minutes then try deploying again.</p>
+                  </AlertDescription>
+                </Alert>
+
                 <Button 
                   onClick={handleDeployContract}
                   disabled={deployCareCoin.isPending}
