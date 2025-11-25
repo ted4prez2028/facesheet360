@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Button } from "@/components/ui/button";
 import { MenuItem } from '@/types/foodOrder';
 import { Badge } from "@/components/ui/badge";

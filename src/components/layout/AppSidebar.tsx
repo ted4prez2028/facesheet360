@@ -5,28 +5,21 @@ import {
   Activity,
   Calendar,
   ChevronRight,
-  ClipboardList,
   Heart,
   LayoutDashboard,
   LogOut,
   Settings,
   Users,
-  ChevronDown,
-  ChevronUp,
   Stethoscope,
   FileText,
   Pill,
   CreditCard,
   BarChart3,
-  UserCheck,
   Phone,
-  BellRing,
   Shield,
-  Briefcase,
   Package,
   Database,
   DollarSign,
-  Zap,
   Wallet,
   Utensils,
   Shield as ShieldIcon,
@@ -53,7 +46,6 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
-  const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
   const { hasRole } = useRolePermissions();
   const isPatient = hasRole('patient');
 
@@ -64,13 +56,6 @@ export function AppSidebar() {
     } catch (error) {
       console.error("Logout error:", error);
     }
-  };
-
-  const toggleSubMenu = (title: string) => {
-    setOpenSubMenus((prev) => ({
-      ...prev,
-      [title]: !prev[title],
-    }));
   };
 
   const staffMenuItems = [

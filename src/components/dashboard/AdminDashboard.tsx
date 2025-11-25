@@ -9,6 +9,7 @@ import { useAdminStats } from "@/hooks/useAdminStats";
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { data: adminStats, isLoading } = useAdminStats();
+  const { data: adminStats, isLoading } = useAdminStats();
 
   return (
     <div className="p-6 space-y-6">

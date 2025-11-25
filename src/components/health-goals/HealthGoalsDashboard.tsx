@@ -11,7 +11,6 @@ import { useState } from 'react';
 import { CreateHealthGoalDialog } from './CreateHealthGoalDialog';
 
 export const HealthGoalsDashboard = ({ patientId }: { patientId: string }) => {
-  const { user } = useAuth();
   const { goals, isLoading } = useHealthGoals(patientId);
   const { hasAnyRole } = useRolePermissions();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

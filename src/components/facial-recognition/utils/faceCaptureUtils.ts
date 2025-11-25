@@ -1,7 +1,6 @@
 import { toast } from 'sonner';
-import { detectFaces, matchPatientByFace } from '@/lib/facialRecognition';
 import { getPatientByFacialData } from '@/lib/supabaseApi';
-import { saveFacialDataToHistory } from '@/lib/facialDataHistory';
+import { saveFacialDataHistory } from '@/lib/facialDataHistory';
 import { Patient } from '@/types';
 import * as faceapi from 'face-api.js';
 import * as tf from '@tensorflow/tfjs';

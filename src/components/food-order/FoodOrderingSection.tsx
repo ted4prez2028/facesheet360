@@ -1,6 +1,5 @@
 
-import React, { useState } from 'react';
-import { Card } from "@/components/ui/card";
+import { useState } from 'react';
 import { MenuItem, DietaryRestrictions } from '@/types/foodOrder';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { MenuCategory } from './MenuCategory';
@@ -12,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 interface FoodOrderingSectionProps {
   patientId: string;
   roomNumber?: string;
-  dietaryRestrictions?: DietaryRestrictions | null;
+  dietaryRestrictions?: DietaryRestrictions | null | undefined;
 }
 
 export function FoodOrderingSection({ 
@@ -26,7 +25,7 @@ export function FoodOrderingSection({
     notes?: string;
   }>>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const { menuItems, createOrder, isLoading } = useFoodOrders(patientId);
+  const { menuItems, createOrder } = useFoodOrders(patientId);
 
   // Group menu items by category
   const menuCategories = React.useMemo(() => {
@@ -90,7 +89,7 @@ export function FoodOrderingSection({
   return (
     <div className="space-y-6">
       <DietaryRestrictionsAlert
-        restrictions={dietaryRestrictions}
+        restrictions={dietaryRestrictions ?? null}
         selectedItems={selectedItems}
       />
 

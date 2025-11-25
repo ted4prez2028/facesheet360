@@ -12,8 +12,7 @@ import {
   DollarSign,
   Pill,
   LogOut,
-  Shield,
-  UserPlus
+  Shield
 } from 'lucide-react';
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { SidebarTrigger } from "@/components/ui/sidebar";

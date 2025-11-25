@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Patient } from '@/types';
-import { SwitchCamera, Volume2, VolumeX, WifiOff } from 'lucide-react';
+import { SwitchCamera, Volume2, VolumeX } from 'lucide-react';
 import { 
   checkCameraAvailability, 
   initializeCamera, 
