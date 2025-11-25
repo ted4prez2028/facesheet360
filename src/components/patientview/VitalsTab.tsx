@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { FileSpreadsheet, FileText, Plus } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
 import { usePatientCRUD } from '@/hooks/usePatientCRUD';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface VitalsTabProps {
   patientId: string;
@@ -30,6 +31,7 @@ const VitalsTab: React.FC<VitalsTabProps> = ({ patientId }) => {
   });
   
   const { createRecord } = usePatientCRUD();
+  const queryClient = useQueryClient();
   
   // Fetch real vitals data from database
   const { data: vitalsData = [] } = useQuery({
@@ -54,26 +56,36 @@ const VitalsTab: React.FC<VitalsTabProps> = ({ patientId }) => {
       }), {});
 
     if (Object.keys(vitalsToSave).length === 0) {
+      toast.error('Please enter at least one vital sign');
       return;
     }
 
-    await createRecord('patient_vitals', {
-      patient_id: patientId,
-      ...vitalsToSave
-    });
+    try {
+      await createRecord('patient_vitals', {
+        patient_id: patientId,
+        ...vitalsToSave
+      });
 
-    setFormData({
-      temperature: '',
-      blood_pressure_systolic: '',
-      blood_pressure_diastolic: '',
-      heart_rate: '',
-      respiratory_rate: '',
-      oxygen_saturation: '',
-      weight: '',
-      height: '',
-      pain_scale: ''
-    });
-    setIsAddVitalOpen(false);
+      // Invalidate and refetch the vitals query to update the list immediately
+      await queryClient.invalidateQueries({ queryKey: ['patient-vitals', patientId] });
+
+      setFormData({
+        temperature: '',
+        blood_pressure_systolic: '',
+        blood_pressure_diastolic: '',
+        heart_rate: '',
+        respiratory_rate: '',
+        oxygen_saturation: '',
+        weight: '',
+        height: '',
+        pain_scale: ''
+      });
+      setIsAddVitalOpen(false);
+      toast.success('Vital signs saved successfully');
+    } catch (error) {
+      toast.error('Failed to save vital signs');
+      console.error('Error saving vitals:', error);
+    }
   };
 
   const handleExportExcel = () => {
