@@ -134,7 +134,7 @@ const MessageSearch: React.FC<MessageSearchProps> = ({ onClose, onResultClick })
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-sm font-medium">{result.sender_name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {formatDate(result.created_at)}
+                      {result.created_at ? formatDate(result.created_at) : 'Unknown date'}
                     </span>
                   </div>
                   <p className="text-sm line-clamp-2">

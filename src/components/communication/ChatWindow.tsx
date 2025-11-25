@@ -62,7 +62,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadingFile, setUploadingFile] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [contactIsTyping, setContactIsTyping] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState<{ blob: Blob; transcription: string; duration: number } | null>(null);
@@ -98,7 +97,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           if (error) throw error;
 
           setMessages(prev =>
-            prev.map(m => (m.id === msg.client_id ? { ...data, author: data.sender_id, platform: 'facesheet360' } : m))
+            prev.map(m => (m.id === msg.client_id ? { ...data, author: data.sender_id, platform: 'facesheet360', created_at: data.created_at ?? '' } : m))
           );
         } catch {
           remaining.push(msg);
