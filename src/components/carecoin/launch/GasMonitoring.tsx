@@ -92,9 +92,11 @@ export const GasMonitoring = () => {
           </div>
         )}
 
-        <div className="text-xs text-muted-foreground pt-2 border-t">
-          Last checked: {new Date(gasData.created_at).toLocaleString()}
-        </div>
+        {gasData.created_at && (
+          <div className="text-xs text-muted-foreground pt-2 border-t">
+            Last checked: {new Date(gasData.created_at).toLocaleString()}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
