@@ -54,7 +54,13 @@ export function MonitoringDashboard() {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    if (data) setTransactions(data);
+    if (data) {
+      setTransactions(data.map(tx => ({
+        ...tx,
+        status: tx.status || 'pending',
+        created_at: tx.created_at || new Date().toISOString()
+      })) as any);
+    }
   };
 
   const getStatusIcon = (status: string) => {
