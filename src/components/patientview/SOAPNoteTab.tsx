@@ -49,14 +49,17 @@ export const SOAPNoteTab = ({ patientId }: SOAPNoteTabProps) => {
         note_sections: { subjective: !!subjective, objective: !!objective, assessment: !!assessment, plan: !!plan }
       });
 
-      // Reset form
+      // Reset form and close
       setSubjective('');
       setObjective('');
       setAssessment('');
       setPlan('');
       setIsCreating(false);
+      
+      toast.success('SOAP note saved successfully');
     } catch (error) {
       console.error('Error saving SOAP note:', error);
+      toast.error('Failed to save SOAP note');
     }
   };
 
