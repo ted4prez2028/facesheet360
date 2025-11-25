@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { useHealthPredictions } from '@/hooks/useHealthPredictions';
 import { HealthPredictionCard } from './HealthPredictionCard';
 import { Button } from '@/components/ui/button';
