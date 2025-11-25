@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileSpreadsheet, FileText, Plus, Filter } from 'lucide-react';
+import { FileSpreadsheet, FileText, Plus } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
-
-interface VitalSign {
-  vitalSign: string;
-  recentValue: string;
-  date: string;
-  time: string;
-  baseline?: string;
-  recordedBy: string;
-  [key: string]: any;
-}
+import { usePatientCRUD } from '@/hooks/usePatientCRUD';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface VitalsTabProps {
   patientId: string;
@@ -24,120 +17,103 @@ interface VitalsTabProps {
 
 const VitalsTab: React.FC<VitalsTabProps> = ({ patientId }) => {
   const [isAddVitalOpen, setIsAddVitalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    temperature: '',
+    blood_pressure_systolic: '',
+    blood_pressure_diastolic: '',
+    heart_rate: '',
+    respiratory_rate: '',
+    oxygen_saturation: '',
+    weight: '',
+    height: '',
+    pain_scale: ''
+  });
   
-  // Sample data based on the screenshot
-  const vitalsData: VitalSign[] = [
-    {
-      vitalSign: "Weight",
-      recentValue: "196.6 Lbs",
-      date: "4/1/2025",
-      time: "09:09",
-      baseline: "186.0 Lbs",
-      recordedBy: "michell.zamora (Manual)"
-    },
-    {
-      vitalSign: "Blood Pressure",
-      recentValue: "128 / 81 mmHg",
-      date: "4/7/2025",
-      time: "07:18",
-      baseline: "118 / 76 mmHg",
-      recordedBy: "alexis.niece (Manual)"
-    },
-    {
-      vitalSign: "Temperature",
-      recentValue: "98.3 °F",
-      date: "3/31/2025",
-      time: "07:54",
-      baseline: "97.3 °F",
-      recordedBy: "alexis.niece (Manual)"
-    },
-    {
-      vitalSign: "Pulse",
-      recentValue: "95 bpm",
-      date: "4/7/2025",
-      time: "07:18",
-      baseline: "95 bpm",
-      recordedBy: "alexis.niece (Manual)"
-    },
-    {
-      vitalSign: "Respirations",
-      recentValue: "18 Breaths/min",
-      date: "4/7/2025",
-      time: "07:18",
-      baseline: "18 Breaths/min",
-      recordedBy: "alexis.niece (Manual)"
-    },
-    {
-      vitalSign: "O2 Saturation",
-      recentValue: "97.0%",
-      date: "4/7/2025",
-      time: "07:18",
-      baseline: "96.0 %",
-      recordedBy: "alexis.niece (Manual)"
-    },
-    {
-      vitalSign: "Height",
-      recentValue: "70.0 inches",
-      date: "",
-      time: "",
-      baseline: "",
-      recordedBy: ""
-    },
-    {
-      vitalSign: "Pain Level",
-      recentValue: "7",
-      date: "4/15/2025",
-      time: "11:33",
-      baseline: "",
-      recordedBy: "bethann.campbell (Manual)"
+  const { createRecord } = usePatientCRUD();
+  
+  // Fetch real vitals data from database
+  const { data: vitalsData = [] } = useQuery({
+    queryKey: ['patient-vitals', patientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('patient_vitals')
+        .select('*, recorded_by_profile:profiles!patient_vitals_recorded_by_fkey(name)')
+        .eq('patient_id', patientId)
+        .order('recorded_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     }
-  ];
+  });
+  const handleSaveVitals = async () => {
+    const vitalsToSave = Object.entries(formData)
+      .filter(([_, value]) => value !== '')
+      .reduce((acc, [key, value]) => ({ 
+        ...acc, 
+        [key]: parseFloat(value) 
+      }), {});
+
+    if (Object.keys(vitalsToSave).length === 0) {
+      return;
+    }
+
+    await createRecord('patient_vitals', {
+      patient_id: patientId,
+      ...vitalsToSave
+    });
+
+    setFormData({
+      temperature: '',
+      blood_pressure_systolic: '',
+      blood_pressure_diastolic: '',
+      heart_rate: '',
+      respiratory_rate: '',
+      oxygen_saturation: '',
+      weight: '',
+      height: '',
+      pain_scale: ''
+    });
+    setIsAddVitalOpen(false);
+  };
 
   const handleExportExcel = () => {
-    exportToExcel(vitalsData, 'vital-signs');
+    const exportData = vitalsData.map(v => ({
+      Temperature: v.temperature || '-',
+      'Blood Pressure': v.blood_pressure_systolic && v.blood_pressure_diastolic 
+        ? `${v.blood_pressure_systolic}/${v.blood_pressure_diastolic}` : '-',
+      'Heart Rate': v.heart_rate || '-',
+      'Respiratory Rate': v.respiratory_rate || '-',
+      'O2 Saturation': v.oxygen_saturation || '-',
+      Weight: v.weight || '-',
+      Height: v.height || '-',
+      'Pain Scale': v.pain_scale || '-',
+      'Recorded At': format(new Date(v.recorded_at), 'MM/dd/yyyy HH:mm'),
+      'Recorded By': v.recorded_by_profile?.name || 'Unknown'
+    }));
+    exportToExcel(exportData, 'vital-signs');
   };
 
   const handleExportPdf = () => {
-    exportToPdf('Vital Signs Report', vitalsData);
+    const exportData = vitalsData.map(v => ({
+      Temperature: v.temperature || '-',
+      'Blood Pressure': v.blood_pressure_systolic && v.blood_pressure_diastolic 
+        ? `${v.blood_pressure_systolic}/${v.blood_pressure_diastolic}` : '-',
+      'Heart Rate': v.heart_rate || '-',
+      'Respiratory Rate': v.respiratory_rate || '-',
+      'O2 Saturation': v.oxygen_saturation || '-',
+      Weight: v.weight || '-',
+      Height: v.height || '-',
+      'Pain Scale': v.pain_scale || '-',
+      'Recorded At': format(new Date(v.recorded_at), 'MM/dd/yyyy HH:mm'),
+      'Recorded By': v.recorded_by_profile?.name || 'Unknown'
+    }));
+    exportToPdf('Vital Signs Report', exportData);
   };
-
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  
-  const years = ["2025", "2024", "2023"];
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="flex space-x-2 items-center">
-          <h2 className="text-lg font-semibold">Weights & Vitals</h2>
-          <Select defaultValue="Apr">
-            <SelectTrigger className="w-[100px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map(month => (
-                <SelectItem key={month} value={month.substring(0, 3)}>
-                  {month}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select defaultValue="2025">
-            <SelectTrigger className="w-[90px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map(year => (
-                <SelectItem key={year} value={year}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <h2 className="text-lg font-semibold">Vital Signs</h2>
         <div className="space-x-2">
           <Button variant="outline" size="sm" onClick={handleExportExcel}>
             <FileSpreadsheet className="mr-2 h-4 w-4" />
@@ -156,51 +132,78 @@ const VitalsTab: React.FC<VitalsTabProps> = ({ patientId }) => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Record Vital Signs</DialogTitle>
+                <DialogTitle>Add New Vitals</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="vital-type">Vital Sign</Label>
-                    <Select>
-                      <SelectTrigger id="vital-type">
-                        <SelectValue placeholder="Select vital sign" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="weight">Weight</SelectItem>
-                        <SelectItem value="blood-pressure">Blood Pressure</SelectItem>
-                        <SelectItem value="temperature">Temperature</SelectItem>
-                        <SelectItem value="pulse">Pulse</SelectItem>
-                        <SelectItem value="respirations">Respirations</SelectItem>
-                        <SelectItem value="o2-saturation">O2 Saturation</SelectItem>
-                        <SelectItem value="height">Height</SelectItem>
-                        <SelectItem value="pain">Pain Level</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="temperature">Temperature (°F)</Label>
+                    <Input 
+                      id="temperature" 
+                      type="number" 
+                      step="0.1"
+                      placeholder="98.6"
+                      value={formData.temperature}
+                      onChange={(e) => setFormData({...formData, temperature: e.target.value})}
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="value">Value</Label>
-                    <Input id="value" placeholder="Enter value" />
+                    <Label htmlFor="systolic">Systolic BP</Label>
+                    <Input 
+                      id="systolic" 
+                      type="number"
+                      placeholder="120"
+                      value={formData.blood_pressure_systolic}
+                      onChange={(e) => setFormData({...formData, blood_pressure_systolic: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="diastolic">Diastolic BP</Label>
+                    <Input 
+                      id="diastolic" 
+                      type="number"
+                      placeholder="80"
+                      value={formData.blood_pressure_diastolic}
+                      onChange={(e) => setFormData({...formData, blood_pressure_diastolic: e.target.value})}
+                    />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
+                    <Label htmlFor="heart_rate">Heart Rate</Label>
+                    <Input 
+                      id="heart_rate" 
+                      type="number"
+                      placeholder="90"
+                      value={formData.heart_rate}
+                      onChange={(e) => setFormData({...formData, heart_rate: e.target.value})}
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="time">Time</Label>
-                    <Input id="time" type="time" />
+                    <Label htmlFor="respiratory_rate">Respiratory Rate</Label>
+                    <Input 
+                      id="respiratory_rate" 
+                      type="number"
+                      placeholder="16"
+                      value={formData.respiratory_rate}
+                      onChange={(e) => setFormData({...formData, respiratory_rate: e.target.value})}
+                    />
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Input id="notes" placeholder="Any additional notes" />
+                  <div>
+                    <Label htmlFor="oxygen_saturation">O2 Saturation (%)</Label>
+                    <Input 
+                      id="oxygen_saturation" 
+                      type="number"
+                      placeholder="99"
+                      value={formData.oxygen_saturation}
+                      onChange={(e) => setFormData({...formData, oxygen_saturation: e.target.value})}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setIsAddVitalOpen(false)}>Cancel</Button>
-                <Button>Save</Button>
+                <Button onClick={handleSaveVitals}>Save Vitals</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -210,25 +213,39 @@ const VitalsTab: React.FC<VitalsTabProps> = ({ patientId }) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Vital Sign</TableHead>
-            <TableHead>Recent Monthly Value</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Time</TableHead>
-            <TableHead>Baseline / Admission Value (Goal)</TableHead>
-            <TableHead>Recorded By / Instrument</TableHead>
+            <TableHead>Temperature</TableHead>
+            <TableHead>Blood Pressure</TableHead>
+            <TableHead>Heart Rate</TableHead>
+            <TableHead>Respiratory Rate</TableHead>
+            <TableHead>O2 Saturation</TableHead>
+            <TableHead>Recorded At</TableHead>
+            <TableHead>Recorded By</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {vitalsData.map((vital, index) => (
-            <TableRow key={index}>
-              <TableCell>{vital.vitalSign}</TableCell>
-              <TableCell>{vital.recentValue}</TableCell>
-              <TableCell>{vital.date}</TableCell>
-              <TableCell>{vital.time}</TableCell>
-              <TableCell>{vital.baseline || '-'}</TableCell>
-              <TableCell>{vital.recordedBy}</TableCell>
+          {vitalsData.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-muted-foreground">
+                No vital signs recorded yet
+              </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            vitalsData.map((vital) => (
+              <TableRow key={vital.id}>
+                <TableCell>{vital.temperature ? `${vital.temperature}°F` : '-'}</TableCell>
+                <TableCell>
+                  {vital.blood_pressure_systolic && vital.blood_pressure_diastolic 
+                    ? `${vital.blood_pressure_systolic}/${vital.blood_pressure_diastolic}` 
+                    : '-'}
+                </TableCell>
+                <TableCell>{vital.heart_rate ? `${vital.heart_rate} bpm` : '-'}</TableCell>
+                <TableCell>{vital.respiratory_rate ? `${vital.respiratory_rate}/min` : '-'}</TableCell>
+                <TableCell>{vital.oxygen_saturation ? `${vital.oxygen_saturation}%` : '-'}</TableCell>
+                <TableCell>{format(new Date(vital.recorded_at), 'MM/dd/yyyy HH:mm')}</TableCell>
+                <TableCell>{vital.recorded_by_profile?.name || 'Unknown'}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
