@@ -1,13 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { Activity, Calendar, Users, FileText } from "lucide-react";
 import QuickActions from "./QuickActions";
 import TodayAppointments from "./TodayAppointments";
 import RecentPatients from "./RecentPatients";
 import StatisticsCards from "./StatisticsCards";
 
 const DoctorDashboard = () => {
-  const { user } = useAuth();
 
   return (
     <div className="p-6 space-y-6">

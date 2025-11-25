@@ -23,10 +23,10 @@ interface Message {
   created_at: string;
   edited_at?: string;
   deleted_at?: string;
-  message_type?: string;
+  message_type?: string | null;
   platform: string;
-  is_read?: boolean;
-  read_at?: string;
+  is_read?: boolean | null;
+  read_at?: string | null;
   attachments?: any;
   file_url?: string;
   file_name?: string;
@@ -469,7 +469,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               size="sm"
               className="h-10 w-10 p-0"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingFile || !conversationId || !!voiceBlob}
+              disabled={!conversationId || !!voiceBlob}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
@@ -487,12 +487,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1 text-sm"
-              disabled={uploadingFile || !!voiceBlob}
+              disabled={!!voiceBlob}
             />
             <Button 
               onClick={handleSendMessage}
               size="sm" 
-              disabled={(!newMessage.trim() && !selectedFile && !voiceBlob) || uploadingFile}
+              disabled={!newMessage.trim() && !selectedFile && !voiceBlob}
             >
               <Send className="h-4 w-4" />
             </Button>

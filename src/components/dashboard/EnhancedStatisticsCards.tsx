@@ -2,7 +2,7 @@
  * Enhanced Statistics Cards with Animations and Trends
  */
 
-import React, { useState, memo } from "react";
+import { useState, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, ClipboardList, Activity, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,7 +70,6 @@ StatCard.displayName = 'StatCard';
 
 const EnhancedStatisticsCards = () => {
   const { data: dashboardData, isLoading, isRefetching } = useDashboardData();
-  const [trends, setTrends] = useState({ patients: 5, appointments: 12, tasks: -3, coins: 8 });
 
   if (isLoading) {
     return (
@@ -96,7 +95,7 @@ const EnhancedStatisticsCards = () => {
         title="Total Patients"
         value={dashboardData?.activePatients || 0}
         icon={<Users className="h-5 w-5 text-primary" />}
-        trend={trends.patients}
+        trend={5}
         isRefetching={isRefetching}
       />
       
@@ -104,7 +103,7 @@ const EnhancedStatisticsCards = () => {
         title="Today's Appointments"
         value={dashboardData?.todayAppointments || 0}
         icon={<Calendar className="h-5 w-5 text-primary" />}
-        trend={trends.appointments}
+        trend={12}
         isRefetching={isRefetching}
       />
       
@@ -112,7 +111,7 @@ const EnhancedStatisticsCards = () => {
         title="Pending Tasks"
         value={dashboardData?.pendingTasks || 0}
         icon={<ClipboardList className="h-5 w-5 text-primary" />}
-        trend={trends.tasks}
+        trend={-3}
         isRefetching={isRefetching}
       />
       
@@ -120,7 +119,7 @@ const EnhancedStatisticsCards = () => {
         title="CareCoins Balance"
         value={dashboardData?.careCoinsEarned || 0}
         icon={<Activity className="h-5 w-5 text-primary" />}
-        trend={trends.coins}
+        trend={8}
         isRefetching={isRefetching}
       />
     </div>

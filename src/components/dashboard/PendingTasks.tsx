@@ -1,5 +1,4 @@
 
-import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +19,7 @@ const PendingTasks = ({ tasks: propTasks, isLoading: propIsLoading }: PendingTas
   const tasks = propTasks || fetchedTasks || [];
   const loading = propIsLoading !== undefined ? propIsLoading : isLoading;
   
-  const handleCompleteTask = (id: string, task: string) => {
+  const handleCompleteTask = (_id: string, task: string) => {
     // For now, we'll just show a toast and refetch
     toast.success(`Task marked as complete: ${task}`);
     refetch();

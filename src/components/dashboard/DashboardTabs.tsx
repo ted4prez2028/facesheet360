@@ -25,7 +25,7 @@ const DashboardTabs = ({
   todayAppointments = [], 
   pendingTasks = [] 
 }: DashboardTabsProps) => {
-  const { data: analyticsData, isLoading } = useRealAnalytics();
+  const { data: analyticsData } = useRealAnalytics();
 
   return (
     <Tabs defaultValue="overview" className="space-y-4">
