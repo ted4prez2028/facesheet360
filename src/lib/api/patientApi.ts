@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Patient } from "@/types";
 import { handleSupabaseError, createAppError, ErrorCode } from "@/utils/errorHandler";
+import { logPatientView, logPatientCreate, logPatientUpdate, logPatientDelete } from "@/lib/auditLogger";
 
 // Helper function to check if user is authenticated without triggering RLS recursion
 const ensureAuthenticated = async () => {
@@ -62,6 +63,11 @@ export const getPatientById = async (id: string): Promise<Patient | null> => {
       throw handleSupabaseError(error, 'getPatientById');
     }
     
+    // Log HIPAA audit event for patient record access
+    if (data) {
+      await logPatientView(id, data.name || `${data.first_name} ${data.last_name}`);
+    }
+    
     return data as Patient;
   } catch (error) {
     throw handleSupabaseError(error, 'getPatientById');
@@ -115,6 +121,16 @@ export const addPatient = async (patient: Partial<Patient>) => {
       throw error;
     }
     
+    // Log HIPAA audit event for patient creation
+    if (data) {
+      await logPatientCreate(data.id, {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender
+      });
+    }
+    
     return data as Patient;
   } catch (error) {
     console.error("Error adding patient:", error);
@@ -156,6 +172,16 @@ export const updatePatient = async (id: string, data: Partial<Patient>) => {
       }
       throw error;
     }
+    
+    // Log HIPAA audit event for patient update
+    if (updatedPatient) {
+      await logPatientUpdate(
+        id, 
+        updateData, 
+        updatedPatient.name || `${updatedPatient.first_name} ${updatedPatient.last_name}`
+      );
+    }
+    
     return updatedPatient;
   } catch (error) {
     console.error(`Error updating patient with ID ${id}:`, error);
@@ -170,6 +196,18 @@ export const deletePatient = async (id: string) => {
     if (!sessionData.session) {
       throw new Error("Authentication required. Please log in to delete patients.");
     }
+    
+    // Get patient name before deletion for audit log
+    const { data: patient } = await supabase
+      .from("patients")
+      .select("first_name, last_name, name")
+      .eq("id", id)
+      .single();
+    
+    const patientName = patient?.name || `${patient?.first_name} ${patient?.last_name}`;
+    
+    // Log HIPAA audit event BEFORE deletion
+    await logPatientDelete(id, patientName);
     
     const { error } = await supabase
       .from("patients")
