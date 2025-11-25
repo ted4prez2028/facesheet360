@@ -1,8 +1,5 @@
-
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Patient } from '@/types';
@@ -18,7 +15,6 @@ import {
   Brain,
   Shield,
   Clock,
-  TrendingUp,
   FileText
 } from 'lucide-react';
 
@@ -58,7 +54,7 @@ const PatientOverview: React.FC<PatientOverviewProps> = ({ patient, patientName 
   const activeCarePlans = carePlans?.filter(plan => plan.status === 'active') || [];
   const aiGeneratedPlans = carePlans?.filter(plan => plan.is_ai_generated) || [];
   const highRiskPredictions =
-    predictions?.filter((p) => (p.prediction_data as RiskPredictionData)?.risk_score > 0.7) || [];
+    predictions?.filter((p) => ((p.prediction_data as RiskPredictionData)?.risk_score || 0) > 0.7) || [];
 
   return (
     <div className="space-y-6">
