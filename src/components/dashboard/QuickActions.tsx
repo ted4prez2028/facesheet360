@@ -1,16 +1,14 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, FileText, Search, Heart, Pill, FileText as NoteIcon } from "lucide-react";
+import { Heart, Pill, FileText as NoteIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from '@/hooks/useAuth';
 import CallLightDashboard from '@/components/call-light/CallLightDashboard';
 
 export const QuickActions = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [callLightOpen, setCallLightOpen] = useState(false);
 
   return (

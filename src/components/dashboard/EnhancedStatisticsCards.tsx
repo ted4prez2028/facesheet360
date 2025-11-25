@@ -2,7 +2,7 @@
  * Enhanced Statistics Cards with Animations and Trends
  */
 
-import { useState, memo } from "react";
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, ClipboardList, Activity, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
@@ -26,7 +26,7 @@ const TodayAppointments = ({ appointments = [], isLoading = false }: TodayAppoin
     setRescheduleDialog({ open: true, appointmentId: id, date });
   };
   
-  const handleStartAppointment = async (id: string, patient: string) => {
+  const handleStartAppointment = async (_id: string, patient: string) => {
     try {
       toast.success(`Started appointment with ${patient}`);
       

@@ -1,18 +1,17 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, ClipboardList, Activity, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, Calendar, ClipboardList, Activity } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Badge } from "@/components/ui/badge";
 
 const StatisticsCards = () => {
   const { data: dashboardData, isLoading, isRefetching } = useDashboardData();
-  const [lastUpdate, setLastUpdate] = useState<string>("");
 
   useEffect(() => {
     if (dashboardData) {
-      setLastUpdate(new Date().toLocaleTimeString());
+      // Update timestamp when data changes
     }
   }, [dashboardData]);
 

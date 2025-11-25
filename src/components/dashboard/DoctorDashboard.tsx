@@ -5,6 +5,7 @@ import RecentPatients from "./RecentPatients";
 import StatisticsCards from "./StatisticsCards";
 
 const DoctorDashboard = () => {
+  const { user } = useAuth();
 
   return (
     <div className="p-6 space-y-6">
