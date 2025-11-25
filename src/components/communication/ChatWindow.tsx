@@ -279,33 +279,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setSelectedFile(file);
   };
 
-  
-    try {
-      setUploadingFile(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('chat-attachments')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      return {
-        fileUrl: fileName,
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size
-      };
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      toast.error('Failed to upload file');
-      return null;
-    } finally {
-      setUploadingFile(false);
-    }
-  };
-
   const handleVoiceRecorded = async (blob: Blob, transcription: string, duration: number) => {
     setVoiceBlob({ blob, transcription, duration });
   };
