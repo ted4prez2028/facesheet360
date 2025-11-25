@@ -46,13 +46,19 @@ serve(async (req) => {
       );
     }
 
-    // Create authenticated client
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    // Create authenticated client with Authorization header
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
     
-    // Verify authentication by passing the token directly to getUser()
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    // Verify authentication
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
-      console.error("User verification failed:", userError?.message || userError);
+      console.error("User verification failed:", userError?.message || "No user found");
       return new Response(
         JSON.stringify({ 
           error: "Authentication required", 
