@@ -1,13 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
-import { Resend } from "npm:resend@4.0.0";
+// import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+// const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -76,35 +76,36 @@ serve(async (req) => {
       console.error('Error updating profile:', profileError);
     }
 
-    // Send welcome email
-    try {
-      const emailResult = await resend.emails.send({
-        from: 'FaceSheet360 <onboarding@resend.dev>',
-        to: [email],
-        subject: 'Welcome to FaceSheet360 - Admin Account Created',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2563eb;">Welcome to FaceSheet360!</h1>
-            <p>Hello ${name || 'Admin'},</p>
-            <p>Your administrator account has been successfully created.</p>
-            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h2 style="margin-top: 0;">Account Details</h2>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Role:</strong> Administrator</p>
-              ${password ? `<p><strong>Temporary Password:</strong> ${password}</p>` : ''}
-            </div>
-            <p>You now have full administrative access to the FaceSheet360 platform.</p>
-            <p>If you didn't expect this account creation, please contact support immediately.</p>
-            <p>Best regards,<br>The FaceSheet360 Team</p>
-          </div>
-        `,
-      });
+    // Send welcome email - disabled until resend is configured
+    // try {
+    //   const emailResult = await resend.emails.send({
+    //     from: 'FaceSheet360 <onboarding@resend.dev>',
+    //     to: [email],
+    //     subject: 'Welcome to FaceSheet360 - Admin Account Created',
+    //     html: `
+    //       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    //         <h1 style="color: #2563eb;">Welcome to FaceSheet360!</h1>
+    //         <p>Hello ${name || 'Admin'},</p>
+    //         <p>Your administrator account has been successfully created.</p>
+    //         <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    //           <h2 style="margin-top: 0;">Account Details</h2>
+    //           <p><strong>Email:</strong> ${email}</p>
+    //           <p><strong>Role:</strong> Administrator</p>
+    //           ${password ? `<p><strong>Temporary Password:</strong> ${password}</p>` : ''}
+    //         </div>
+    //         <p>You now have full administrative access to the FaceSheet360 platform.</p>
+    //         <p>If you didn't expect this account creation, please contact support immediately.</p>
+    //         <p>Best regards,<br>The FaceSheet360 Team</p>
+    //       </div>
+    //     `,
+    //   });
 
-      console.log('Welcome email sent:', emailResult);
-    } catch (emailError) {
-      console.error('Error sending welcome email:', emailError);
-      // Continue anyway, the account was created
-    }
+    //   console.log('Welcome email sent:', emailResult);
+    // } catch (emailError) {
+    //   console.error('Error sending welcome email:', emailError);
+    //   // Continue anyway, the account was created
+    // }
+    console.log('Email notification skipped - resend integration disabled');
 
     return new Response(
       JSON.stringify({
