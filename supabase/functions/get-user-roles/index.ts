@@ -46,17 +46,11 @@ serve(async (req) => {
       );
     }
 
-    // Create authenticated client using the user's token
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader
-        }
-      }
-    });
+    // Create authenticated client
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Verify authentication by getting the user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Verify authentication by passing the token directly to getUser()
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
       console.error("User verification failed:", userError?.message || userError);
       return new Response(
