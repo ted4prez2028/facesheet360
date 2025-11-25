@@ -4,11 +4,14 @@ export interface PatientNote {
   id?: string;
   patient_id: string;
   note_type: 'progress' | 'assessment' | 'plan' | 'general' | 'discharge';
-  note_content: string;
+  content: string;
+  subjective?: string;
+  objective?: string;
+  assessment?: string;
+  plan?: string;
   created_by: string;
   created_at?: string;
   updated_at?: string;
-  is_locked?: boolean;
 }
 
 export const getPatientNotes = async (patientId: string) => {
