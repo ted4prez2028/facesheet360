@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { 
   Play, CheckCircle, XCircle, Loader2, 
-  TestTube, Database, Coins, TrendingUp 
+  TestTube, Coins 
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

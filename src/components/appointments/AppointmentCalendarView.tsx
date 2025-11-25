@@ -1,9 +1,7 @@
 
-import { format, isSameDay, isToday } from "date-fns";
-import { Clock } from "lucide-react";
+import { format, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Appointment } from "./AppointmentCalendar";
 
 interface ViewAppointment {
   id: string;

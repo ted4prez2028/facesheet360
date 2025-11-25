@@ -1,5 +1,4 @@
 
-import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { CarePlan, useUpdateCarePlanStatus } from "@/hooks/useCarePlans";
-import { useAuth } from "@/context/AuthContext";
 import ReactMarkdown from "react-markdown";
 
 interface CarePlanViewerProps {
@@ -15,7 +13,6 @@ interface CarePlanViewerProps {
 }
 
 export const CarePlanViewer = ({ carePlan }: CarePlanViewerProps) => {
-  const { user } = useAuth();
   const { mutate: updateStatus } = useUpdateCarePlanStatus();
   
   const getStatusColor = (status: string) => {

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientOverview from "./PatientOverview";
@@ -14,10 +13,9 @@ interface PatientChartTabsProps {
   patient: Patient | undefined;
   chartData: PatientChartData;
   patientId: string | null;
-  userId: string | undefined;
 }
 
-export const PatientChartTabs = ({ patient, chartData, patientId, userId }: PatientChartTabsProps) => {
+export const PatientChartTabs = ({ patient, chartData, patientId }: PatientChartTabsProps) => {
   const displayName = patient 
     ? `${patient.first_name} ${patient.last_name}`.trim()
     : 'Unknown Patient';
@@ -44,32 +42,28 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
           </TabsContent>
 
           <TabsContent value="vitals" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <VitalSigns 
-              patientId={patientId}
-              patientName={displayName}
-              vitalSigns={chartData.vitalSigns}
-            />
+          <VitalSigns 
+            patientName={displayName}
+            vitalSigns={chartData.vitalSigns}
+          />
           </TabsContent>
 
           <TabsContent value="medications" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <MedicationsSection 
-              patientId={patientId}
-              medications={chartData.medications}
-            />
+          <MedicationsSection 
+            medications={chartData.medications}
+          />
           </TabsContent>
 
           <TabsContent value="labs" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <LabResults 
-              patientId={patientId}
-              labResults={chartData.labResults}
-            />
+          <LabResults 
+            labResults={chartData.labResults}
+          />
           </TabsContent>
 
           <TabsContent value="imaging" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <ImagingRecords
-              patientId={patientId}
-              imagingRecords={chartData.imaging}
-            />
+          <ImagingRecords
+            imagingRecords={chartData.imaging}
+          />
           </TabsContent>
 
           <TabsContent value="allergies" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
@@ -77,11 +71,9 @@ export const PatientChartTabs = ({ patient, chartData, patientId, userId }: Pati
           </TabsContent>
 
           <TabsContent value="notes" className="h-full overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col">
-            <NotesSection 
-              patientId={patientId}
-              providerId={userId}
-              notes={chartData.notes}
-            />
+          <NotesSection 
+            notes={chartData.notes}
+          />
           </TabsContent>
         </div>
       </Tabs>

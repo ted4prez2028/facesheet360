@@ -1,15 +1,15 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useVitalSigns, useVitalSignsMutation } from '@/hooks/useChartData';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Activity, Save, Plus, TrendingUp } from "lucide-react";
+import { Activity, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ChartContainer } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from '@/context/AuthContext';

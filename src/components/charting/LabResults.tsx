@@ -1,14 +1,11 @@
-
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LabResult } from '@/types';
 
 interface LabResultsProps {
-  patientId: string | null;
   labResults: LabResult[];
 }
 
-const LabResults: React.FC<LabResultsProps> = ({ patientId, labResults }) => {
+const LabResults: React.FC<LabResultsProps> = ({ labResults }) => {
   return (
     <div className="space-y-6">
       <Card>
