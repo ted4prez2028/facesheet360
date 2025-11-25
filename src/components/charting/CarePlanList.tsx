@@ -16,7 +16,7 @@ interface CarePlanListProps {
   patientId: string;
 }
 
-export const CarePlanList: React.FC<CarePlanListProps> = () => {
+export const CarePlanList: React.FC<CarePlanListProps> = ({ patientId }) => {
   // Since the care_plans table doesn't exist in Supabase, we'll use mock data
   const carePlans: CarePlan[] = [
     {

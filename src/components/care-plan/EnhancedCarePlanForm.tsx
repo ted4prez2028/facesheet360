@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, Target, Activity } from 'lucide-react';
+import { Plus, Trash2, Save, Target, Activity, TrendingUp } from 'lucide-react';
 import { useCreateCarePlan } from '@/hooks/useCarePlansMutation';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';

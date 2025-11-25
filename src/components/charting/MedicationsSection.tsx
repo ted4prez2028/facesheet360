@@ -1,12 +1,15 @@
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MedicationRecord } from '@/types';
 
 interface MedicationsSectionProps {
+  patientId: string | null;
   medications: MedicationRecord[];
 }
 
-const MedicationsSection: React.FC<MedicationsSectionProps> = ({ medications }) => {
+const MedicationsSection: React.FC<MedicationsSectionProps> = ({ patientId, medications }) => {
   return (
     <div className="space-y-6">
       <Card>

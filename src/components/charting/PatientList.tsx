@@ -31,6 +31,7 @@ const PatientList = ({
   selectedPatient, 
   setSelectedPatient, 
   setIsAddPatientOpen,
+  user,
   patients = [],
   isLoading
 }: PatientListProps) => {

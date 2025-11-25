@@ -9,6 +9,7 @@ import {
   useMedications, 
   useImagingRecords 
 } from "@/hooks/useChartData";
+import { useState, useEffect } from "react";
 import { Patient } from "@/types";
 
 interface LocalPatient {
@@ -26,9 +27,10 @@ interface LocalPatient {
 interface PatientChartProps {
   selectedPatient: string | null;
   patientData: LocalPatient | undefined;
+  userId: string | undefined;
 }
 
-const PatientChart = ({ selectedPatient, patientData }: PatientChartProps) => {
+const PatientChart = ({ selectedPatient, patientData, userId }: PatientChartProps) => {
   // Fetch patient chart data from the database
   const { data: vitalSigns = [] } = useVitalSigns(selectedPatient);
   const { data: labResults = [] } = useLabResults(selectedPatient);
@@ -120,6 +122,7 @@ const PatientChart = ({ selectedPatient, patientData }: PatientChartProps) => {
         patient={enhancedPatientData} 
         chartData={chartData} 
         patientId={selectedPatient}
+        userId={userId}
       />
     </Card>
   );

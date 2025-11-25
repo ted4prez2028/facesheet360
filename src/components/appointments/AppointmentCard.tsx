@@ -1,10 +1,11 @@
 
 import { format } from "date-fns";
-import { Clock, MoreHorizontal } from "lucide-react";
+import { Clock, MoreHorizontal, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { Appointment } from "./AppointmentCalendar";
 
 interface AppointmentCardProps {

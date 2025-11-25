@@ -1,11 +1,15 @@
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClinicalNote } from '@/types';
 
 interface NotesSectionProps {
+  patientId: string | null;
+  providerId: string | undefined;
   notes: ClinicalNote[];
 }
 
-const NotesSection: React.FC<NotesSectionProps> = ({ notes }) => {
+const NotesSection: React.FC<NotesSectionProps> = ({ patientId, providerId, notes }) => {
   return (
     <div className="space-y-6">
       <Card>

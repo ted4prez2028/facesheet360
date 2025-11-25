@@ -14,7 +14,7 @@ interface AICareplanButtonProps {
 
 export const AICareplanButton = ({ patient, className }: AICareplanButtonProps) => {
   const { user } = useAuth();
-  const { mutate: generateCarePlan, isPending, isError } = useGenerateAICarePlan();
+  const { mutate: generateCarePlan, isPending, isError, error } = useGenerateAICarePlan();
   const [hasConfirmed, setHasConfirmed] = useState(false);
 
   const handleGenerateCarePlan = () => {

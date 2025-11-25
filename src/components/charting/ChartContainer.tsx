@@ -1,4 +1,5 @@
 
+import { useChartConfig } from "@/hooks/useChartConfig";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,8 @@ interface ChartContainerProps {
 }
 
 const ChartContainer = ({ children, title, className }: ChartContainerProps) => {
+  const config = useChartConfig();
+
   return (
     <Card className={cn("p-4", className)}>
       {title && (

@@ -29,7 +29,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Download, Maximize2 } from 'lucide-react';
+import { Download, RefreshCw, Maximize2 } from 'lucide-react';
 
 interface ChartData {
   name: string;
@@ -142,13 +142,13 @@ export function AdvancedDataVisualization({
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               outerRadius={height / 3}
               fill="#8884d8"
               dataKey="value"
               animationDuration={animated ? 1000 : 0}
             >
-              {data.map((_entry, index) => (
+              {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
               ))}
             </Pie>
@@ -227,7 +227,7 @@ export function AdvancedDataVisualization({
           </TabsList>
           <TabsContent value={selectedChart} className="mt-4">
             <ResponsiveContainer width="100%" height={height}>
-              {chartComponents || <div>No chart available</div>}
+              {chartComponents}
             </ResponsiveContainer>
           </TabsContent>
         </Tabs>

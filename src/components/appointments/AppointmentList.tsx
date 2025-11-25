@@ -1,8 +1,13 @@
 
-import { format, isToday } from "date-fns";
+import { useState } from "react";
+import { format, isSameDay, isToday } from "date-fns";
+import { MoreHorizontal, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Card, CardContent } from "@/components/ui/card";
 import AppointmentCard from "./AppointmentCard";
 import { useDeleteAppointment } from "@/hooks/useAppointments";
 import { toast } from "sonner";
@@ -63,7 +68,30 @@ const AppointmentList = ({
   };
 
   const handleStartSession = (appointment: AppointmentData) => {
+    // Implementation would start virtual session or mark as in-progress
     toast.success(`Session started with ${appointment.patients?.first_name || 'patient'}`);
+  };
+
+  const getAppointmentTypeColor = (notes?: string) => {
+    // Extract appointment type from notes or use default
+    const appointmentType = notes?.split(':')[0]?.trim()?.toLowerCase() || "check-up";
+    
+    switch (appointmentType) {
+      case "check-up":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "follow-up":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "consultation":
+        return "bg-purple-50 text-purple-700 border-purple-200";
+      case "procedure":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      case "urgent":
+        return "bg-red-50 text-red-700 border-red-200";
+      case "therapy":
+        return "bg-indigo-50 text-indigo-700 border-indigo-200";
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200";
+    }
   };
 
   const groupedAppointments = appointments.reduce((acc, appointment) => {
