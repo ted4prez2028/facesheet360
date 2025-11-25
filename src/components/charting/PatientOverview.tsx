@@ -58,7 +58,7 @@ const PatientOverview: React.FC<PatientOverviewProps> = ({ patient, patientName 
   const activeCarePlans = carePlans?.filter(plan => plan.status === 'active') || [];
   const aiGeneratedPlans = carePlans?.filter(plan => plan.is_ai_generated) || [];
   const highRiskPredictions =
-    predictions?.filter((p) => (p.prediction_data as RiskPredictionData)?.risk_score > 0.7) || [];
+    predictions?.filter((p) => ((p.prediction_data as RiskPredictionData)?.risk_score ?? 0) > 0.7) || [];
 
   return (
     <div className="space-y-6">
