@@ -35,35 +35,29 @@ export const SOAPNoteTab = ({ patientId }: SOAPNoteTabProps) => {
       return;
     }
 
-    const soapContent = {
-      subjective,
-      objective,
-      assessment,
-      plan,
-      timestamp: new Date().toISOString()
-    };
+    try {
+      await addNote.mutateAsync({
+        patientId,
+        providerId: user.id,
+        content: JSON.stringify({ subjective, objective, assessment, plan }),
+        noteType: 'General'
+      });
 
-    await addNote.mutateAsync({
-      patientId,
-      providerId: user.id,
-      content: JSON.stringify(soapContent),
-      noteType: 'soap'
-    });
+      // Log audit event
+      await logEvent('chart_access', patientId, undefined, {
+        action: 'soap_note_created',
+        note_sections: { subjective: !!subjective, objective: !!objective, assessment: !!assessment, plan: !!plan }
+      });
 
-    // Log audit event
-    await logEvent('chart_access', patientId, undefined, {
-      action: 'soap_note_created',
-      note_sections: { subjective: !!subjective, objective: !!objective, assessment: !!assessment, plan: !!plan }
-    });
-
-    // Reset form
-    setSubjective('');
-    setObjective('');
-    setAssessment('');
-    setPlan('');
-    setIsCreating(false);
-    
-    toast.success('SOAP note saved successfully');
+      // Reset form
+      setSubjective('');
+      setObjective('');
+      setAssessment('');
+      setPlan('');
+      setIsCreating(false);
+    } catch (error) {
+      console.error('Error saving SOAP note:', error);
+    }
   };
 
   const parseSOAPContent = (content: string) => {

@@ -32,7 +32,7 @@ export const usePatientNotes = (patientId: string) => {
       const note: Omit<PatientNote, 'id'> = {
         patient_id: noteData.patientId,
         created_by: noteData.providerId,
-        note_content: noteData.content,
+        content: noteData.content,
         note_type: noteTypeMap[noteData.noteType] || 'general'
       };
       return createPatientNote(note);
@@ -50,7 +50,7 @@ export const usePatientNotes = (patientId: string) => {
   const notes = query.data?.map((note: any) => ({
     id: note.id,
     type: note.note_type,
-    content: note.note_content,
+    content: note.content,
     date: note.created_at,
     provider: note.created_by_user?.name || 'Unknown',
     providerId: note.created_by

@@ -7,126 +7,55 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSpreadsheet, FileText, Plus, Filter } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
-
-interface Diagnosis {
-  code: string;
-  description: string;
-  pdpmComorbidities: string;
-  clinicalCategory: string;
-  date: string;
-  rank: string;
-  classification: string;
-  createdDate: string;
-  createdBy: string;
-  [key: string]: any;
-}
+import { useMedicalDiagnoses } from '@/hooks/useMedicalDiagnoses';
+import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
 
 interface MedicalDiagnosesTabProps {
   patientId: string;
 }
 
 const MedicalDiagnosesTab: React.FC<MedicalDiagnosesTabProps> = ({ patientId }) => {
+  const { user } = useAuth();
+  const { diagnoses, isLoading, addDiagnosis } = useMedicalDiagnoses(patientId);
   const [isAddDiagnosisOpen, setIsAddDiagnosisOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  
-  // Sample data based on the screenshot
-  const diagnosesData: Diagnosis[] = [
-    {
-      code: 'L89.313',
-      description: 'PRESSURE ULCER OF RIGHT BUTTOCK, STAGE 3',
-      pdpmComorbidities: 'NTA POINTS',
-      clinicalCategory: 'Medical Management',
-      date: '9/17/2024',
-      rank: 'Primary',
-      classification: 'Admission',
-      createdDate: '9/23/2024',
-      createdBy: 'dawn.odie'
-    },
-    {
-      code: 'L89.323',
-      description: 'PRESSURE ULCER OF LEFT BUTTOCK, STAGE 3',
-      pdpmComorbidities: '',
-      clinicalCategory: 'Medical Management',
-      date: '9/17/2024',
-      rank: 'A',
-      classification: 'Admission',
-      createdDate: '9/23/2024',
-      createdBy: 'dawn.odie'
-    },
-    {
-      code: 'G82.21',
-      description: 'PARAPLEGIA, COMPLETE',
-      pdpmComorbidities: '',
-      clinicalCategory: 'Acute Neurologic',
-      date: '9/17/2024',
-      rank: 'B',
-      classification: 'Admission',
-      createdDate: '9/23/2024',
-      createdBy: 'dawn.odie'
-    },
-    {
-      code: 'N31.9',
-      description: 'NEUROMUSCULAR DYSFUNCTION OF BLADDER, UNSPECIFIED',
-      pdpmComorbidities: '',
-      clinicalCategory: 'Medical Management',
-      date: '9/17/2024',
-      rank: 'C',
-      classification: 'Admission',
-      createdDate: '9/23/2024',
-      createdBy: 'dawn.odie'
-    },
-    {
-      code: 'F20.9',
-      description: 'SCHIZOPHRENIA, UNSPECIFIED',
-      pdpmComorbidities: '',
-      clinicalCategory: 'Medical Management',
-      date: '12/2/2024',
-      rank: 'D',
-      classification: 'During Stay',
-      createdDate: '12/4/2024',
-      createdBy: 'dawn.odie'
-    },
-    {
-      code: 'L03.211',
-      description: 'CELLULITIS OF FACE',
-      pdpmComorbidities: '',
-      clinicalCategory: 'Acute Infections',
-      date: '1/16/2025',
-      rank: 'E',
-      classification: 'During Stay',
-      createdDate: '1/17/2025',
-      createdBy: 'dawn.odie'
-    },
-    {
-      code: 'F41.1',
-      description: 'GENERALIZED ANXIETY DISORDER',
-      pdpmComorbidities: '',
-      clinicalCategory: 'N/A, not an acceptable Primary Diagnosis',
-      date: '10/16/2024',
-      rank: 'N/A',
-      classification: '',
-      createdDate: '10/16/2024',
-      createdBy: 'jackson.edward'
-    },
-    {
-      code: 'H10.9',
-      description: 'UNSPECIFIED CONJUNCTIVITIS',
-      pdpmComorbidities: '',
-      clinicalCategory: '',
-      date: '',
-      rank: '',
-      classification: '',
-      createdDate: '',
-      createdBy: ''
-    }
-  ];
+  const [icdCode, setIcdCode] = useState('');
+  const [description, setDescription] = useState('');
+  const [clinicalCategory, setClinicalCategory] = useState('');
+  const [rank, setRank] = useState('');
+  const [classification, setClassification] = useState('');
 
   const handleExportExcel = () => {
-    exportToExcel(diagnosesData, 'medical-diagnoses');
+    exportToExcel(diagnoses, 'medical-diagnoses');
   };
 
   const handleExportPdf = () => {
-    exportToPdf('Medical Diagnoses Report', diagnosesData);
+    exportToPdf('Medical Diagnoses Report', diagnoses);
+  };
+
+  const handleAddDiagnosis = async () => {
+    if (!icdCode || !description) {
+      return;
+    }
+
+    await addDiagnosis.mutateAsync({
+      patient_id: patientId,
+      icd_code: icdCode,
+      description,
+      clinical_category: clinicalCategory,
+      diagnosis_rank: rank,
+      classification,
+      diagnosis_date: new Date().toISOString(),
+      created_by: user?.id,
+    });
+
+    setIcdCode('');
+    setDescription('');
+    setClinicalCategory('');
+    setRank('');
+    setClassification('');
+    setIsAddDiagnosisOpen(false);
   };
 
   return (
@@ -168,53 +97,63 @@ const MedicalDiagnosesTab: React.FC<MedicalDiagnosesTabProps> = ({ patientId }) 
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <Label htmlFor="diagnosis-code">Diagnosis Code (ICD-10)</Label>
-                    <Input id="diagnosis-code" placeholder="Enter ICD-10 code" />
+                    <Input
+                      id="diagnosis-code"
+                      placeholder="Enter ICD-10 code"
+                      value={icdCode}
+                      onChange={(e) => setIcdCode(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="description">Description</Label>
-                    <Input id="description" placeholder="Diagnosis description" />
+                    <Input
+                      id="description"
+                      placeholder="Diagnosis description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="category">Clinical Category</Label>
-                    <Select>
+                    <Select value={clinicalCategory} onValueChange={setClinicalCategory}>
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select clinical category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="medical-management">Medical Management</SelectItem>
-                        <SelectItem value="acute-neurologic">Acute Neurologic</SelectItem>
-                        <SelectItem value="acute-infections">Acute Infections</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="Medical Management">Medical Management</SelectItem>
+                        <SelectItem value="Acute Neurologic">Acute Neurologic</SelectItem>
+                        <SelectItem value="Acute Infections">Acute Infections</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="rank">Rank</Label>
-                    <Select>
+                    <Select value={rank} onValueChange={setRank}>
                       <SelectTrigger id="rank">
                         <SelectValue placeholder="Select rank" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="primary">Primary</SelectItem>
-                        <SelectItem value="a">A</SelectItem>
-                        <SelectItem value="b">B</SelectItem>
-                        <SelectItem value="c">C</SelectItem>
-                        <SelectItem value="d">D</SelectItem>
-                        <SelectItem value="e">E</SelectItem>
-                        <SelectItem value="f">F</SelectItem>
-                        <SelectItem value="na">N/A</SelectItem>
+                        <SelectItem value="Primary">Primary</SelectItem>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="B">B</SelectItem>
+                        <SelectItem value="C">C</SelectItem>
+                        <SelectItem value="D">D</SelectItem>
+                        <SelectItem value="E">E</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
+                        <SelectItem value="N/A">N/A</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label htmlFor="classification">Classification</Label>
-                    <Select>
+                    <Select value={classification} onValueChange={setClassification}>
                       <SelectTrigger id="classification">
                         <SelectValue placeholder="Select classification" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admission">Admission</SelectItem>
-                        <SelectItem value="during-stay">During Stay</SelectItem>
+                        <SelectItem value="Admission">Admission</SelectItem>
+                        <SelectItem value="During Stay">During Stay</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -224,7 +163,9 @@ const MedicalDiagnosesTab: React.FC<MedicalDiagnosesTabProps> = ({ patientId }) 
                 <Button variant="outline" onClick={() => setIsAddDiagnosisOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">Submit</Button>
+                <Button onClick={handleAddDiagnosis} disabled={addDiagnosis.isPending}>
+                  Submit
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -272,36 +213,46 @@ const MedicalDiagnosesTab: React.FC<MedicalDiagnosesTabProps> = ({ patientId }) 
         </div>
       )}
       
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Code</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>PDPM Comorbidities</TableHead>
-            <TableHead>Clinical Category</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Rank</TableHead>
-            <TableHead>Classification</TableHead>
-            <TableHead>Created Date</TableHead>
-            <TableHead>Created By</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {diagnosesData.map((diagnosis, index) => (
-            <TableRow key={`${diagnosis.code}-${index}`}>
-              <TableCell>{diagnosis.code}</TableCell>
-              <TableCell>{diagnosis.description}</TableCell>
-              <TableCell>{diagnosis.pdpmComorbidities}</TableCell>
-              <TableCell>{diagnosis.clinicalCategory}</TableCell>
-              <TableCell>{diagnosis.date}</TableCell>
-              <TableCell>{diagnosis.rank}</TableCell>
-              <TableCell>{diagnosis.classification}</TableCell>
-              <TableCell>{diagnosis.createdDate}</TableCell>
-              <TableCell>{diagnosis.createdBy}</TableCell>
+      {isLoading ? (
+        <div className="flex justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Clinical Category</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Rank</TableHead>
+              <TableHead>Classification</TableHead>
+              <TableHead>Created Date</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {diagnoses.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                  No diagnoses recorded
+                </TableCell>
+              </TableRow>
+            ) : (
+              diagnoses.map((diagnosis) => (
+                <TableRow key={diagnosis.id}>
+                  <TableCell>{diagnosis.icd_code}</TableCell>
+                  <TableCell>{diagnosis.description}</TableCell>
+                  <TableCell>{diagnosis.clinical_category || '-'}</TableCell>
+                  <TableCell>{diagnosis.diagnosis_date ? format(new Date(diagnosis.diagnosis_date), 'M/d/yyyy') : '-'}</TableCell>
+                  <TableCell>{diagnosis.diagnosis_rank || '-'}</TableCell>
+                  <TableCell>{diagnosis.classification || '-'}</TableCell>
+                  <TableCell>{diagnosis.created_at ? format(new Date(diagnosis.created_at), 'M/d/yyyy') : '-'}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 };

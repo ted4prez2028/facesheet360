@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSpreadsheet, FileText, Plus, MoreHorizontal } from 'lucide-react';
 import { exportToExcel, exportToPdf } from '@/utils/exportUtils';
+import { useImmunizations } from '@/hooks/useImmunizations';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -15,69 +17,47 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface Immunization {
-  vaccine: string;
-  cvxCode: string;
-  dateAdministered?: string;
-  status: string;
-  source: string;
-  [key: string]: any;
-}
-
 interface ImmunizationsTabProps {
   patientId: string;
 }
 
 const ImmunizationsTab: React.FC<ImmunizationsTabProps> = ({ patientId }) => {
+  const { user } = useAuth();
+  const { immunizations, isLoading, addImmunization } = useImmunizations(patientId);
   const [isAddImmunizationOpen, setIsAddImmunizationOpen] = useState(false);
-  
-  // Sample data based on the screenshot
-  const immunizationsData: Immunization[] = [
-    {
-      vaccine: 'Pneumococcal PCV13',
-      cvxCode: '133',
-      status: 'Refused',
-      source: 'System'
-    },
-    {
-      vaccine: 'Influenza (standard dose syringe)',
-      cvxCode: '201',
-      status: 'Refused',
-      source: 'System'
-    },
-    {
-      vaccine: 'RSVPreF3 (Abrysvo)',
-      cvxCode: '93',
-      status: 'Refused',
-      source: 'System'
-    },
-    {
-      vaccine: 'Moderna COVID-19 Vaccine',
-      cvxCode: '207',
-      status: 'Refused',
-      source: 'System'
-    },
-    {
-      vaccine: 'TB 1 Step Mantoux (PPD)',
-      cvxCode: '96',
-      status: 'Refused',
-      source: 'System'
-    },
-    {
-      vaccine: 'T dap',
-      cvxCode: '996',
-      dateAdministered: '11/16/2024',
-      status: 'Complete',
-      source: 'System'
-    }
-  ];
+  const [vaccine, setVaccine] = useState('');
+  const [cvxCode, setCvxCode] = useState('');
+  const [dateAdministered, setDateAdministered] = useState('');
+  const [status, setStatus] = useState('');
 
   const handleExportExcel = () => {
-    exportToExcel(immunizationsData, 'immunizations');
+    exportToExcel(immunizations, 'immunizations');
   };
 
   const handleExportPdf = () => {
-    exportToPdf('Immunizations Record', immunizationsData);
+    exportToPdf('Immunizations Record', immunizations);
+  };
+
+  const handleAddImmunization = async () => {
+    if (!vaccine || !status) {
+      return;
+    }
+
+    await addImmunization.mutateAsync({
+      patient_id: patientId,
+      vaccine_name: vaccine,
+      cvx_code: cvxCode,
+      date_administered: dateAdministered || undefined,
+      status,
+      source: 'Manual Entry',
+      administered_by: user?.id,
+    });
+
+    setVaccine('');
+    setCvxCode('');
+    setDateAdministered('');
+    setStatus('');
+    setIsAddImmunizationOpen(false);
   };
 
   return (
@@ -107,83 +87,92 @@ const ImmunizationsTab: React.FC<ImmunizationsTabProps> = ({ patientId }) => {
               <div className="grid gap-4 py-4">
                 <div>
                   <Label htmlFor="vaccine-name">Vaccine</Label>
-                  <Select>
-                    <SelectTrigger id="vaccine-name">
-                      <SelectValue placeholder="Select vaccine" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pneumococcal">Pneumococcal PCV13</SelectItem>
-                      <SelectItem value="influenza">Influenza (standard dose syringe)</SelectItem>
-                      <SelectItem value="covid">Moderna COVID-19 Vaccine</SelectItem>
-                      <SelectItem value="tdap">T dap</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="vaccine-name"
+                    placeholder="Enter vaccine name"
+                    value={vaccine}
+                    onChange={(e) => setVaccine(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cvx-code">CVX Code</Label>
+                  <Input
+                    id="cvx-code"
+                    placeholder="Enter CVX code"
+                    value={cvxCode}
+                    onChange={(e) => setCvxCode(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="date-administered">Date Administered</Label>
-                  <Input id="date-administered" type="date" />
+                  <Input
+                    id="date-administered"
+                    type="date"
+                    value={dateAdministered}
+                    onChange={(e) => setDateAdministered(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="status">Status</Label>
-                  <Select>
+                  <Select value={status} onValueChange={setStatus}>
                     <SelectTrigger id="status">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="complete">Complete</SelectItem>
-                      <SelectItem value="refused">Refused</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="Complete">Complete</SelectItem>
+                      <SelectItem value="Refused">Refused</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setIsAddImmunizationOpen(false)}>Cancel</Button>
-                <Button>Add Immunization</Button>
+                <Button onClick={handleAddImmunization} disabled={addImmunization.isPending}>
+                  Add Immunization
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Vaccine</TableHead>
-            <TableHead>CVX Code</TableHead>
-            <TableHead>Date Administered</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Source</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {immunizationsData.map((immunization, index) => (
-            <TableRow key={`${immunization.cvxCode}-${index}`}>
-              <TableCell>{immunization.vaccine}</TableCell>
-              <TableCell>{immunization.cvxCode}</TableCell>
-              <TableCell>{immunization.dateAdministered || '-'}</TableCell>
-              <TableCell>{immunization.status}</TableCell>
-              <TableCell>{immunization.source}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Open menu</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                    <DropdownMenuItem>Edit Record</DropdownMenuItem>
-                    <DropdownMenuItem>Print Certificate</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+      {isLoading ? (
+        <div className="flex justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Vaccine</TableHead>
+              <TableHead>CVX Code</TableHead>
+              <TableHead>Date Administered</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Source</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {immunizations.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                  No immunization records found
+                </TableCell>
+              </TableRow>
+            ) : (
+              immunizations.map((immunization) => (
+                <TableRow key={immunization.id}>
+                  <TableCell>{immunization.vaccine_name}</TableCell>
+                  <TableCell>{immunization.cvx_code || '-'}</TableCell>
+                  <TableCell>{immunization.date_administered || '-'}</TableCell>
+                  <TableCell>{immunization.status}</TableCell>
+                  <TableCell>{immunization.source || 'System'}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 };
