@@ -160,7 +160,7 @@ const createPDFDocument = (data: DischargeData) => {
       },
       {
         text: data.notes.length > 0 
-          ? data.notes.slice(0, 3).map(note => note.note_content).join('\n\n')
+          ? data.notes.slice(0, 3).map(note => note.content).join('\n\n')
           : 'Patient was admitted and received appropriate medical care. Condition improved during hospital stay. Patient is being discharged in stable condition.',
         style: 'bodyText',
         margin: [0, 0, 0, 15]

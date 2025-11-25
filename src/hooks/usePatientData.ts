@@ -51,7 +51,7 @@ export const usePatientData = (selectedPatient: string | null, patientData: Loca
     notes: notes.map((note: any) => ({
       id: note.id,
       date: note.created_at || new Date().toISOString(),
-      content: note.note_content || '',
+      content: note.content || '',
       author: note.users?.name || 'Unknown',
       type: note.note_type || 'general',
       created_at: note.created_at || new Date().toISOString()
