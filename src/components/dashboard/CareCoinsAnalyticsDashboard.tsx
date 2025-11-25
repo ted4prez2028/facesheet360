@@ -134,7 +134,7 @@ export const CareCoinsAnalyticsDashboard = () => {
       const breakdown: Record<string, { total: number; patient: number; provider: number; admin: number }> = {};
       
       profits?.forEach(p => {
-        const type = p.chart_type || 'unknown';
+        const type = p.chart_type;
         if (!breakdown[type]) {
           breakdown[type] = { total: 0, patient: 0, provider: 0, admin: 0 };
         }
@@ -298,7 +298,7 @@ export const CareCoinsAnalyticsDashboard = () => {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {distributionData.map((_entry, index) => (
+                    {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

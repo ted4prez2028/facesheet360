@@ -107,6 +107,7 @@ contract CareCoin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, Reentra
      */
     function burn(uint256 amount, string memory reason) 
         public 
+        override 
         whenNotPaused 
     {
         require(
@@ -250,11 +251,11 @@ contract CareCoin is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, Reentra
     /**
      * @dev Override required by Solidity
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount)
+    function _update(address from, address to, uint256 value)
         internal
         override(ERC20, ERC20Pausable)
     {
-        super._beforeTokenTransfer(from, to, amount);
+        super._update(from, to, value);
     }
 }
 

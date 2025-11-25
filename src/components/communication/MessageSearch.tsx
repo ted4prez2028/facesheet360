@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 interface SearchResult {
   id: string;
   content: string;
-  created_at: string | null;
+  created_at: string;
   sender_id: string;
   conversation_id: string;
   sender_name: string;
@@ -51,7 +51,7 @@ const MessageSearch: React.FC<MessageSearchProps> = ({ onClose, onResultClick })
 
       if (error) throw error;
 
-      const formattedResults: SearchResult[] = data?.map(msg => ({
+      const formattedResults = data?.map(msg => ({
         id: msg.id,
         content: msg.content,
         created_at: msg.created_at,
@@ -79,8 +79,7 @@ const MessageSearch: React.FC<MessageSearchProps> = ({ onClose, onResultClick })
     }
   };
 
-  const formatDate = (timestamp: string | null) => {
-    if (!timestamp) return 'Unknown date';
+  const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
 

@@ -120,7 +120,7 @@ export const DeploymentStatus = () => {
                 </div>
               )}
               <div className="text-xs text-muted-foreground pt-2 border-t">
-                Deployed: {deployment.deployed_at ? new Date(deployment.deployed_at).toLocaleString() : 'N/A'}
+                Deployed: {new Date(deployment.deployed_at).toLocaleString()}
               </div>
             </CardContent>
           </Card>

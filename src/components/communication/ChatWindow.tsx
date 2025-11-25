@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import FileAttachment from './FileAttachment';
 import VoiceRecorder from './VoiceRecorder';
 import EmojiPicker from './EmojiPicker';
+import MessageItem from './MessageItem';
 import { toast } from 'sonner';
 
 interface Message {
@@ -97,7 +98,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           if (error) throw error;
 
           setMessages(prev =>
-            prev.map(m => (m.id === msg.client_id ? data as Message : m))
+            prev.map(m => (m.id === msg.client_id ? { ...data, author: data.sender_id, platform: 'facesheet360' } : m))
           );
         } catch {
           remaining.push(msg);
@@ -278,7 +279,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     setSelectedFile(file);
   };
 
-  const _uploadFile = async (file: File): Promise<{ fileUrl: string; fileName: string; fileType: string; fileSize: number } | null> => {
+  const uploadFile = async (file: File): Promise<{ fileUrl: string; fileName: string; fileType: string; fileSize: number } | null> => {
     try {
       setUploadingFile(true);
       const fileExt = file.name.split('.').pop();
@@ -326,7 +327,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   };
 
-  const _refreshMessages = () => {
+  const refreshMessages = () => {
     // Chat disabled
   };
 

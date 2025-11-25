@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
@@ -100,7 +100,7 @@ export const UserRolesManager = () => {
   const handleAssignRole = async (values: z.infer<typeof formSchema>) => {
     try {
       // Call the edge function to assign the role
-      const { error } = await supabase.functions.invoke('assign-user-role', {
+      const { data, error } = await supabase.functions.invoke('assign-user-role', {
         body: {
           userId: values.userId,
           role: values.role
