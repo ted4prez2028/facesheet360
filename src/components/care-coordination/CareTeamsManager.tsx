@@ -61,7 +61,12 @@ export function CareTeamsManager() {
       .select('id, name')
       .order('name');
     
-    if (data) setPatients(data);
+    if (data) {
+      setPatients(data.map(p => ({
+        ...p,
+        name: p.name || 'Unknown Patient'
+      })) as any);
+    }
   };
 
   const fetchStaff = async () => {

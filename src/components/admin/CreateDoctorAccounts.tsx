@@ -137,6 +137,10 @@ const CreateDoctorAccounts = () => {
         throw error;
       }
 
+      if (!data) {
+        throw new Error('No response data received');
+      }
+
       setResults(data.results);
 
       const successful = data.results.filter((r) => r.success).length;
