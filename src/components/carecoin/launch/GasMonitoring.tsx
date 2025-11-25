@@ -86,14 +86,14 @@ export const GasMonitoring = () => {
           <div className="pt-2 border-t">
             <div className="text-xs text-muted-foreground mb-1">Last Refill</div>
             <div className="text-sm">
-              {Number(gasData.last_refill_amount).toFixed(2)} MATIC on{" "}
+              {Number(gasData.last_refill_amount ?? 0).toFixed(2)} MATIC on{" "}
               {new Date(gasData.last_refill_at).toLocaleDateString()}
             </div>
           </div>
         )}
 
         <div className="text-xs text-muted-foreground pt-2 border-t">
-          Last checked: {new Date(gasData.created_at).toLocaleString()}
+          Last checked: {gasData.created_at ? new Date(gasData.created_at).toLocaleString() : 'N/A'}
         </div>
       </CardContent>
     </Card>

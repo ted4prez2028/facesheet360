@@ -17,7 +17,7 @@ interface Transaction {
 
 export function MonitoringDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [systemHealth, setSystemHealth] = useState({
+  const [systemHealth] = useState({
     status: 'healthy',
     uptime: '99.9%',
     lastCheck: new Date()
@@ -54,7 +54,13 @@ export function MonitoringDashboard() {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    if (data) setTransactions(data);
+    if (data) {
+      setTransactions(data.map(tx => ({ 
+        ...tx, 
+        status: tx.status || 'pending',
+        created_at: tx.created_at || new Date().toISOString()
+      })));
+    }
   };
 
   const getStatusIcon = (status: string) => {
