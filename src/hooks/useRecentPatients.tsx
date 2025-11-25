@@ -34,7 +34,7 @@ export const useRecentPatients = (limit: number = 5) => {
           .select(`
             id,
             created_at,
-            note_content,
+            content,
             patient_id,
             patients:patient_id (
               id,
@@ -86,7 +86,7 @@ export const useRecentPatients = (limit: number = 5) => {
 
             // Determine status from note content
             let status = "Stable";
-            const noteContentLower = (record.note_content || "").toLowerCase();
+            const noteContentLower = (record.content || "").toLowerCase();
             if (noteContentLower.includes("critical") || noteContentLower.includes("severe")) {
               status = "Critical";
             } else if (noteContentLower.includes("follow")) {
@@ -97,7 +97,7 @@ export const useRecentPatients = (limit: number = 5) => {
               id: patient.id,
               name: patient.name,
               age,
-              condition: record.note_content ? record.note_content.substring(0, 50) + "..." : "General note",
+              condition: record.content ? record.content.substring(0, 50) + "..." : "General note",
               lastVisit,
               status
             };
